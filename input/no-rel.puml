@@ -1,0 +1,4 @@
+@startuml No relationships Diagram
+Car *-- Engine : has
+Garage "1" --> "0..*" Car : stores
+@enduml

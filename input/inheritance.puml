@@ -1,0 +1,15 @@
+@startuml Single Inheritance Diagram
+' Inheritance (single)
+class Animal {
+  +name: string
+  +Speak(): string
+}
+class Dog {
+  +Bark(): string
+}
+class Cat {
+  +Meow(): string
+}
+Animal <|-- Dog
+Animal <|-- Cat
+@enduml

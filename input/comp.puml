@@ -1,0 +1,9 @@
+@startuml Composition
+class House {
+  +address: string
+}
+class Room {
+  +area: float
+}
+House *-- "1..*" Room : contains
+@enduml

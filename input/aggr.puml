@@ -1,0 +1,12 @@
+@startuml Aggregation
+
+class Team {
+  +name: string
+}
+class Player {
+  +number: int
+}
+
+Team "1" o-- "0..*" Player : has players
+
+@enduml

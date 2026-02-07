@@ -1,0 +1,26 @@
+@startuml Combined Relationships Diagram
+
+class Engine {
+  +start(): bool
+}
+class Wheel {
+  +size: int
+}
+class Car {
+  -vin: string
+  +Drive(destination: string): error
+}
+class Garage {
+  +location: string
+}
+class Person {
+  +name: string
+  +DriveCar(c: Car): error
+}
+
+Vehicle <|-- Car
+Car *-- Engine : has
+Car o-- "4" Wheel : uses
+Garage "1" --> "0..*" Car : stores
+Person ..> Car : drives
+@enduml

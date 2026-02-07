@@ -1,0 +1,18 @@
+@startuml Interface realization and dependency
+
+interface Repository {
+  +Save(entity: any): error
+  +Find(id: string): any
+}
+class UserService {
+  +repo: Repository
+  +CreateUser(u: User): error
+}
+class User {
+  +id: string
+  +email: string
+}
+
+UserService ..> Repository : depends on
+UserService ..|> Repository : <<implements>>  ' example (intentional mismatch to test handling)
+@enduml

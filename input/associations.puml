@@ -1,0 +1,19 @@
+@startuml Associations and Multiplicities Diagram
+' Associations with multiplicities and named role
+class Customer {
+  +id: int
+  +name: string
+  +PlaceOrder(o: Order): bool
+}
+class Order {
+  +id: int
+  +total: float
+  +AddItem(i: Item)
+}
+class Item {
+  +sku: string
+  +price: float
+}
+Customer "1" --> "0..*" Order : places
+Order "1" --> "0..*" Item : contains
+@enduml
