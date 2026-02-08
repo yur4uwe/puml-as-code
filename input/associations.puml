@@ -1,5 +1,5 @@
 @startuml Associations and Multiplicities Diagram
-' Associations with multiplicities and named role
+
 class Customer {
   +id: int
   +name: string

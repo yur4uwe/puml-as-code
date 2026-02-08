@@ -37,7 +37,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (stri
 		}
 
 		// struct
-		buf.WriteString(fmt.Sprintf("type %s struct {\n", exportName(c.Name, ast.Public)))
+		fmt.Fprintf(&buf, "type %s struct {\n", exportName(c.Name, ast.Public))
 
 		rels, ok := diagram.Relationships.GetRelationships(c.Name)
 		if !ok {
@@ -68,13 +68,13 @@ func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (stri
 			if rel.Type == ast.Inheritance {
 				// for inheritance, embed the type
 				if rel.From.Name == c.Name {
-					buf.WriteString(fmt.Sprintf("\t%s\n", typedef))
+					fmt.Fprintf(&buf, "\t%s\n", typedef)
 				}
 				continue
 			}
 			if rel.To.Name == c.Name {
 				fieldName := exportName(targetName, ast.Public)
-				buf.WriteString(fmt.Sprintf("\t%s %s\n", fieldName, typedef))
+				fmt.Fprintf(&buf, "\t%s %s\n", fieldName, typedef)
 			}
 		}
 
@@ -82,7 +82,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (stri
 		for _, a := range c.Attributes {
 			fieldName := exportName(a.Name, a.Visibility)
 			goType := RenderType(a.Type)
-			buf.WriteString(fmt.Sprintf("\t%s %s\n", fieldName, goType))
+			fmt.Fprintf(&buf, "\t%s %s\n", fieldName, goType)
 		}
 
 		buf.WriteString("}\n\n")
@@ -92,7 +92,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (stri
 			methodName := exportName(m.Name, m.Visibility)
 			params := buildParams(m.Parameters)
 			ret := RenderType(m.ReturnType)
-			buf.WriteString(fmt.Sprintf("func (%s *%s) %s(%s) %s {\n", recv, exportName(c.Name, ast.Public), methodName, params, ret))
+			fmt.Fprintf(&buf, "func (%s *%s) %s(%s) %s {\n", recv, exportName(c.Name, ast.Public), methodName, params, ret)
 			buf.WriteString("\tpanic(\"TODO: implement\")\n")
 			buf.WriteString("}\n\n")
 		}
