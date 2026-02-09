@@ -15,10 +15,10 @@ func TestLexer(t *testing.T) {
 		{
 			name: "SimpleClassDeclaration",
 			input: `class Foo {
-  +id : int
-  -name : string
-  foo() : void
-}`,
+				+id : int
+  				-name : string
+  				foo() : void
+  			}`,
 			expectedTokens: []string{
 				"CLASS:class",
 				"IDENTIFIER:Foo",
@@ -59,8 +59,8 @@ func TestLexer(t *testing.T) {
 		{
 			name: "EscapedName",
 			input: `class Foo {
-	  \~bar()
-	}`,
+	  			\~bar()
+			}`,
 			expectedTokens: []string{
 				"CLASS:class",
 				"IDENTIFIER:Foo",
@@ -76,12 +76,11 @@ func TestLexer(t *testing.T) {
 		{
 			name: "ClassVisibility",
 			input: `@startuml
--class "private Class" {}
-#class "protected Class" {}
-~class "package private Class" {}
-+class "public Class" {}
-@enduml
-`,
+			-class "private Class" {}
+			#class "protected Class" {}
+			~class "package private Class" {}
+			+class "public Class" {}
+			@enduml`,
 			expectedTokens: []string{
 				"@startuml:startuml",
 				"VISIBILITY:-",
@@ -114,9 +113,9 @@ func TestLexer(t *testing.T) {
 		{
 			name: "ClassModifiers",
 			input: `abstract class Foo {
-	  {abstract} method()
-	  {static} method()
-	}`,
+	  			{abstract} method()
+				{static} method()
+			}`,
 			expectedTokens: []string{
 				"MODIFIER:abstract",
 				"CLASS:class",
@@ -139,10 +138,10 @@ func TestLexer(t *testing.T) {
 		{
 			name: "Enum",
 			input: `enum {
-		DAYS
-		HOURS
-		MINUTES
-	}`,
+				DAYS
+				HOURS
+				MINUTES
+			}`,
 			expectedTokens: []string{
 				"ENUM:enum",
 				"{:{",
@@ -159,10 +158,10 @@ func TestLexer(t *testing.T) {
 		{
 			name: "Package",
 			input: `package {
-		class Foo {
-			method()
-		}
-	}`,
+				class Foo {
+					method()
+				}
+			}`,
 			expectedTokens: []string{
 				"PACKAGE:package",
 				"{:{",
@@ -183,11 +182,11 @@ func TestLexer(t *testing.T) {
 		{
 			name: "Alias",
 			input: `class "Foo Bar" as Foo {
-		method()
-	}
-	class Baz as "Baz Faz" {
-		method()
-	}`,
+				method()
+			}
+			class Baz as "Baz Faz" {
+				method()
+			}`,
 			expectedTokens: []string{
 				"CLASS:class",
 				"STRING:\"Foo Bar\"",
@@ -217,12 +216,12 @@ func TestLexer(t *testing.T) {
 		{
 			name: "Relationship",
 			input: `class Foo {
-		method()
-	}
-	class Bar {
-		method()
-	}
-	Foo -- Bar`,
+				method()
+			}
+			class Bar {
+				method()
+			}
+			Foo -- Bar`,
 			expectedTokens: []string{
 				"CLASS:class",
 				"IDENTIFIER:Foo",
@@ -251,18 +250,74 @@ func TestLexer(t *testing.T) {
 		},
 		{
 			name: "Stereotype",
-			input: `
-class System << (S,#FF7700) Singleton >>
-class Date << (D,orchid) >>`,
+			input: `class System << (S,#FF7700) Singleton >>
+			class Date << (D,orchid) >>`,
 			expectedTokens: []string{
 				"CLASS:class",
 				"IDENTIFIER:System",
-				"STEREOTYPE:<< (S,#FF7700) Singleton>>",
+				"STEREOTYPE:<< (S,#FF7700) Singleton >>",
 				"NEWLINE:\n",
 				"CLASS:class",
 				"IDENTIFIER:Date",
-				"STEREOTYPE:<< (D,orchid)>>",
+				"STEREOTYPE:<< (D,orchid) >>",
+			},
+		},
+		{
+			name: "DecoratedRelationships",
+			input: `Class21 #-- Class22
+			Class23 x-- Class24
+			Class25 }-- Class26
+			Class27 +-- Class28
+			Class29 ^-- Class30`,
+			expectedTokens: []string{
+				"IDENTIFIER:Class21",
+				"RELATIONSHIP:#--",
+				"IDENTIFIER:Class22",
 				"NEWLINE:\n",
+				"IDENTIFIER:Class23",
+				"RELATIONSHIP:x--",
+				"IDENTIFIER:Class24",
+				"NEWLINE:\n",
+				"IDENTIFIER:Class25",
+				"RELATIONSHIP:}--",
+				"IDENTIFIER:Class26",
+				"NEWLINE:\n",
+				"IDENTIFIER:Class27",
+				"RELATIONSHIP:+--",
+				"IDENTIFIER:Class28",
+				"NEWLINE:\n",
+				"IDENTIFIER:Class29",
+				"RELATIONSHIP:^--",
+				"IDENTIFIER:Class30",
+			},
+		},
+		{
+			name: "VisibilityVsDecoratedRelation",
+			input: `class Foo {
+				+id : int
+			#method()
+			Foo +-- Bar
+			}`,
+			expectedTokens: []string{
+				"CLASS:class",
+				"IDENTIFIER:Foo",
+				"{:{",
+				"NEWLINE:\n",
+				"VISIBILITY:+",
+				"IDENTIFIER:id",
+				":::",
+				"IDENTIFIER:int",
+				"NEWLINE:\n",
+				"VISIBILITY:#",
+				"IDENTIFIER:method",
+				"(:(",
+				"):)",
+				"NEWLINE:\n",
+				"IDENTIFIER:Foo",
+				"RELATIONSHIP:+--",
+				"IDENTIFIER:Bar",
+				"NEWLINE:\n",
+				"}:}",
 			},
 		},
 	}

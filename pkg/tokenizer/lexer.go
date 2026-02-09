@@ -142,6 +142,15 @@ func isVisibilityRune(ch rune) bool {
 	return ch == '+' || ch == '-' || ch == '#' || ch == '~'
 }
 
+// peekAhead looks ahead n positions from current readPos
+func (l *Lexer) peekAhead(n int) rune {
+	pos := l.readPos + n - 1
+	if pos >= len(l.input) {
+		return 0
+	}
+	return l.input[pos]
+}
+
 func (l *Lexer) readUMLBounds() Token {
 	start := l.position
 	l.readChar() // consume '@'

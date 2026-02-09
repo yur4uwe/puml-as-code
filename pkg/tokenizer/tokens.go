@@ -1,6 +1,8 @@
 package tokenizer
 
-import "unicode"
+import (
+	"unicode"
+)
 
 type TokenType int
 
@@ -130,8 +132,14 @@ func TokenFactory(l *Lexer) Token {
 		tok = Token{Type: LBRACE, Literal: "{", Pos: l.position}
 		l.readChar()
 	case l.ch == '}':
-		tok = Token{Type: RBRACE, Literal: "}", Pos: l.position}
 		l.readChar()
+		if l.ch == '-' {
+			start := l.position - 1
+			lit := l.readRelation()
+			tok = Token{Type: RELATIONSHIP, Literal: "}" + lit, Pos: start}
+		} else {
+			tok = Token{Type: RBRACE, Literal: "}", Pos: l.position}
+		}
 	case l.ch == '(':
 		tok = Token{Type: LPAREN, Literal: "(", Pos: l.position}
 		l.readChar()
@@ -158,16 +166,21 @@ func TokenFactory(l *Lexer) Token {
 		start := l.position
 		lit := l.readLineComment()
 		tok = Token{Type: COMMENT, Literal: lit, Pos: start}
-	case isVisibilityRune(l.ch) && !isVisibilityRune(l.peekChar()):
-		tok = Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}
-		l.readChar()
 	case l.ch == '<' && l.peekChar() == '<':
-		tok = Token{Type: STEREOTYPE, Literal: "<<", Pos: l.position}
-		l.readChar()
-	case isRelationChar(l.ch):
-		start := l.position
-		lit := l.readRelation()
-		tok = Token{Type: RELATIONSHIP, Literal: lit, Pos: start}
+		tok = l.readStereotype()
+	case isRelationChar(l.ch) && l.ch == '~':
+		// Check if this is a relation (includes decorated relations like #--, x--, etc.)
+		// or a standalone visibility marker
+		if isVisibilityRune(l.ch) && !isRelationChar(l.peekChar()) {
+			// It's a visibility marker: single +, -, #, or ~ not followed by a relation char
+			tok = Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}
+			l.readChar()
+		} else {
+			// It's a relationship (possibly decorated)
+			start := l.position
+			lit := l.readRelation()
+			tok = Token{Type: RELATIONSHIP, Literal: lit, Pos: start}
+		}
 	case l.ch == '\\' || l.ch == '$' || isLetter(l.ch):
 		start := l.position
 		lit := l.readIdentifier()
