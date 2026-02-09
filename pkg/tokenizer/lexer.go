@@ -51,11 +51,22 @@ func isLetter(ch rune) bool {
 }
 
 func (l *Lexer) readIdentifier() string {
-	start := l.position
-	for isLetter(l.ch) || unicode.IsDigit(l.ch) {
-		l.readChar()
+	var result []rune
+
+	for {
+		if l.ch == '\\' && l.peekChar() != 0 {
+			// Skip the backslash and take the next character literally
+			l.readChar()
+			result = append(result, l.ch)
+			l.readChar()
+		} else if isLetter(l.ch) || unicode.IsDigit(l.ch) {
+			result = append(result, l.ch)
+			l.readChar()
+		} else {
+			break
+		}
 	}
-	return string(l.input[start:l.position])
+	return string(result)
 }
 
 func lookupKeyword(ident string) TokenType {
@@ -66,6 +77,12 @@ func lookupKeyword(ident string) TokenType {
 		return INTERFACE
 	case "enum":
 		return ENUM
+	case "abstract":
+		return MODIFIER
+	case "package":
+		return PACKAGE
+	case "as":
+		return ALIAS
 	default:
 		return IDENTIFIER
 	}
@@ -106,7 +123,7 @@ func (l *Lexer) readLineComment() string {
 
 func isRelationChar(ch rune) bool {
 	switch ch {
-	case '-', '.', '<', '>', '|', 'o', '*':
+	case '-', '.', '<', '>', '|', 'o', '*', '#', '+', '}', '{', 'x', '^':
 		return true
 	default:
 		return false
@@ -137,4 +154,32 @@ func (l *Lexer) readUMLBounds() Token {
 	default:
 		return Token{Type: IDENTIFIER, Literal: ident, Pos: start}
 	}
+}
+
+func (l *Lexer) readModifier() Token {
+	// starts with '{'
+	start := l.position
+	l.readChar() // consume '{'
+	for l.ch != '}' && l.ch != '\n' && l.ch != '\r' && l.ch != 0 {
+		l.readChar()
+	}
+	if l.ch == '}' {
+		l.readChar() // consume '}'
+	}
+	return Token{Type: MODIFIER, Literal: string(l.input[start:l.position]), Pos: start}
+}
+
+func (l *Lexer) readStereotype() Token {
+	// starts with '<<'
+	start := l.position
+	l.readChar() // consume '<'
+	l.readChar() // consume '<'
+	for l.ch != '>' && l.ch != '\n' && l.ch != '\r' && l.ch != 0 {
+		l.readChar()
+	}
+	if l.ch == '>' {
+		l.readChar() // consume '>'
+		l.readChar() // consume '>'
+	}
+	return Token{Type: STEREOTYPE, Literal: string(l.input[start:l.position]), Pos: start}
 }

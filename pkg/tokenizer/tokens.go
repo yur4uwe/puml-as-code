@@ -13,8 +13,13 @@ const (
 	NUMBER
 
 	CLASS
+	STRUCT
 	INTERFACE
 	ENUM
+	PACKAGE
+	ANNOTATION
+	NOTE
+	STEREOTYPE
 
 	LBRACE
 	RBRACE
@@ -25,10 +30,13 @@ const (
 	COMMA
 
 	VISIBILITY
+	MODIFIER
 
 	RELATIONSHIP
 
 	COMMENT
+	SEPARATOR
+	ALIAS
 	START
 	END
 )
@@ -49,6 +57,8 @@ func (t TokenType) String() string {
 		return "NUMBER"
 	case CLASS:
 		return "CLASS"
+	case STRUCT:
+		return "STRUCT"
 	case INTERFACE:
 		return "INTERFACE"
 	case ENUM:
@@ -77,6 +87,20 @@ func (t TokenType) String() string {
 		return "@startuml"
 	case END:
 		return "@enduml"
+	case PACKAGE:
+		return "PACKAGE"
+	case ANNOTATION:
+		return "ANNOTATION"
+	case NOTE:
+		return "NOTE"
+	case MODIFIER:
+		return "MODIFIER"
+	case ALIAS:
+		return "ALIAS"
+	case STEREOTYPE:
+		return "STEREOTYPE"
+	case SEPARATOR:
+		return "SEPARATOR"
 	default:
 		return "UNKNOWN"
 	}
@@ -99,6 +123,10 @@ func TokenFactory(l *Lexer) Token {
 	case l.ch == 0:
 		tok = Token{Type: EOF, Literal: "", Pos: l.position}
 	case l.ch == '{':
+		if isLetter(l.peekChar()) {
+			tok = l.readModifier()
+			break
+		}
 		tok = Token{Type: LBRACE, Literal: "{", Pos: l.position}
 		l.readChar()
 	case l.ch == '}':
@@ -133,11 +161,14 @@ func TokenFactory(l *Lexer) Token {
 	case isVisibilityRune(l.ch) && !isVisibilityRune(l.peekChar()):
 		tok = Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}
 		l.readChar()
+	case l.ch == '<' && l.peekChar() == '<':
+		tok = Token{Type: STEREOTYPE, Literal: "<<", Pos: l.position}
+		l.readChar()
 	case isRelationChar(l.ch):
 		start := l.position
 		lit := l.readRelation()
 		tok = Token{Type: RELATIONSHIP, Literal: lit, Pos: start}
-	case isLetter(l.ch):
+	case l.ch == '\\' || l.ch == '$' || isLetter(l.ch):
 		start := l.position
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)

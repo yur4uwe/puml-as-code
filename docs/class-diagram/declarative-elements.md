@@ -1,0 +1,29 @@
+# Class Diagram - Declarative Elements
+
+## Available Elements
+
+<plantuml>
+@startuml
+abstract        abstract
+abstract class  "abstract class"
+annotation      annotation
+circle          circle
+()              circle_short_form
+class           class
+class           class_stereo  <<stereotype>>
+dataclass       dataclass
+diamond         diamond
+<>              diamond_short_form
+entity          entity
+enum            enum
+exception       exception
+interface       interface
+metaclass       metaclass
+protocol        protocol
+record          record
+stereotype      stereotype
+struct          struct
+@enduml
+</plantuml>
+
+*[Ref. for ``protocol`` and ``struct``: [GH-1028](https://github.com/plantuml/plantuml/pull/1028), for ``exception``: [QA-16258](https://forum.plantuml.net/16258/adding-exception-keyword-for-class-diagram), for ``record`` and ``dataclass``: [GH-2232](https://github.com/plantuml/plantuml/pull/2232)]*
