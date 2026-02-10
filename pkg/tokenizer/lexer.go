@@ -11,6 +11,12 @@ type Lexer struct {
 	ch       rune
 }
 
+type lexerState struct {
+	position int
+	readPos  int
+	ch       rune
+}
+
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: []rune(input),
@@ -34,6 +40,20 @@ func (l *Lexer) peekChar() rune {
 		return 0
 	}
 	return l.input[l.readPos]
+}
+
+func (l *Lexer) dumpState() lexerState {
+	return lexerState{
+		position: l.position,
+		readPos:  l.readPos,
+		ch:       l.ch,
+	}
+}
+
+func (l *Lexer) restoreState(state lexerState) {
+	l.position = state.position
+	l.readPos = state.readPos
+	l.ch = state.ch
 }
 
 func (l *Lexer) NextToken() Token {
@@ -136,34 +156,42 @@ func isRelDirection(lit string) bool {
 	return lit == "left" || lit == "right" || lit == "up" || lit == "down"
 }
 
+func isLetterLikeRelChar(char rune) bool {
+	return char == 'o' || char == 'x'
+}
+
+// Possible optimization is to return other tokens as this function
+// can effectively figure out the token it confused for relation
+// for now leaving state dump is easy enough to reason about
 func (l *Lexer) readRelation() Token {
 	start := l.position
-	for isRelationChar(l.ch) {
-		if !isLetter(l.ch) {
-			l.readChar()
-			continue
-		}
 
-		lit := string(l.ch)
-		var i int
-		for i = l.position; i < len(l.input); i++ {
-			if isRelationChar(l.input[i]) || unicode.IsSpace(l.input[i]) {
-				break
+	for isRelationChar(l.ch) && (!isLetter(l.ch) || isLetterLikeRelChar(l.ch) && (isRelationChar(l.input[l.position-1]) || isRelationChar(l.input[l.position+1]))) {
+		l.readChar()
+	}
+
+	// Check if we have a direction keyword
+	if isLetter(l.ch) {
+		// Peek ahead to see if this looks like a direction
+		// Save current position to potentially backtrack
+		direction := l.readIdentifier()
+
+		if isRelDirection(direction) && isRelationChar(l.ch) {
+			// consume remaining relation chars
+			for isRelationChar(l.ch) {
+				l.readChar()
 			}
-			lit += string(l.input[i])
-		}
-		if isRelDirection(lit) && isRelationChar(l.input[i+1]) {
-			var j int
-			for j = i + 1; j < len(l.input); j++ {
-				if !isRelationChar(l.input[j]) {
-					break
-				}
-			}
-			return Token{Type: RELATIONSHIP, Literal: string(l.input[start:j]), Pos: start}
-		} else if !isRelationChar(l.input[i+1]) {
-			return Token{Type: VISIBILITY, Literal: string(l.ch), Pos: start}
+		} else {
+			// only -IDENTIFIER can reach this point so we can return VISIBILITY and restore to IDENTIFIER start
+			l.restoreState(lexerState{
+				ch:       l.input[start+1],
+				position: start + 1,
+				readPos:  start + 2,
+			})
+			return Token{Type: VISIBILITY, Literal: "-", Pos: start}
 		}
 	}
+
 	return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
 }
 

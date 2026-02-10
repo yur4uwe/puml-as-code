@@ -167,15 +167,15 @@ func TokenFactory(l *Lexer) Token {
 		tok = Token{Type: COMMENT, Literal: lit, Pos: start}
 	case l.ch == '<' && l.peekChar() == '<':
 		tok = l.readStereotype()
-	case isRelationChar(l.ch) || l.ch == '~':
+	case isRelationChar(l.ch) || l.ch == '~' || (l.ch == 'x' && !isLetter(l.peekChar()) && isRelationChar(l.peekChar())):
 		// Check if this is a relation (includes decorated relations like #--, x--, etc.)
 		// or a standalone visibility marker
-		if isVisibilityRune(l.ch) && !isRelationChar(l.peekChar()) {
+		if isVisibilityRune(l.ch) && l.ch != '-' && !isRelationChar(l.peekChar()) {
 			// It's a visibility marker: single +, -, #, or ~ not followed by a relation char
 			tok = Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}
 			l.readChar()
 		} else {
-			// It's a relationship (possibly decorated)
+			// It's a relationship or VISIBILITY(-) + IDENTIFIER
 			tok = l.readRelation()
 		}
 	case l.ch == '\\' || l.ch == '$' || isLetter(l.ch):

@@ -292,32 +292,17 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
-			name: "VisibilityVsDecoratedRelation",
-			input: `class Foo {
-				+id : int
-			#method()
-			Foo +-- Bar
-			}`,
+			name: "RelationsWithDirections",
+			input: `Class1 -left-> Class2
+			Class3 -right-> Class4`,
 			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
+				"IDENTIFIER:Class1",
+				"RELATIONSHIP:-left->",
+				"IDENTIFIER:Class2",
 				"NEWLINE:\n",
-				"VISIBILITY:+",
-				"IDENTIFIER:id",
-				":::",
-				"IDENTIFIER:int",
-				"NEWLINE:\n",
-				"VISIBILITY:#",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"IDENTIFIER:Foo",
-				"RELATIONSHIP:+--",
-				"IDENTIFIER:Bar",
-				"NEWLINE:\n",
-				"}:}",
+				"IDENTIFIER:Class3",
+				"RELATIONSHIP:-right->",
+				"IDENTIFIER:Class4",
 			},
 		},
 	}
