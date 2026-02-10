@@ -1,6 +1,8 @@
 package tokenizer
 
-import "unicode"
+import (
+	"unicode"
+)
 
 type Lexer struct {
 	input    []rune
@@ -130,12 +132,39 @@ func isRelationChar(ch rune) bool {
 	}
 }
 
-func (l *Lexer) readRelation() string {
+func isRelDirection(lit string) bool {
+	return lit == "left" || lit == "right" || lit == "up" || lit == "down"
+}
+
+func (l *Lexer) readRelation() Token {
 	start := l.position
 	for isRelationChar(l.ch) {
-		l.readChar()
+		if !isLetter(l.ch) {
+			l.readChar()
+			continue
+		}
+
+		lit := string(l.ch)
+		var i int
+		for i = l.position; i < len(l.input); i++ {
+			if isRelationChar(l.input[i]) || unicode.IsSpace(l.input[i]) {
+				break
+			}
+			lit += string(l.input[i])
+		}
+		if isRelDirection(lit) && isRelationChar(l.input[i+1]) {
+			var j int
+			for j = i + 1; j < len(l.input); j++ {
+				if !isRelationChar(l.input[j]) {
+					break
+				}
+			}
+			return Token{Type: RELATIONSHIP, Literal: string(l.input[start:j]), Pos: start}
+		} else if !isRelationChar(l.input[i+1]) {
+			return Token{Type: VISIBILITY, Literal: string(l.ch), Pos: start}
+		}
 	}
-	return string(l.input[start:l.position])
+	return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
 }
 
 func isVisibilityRune(ch rune) bool {
