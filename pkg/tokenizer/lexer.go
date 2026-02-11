@@ -1,14 +1,46 @@
 package tokenizer
 
 import (
+	"strings"
 	"unicode"
 )
 
+type lexerMode byte
+
+const (
+	MODE_DEFAULT lexerMode = 1 << iota
+	MODE_NOTE
+	MODE_LABEL
+	MODE_CLASS
+)
+
+func (l *Lexer) CurrentMode() lexerMode {
+	if len(l.modeStack) == 0 {
+		return MODE_DEFAULT
+	}
+	return l.modeStack[len(l.modeStack)-1]
+}
+
+func (l *Lexer) PushMode(mode lexerMode) {
+	l.modeStack = append(l.modeStack, mode)
+}
+
+func (l *Lexer) PopMode() lexerMode {
+	if len(l.modeStack) == 0 {
+		return MODE_DEFAULT
+	}
+	mode := l.modeStack[len(l.modeStack)-1]
+	l.modeStack = l.modeStack[:len(l.modeStack)-1]
+	return mode
+}
+
 type Lexer struct {
-	input    []rune
-	position int
-	readPos  int
-	ch       rune
+	input           []rune
+	position        int
+	readPos         int
+	ch              rune
+	modeStack       []lexerMode
+	isMultilineNote bool // Track if current note is multi-line (has end note)
 }
 
 type lexerState struct {
@@ -19,7 +51,8 @@ type lexerState struct {
 
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
-		input: []rune(input),
+		input:     []rune(input),
+		modeStack: make([]lexerMode, 0, 5),
 	}
 	l.readChar()
 	return l
@@ -56,10 +89,24 @@ func (l *Lexer) restoreState(state lexerState) {
 	l.ch = state.ch
 }
 
+func (l *Lexer) jumpToPosition(pos int) {
+	l.position = pos
+	l.readPos = pos + 1
+	l.readChar()
+}
+
 func (l *Lexer) NextToken() Token {
 	l.findNextTokenStart()
 
-	return TokenFactory(l)
+	if tok, resolved := ResolveUnambiguousToken(l); resolved {
+		return tok
+	}
+
+	if tok, resolved := ResolveContextAwareToken(l); resolved {
+		return tok
+	}
+
+	return ResolveAmbiguousToken(l)
 }
 
 func (l *Lexer) findNextTokenStart() {
@@ -68,7 +115,7 @@ func (l *Lexer) findNextTokenStart() {
 	}
 }
 
-func isLetter(ch rune) bool {
+func isIdentifierRune(ch rune) bool {
 	return unicode.IsLetter(ch) || ch == '_'
 }
 
@@ -81,7 +128,7 @@ func (l *Lexer) readIdentifier() string {
 			l.readChar()
 			result = append(result, l.ch)
 			l.readChar()
-		} else if isLetter(l.ch) || unicode.IsDigit(l.ch) {
+		} else if isIdentifierRune(l.ch) || unicode.IsDigit(l.ch) {
 			result = append(result, l.ch)
 			l.readChar()
 		} else {
@@ -93,16 +140,75 @@ func (l *Lexer) readIdentifier() string {
 
 func lookupKeyword(ident string) TokenType {
 	switch ident {
+	// Class declarations
 	case "class":
 		return CLASS
 	case "interface":
 		return INTERFACE
 	case "enum":
 		return ENUM
+	case "struct":
+		return STRUCT
+	case "record":
+		return RECORD
+	case "dataclass":
+		return DATACLASS
+	case "exception":
+		return EXCEPTION
+	case "protocol":
+		return PROTOCOL
+
+	// Modifiers and keywords
 	case "abstract":
-		return MODIFIER
+		return ABSTRACT
 	case "package":
 		return PACKAGE
+	case "as":
+		return ALIAS
+	case "annotation":
+		return ANNOTATION
+
+	// Documentation and layout
+	case "note":
+		return NOTE
+	case "stereotype":
+		return STEREOTYPE
+
+	// Visibility and display control
+	case "hide":
+		return HIDE
+	case "show":
+		return SHOW
+	case "remove":
+		return REMOVE
+	case "restore":
+		return RESTORE
+
+	// Configuration
+	case "skinparam":
+		return SKINPARAM
+	case "set":
+		return SET
+
+	// Layout grouping
+	case "together":
+		return TOGETHER
+
+	default:
+		return IDENTIFIER
+	}
+}
+
+func lookupNoteKeyword(input string) TokenType {
+	switch input {
+	case "left", "right", "top", "bottom":
+		return NOTE_DIRECTION
+	case "of", "on":
+		return NOTE_POSITION
+	case "link":
+		return NOTE_LINK
+	case "end":
+		return END_BLOCK
 	case "as":
 		return ALIAS
 	default:
@@ -116,6 +222,26 @@ func (l *Lexer) readNumber() string {
 		l.readChar()
 	}
 	return string(l.input[start:l.position])
+}
+
+func (l *Lexer) readLabel() string {
+	start := l.position
+	for isIdentifierRune(l.ch) || unicode.IsDigit(l.ch) || l.ch == ' ' || l.ch == '<' || l.ch == '>' {
+		l.readChar()
+	}
+	if strings.ToLower(string(l.input[l.position-2:l.position])) == "__" {
+		l.jumpToPosition(l.position - 3)
+	}
+	return string(l.input[start:l.position])
+}
+
+func (l *Lexer) readNoteLine() string {
+	// Reads text content within a note until end of line
+	start := l.position
+	for l.ch != '\n' && l.ch != 0 {
+		l.readChar()
+	}
+	return strings.TrimSpace(string(l.input[start:l.position]))
 }
 
 func (l *Lexer) readString() string {
@@ -133,14 +259,31 @@ func (l *Lexer) readString() string {
 }
 
 func (l *Lexer) readLineComment() string {
+	// consume single quote
+	l.readChar()
 	start := l.position
-	// consume both slashes
-	l.readChar()
-	l.readChar()
 	for l.ch != '\n' && l.ch != 0 {
 		l.readChar()
 	}
-	return string(l.input[start:l.position])
+	return strings.TrimSpace(string(l.input[start:l.position]))
+}
+
+func isRelationLineChar(ch rune) bool {
+	switch ch {
+	case '-', '.':
+		return true
+	default:
+		return false
+	}
+}
+
+func isRelationLineStartChar(ch rune) bool {
+	switch ch {
+	case '-', '.', '<', 'o', '*', '#', '+', '}', 'x', '^':
+		return true
+	default:
+		return false
+	}
 }
 
 func isRelationChar(ch rune) bool {
@@ -156,43 +299,57 @@ func isRelDirection(lit string) bool {
 	return lit == "left" || lit == "right" || lit == "up" || lit == "down"
 }
 
-func isLetterLikeRelChar(char rune) bool {
-	return char == 'o' || char == 'x'
+func isInlineRelationLetter(input []rune, pos int) bool {
+	if pos < 0 || pos >= len(input) {
+		return false
+	}
+	if input[pos] != 'o' && input[pos] != 'x' {
+		return false
+	}
+	prevRel := pos > 0 && isRelationChar(input[pos-1])
+	nextRel := pos+1 < len(input) && isRelationChar(input[pos+1])
+	return prevRel || nextRel
 }
 
-// Possible optimization is to return other tokens as this function
-// can effectively figure out the token it confused for relation
-// for now leaving state dump is easy enough to reason about
 func (l *Lexer) readRelation() Token {
 	start := l.position
 
-	for isRelationChar(l.ch) && (!isLetter(l.ch) || isLetterLikeRelChar(l.ch) && (isRelationChar(l.input[l.position-1]) || isRelationChar(l.input[l.position+1]))) {
+	// Consume relation runes; stop before direction keywords.
+	for isRelationChar(l.ch) {
+		if isIdentifierRune(l.ch) && !isInlineRelationLetter(l.input, l.position) {
+			break
+		}
 		l.readChar()
 	}
 
-	// Check if we have a direction keyword
-	if isLetter(l.ch) {
-		// Peek ahead to see if this looks like a direction
-		// Save current position to potentially backtrack
+	// Handle optional direction keyword (e.g. -left->).
+	if isIdentifierRune(l.ch) {
+		state := l.dumpState()
 		direction := l.readIdentifier()
 
 		if isRelDirection(direction) && isRelationChar(l.ch) {
-			// consume remaining relation chars
 			for isRelationChar(l.ch) {
 				l.readChar()
 			}
-		} else {
-			// only -IDENTIFIER can reach this point so we can return VISIBILITY and restore to IDENTIFIER start
-			l.restoreState(lexerState{
-				ch:       l.input[start+1],
-				position: start + 1,
-				readPos:  start + 2,
-			})
+			return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
+		}
+
+		// Not a direction: restore so identifier can be read next.
+		l.restoreState(state)
+
+		// Only a single '-' can represent visibility here.
+		if l.input[start] == '-' && state.position == start+1 {
 			return Token{Type: VISIBILITY, Literal: "-", Pos: start}
 		}
 	}
 
-	return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
+	// Safety check: ensure we consumed at least one character (prevents infinite loops)
+	literal := string(l.input[start:l.position])
+	if literal == "" {
+		return Token{Type: ILLEGAL, Literal: string(l.ch), Pos: start}
+	}
+
+	return Token{Type: RELATIONSHIP, Literal: literal, Pos: start}
 }
 
 func isVisibilityRune(ch rune) bool {
@@ -248,4 +405,18 @@ func (l *Lexer) readStereotype() Token {
 		l.readChar() // consume '>'
 	}
 	return Token{Type: STEREOTYPE, Literal: string(l.input[start:l.position]), Pos: start}
+}
+
+func isClassSeparator(ch rune) bool {
+	return ch == '-' || ch == '=' || ch == '.' || ch == '_'
+}
+
+func (l *Lexer) keywordModeSwitcher(tt TokenType, lit string) {
+	switch tt {
+	case CLASS, ABSTRACT:
+		l.PushMode(MODE_CLASS)
+	case NOTE:
+		l.PushMode(MODE_NOTE)
+		l.isMultilineNote = false // Default to single-line until we see NOTE_POSITION
+	}
 }

@@ -1,6 +1,7 @@
 package tokenizer
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -117,7 +118,7 @@ func TestLexer(t *testing.T) {
 				{static} method()
 			}`,
 			expectedTokens: []string{
-				"MODIFIER:abstract",
+				"ABSTRACT:abstract",
 				"CLASS:class",
 				"IDENTIFIER:Foo",
 				"{:{",
@@ -305,6 +306,159 @@ func TestLexer(t *testing.T) {
 				"IDENTIFIER:Class4",
 			},
 		},
+		{
+			name: "Keywords",
+			input: `class Foo {}
+			interface Bar {}
+			enum Status {}
+			struct Point {}
+			record User {}
+			dataclass Person {}
+			exception Error {}
+			protocol Sync {}
+			package Pkg {}
+			annotation Test
+			note "test"
+			hide methods
+			show fields
+			remove visibility
+			restore defaults
+			skinparam backgroundColor white
+			set lineStyle ortho
+			together {
+			  class A
+			  class B
+			}`,
+			expectedTokens: []string{
+				"CLASS:class",
+				"IDENTIFIER:Foo",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"INTERFACE:interface",
+				"IDENTIFIER:Bar",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"ENUM:enum",
+				"IDENTIFIER:Status",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"STRUCT:struct",
+				"IDENTIFIER:Point",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"RECORD:record",
+				"IDENTIFIER:User",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"DATACLASS:dataclass",
+				"IDENTIFIER:Person",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"EXCEPTION:exception",
+				"IDENTIFIER:Error",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"PROTOCOL:protocol",
+				"IDENTIFIER:Sync",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"PACKAGE:package",
+				"IDENTIFIER:Pkg",
+				"{:{",
+				"}:}",
+				"NEWLINE:\n",
+				"ANNOTATION:annotation",
+				"IDENTIFIER:Test",
+				"NEWLINE:\n",
+				"NOTE:note",
+				"STRING:\"test\"",
+				"NEWLINE:\n",
+				"HIDE:hide",
+				"IDENTIFIER:methods",
+				"NEWLINE:\n",
+				"SHOW:show",
+				"IDENTIFIER:fields",
+				"NEWLINE:\n",
+				"REMOVE:remove",
+				"IDENTIFIER:visibility",
+				"NEWLINE:\n",
+				"RESTORE:restore",
+				"IDENTIFIER:defaults",
+				"NEWLINE:\n",
+				"SKINPARAM:skinparam",
+				"IDENTIFIER:backgroundColor",
+				"IDENTIFIER:white",
+				"NEWLINE:\n",
+				"SET:set",
+				"IDENTIFIER:lineStyle",
+				"IDENTIFIER:ortho",
+				"NEWLINE:\n",
+				"TOGETHER:together",
+				"{:{",
+				"NEWLINE:\n",
+				"CLASS:class",
+				"IDENTIFIER:A",
+				"NEWLINE:\n",
+				"CLASS:class",
+				"IDENTIFIER:B",
+				"NEWLINE:\n",
+				"}:}",
+			},
+		},
+		{
+			name: "Separators",
+			input: `class Foo {
+			  -- Sep with dashes --
+			  .. Sep with dots ..
+			  == Sep with equals ==
+              __ Sep with lodashes __
+              ' other seps:
+              --
+              ..
+              ==
+              __
+			}`,
+			expectedTokens: []string{
+				"CLASS:class", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
+				"SEPARATOR:--", "IDENTIFIER:Sep with dashes", "SEPARATOR:--", "NEWLINE:\n",
+				"SEPARATOR:..", "IDENTIFIER:Sep with dots", "SEPARATOR:..", "NEWLINE:\n",
+				"SEPARATOR:==", "IDENTIFIER:Sep with equals", "SEPARATOR:==", "NEWLINE:\n",
+				"SEPARATOR:__", "IDENTIFIER:Sep with lodashes", "SEPARATOR:__", "NEWLINE:\n",
+				"COMMENT:other seps:", "NEWLINE:\n",
+				"SEPARATOR:--", "NEWLINE:\n",
+				"SEPARATOR:..", "NEWLINE:\n",
+				"SEPARATOR:==", "NEWLINE:\n",
+				"SEPARATOR:__", "NEWLINE:\n",
+				"}:}",
+			},
+		},
+		{
+			name: "Note",
+			input: `note left of Foo
+				This is a note
+				with multiline content
+			end note
+			note "String note with alias" as Alias
+			class Baz
+			note right : On Last defined class with colon`,
+			expectedTokens: []string{
+				"NOTE:note", "NOTE_DIRECTION:left", "NOTE_POSITION:of", "IDENTIFIER:Foo", "NEWLINE:\n",
+				"IDENTIFIER:This is a note", "NEWLINE:\n",
+				"IDENTIFIER:with multiline content", "NEWLINE:\n",
+				"END_BLOCK:end note", "NEWLINE:\n",
+				"NOTE:note", "STRING:\"String note with alias\"", "ALIAS:as", "IDENTIFIER:Alias", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Baz", "NEWLINE:\n",
+				"NOTE:note", "NOTE_DIRECTION:right", ":::", "IDENTIFIER:On Last defined class with colon",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -312,8 +466,11 @@ func TestLexer(t *testing.T) {
 			lex := NewLexer(tc.input)
 
 			out := []string{}
-			for t := lex.NextToken(); t.Type != EOF; t = lex.NextToken() {
-				out = append(out, t.Type.String()+":"+t.Literal)
+			for tok := lex.NextToken(); tok.Type != EOF; tok = lex.NextToken() {
+				out = append(out, tok.Type.String()+":"+tok.Literal)
+				if tok.Literal == "" {
+					t.Fatalf("%s: Empty literal, prone to infinite loops\npreceding tokens: %s", tc.name, strings.Join(out, ", "))
+				}
 			}
 
 			require.Equal(t, tc.expectedTokens, out, "incorrect tokens for test case: %s", tc.name)
