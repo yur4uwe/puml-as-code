@@ -295,14 +295,14 @@ func TestLexer(t *testing.T) {
 		{
 			name: "RelationsWithDirections",
 			input: `Class1 -left-> Class2
-			Class3 -right-> Class4`,
+			Class3 -r-> Class4`,
 			expectedTokens: []string{
 				"IDENTIFIER:Class1",
 				"RELATIONSHIP:-left->",
 				"IDENTIFIER:Class2",
 				"NEWLINE:\n",
 				"IDENTIFIER:Class3",
-				"RELATIONSHIP:-right->",
+				"RELATIONSHIP:-r->",
 				"IDENTIFIER:Class4",
 			},
 		},

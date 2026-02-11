@@ -296,7 +296,12 @@ func isRelationChar(ch rune) bool {
 }
 
 func isRelDirection(lit string) bool {
-	return lit == "left" || lit == "right" || lit == "up" || lit == "down"
+	switch lit {
+	case "left", "right", "up", "down", "l", "r", "u", "d":
+		return true
+	default:
+		return false
+	}
 }
 
 func isInlineRelationLetter(input []rune, pos int) bool {
