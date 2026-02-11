@@ -119,6 +119,14 @@ func isIdentifierRune(ch rune) bool {
 	return unicode.IsLetter(ch) || ch == '_'
 }
 
+func (l *Lexer) readClassIdentifier() string {
+	ident := l.readIdentifier()
+	if l.peekChar() == '(' {
+
+	}
+	return ident
+}
+
 func (l *Lexer) readIdentifier() string {
 	var result []rune
 

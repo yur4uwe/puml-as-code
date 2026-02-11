@@ -459,6 +459,17 @@ func TestLexer(t *testing.T) {
 				"NOTE:note", "NOTE_DIRECTION:right", ":::", "IDENTIFIER:On Last defined class with colon",
 			},
 		},
+		{
+			name: "AddMethodOrField",
+			input: `Object : equals()
+			ArrayList : Object[] elementData
+			ArrayList : size()`,
+			expectedTokens: []string{
+				"IDENTIFIER:Object", ":::", "IDENTIFIER:equals", "(:(", "):)", "NEWLINE:\n",
+				"IDENTIFIER:ArrayList", ":::", "IDENTIFIER:Object", "[:[", "]:]", "IDENTIFIER:elementData", "NEWLINE:\n",
+				"IDENTIFIER:ArrayList", ":::", "IDENTIFIER:size", "(:(", "):)",
+			},
+		},
 	}
 
 	for _, tc := range testCases {

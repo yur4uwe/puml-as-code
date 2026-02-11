@@ -267,6 +267,12 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 			l.readChar()
 			l.PushMode(MODE_LABEL)
 			return Token{Type: SEPARATOR, Literal: string(sepRune) + string(sepRune), Pos: l.position}, true
+		case isVisibilityRune(l.ch):
+			l.readChar()
+			return Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}, true
+		case isIdentifierRune(l.ch) || l.ch == '\\':
+			lit := l.readIdentifier()
+			return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: l.position}, true
 		}
 	case MODE_LABEL:
 		switch {
