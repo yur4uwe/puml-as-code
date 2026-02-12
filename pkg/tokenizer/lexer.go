@@ -121,8 +121,11 @@ func (l *Lexer) restoreState(state lexerState) {
 }
 
 func (l *Lexer) jumpToPosition(pos int) {
-	l.position = pos
-	l.readPos = pos + 1
+	// to actualize the lexer state
+	// .readChar() needs to be called after updating the position
+	// but .readChar() also moves the position forward, so we need to adjust it
+	l.position = pos - 1
+	l.readPos = pos
 	l.readChar()
 }
 
