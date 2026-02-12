@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"unicode"
+	"yur4uwe/pac/internal/helpers"
 )
 
 type TokenType int
@@ -194,29 +195,15 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		lit := l.readString()
 		return Token{Type: STRING, Literal: lit, Pos: start}, true
 	case ')':
-		tok = Token{Type: RPAREN, Literal: ")", Pos: l.position}
-		l.readChar()
-		return tok, true
-
+		return l.consumeChar(RPAREN, ")"), true
 	case '[':
-		tok = Token{Type: LBRACKET, Literal: "[", Pos: l.position}
-		l.readChar()
-		return tok, true
-
+		return l.consumeChar(LBRACKET, "["), true
 	case ']':
-		tok = Token{Type: RBRACKET, Literal: "]", Pos: l.position}
-		l.readChar()
-		return tok, true
-
+		return l.consumeChar(RBRACKET, "]"), true
 	case ',':
-		tok = Token{Type: COMMA, Literal: ",", Pos: l.position}
-		l.readChar()
-		return tok, true
-
+		return l.consumeChar(COMMA, ","), true
 	case ';':
-		tok = Token{Type: SEMICOLON, Literal: ";", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(SEMICOLON, ";"), true
 	case '\'':
 		start := l.position
 		lit := l.readLineComment()
@@ -230,7 +217,6 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		return Token{Type: GENERIC, Literal: lit, Pos: l.position}, true
 	case l.ch == '<' && l.peekChar() == '<':
 		return l.readStereotype(), true
-
 	case l.ch == '@':
 		tok = l.readUMLBounds()
 		l.readChar()
@@ -260,7 +246,7 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles lookahead-heavy cases.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	switch {
-	case (l.ch == '\\' || l.ch == '$' || isIdentifierRune(l.ch)) && !isRelationLineChar(l.peekChar()):
+	case (l.ch == '\\' || l.ch == '$' || helpers.IsIdentifierRune(l.ch)) && !helpers.IsRelationLineChar(l.peekChar()):
 		start := l.position
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)
@@ -272,38 +258,26 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		}
 		return Token{Type: tt, Literal: lit, Pos: start}
 	case l.ch == ':':
-		tok := Token{Type: COLON, Literal: ":", Pos: l.position}
-		l.readChar()
-		return tok
+		return l.consumeChar(COLON, ":")
 	case l.ch == '{':
-		if isIdentifierRune(l.peekChar()) {
+		if helpers.IsIdentifierRune(l.peekChar()) {
 			return l.readModifier()
 		}
-		tok := Token{Type: LBRACE, Literal: "{", Pos: l.position}
-		l.readChar()
-		return tok
-	case l.ch == '}' && !isRelationLineChar(l.peekChar()):
-		rbacePos := l.position
-		l.readChar()
-		return Token{Type: RBRACE, Literal: "}", Pos: rbacePos}
+		return l.consumeChar(LBRACE, "{")
+	case l.ch == '}' && !helpers.IsRelationLineChar(l.peekChar()):
+		return l.consumeChar(RBRACE, "}")
 	// Relations: line chars (-, .) start alone; others need line chars to follow
-	case isRelationLineChar(l.ch) || (isRelationLineStartChar(l.ch) && isRelationLineChar(l.peekChar())) || (l.ch == '<' || l.peekChar() == '|'):
+	case helpers.IsRelationLineChar(l.ch) || (helpers.IsRelationLineStartChar(l.ch) && helpers.IsRelationLineChar(l.peekChar())) || (l.ch == '<' || l.peekChar() == '|'):
 		return l.readRelation()
-
 	// Visibility requires lookahead to avoid relation parsing
-	case isVisibilityRune(l.ch) && l.ch != '-' && !isRelationLineChar(l.peekChar()):
-		tok := Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}
-		l.readChar()
-		return tok
-
+	case helpers.IsVisibilityRune(l.ch) && l.ch != '-' && !helpers.IsRelationLineChar(l.peekChar()):
+		return l.consumeChar(VISIBILITY, string(l.ch))
 	case unicode.IsDigit(l.ch):
 		start := l.position
 		lit := l.readNumber()
 		return Token{Type: NUMBER, Literal: lit, Pos: start}
 
 	default:
-		tok := Token{Type: ILLEGAL, Literal: string(l.ch), Pos: l.position}
-		l.readChar()
-		return tok
+		return l.consumeChar(ILLEGAL, string(l.ch))
 	}
 }

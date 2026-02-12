@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 	"unicode"
+	"yur4uwe/pac/internal/helpers"
 )
 
 type lexerMode byte
@@ -97,6 +98,14 @@ func (l *Lexer) readChar() {
 	l.readPos++
 }
 
+// consumeChar creates a token for the current character, advances the lexer, and returns the token.
+// Use this for single-character tokens to reduce boilerplate.
+func (l *Lexer) consumeChar(tokenType TokenType, literal string) Token {
+	tok := Token{Type: tokenType, Literal: literal, Pos: l.position}
+	l.readChar()
+	return tok
+}
+
 func (l *Lexer) peekChar() rune {
 	if l.readPos >= len(l.input) {
 		return 0
@@ -149,10 +158,6 @@ func (l *Lexer) findNextTokenStart() {
 	}
 }
 
-func isIdentifierRune(ch rune) bool {
-	return unicode.IsLetter(ch) || ch == '_'
-}
-
 func (l *Lexer) readClassIdentifier() string {
 	ident := l.readIdentifier()
 	if l.peekChar() == '(' {
@@ -192,7 +197,7 @@ func (l *Lexer) readIdentifier() string {
 			l.readChar()
 			result = append(result, l.ch)
 			l.readChar()
-		} else if isIdentifierRune(l.ch) || unicode.IsDigit(l.ch) {
+		} else if helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch) {
 			result = append(result, l.ch)
 			l.readChar()
 		} else {
@@ -291,7 +296,7 @@ func (l *Lexer) readNumber() string {
 
 func (l *Lexer) readLabel() string {
 	start := l.position
-	for isIdentifierRune(l.ch) || unicode.IsDigit(l.ch) || l.ch == ' ' || l.ch == '<' || l.ch == '>' {
+	for helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch) || l.ch == ' ' || l.ch == '<' || l.ch == '>' {
 		l.readChar()
 	}
 	if strings.ToLower(string(l.input[l.position-2:l.position])) == "__" {
@@ -333,67 +338,19 @@ func (l *Lexer) readLineComment() string {
 	return strings.TrimSpace(string(l.input[start:l.position]))
 }
 
-func isRelationLineChar(ch rune) bool {
-	switch ch {
-	case '-', '.':
-		return true
-	default:
-		return false
-	}
-}
-
-func isRelationLineStartChar(ch rune) bool {
-	switch ch {
-	case '-', '.', '<', 'o', '*', '#', '+', '}', 'x', '^':
-		return true
-	default:
-		return false
-	}
-}
-
-func isRelationChar(ch rune) bool {
-	switch ch {
-	case '-', '.', '<', '>', '|', 'o', '*', '#', '+', '}', '{', 'x', '^':
-		return true
-	default:
-		return false
-	}
-}
-
-func isRelDirection(lit string) bool {
-	switch lit {
-	case "left", "right", "up", "down", "l", "r", "u", "d", "le", "ri", "do":
-		return true
-	default:
-		return false
-	}
-}
-
-func isInlineRelationLetter(input []rune, pos int) bool {
-	if pos < 0 || pos >= len(input) {
-		return false
-	}
-	if input[pos] != 'o' && input[pos] != 'x' {
-		return false
-	}
-	prevRel := pos > 0 && isRelationChar(input[pos-1])
-	nextRel := pos+1 < len(input) && isRelationChar(input[pos+1])
-	return prevRel || nextRel
-}
-
 func (l *Lexer) readRelation() Token {
 	start := l.position
 
 	// Consume relation runes; stop before direction keywords.
-	for isRelationChar(l.ch) {
-		if isIdentifierRune(l.ch) && !isInlineRelationLetter(l.input, l.position) {
+	for helpers.IsRelationChar(l.ch) {
+		if helpers.IsIdentifierRune(l.ch) && !helpers.IsInlineRelationLetter(l.input, l.position) {
 			break
 		}
 		l.readChar()
 	}
 
 	// Handle optional direction keyword (e.g. -left->).
-	if isIdentifierRune(l.ch) || l.ch == '[' {
+	if helpers.IsIdentifierRune(l.ch) || l.ch == '[' {
 		if l.ch == '[' {
 			l.readChar()
 		}
@@ -403,8 +360,8 @@ func (l *Lexer) readRelation() Token {
 			l.readChar()
 		}
 
-		if isRelDirection(direction) && isRelationChar(l.ch) {
-			for isRelationChar(l.ch) {
+		if helpers.IsRelDirection(direction) && helpers.IsRelationChar(l.ch) {
+			for helpers.IsRelationChar(l.ch) {
 				l.readChar()
 			}
 			return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
@@ -426,10 +383,6 @@ func (l *Lexer) readRelation() Token {
 	}
 
 	return Token{Type: RELATIONSHIP, Literal: literal, Pos: start}
-}
-
-func isVisibilityRune(ch rune) bool {
-	return ch == '+' || ch == '-' || ch == '#' || ch == '~'
 }
 
 // peekAhead looks ahead n positions from current readPos
@@ -481,10 +434,6 @@ func (l *Lexer) readStereotype() Token {
 		l.readChar() // consume '>'
 	}
 	return Token{Type: STEREOTYPE, Literal: string(l.input[start:l.position]), Pos: start}
-}
-
-func isClassSeparator(ch rune) bool {
-	return ch == '-' || ch == '=' || ch == '.' || ch == '_'
 }
 
 func (l *Lexer) keywordModeSwitcher(tt TokenType) {

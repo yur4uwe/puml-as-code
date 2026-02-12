@@ -469,15 +469,6 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
-			name: "Generic",
-			input: `ArrayList<String> : size()
-			class Foo<? extends Element>`,
-			expectedTokens: []string{
-				"IDENTIFIER:ArrayList", "GENERIC:<String>", ":::", "IDENTIFIER:size", "(:(", "):)", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Foo", "GENERIC:<? extends Element>",
-			},
-		},
-		{
 			name: "Namespace",
 			input: `namespace Foo {
 				class Bar
@@ -544,6 +535,15 @@ func TestLexer(t *testing.T) {
 			expectedTokens: []string{
 				"CLASS:class", "IDENTIFIER:Foo", "RELATIONSHIP:implements", "IDENTIFIER:Bar", "NEWLINE:\n",
 				"CLASS:class", "IDENTIFIER:Foob", "RELATIONSHIP:extends", "IDENTIFIER:Barz", ",:,", "IDENTIFIER:Baz",
+			},
+		},
+		{
+			name: "Generic",
+			input: `ArrayList<String> : size()
+				class Foo<? extends Element>`,
+			expectedTokens: []string{
+				"IDENTIFIER:ArrayList", "GENERIC:<String>", ":::", "IDENTIFIER:size", "(:(", "):)", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Foo", "GENERIC:<? extends Element>",
 			},
 		},
 	}

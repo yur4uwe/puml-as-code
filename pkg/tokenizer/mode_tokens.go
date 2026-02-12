@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+	"yur4uwe/pac/internal/helpers"
 )
 
 func resolveDefaultModeToken(l *Lexer) (Token, bool) {
 	switch l.ch {
 	case '\n':
-		tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(NEWLINE, "\n"), true
 	case '(':
 		if l.peekChar() != ')' {
 			return Token{Type: LPAREN, Literal: "(", Pos: l.position}, true
@@ -21,7 +20,7 @@ func resolveDefaultModeToken(l *Lexer) (Token, bool) {
 		l.readChar() // consume ')'
 		tok := l.readRelation()
 		if tok.Type == ILLEGAL {
-			l.jumpToPosition(start)
+			l.jumpToPosition(start + 1)
 			return Token{Type: LPAREN, Literal: "(", Pos: l.position}, true
 		}
 		tok.Literal = "()" + tok.Literal
@@ -34,16 +33,12 @@ func resolveDefaultModeToken(l *Lexer) (Token, bool) {
 func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
-		tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
 		l.PopMode()
-		l.readChar()
-		return tok, true
+		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == '{':
 		l.PopMode()
 		l.PushMode(MODE_CLASS)
-		tok := Token{Type: LBRACE, Literal: "{", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(LBRACE, "{"), true
 	case string(l.peekAhead(len("extends"))) == "extends":
 		start := l.position
 		for _ = range "extends" {
@@ -65,36 +60,25 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 func resolveClassModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
-		tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == '(':
-		tok := Token{Type: LPAREN, Literal: "(", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(LPAREN, "("), true
 	case l.ch == ')':
-		tok := Token{Type: RPAREN, Literal: ")", Pos: l.position}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(RPAREN, ")"), true
 	case l.ch == '}':
-		tok := Token{Type: RBRACE, Literal: "}", Pos: l.position}
-		if l.position > 0 && !isIdentifierRune(l.input[l.position-1]) {
+		if l.position > 0 && !helpers.IsIdentifierRune(l.input[l.position-1]) {
 			l.PopMode()
 		}
-		l.readChar()
-		return tok, true
-	case isClassSeparator(l.ch) && isClassSeparator(l.peekChar()) && l.ch == l.peekChar():
+		return l.consumeChar(RBRACE, "}"), true
+	case helpers.IsClassSeparator(l.ch) && helpers.IsClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 		sepRune := l.ch
 		l.readChar()
 		l.readChar()
 		l.PushMode(MODE_LABEL)
 		return Token{Type: SEPARATOR, Literal: string(sepRune) + string(sepRune), Pos: l.position}, true
-	case isVisibilityRune(l.ch):
-		visChar := l.ch
-		visPos := l.position
-		l.readChar()
-		return Token{Type: VISIBILITY, Literal: string(visChar), Pos: visPos}, true
-	case isIdentifierRune(l.ch) || l.ch == '\\':
+	case helpers.IsVisibilityRune(l.ch):
+		return l.consumeChar(VISIBILITY, string(l.ch)), true
+	case helpers.IsIdentifierRune(l.ch) || l.ch == '\\':
 		start := l.position
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)
@@ -119,17 +103,15 @@ func resolveClassModeToken(l *Lexer) (Token, bool) {
 func resolveLabelModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
-		tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
 		l.PopMode()
-		l.readChar()
-		return tok, true
-	case isClassSeparator(l.ch) && isClassSeparator(l.peekChar()) && l.ch == l.peekChar():
+		return l.consumeChar(NEWLINE, "\n"), true
+	case helpers.IsClassSeparator(l.ch) && helpers.IsClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 		sepRune := l.ch
 		l.readChar()
 		l.readChar()
 		l.PopMode()
 		return Token{Type: SEPARATOR, Literal: string(sepRune) + string(sepRune), Pos: l.position}, true
-	case isIdentifierRune(l.ch) || unicode.IsDigit(l.ch):
+	case helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch):
 		lit := l.readLabel()
 		return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: l.position}, true
 	}
@@ -139,19 +121,15 @@ func resolveLabelModeToken(l *Lexer) (Token, bool) {
 func resolveNoteModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
-		tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
 		if !l.isMultilineNote {
 			l.PopMode()
 		}
-		l.readChar()
-		return tok, true
+		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == ':':
-		tok := Token{Type: COLON, Literal: ":", Pos: l.position}
-		l.readChar()
 		l.PopMode()
 		l.PushMode(MODE_LABEL)
 		l.isMultilineNote = false // Colon indicates single-line note
-		return tok, true
+		return l.consumeChar(COLON, ":"), true
 	case unicode.IsLetter(l.ch):
 		start := l.position
 		lit := l.readIdentifier()
