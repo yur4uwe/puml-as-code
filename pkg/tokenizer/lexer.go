@@ -56,22 +56,24 @@ func (l *Lexer) PopMode() lexerMode {
 }
 
 type Lexer struct {
-	input            []rune
-	position         int
-	readPos          int
-	ch               rune
-	modeStack        []lexerMode
-	isMultilineNote  bool
-	packageSeparator []rune
+	input                   []rune
+	position                int
+	readPos                 int
+	ch                      rune
+	modeStack               []lexerMode
+	isMultilineNote         bool
+	noteDeclarationComplete bool
+	packageSeparator        []rune
 }
 
 type lexerState struct {
-	position         int
-	readPos          int
-	ch               rune
-	modeStack        []lexerMode
-	isMultilineNote  bool
-	packageSeparator []rune
+	position                int
+	readPos                 int
+	ch                      rune
+	modeStack               []lexerMode
+	isMultilineNote         bool
+	noteDeclarationComplete bool
+	packageSeparator        []rune
 }
 
 func (l lexerState) String() string {
@@ -191,6 +193,11 @@ func (l *Lexer) readGeneric() string {
 func (l *Lexer) readIdentifier() string {
 	var result []rune
 
+	if l.ch == '$' {
+		result = append(result, l.ch)
+		l.readChar()
+	}
+
 	for {
 		if l.ch == '\\' && l.peekChar() != 0 {
 			// Skip the backslash and take the next character literally
@@ -275,8 +282,6 @@ func lookupNoteKeyword(input string) TokenType {
 		return NOTE_DIRECTION
 	case "of", "on":
 		return NOTE_POSITION
-	case "link":
-		return NOTE_LINK
 	case "end":
 		return END_BLOCK
 	case "as":
@@ -299,8 +304,13 @@ func (l *Lexer) readLabel() string {
 	for helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch) || l.ch == ' ' || l.ch == '<' || l.ch == '>' {
 		l.readChar()
 	}
-	if strings.ToLower(string(l.input[l.position-2:l.position])) == "__" {
-		l.jumpToPosition(l.position - 3)
+	// Check if label ends with __ (which is a separator token, not part of the label)
+	if l.position >= 2 && l.position-2 >= start {
+		lastTwo := string(l.input[l.position-2 : l.position])
+		if lastTwo == "__" {
+			// Rewind to exclude the trailing __
+			l.jumpToPosition(l.position - 2)
+		}
 	}
 	return string(l.input[start:l.position])
 }
@@ -319,8 +329,12 @@ func (l *Lexer) readString() string {
 	start := l.position
 	l.readChar() // consume opening "
 	for l.ch != '"' && l.ch != 0 {
-		// note: no escape processing for now
-		l.readChar()
+		if l.ch == '\\' && l.peekChar() != 0 {
+			l.readChar() // consume backslash
+			l.readChar() // consume escaped char
+		} else {
+			l.readChar()
+		}
 	}
 	if l.ch == '"' {
 		l.readChar() // consume closing "
@@ -341,7 +355,7 @@ func (l *Lexer) readLineComment() string {
 func (l *Lexer) readRelation() Token {
 	start := l.position
 
-	// Consume relation runes; stop before direction keywords.
+	// Consume relation runes; stop before direction keywords or bracketed styles.
 	for helpers.IsRelationChar(l.ch) {
 		if helpers.IsIdentifierRune(l.ch) && !helpers.IsInlineRelationLetter(l.input, l.position) {
 			break
@@ -349,7 +363,24 @@ func (l *Lexer) readRelation() Token {
 		l.readChar()
 	}
 
-	// Handle optional direction keyword (e.g. -left->).
+	// Handle bracketed styles (e.g. -[bold]->, -[#red,thickness=2]->)
+	if l.ch == '[' {
+		l.readChar() // consume '['
+		// Read until closing ']', consuming everything inside (colors, styles, thickness, etc.)
+		for l.ch != ']' && l.ch != '\n' && l.ch != 0 {
+			l.readChar()
+		}
+		if l.ch == ']' {
+			l.readChar() // consume ']'
+		}
+		// Continue reading the rest of the relationship arrow
+		for helpers.IsRelationChar(l.ch) {
+			l.readChar()
+		}
+		return Token{Type: RELATIONSHIP, Literal: string(l.input[start:l.position]), Pos: start}
+	}
+
+	// Handle optional direction keyword (e.g. -left->, -[left]->).
 	if helpers.IsIdentifierRune(l.ch) || l.ch == '[' {
 		if l.ch == '[' {
 			l.readChar()
@@ -385,13 +416,10 @@ func (l *Lexer) readRelation() Token {
 	return Token{Type: RELATIONSHIP, Literal: literal, Pos: start}
 }
 
-// peekAhead looks ahead n positions from current readPos
-func (l *Lexer) peekAhead(n int) []rune {
-	pos := l.readPos + n - 1
-	if pos >= len(l.input) {
-		return []rune{}
-	}
-	return l.input[l.position:pos]
+// lookAhead looks ahead n positions from current readPos
+func (l *Lexer) lookAhead(n int) []rune {
+	end := min(l.position+n, len(l.input))
+	return l.input[l.position:end]
 }
 
 func (l *Lexer) readUMLBounds() Token {
@@ -404,7 +432,8 @@ func (l *Lexer) readUMLBounds() Token {
 	case "enduml":
 		return Token{Type: END, Literal: ident, Pos: start}
 	default:
-		return Token{Type: IDENTIFIER, Literal: ident, Pos: start}
+		// Keep the @ prefix for special identifiers like @unlinked
+		return Token{Type: IDENTIFIER, Literal: "@" + ident, Pos: start}
 	}
 }
 
@@ -412,13 +441,13 @@ func (l *Lexer) readModifier() Token {
 	// starts with '{'
 	start := l.position
 	l.readChar() // consume '{'
-	for l.ch != '}' && l.ch != '\n' && l.ch != '\r' && l.ch != 0 {
-		l.readChar()
-	}
+	content := l.readUntil('}', '\n', '\r')
+	literal := "{" + content
 	if l.ch == '}' {
+		literal += "}"
 		l.readChar() // consume '}'
 	}
-	return Token{Type: MODIFIER, Literal: string(l.input[start:l.position]), Pos: start}
+	return Token{Type: MODIFIER, Literal: strings.TrimSpace(literal), Pos: start}
 }
 
 func (l *Lexer) readStereotype() Token {
@@ -433,12 +462,12 @@ func (l *Lexer) readStereotype() Token {
 		l.readChar() // consume '>'
 		l.readChar() // consume '>'
 	}
-	return Token{Type: STEREOTYPE, Literal: string(l.input[start:l.position]), Pos: start}
+	return Token{Type: STEREOTYPE, Literal: strings.TrimSpace(string(l.input[start:l.position])), Pos: start}
 }
 
 func (l *Lexer) keywordModeSwitcher(tt TokenType) {
 	switch tt {
-	case CLASS, ABSTRACT:
+	case CLASS, INTERFACE, ENUM, STRUCT, RECORD, DATACLASS, EXCEPTION, PROTOCOL, ANNOTATION:
 		l.PushMode(MODE_CLASS_DEF)
 	case NOTE:
 		l.PushMode(MODE_NOTE)

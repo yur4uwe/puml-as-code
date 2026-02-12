@@ -41,7 +41,6 @@ const (
 	// Note tokens
 	NOTE_DIRECTION
 	NOTE_POSITION
-	NOTE_LINK
 
 	LBRACE   // {
 	RBRACE   // }
@@ -63,6 +62,7 @@ const (
 	ALIAS
 	START
 	END
+	PREPROCESSOR
 )
 
 func (t TokenType) String() string {
@@ -161,6 +161,8 @@ func (t TokenType) String() string {
 		return "NOTE_POSITION"
 	case GENERIC:
 		return "GENERIC"
+	case PREPROCESSOR:
+		return "PREPROCESSOR"
 	default:
 		return "UNKNOWN"
 	}
@@ -184,7 +186,10 @@ type Token struct {
 
 // ResolveUnambiguousToken handles tokens with obvious, unambiguous identification (no lookahead, no mode).
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
-	var tok Token
+	// In NOTE mode, skip generic/stereotype detection to let note handler process all content
+	if l.CurrentMode() == MODE_NOTE && (l.ch == '<' || l.ch == '/') {
+		return Token{}, false
+	}
 
 	switch l.ch {
 	case 0:
@@ -213,14 +218,21 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	// Multi-character unambiguous patterns
 	switch {
 	case l.ch == '<' && (l.peekChar() == '?' || unicode.IsLetter(l.peekChar())):
+		start := l.position
 		lit := l.readGeneric()
-		return Token{Type: GENERIC, Literal: lit, Pos: l.position}, true
+		return Token{Type: GENERIC, Literal: lit, Pos: start}, true
 	case l.ch == '<' && l.peekChar() == '<':
-		return l.readStereotype(), true
-	case l.ch == '@':
-		tok = l.readUMLBounds()
-		l.readChar()
+		start := l.position
+		tok := l.readStereotype()
+		tok.Pos = start
 		return tok, true
+	case l.ch == '@':
+		return l.readUMLBounds(), true
+	case l.ch == '!':
+		start := l.position
+		l.readChar() // consume '!'
+		directive := l.readIdentifier()
+		return Token{Type: PREPROCESSOR, Literal: "!" + directive, Pos: start}, true
 	}
 
 	return Token{}, false
@@ -276,7 +288,13 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		start := l.position
 		lit := l.readNumber()
 		return Token{Type: NUMBER, Literal: lit, Pos: start}
-
+	case l.ch == '*':
+		// Wildcard * when not part of a relationship (e.g., in "remove *")
+		if !helpers.IsRelationLineChar(l.peekChar()) {
+			return l.consumeChar(IDENTIFIER, "*")
+		}
+		// Otherwise, try to read as relationship
+		return l.readRelation()
 	default:
 		return l.consumeChar(ILLEGAL, string(l.ch))
 	}

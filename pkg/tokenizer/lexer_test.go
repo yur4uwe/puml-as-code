@@ -449,8 +449,7 @@ func TestLexer(t *testing.T) {
 			note right : On Last defined class with colon`,
 			expectedTokens: []string{
 				"NOTE:note", "NOTE_DIRECTION:left", "NOTE_POSITION:of", "IDENTIFIER:Foo", "NEWLINE:\n",
-				"IDENTIFIER:This is a note", "NEWLINE:\n",
-				"IDENTIFIER:with multiline content", "NEWLINE:\n",
+				"IDENTIFIER:This is a note\nwith multiline content",
 				"END_BLOCK:end note", "NEWLINE:\n",
 				"NOTE:note", "STRING:\"String note with alias\"", "ALIAS:as", "IDENTIFIER:Alias", "NEWLINE:\n",
 				"CLASS:class", "IDENTIFIER:Baz", "NEWLINE:\n",
@@ -529,15 +528,6 @@ func TestLexer(t *testing.T) {
 			},
 		},
 		{
-			name: "RelationshipKeywords",
-			input: `class Foo implements Bar
-			class Foob extends Barz, Baz`,
-			expectedTokens: []string{
-				"CLASS:class", "IDENTIFIER:Foo", "RELATIONSHIP:implements", "IDENTIFIER:Bar", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Foob", "RELATIONSHIP:extends", "IDENTIFIER:Barz", ",:,", "IDENTIFIER:Baz",
-			},
-		},
-		{
 			name: "Generic",
 			input: `ArrayList<String> : size()
 				class Foo<? extends Element>`,
@@ -546,9 +536,25 @@ func TestLexer(t *testing.T) {
 				"CLASS:class", "IDENTIFIER:Foo", "GENERIC:<? extends Element>",
 			},
 		},
+		{
+			name: "MODE_CLASS_DEF_edgecase",
+			input: `abstract class Foo
+			interface Bar {}`,
+			expectedTokens: []string{
+				"ABSTRACT:abstract", "CLASS:class", "IDENTIFIER:Foo", "NEWLINE:\n",
+				"INTERFACE:interface", "IDENTIFIER:Bar", "{:{", "}:}",
+			},
+		},
+		{
+			name: "RelationshipKeywords",
+			input: `class Foo implements Bar
+					class Foob extends Barz, Baz`,
+			expectedTokens: []string{
+				"CLASS:class", "IDENTIFIER:Foo", "RELATIONSHIP:implements", "IDENTIFIER:Bar", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Foob", "RELATIONSHIP:extends", "IDENTIFIER:Barz", ",:,", "IDENTIFIER:Baz",
+			},
+		},
 	}
-
-	// Check class shorthands for mode changing behaviour
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
