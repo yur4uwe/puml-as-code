@@ -34,9 +34,10 @@ const (
 	REMOVE
 	RESTORE
 	SKINPARAM
-	SET
+	SET_PROPERTY
 	TOGETHER
 	END_BLOCK
+	GENERIC
 
 	// Note tokens
 	NOTE_DIRECTION
@@ -141,8 +142,8 @@ func (t TokenType) String() string {
 		return "RESTORE"
 	case SKINPARAM:
 		return "SKINPARAM"
-	case SET:
-		return "SET"
+	case SET_PROPERTY:
+		return "SET_PROPERTY"
 	case TOGETHER:
 		return "TOGETHER"
 	case END_BLOCK:
@@ -159,6 +160,8 @@ func (t TokenType) String() string {
 		return "NOTE_DIRECTION"
 	case NOTE_POSITION:
 		return "NOTE_POSITION"
+	case GENERIC:
+		return "GENERIC"
 	default:
 		return "UNKNOWN"
 	}
@@ -197,6 +200,10 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		if l.CurrentMode() == MODE_NOTE && !l.isMultilineNote {
 			l.PopMode()
 		}
+		// Pop MODE_CLASS_DEF as shorthand form is used
+		if l.CurrentMode() == MODE_CLASS_DEF {
+			l.PopMode()
+		}
 		l.readChar()
 		return tok, true
 
@@ -204,8 +211,22 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		start := l.position
 		lit := l.readString()
 		return Token{Type: STRING, Literal: lit, Pos: start}, true
-
 	case '(':
+		// DO NOT let identifiers to consume parentheses because of method(arg int, arg2 int)
+		if l.CurrentMode() != MODE_CLASS {
+			// read lollipop interface
+			start := l.position
+			l.readChar() // consume '('
+			l.readChar() // consume ')'
+			tok := l.readRelation()
+			if tok.Type == ILLEGAL {
+				l.jumpToPosition(start)
+				return Token{Type: LPAREN, Literal: "(", Pos: l.position}, true
+			}
+			tok.Literal = "()" + tok.Literal
+			tok.Pos = start
+			return tok, true
+		}
 		tok = Token{Type: LPAREN, Literal: "(", Pos: l.position}
 		l.readChar()
 		return tok, true
@@ -242,6 +263,9 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 
 	// Multi-character unambiguous patterns
 	switch {
+	case l.ch == '<' && (l.peekChar() == '?' || unicode.IsLetter(l.peekChar())):
+		lit := l.readGeneric()
+		return Token{Type: GENERIC, Literal: lit, Pos: l.position}, true
 	case l.ch == '<' && l.peekChar() == '<':
 		return l.readStereotype(), true
 
@@ -259,6 +283,23 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 	switch l.CurrentMode() {
 	case MODE_DEFAULT:
 		return Token{}, false
+	case MODE_CLASS_DEF:
+		switch {
+		case string(l.peekAhead(len("extends"))) == "extends":
+			start := l.position
+			for _ = range "extends" {
+				l.readChar()
+			}
+			return Token{Type: RELATIONSHIP, Literal: "extends", Pos: start}, true
+		case string(l.peekAhead(len("implements"))) == "implements":
+			start := l.position
+			for _ = range "implements" {
+				l.readChar()
+			}
+			return Token{Type: RELATIONSHIP, Literal: "implements", Pos: start}, true
+		case l.isPackageSeparator():
+			return Token{Type: SEPARATOR, Literal: string(l.packageSeparator), Pos: l.position - len(l.packageSeparator)}, true
+		}
 	case MODE_CLASS:
 		switch {
 		case isClassSeparator(l.ch) && isClassSeparator(l.peekChar()) && l.ch == l.peekChar():
@@ -268,11 +309,28 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 			l.PushMode(MODE_LABEL)
 			return Token{Type: SEPARATOR, Literal: string(sepRune) + string(sepRune), Pos: l.position}, true
 		case isVisibilityRune(l.ch):
+			visChar := l.ch
+			visPos := l.position
 			l.readChar()
-			return Token{Type: VISIBILITY, Literal: string(l.ch), Pos: l.position}, true
+			return Token{Type: VISIBILITY, Literal: string(visChar), Pos: visPos}, true
 		case isIdentifierRune(l.ch) || l.ch == '\\':
+			start := l.position
 			lit := l.readIdentifier()
-			return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: l.position}, true
+			tt := lookupKeyword(lit)
+			if lit == "implements" {
+				return Token{Type: RELATIONSHIP, Literal: lit, Pos: start}, true
+			}
+			if lit == "extends" {
+				return Token{Type: RELATIONSHIP, Literal: lit, Pos: start}, true
+			}
+			if tt == NOTE {
+				l.PushMode(MODE_NOTE)
+				l.isMultilineNote = false
+			}
+			if tt == IDENTIFIER {
+				return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: start}, true
+			}
+			return Token{Type: tt, Literal: strings.TrimSpace(lit), Pos: start}, true
 		}
 	case MODE_LABEL:
 		switch {
@@ -338,7 +396,10 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)
 		if tt != IDENTIFIER {
-			l.keywordModeSwitcher(tt, lit)
+			l.keywordModeSwitcher(tt)
+		}
+		if tt == SET_PROPERTY {
+			return Token{Type: SET_PROPERTY, Literal: l.readProperty(), Pos: start}
 		}
 		return Token{Type: tt, Literal: lit, Pos: start}
 	case l.ch == ':':
@@ -346,6 +407,10 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		l.readChar()
 		return tok
 	case l.ch == '{':
+		if l.CurrentMode() == MODE_CLASS_DEF {
+			l.PopMode()
+			l.PushMode(MODE_CLASS)
+		}
 		if isIdentifierRune(l.peekChar()) {
 			return l.readModifier()
 		}

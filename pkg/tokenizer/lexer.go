@@ -1,6 +1,8 @@
 package tokenizer
 
 import (
+	"fmt"
+	"slices"
 	"strings"
 	"unicode"
 )
@@ -8,11 +10,29 @@ import (
 type lexerMode byte
 
 const (
-	MODE_DEFAULT lexerMode = 1 << iota
+	MODE_DEFAULT lexerMode = iota
 	MODE_NOTE
 	MODE_LABEL
+	MODE_CLASS_DEF
 	MODE_CLASS
 )
+
+func (l lexerMode) String() string {
+	switch l {
+	case MODE_DEFAULT:
+		return "MODE_DEFAULT"
+	case MODE_NOTE:
+		return "MODE_NOTE"
+	case MODE_LABEL:
+		return "MODE_LABEL"
+	case MODE_CLASS:
+		return "MODE_CLASS"
+	case MODE_CLASS_DEF:
+		return "MODE_CLASS_DEF"
+	default:
+		return "UNKNOWN_MODE"
+	}
+}
 
 func (l *Lexer) CurrentMode() lexerMode {
 	if len(l.modeStack) == 0 {
@@ -35,24 +55,33 @@ func (l *Lexer) PopMode() lexerMode {
 }
 
 type Lexer struct {
-	input           []rune
-	position        int
-	readPos         int
-	ch              rune
-	modeStack       []lexerMode
-	isMultilineNote bool // Track if current note is multi-line (has end note)
+	input            []rune
+	position         int
+	readPos          int
+	ch               rune
+	modeStack        []lexerMode
+	isMultilineNote  bool
+	packageSeparator []rune
 }
 
 type lexerState struct {
-	position int
-	readPos  int
-	ch       rune
+	position         int
+	readPos          int
+	ch               rune
+	modeStack        []lexerMode
+	isMultilineNote  bool
+	packageSeparator []rune
+}
+
+func (l lexerState) String() string {
+	return fmt.Sprintf("position: %d\nreadPos: %d\nch: %q\nmodeStack: %v\nisMultilineNote: %t", l.position, l.readPos, l.ch, l.modeStack, l.isMultilineNote)
 }
 
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
-		input:     []rune(input),
-		modeStack: make([]lexerMode, 0, 5),
+		input:            []rune(input),
+		modeStack:        make([]lexerMode, 0, 5),
+		packageSeparator: []rune{'.'},
 	}
 	l.readChar()
 	return l
@@ -77,9 +106,11 @@ func (l *Lexer) peekChar() rune {
 
 func (l *Lexer) dumpState() lexerState {
 	return lexerState{
-		position: l.position,
-		readPos:  l.readPos,
-		ch:       l.ch,
+		position:        l.position,
+		readPos:         l.readPos,
+		ch:              l.ch,
+		modeStack:       l.modeStack,
+		isMultilineNote: l.isMultilineNote,
 	}
 }
 
@@ -127,6 +158,28 @@ func (l *Lexer) readClassIdentifier() string {
 	return ident
 }
 
+func (l *Lexer) isPackageSeparator() bool {
+	var cascade bool = true
+	for _, r := range l.packageSeparator {
+		if l.ch != r {
+			cascade = false
+			break
+		}
+		l.readChar()
+	}
+	return cascade
+}
+
+func (l *Lexer) readGeneric() string {
+	start := l.position
+
+	for l.ch != '>' && l.ch != 0 && l.ch != '\n' {
+		l.readChar()
+	}
+	l.readChar() // consume the closing angle bracket
+	return string(l.input[start:l.position])
+}
+
 func (l *Lexer) readIdentifier() string {
 	var result []rune
 
@@ -169,7 +222,8 @@ func lookupKeyword(ident string) TokenType {
 	// Modifiers and keywords
 	case "abstract":
 		return ABSTRACT
-	case "package":
+	// I decided to go with PlantUML beta 1.2023.2
+	case "package", "namespace":
 		return PACKAGE
 	case "as":
 		return ALIAS
@@ -196,7 +250,7 @@ func lookupKeyword(ident string) TokenType {
 	case "skinparam":
 		return SKINPARAM
 	case "set":
-		return SET
+		return SET_PROPERTY
 
 	// Layout grouping
 	case "together":
@@ -305,7 +359,7 @@ func isRelationChar(ch rune) bool {
 
 func isRelDirection(lit string) bool {
 	switch lit {
-	case "left", "right", "up", "down", "l", "r", "u", "d":
+	case "left", "right", "up", "down", "l", "r", "u", "d", "le", "ri", "do":
 		return true
 	default:
 		return false
@@ -336,9 +390,15 @@ func (l *Lexer) readRelation() Token {
 	}
 
 	// Handle optional direction keyword (e.g. -left->).
-	if isIdentifierRune(l.ch) {
+	if isIdentifierRune(l.ch) || l.ch == '[' {
+		if l.ch == '[' {
+			l.readChar()
+		}
 		state := l.dumpState()
 		direction := l.readIdentifier()
+		if l.ch == ']' {
+			l.readChar()
+		}
 
 		if isRelDirection(direction) && isRelationChar(l.ch) {
 			for isRelationChar(l.ch) {
@@ -370,12 +430,12 @@ func isVisibilityRune(ch rune) bool {
 }
 
 // peekAhead looks ahead n positions from current readPos
-func (l *Lexer) peekAhead(n int) rune {
+func (l *Lexer) peekAhead(n int) []rune {
 	pos := l.readPos + n - 1
 	if pos >= len(l.input) {
-		return 0
+		return []rune{}
 	}
-	return l.input[pos]
+	return l.input[l.position:pos]
 }
 
 func (l *Lexer) readUMLBounds() Token {
@@ -424,12 +484,34 @@ func isClassSeparator(ch rune) bool {
 	return ch == '-' || ch == '=' || ch == '.' || ch == '_'
 }
 
-func (l *Lexer) keywordModeSwitcher(tt TokenType, lit string) {
+func (l *Lexer) keywordModeSwitcher(tt TokenType) {
 	switch tt {
 	case CLASS, ABSTRACT:
-		l.PushMode(MODE_CLASS)
+		l.PushMode(MODE_CLASS_DEF)
 	case NOTE:
 		l.PushMode(MODE_NOTE)
 		l.isMultilineNote = false // Default to single-line until we see NOTE_POSITION
 	}
+}
+
+func (l *Lexer) readProperty() string {
+	// 'set' is already consumed
+	// next consume name of the property
+	l.findNextTokenStart()
+	name := l.readIdentifier()
+	l.findNextTokenStart()
+	value := l.readUntil('\n', '\r')
+	if name == "separator" {
+		l.packageSeparator = []rune(value)
+	}
+	return fmt.Sprintf("%s=%s", name, value)
+}
+
+func (l *Lexer) readUntil(runes ...rune) string {
+	var sb strings.Builder
+	for !slices.Contains(runes, l.ch) && l.ch != 0 {
+		sb.WriteRune(l.ch)
+		l.readChar()
+	}
+	return sb.String()
 }

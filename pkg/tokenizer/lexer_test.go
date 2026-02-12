@@ -397,9 +397,7 @@ func TestLexer(t *testing.T) {
 				"IDENTIFIER:backgroundColor",
 				"IDENTIFIER:white",
 				"NEWLINE:\n",
-				"SET:set",
-				"IDENTIFIER:lineStyle",
-				"IDENTIFIER:ortho",
+				"SET_PROPERTY:lineStyle=ortho",
 				"NEWLINE:\n",
 				"TOGETHER:together",
 				"{:{",
@@ -470,15 +468,101 @@ func TestLexer(t *testing.T) {
 				"IDENTIFIER:ArrayList", ":::", "IDENTIFIER:size", "(:(", "):)",
 			},
 		},
+		{
+			name: "Generic",
+			input: `ArrayList<String> : size()
+			class Foo<? extends Element>`,
+			expectedTokens: []string{
+				"IDENTIFIER:ArrayList", "GENERIC:<String>", ":::", "IDENTIFIER:size", "(:(", "):)", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Foo", "GENERIC:<? extends Element>",
+			},
+		},
+		{
+			name: "Namespace",
+			input: `namespace Foo {
+				class Bar
+			}`,
+			expectedTokens: []string{
+				"PACKAGE:namespace", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Bar", "NEWLINE:\n",
+				"}:}",
+			},
+		},
+		{
+			name: "PackageBlocks",
+			input: `package Foo {
+				class Bar
+			}`,
+			expectedTokens: []string{
+				"PACKAGE:package", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Bar", "NEWLINE:\n",
+				"}:}",
+			},
+		},
+		{
+			name: "SetProperty",
+			input: `set property 0
+			set property asString`,
+			expectedTokens: []string{
+				"SET_PROPERTY:property=0", "NEWLINE:\n",
+				"SET_PROPERTY:property=asString",
+			},
+		},
+		{
+			name: "LollipopInterface",
+			input: `class foo
+			bar ()-- foo`,
+			expectedTokens: []string{
+				"CLASS:class", "IDENTIFIER:foo", "NEWLINE:\n",
+				"IDENTIFIER:bar", "RELATIONSHIP:()--", "IDENTIFIER:foo",
+			},
+		},
+		{
+			name: "ClassShorthandDoesNotLeakMode",
+			input: `class Foo
+			Foo -- Bar`,
+			expectedTokens: []string{
+				"CLASS:class",
+				"IDENTIFIER:Foo",
+				"NEWLINE:\n",
+				"IDENTIFIER:Foo",
+				"RELATIONSHIP:--",
+				"IDENTIFIER:Bar",
+			},
+		},
+		{
+			name:  "InlinePackages",
+			input: `class Foo.Bar`,
+			expectedTokens: []string{
+				"CLASS:class", "IDENTIFIER:Foo", "SEPARATOR:.", "IDENTIFIER:Bar",
+			},
+		},
+		{
+			name: "RelationshipKeywords",
+			input: `class Foo implements Bar
+			class Foob extends Barz, Baz`,
+			expectedTokens: []string{
+				"CLASS:class", "IDENTIFIER:Foo", "RELATIONSHIP:implements", "IDENTIFIER:Bar", "NEWLINE:\n",
+				"CLASS:class", "IDENTIFIER:Foob", "RELATIONSHIP:extends", "IDENTIFIER:Barz", ",:,", "IDENTIFIER:Baz",
+			},
+		},
 	}
+
+	// Check class shorthands for mode changing behaviour
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			lex := NewLexer(tc.input)
 
 			out := []string{}
+			var i int = 0
 			for tok := lex.NextToken(); tok.Type != EOF; tok = lex.NextToken() {
-				out = append(out, tok.Type.String()+":"+tok.Literal)
+				stringified := tok.Type.String() + ":" + tok.Literal
+				if stringified != tc.expectedTokens[i] {
+					t.Fatalf("%s: Incorrect token at index %d\nexpected: %s\ngot: %s\nstate dump:\n%v", tc.name, i, tc.expectedTokens[i], stringified, lex.dumpState())
+				}
+				i++
+				out = append(out, stringified)
 				if tok.Literal == "" {
 					t.Fatalf("%s: Empty literal, prone to infinite loops\npreceding tokens: %s", tc.name, strings.Join(out, ", "))
 				}
