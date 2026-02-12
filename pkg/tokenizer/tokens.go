@@ -191,46 +191,10 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	case 0:
 		return Token{Type: EOF, Literal: "", Pos: l.position}, true
 
-	case '\n':
-		tok = Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
-		if l.CurrentMode() == MODE_LABEL {
-			l.PopMode()
-		}
-		// Pop MODE_NOTE if we're in a single-line note (not multi-line with end note)
-		if l.CurrentMode() == MODE_NOTE && !l.isMultilineNote {
-			l.PopMode()
-		}
-		// Pop MODE_CLASS_DEF as shorthand form is used
-		if l.CurrentMode() == MODE_CLASS_DEF {
-			l.PopMode()
-		}
-		l.readChar()
-		return tok, true
-
 	case '"':
 		start := l.position
 		lit := l.readString()
 		return Token{Type: STRING, Literal: lit, Pos: start}, true
-	case '(':
-		// DO NOT let identifiers to consume parentheses because of method(arg int, arg2 int)
-		if l.CurrentMode() != MODE_CLASS {
-			// read lollipop interface
-			start := l.position
-			l.readChar() // consume '('
-			l.readChar() // consume ')'
-			tok := l.readRelation()
-			if tok.Type == ILLEGAL {
-				l.jumpToPosition(start)
-				return Token{Type: LPAREN, Literal: "(", Pos: l.position}, true
-			}
-			tok.Literal = "()" + tok.Literal
-			tok.Pos = start
-			return tok, true
-		}
-		tok = Token{Type: LPAREN, Literal: "(", Pos: l.position}
-		l.readChar()
-		return tok, true
-
 	case ')':
 		tok = Token{Type: RPAREN, Literal: ")", Pos: l.position}
 		l.readChar()
@@ -282,9 +246,38 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 	switch l.CurrentMode() {
 	case MODE_DEFAULT:
+		switch l.ch {
+		case '\n':
+			tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
+			l.readChar()
+			return tok, true
+		case '(':
+			start := l.position
+			l.readChar() // consume '('
+			l.readChar() // consume ')'
+			tok := l.readRelation()
+			if tok.Type == ILLEGAL {
+				l.jumpToPosition(start)
+				return Token{Type: LPAREN, Literal: "(", Pos: l.position}, true
+			}
+			tok.Literal = "()" + tok.Literal
+			tok.Pos = start
+			return tok, true
+		}
 		return Token{}, false
 	case MODE_CLASS_DEF:
 		switch {
+		case l.ch == '\n':
+			tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
+			l.PopMode()
+			l.readChar()
+			return tok, true
+		case l.ch == '{':
+			l.PopMode()
+			l.PushMode(MODE_CLASS)
+			tok := Token{Type: LBRACE, Literal: "{", Pos: l.position}
+			l.readChar()
+			return tok, true
 		case string(l.peekAhead(len("extends"))) == "extends":
 			start := l.position
 			for _ = range "extends" {
@@ -302,6 +295,25 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 		}
 	case MODE_CLASS:
 		switch {
+		case l.ch == '\n':
+			tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
+			l.readChar()
+			return tok, true
+		case l.ch == '(':
+			tok := Token{Type: LPAREN, Literal: "(", Pos: l.position}
+			l.readChar()
+			return tok, true
+		case l.ch == ')':
+			tok := Token{Type: RPAREN, Literal: ")", Pos: l.position}
+			l.readChar()
+			return tok, true
+		case l.ch == '}':
+			tok := Token{Type: RBRACE, Literal: "}", Pos: l.position}
+			if !isIdentifierRune(l.input[l.position-1]) {
+				l.PopMode()
+			}
+			l.readChar()
+			return tok, true
 		case isClassSeparator(l.ch) && isClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 			sepRune := l.ch
 			l.readChar()
@@ -334,6 +346,11 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 		}
 	case MODE_LABEL:
 		switch {
+		case l.ch == '\n':
+			tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
+			l.PopMode()
+			l.readChar()
+			return tok, true
 		case isClassSeparator(l.ch) && isClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 			sepRune := l.ch
 			l.readChar()
@@ -346,6 +363,13 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 		}
 	case MODE_NOTE:
 		switch {
+		case l.ch == '\n':
+			tok := Token{Type: NEWLINE, Literal: "\n", Pos: l.position}
+			if !l.isMultilineNote {
+				l.PopMode()
+			}
+			l.readChar()
+			return tok, true
 		case l.ch == ':':
 			tok := Token{Type: COLON, Literal: ":", Pos: l.position}
 			l.readChar()
@@ -407,10 +431,6 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		l.readChar()
 		return tok
 	case l.ch == '{':
-		if l.CurrentMode() == MODE_CLASS_DEF {
-			l.PopMode()
-			l.PushMode(MODE_CLASS)
-		}
 		if isIdentifierRune(l.peekChar()) {
 			return l.readModifier()
 		}
@@ -418,10 +438,6 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		l.readChar()
 		return tok
 	case l.ch == '}' && !isRelationLineChar(l.peekChar()):
-		// should be very buggy due to {abstract} or alike
-		if l.CurrentMode() == MODE_CLASS {
-			l.PopMode()
-		}
 		rbacePos := l.position
 		l.readChar()
 		return Token{Type: RBRACE, Literal: "}", Pos: rbacePos}
