@@ -1,580 +1,133 @@
 package tokenizer
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestLexer(t *testing.T) {
-	testCases := []struct {
-		name           string
-		input          string
-		expectedTokens []string
-	}{
-		{
-			name: "SimpleClassDeclaration",
-			input: `class Foo {
-				+id : int
-  				-name : string
-  				foo() : void
-  			}`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"VISIBILITY:+",
-				"IDENTIFIER:id",
-				":::",
-				"IDENTIFIER:int",
-				"NEWLINE:\n",
-				"VISIBILITY:-",
-				"IDENTIFIER:name",
-				":::",
-				"IDENTIFIER:string",
-				"NEWLINE:\n",
-				"IDENTIFIER:foo",
-				"(:(",
-				"):)",
-				":::",
-				"IDENTIFIER:void",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name:  "RelationshipLexing",
-			input: `User "1" -- "0..*" Order : places`,
-			expectedTokens: []string{
-				"IDENTIFIER:User",
-				"STRING:\"1\"",
-				"RELATIONSHIP:--",
-				"STRING:\"0..*\"",
-				"IDENTIFIER:Order",
-				":::",
-				"IDENTIFIER:places",
-			},
-		},
-		{
-			name: "EscapedName",
-			input: `class Foo {
-	  			\~bar()
-			}`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:~bar",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "ClassVisibility",
-			input: `@startuml
-			-class "private Class" {}
-			#class "protected Class" {}
-			~class "package private Class" {}
-			+class "public Class" {}
-			@enduml`,
-			expectedTokens: []string{
-				"@startuml:startuml",
-				"VISIBILITY:-",
-				"CLASS:class",
-				"STRING:\"private Class\"",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"VISIBILITY:#",
-				"CLASS:class",
-				"STRING:\"protected Class\"",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"VISIBILITY:~",
-				"CLASS:class",
-				"STRING:\"package private Class\"",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"VISIBILITY:+",
-				"CLASS:class",
-				"STRING:\"public Class\"",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"@enduml:enduml",
-			},
-		},
-		{
-			name: "ClassModifiers",
-			input: `abstract class Foo {
-	  			{abstract} method()
-				{static} method()
-			}`,
-			expectedTokens: []string{
-				"ABSTRACT:abstract",
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"MODIFIER:{abstract}",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"MODIFIER:{static}",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Enum",
-			input: `enum {
-				DAYS
-				HOURS
-				MINUTES
-			}`,
-			expectedTokens: []string{
-				"ENUM:enum",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:DAYS",
-				"NEWLINE:\n",
-				"IDENTIFIER:HOURS",
-				"NEWLINE:\n",
-				"IDENTIFIER:MINUTES",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Package",
-			input: `package {
-				class Foo {
-					method()
-				}
-			}`,
-			expectedTokens: []string{
-				"PACKAGE:package",
-				"{:{",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Alias",
-			input: `class "Foo Bar" as Foo {
-				method()
-			}
-			class Baz as "Baz Faz" {
-				method()
-			}`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"STRING:\"Foo Bar\"",
-				"ALIAS:as",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:Baz",
-				"ALIAS:as",
-				"STRING:\"Baz Faz\"",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Relationship",
-			input: `class Foo {
-				method()
-			}
-			class Bar {
-				method()
-			}
-			Foo -- Bar`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:Bar",
-				"{:{",
-				"NEWLINE:\n",
-				"IDENTIFIER:method",
-				"(:(",
-				"):)",
-				"NEWLINE:\n",
-				"}:}",
-				"NEWLINE:\n",
-				"IDENTIFIER:Foo",
-				"RELATIONSHIP:--",
-				"IDENTIFIER:Bar",
-			},
-		},
-		{
-			name: "Stereotype",
-			input: `class System << (S,#FF7700) Singleton >>
-			class Date << (D,orchid) >>`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:System",
-				"STEREOTYPE:<< (S,#FF7700) Singleton >>",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:Date",
-				"STEREOTYPE:<< (D,orchid) >>",
-			},
-		},
-		{
-			name: "DecoratedRelationships",
-			input: `Class21 #-- Class22
-			Class23 x-- Class24
-			Class25 }-- Class26
-			Class27 +-- Class28
-			Class29 ^-- Class30`,
-			expectedTokens: []string{
-				"IDENTIFIER:Class21",
-				"RELATIONSHIP:#--",
-				"IDENTIFIER:Class22",
-				"NEWLINE:\n",
-				"IDENTIFIER:Class23",
-				"RELATIONSHIP:x--",
-				"IDENTIFIER:Class24",
-				"NEWLINE:\n",
-				"IDENTIFIER:Class25",
-				"RELATIONSHIP:}--",
-				"IDENTIFIER:Class26",
-				"NEWLINE:\n",
-				"IDENTIFIER:Class27",
-				"RELATIONSHIP:+--",
-				"IDENTIFIER:Class28",
-				"NEWLINE:\n",
-				"IDENTIFIER:Class29",
-				"RELATIONSHIP:^--",
-				"IDENTIFIER:Class30",
-			},
-		},
-		{
-			name: "RelationsWithDirections",
-			input: `Class1 -left-> Class2
-			Class3 -r-> Class4`,
-			expectedTokens: []string{
-				"IDENTIFIER:Class1",
-				"RELATIONSHIP:-left->",
-				"IDENTIFIER:Class2",
-				"NEWLINE:\n",
-				"IDENTIFIER:Class3",
-				"RELATIONSHIP:-r->",
-				"IDENTIFIER:Class4",
-			},
-		},
-		{
-			name: "Keywords",
-			input: `class Foo {}
-			interface Bar {}
-			enum Status {}
-			struct Point {}
-			record User {}
-			dataclass Person {}
-			exception Error {}
-			protocol Sync {}
-			package Pkg {}
-			annotation Test
-			note "test"
-			hide methods
-			show fields
-			remove visibility
-			restore defaults
-			skinparam backgroundColor white
-			set lineStyle ortho
-			together {
-			  class A
-			  class B
-			}`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"INTERFACE:interface",
-				"IDENTIFIER:Bar",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"ENUM:enum",
-				"IDENTIFIER:Status",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"STRUCT:struct",
-				"IDENTIFIER:Point",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"RECORD:record",
-				"IDENTIFIER:User",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"DATACLASS:dataclass",
-				"IDENTIFIER:Person",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"EXCEPTION:exception",
-				"IDENTIFIER:Error",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"PROTOCOL:protocol",
-				"IDENTIFIER:Sync",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"PACKAGE:package",
-				"IDENTIFIER:Pkg",
-				"{:{",
-				"}:}",
-				"NEWLINE:\n",
-				"ANNOTATION:annotation",
-				"IDENTIFIER:Test",
-				"NEWLINE:\n",
-				"NOTE:note",
-				"STRING:\"test\"",
-				"NEWLINE:\n",
-				"HIDE:hide",
-				"IDENTIFIER:methods",
-				"NEWLINE:\n",
-				"SHOW:show",
-				"IDENTIFIER:fields",
-				"NEWLINE:\n",
-				"REMOVE:remove",
-				"IDENTIFIER:visibility",
-				"NEWLINE:\n",
-				"RESTORE:restore",
-				"IDENTIFIER:defaults",
-				"NEWLINE:\n",
-				"SKINPARAM:skinparam",
-				"IDENTIFIER:backgroundColor",
-				"IDENTIFIER:white",
-				"NEWLINE:\n",
-				"SET_PROPERTY:lineStyle=ortho",
-				"NEWLINE:\n",
-				"TOGETHER:together",
-				"{:{",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:A",
-				"NEWLINE:\n",
-				"CLASS:class",
-				"IDENTIFIER:B",
-				"NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Separators",
-			input: `class Foo {
-			  -- Sep with dashes --
-			  .. Sep with dots ..
-			  == Sep with equals ==
-              __ Sep with lodashes __
-              ' other seps:
-              --
-              ..
-              ==
-              __
-			}`,
-			expectedTokens: []string{
-				"CLASS:class", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
-				"SEPARATOR:--", "IDENTIFIER:Sep with dashes", "SEPARATOR:--", "NEWLINE:\n",
-				"SEPARATOR:..", "IDENTIFIER:Sep with dots", "SEPARATOR:..", "NEWLINE:\n",
-				"SEPARATOR:==", "IDENTIFIER:Sep with equals", "SEPARATOR:==", "NEWLINE:\n",
-				"SEPARATOR:__", "IDENTIFIER:Sep with lodashes", "SEPARATOR:__", "NEWLINE:\n",
-				"COMMENT:other seps:", "NEWLINE:\n",
-				"SEPARATOR:--", "NEWLINE:\n",
-				"SEPARATOR:..", "NEWLINE:\n",
-				"SEPARATOR:==", "NEWLINE:\n",
-				"SEPARATOR:__", "NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "Note",
-			input: `note left of Foo
-				This is a note
-				with multiline content
-			end note
-			note "String note with alias" as Alias
-			class Baz
-			note right : On Last defined class with colon`,
-			expectedTokens: []string{
-				"NOTE:note", "NOTE_DIRECTION:left", "NOTE_POSITION:of", "IDENTIFIER:Foo", "NEWLINE:\n",
-				"IDENTIFIER:This is a note\nwith multiline content",
-				"END_BLOCK:end note", "NEWLINE:\n",
-				"NOTE:note", "STRING:\"String note with alias\"", "ALIAS:as", "IDENTIFIER:Alias", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Baz", "NEWLINE:\n",
-				"NOTE:note", "NOTE_DIRECTION:right", ":::", "IDENTIFIER:On Last defined class with colon",
-			},
-		},
-		{
-			name: "AddMethodOrField",
-			input: `Object : equals()
-			ArrayList : Object[] elementData
-			ArrayList : size()`,
-			expectedTokens: []string{
-				"IDENTIFIER:Object", ":::", "IDENTIFIER:equals", "(:(", "):)", "NEWLINE:\n",
-				"IDENTIFIER:ArrayList", ":::", "IDENTIFIER:Object", "[:[", "]:]", "IDENTIFIER:elementData", "NEWLINE:\n",
-				"IDENTIFIER:ArrayList", ":::", "IDENTIFIER:size", "(:(", "):)",
-			},
-		},
-		{
-			name: "Namespace",
-			input: `namespace Foo {
-				class Bar
-			}`,
-			expectedTokens: []string{
-				"PACKAGE:namespace", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Bar", "NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "PackageBlocks",
-			input: `package Foo {
-				class Bar
-			}`,
-			expectedTokens: []string{
-				"PACKAGE:package", "IDENTIFIER:Foo", "{:{", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Bar", "NEWLINE:\n",
-				"}:}",
-			},
-		},
-		{
-			name: "SetProperty",
-			input: `set property 0
-			set property asString`,
-			expectedTokens: []string{
-				"SET_PROPERTY:property=0", "NEWLINE:\n",
-				"SET_PROPERTY:property=asString",
-			},
-		},
-		{
-			name: "LollipopInterface",
-			input: `class foo
-			bar ()-- foo`,
-			expectedTokens: []string{
-				"CLASS:class", "IDENTIFIER:foo", "NEWLINE:\n",
-				"IDENTIFIER:bar", "RELATIONSHIP:()--", "IDENTIFIER:foo",
-			},
-		},
-		{
-			name: "ClassShorthandDoesNotLeakMode",
-			input: `class Foo
-			Foo -- Bar`,
-			expectedTokens: []string{
-				"CLASS:class",
-				"IDENTIFIER:Foo",
-				"NEWLINE:\n",
-				"IDENTIFIER:Foo",
-				"RELATIONSHIP:--",
-				"IDENTIFIER:Bar",
-			},
-		},
-		{
-			name:  "InlinePackages",
-			input: `class Foo.Bar`,
-			expectedTokens: []string{
-				"CLASS:class", "IDENTIFIER:Foo", "SEPARATOR:.", "IDENTIFIER:Bar",
-			},
-		},
-		{
-			name: "Generic",
-			input: `ArrayList<String> : size()
-				class Foo<? extends Element>`,
-			expectedTokens: []string{
-				"IDENTIFIER:ArrayList", "GENERIC:<String>", ":::", "IDENTIFIER:size", "(:(", "):)", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Foo", "GENERIC:<? extends Element>",
-			},
-		},
-		{
-			name: "MODE_CLASS_DEF_edgecase",
-			input: `abstract class Foo
-			interface Bar {}`,
-			expectedTokens: []string{
-				"ABSTRACT:abstract", "CLASS:class", "IDENTIFIER:Foo", "NEWLINE:\n",
-				"INTERFACE:interface", "IDENTIFIER:Bar", "{:{", "}:}",
-			},
-		},
-		{
-			name: "RelationshipKeywords",
-			input: `class Foo implements Bar
-					class Foob extends Barz, Baz`,
-			expectedTokens: []string{
-				"CLASS:class", "IDENTIFIER:Foo", "RELATIONSHIP:implements", "IDENTIFIER:Bar", "NEWLINE:\n",
-				"CLASS:class", "IDENTIFIER:Foob", "RELATIONSHIP:extends", "IDENTIFIER:Barz", ",:,", "IDENTIFIER:Baz",
-			},
-		},
-	}
+func TestModeStack(t *testing.T) {
+	lex := NewLexer("")
+	require.Equal(t, MODE_DEFAULT, lex.CurrentMode())
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			lex := NewLexer(tc.input)
+	lex.PushMode(MODE_NOTE)
+	require.Equal(t, MODE_NOTE, lex.CurrentMode())
 
-			out := []string{}
-			var i int = 0
-			for tok := lex.NextToken(); tok.Type != EOF; tok = lex.NextToken() {
-				stringified := tok.Type.String() + ":" + tok.Literal
-				if stringified != tc.expectedTokens[i] {
-					t.Fatalf("%s: Incorrect token at index %d\nexpected: %s\ngot: %s\nstate dump:\n%v", tc.name, i, tc.expectedTokens[i], stringified, lex.dumpState())
-				}
-				i++
-				out = append(out, stringified)
-				if tok.Literal == "" {
-					t.Fatalf("%s: Empty literal, prone to infinite loops\npreceding tokens: %s", tc.name, strings.Join(out, ", "))
-				}
-			}
+	lex.PushMode(MODE_CLASS)
+	require.Equal(t, MODE_CLASS, lex.CurrentMode())
 
-			require.Equal(t, tc.expectedTokens, out, "incorrect tokens for test case: %s", tc.name)
-		})
-	}
+	require.Equal(t, MODE_CLASS, lex.PopMode())
+	require.Equal(t, MODE_NOTE, lex.CurrentMode())
+
+	require.Equal(t, MODE_NOTE, lex.PopMode())
+	require.Equal(t, MODE_DEFAULT, lex.CurrentMode())
+}
+
+func TestReadIdentifier(t *testing.T) {
+	lex := NewLexer("$tag13")
+	require.Equal(t, "$tag13", lex.readIdentifier())
+
+	lex = NewLexer("Foo\\-bar")
+	require.Equal(t, "Foo-bar", lex.readIdentifier())
+
+	lex = NewLexer("Foo123")
+	require.Equal(t, "Foo123", lex.readIdentifier())
+}
+
+func TestReadNumber(t *testing.T) {
+	lex := NewLexer("12.34")
+	require.Equal(t, "12.34", lex.readNumber())
+
+	lex = NewLexer("007")
+	require.Equal(t, "007", lex.readNumber())
+}
+
+func TestReadString(t *testing.T) {
+	lex := NewLexer("\"a\\\"b\"")
+	require.Equal(t, "\"a\\\"b\"", lex.readString())
+}
+
+func TestReadRelationWithStyle(t *testing.T) {
+	lex := NewLexer("-[bold]->")
+	ok := lex.readRelation()
+	require.Equal(t, RELATIONSHIP, ok.Type)
+	require.Equal(t, "-[bold]->", ok.Literal)
+}
+
+func TestReadRelationWithDirection(t *testing.T) {
+	lex := NewLexer("-left->")
+	ok := lex.readRelation()
+	require.Equal(t, RELATIONSHIP, ok.Type)
+	require.Equal(t, "-left->", ok.Literal)
+}
+
+func TestReadUMLBounds(t *testing.T) {
+	lex := NewLexer("@startuml")
+	tok := lex.readUMLBounds()
+	require.Equal(t, START, tok.Type)
+	require.Equal(t, "startuml", tok.Literal)
+
+	lex = NewLexer("@enduml")
+	tok = lex.readUMLBounds()
+	require.Equal(t, END, tok.Type)
+	require.Equal(t, "enduml", tok.Literal)
+
+	lex = NewLexer("@unlinked")
+	tok = lex.readUMLBounds()
+	require.Equal(t, IDENTIFIER, tok.Type)
+	require.Equal(t, "@unlinked", tok.Literal)
+}
+
+func TestReadModifier(t *testing.T) {
+	lex := NewLexer("{abstract}")
+	tok := lex.readModifier()
+	require.Equal(t, MODIFIER, tok.Type)
+	require.Equal(t, "{abstract}", tok.Literal)
+}
+
+func TestReadStereotype(t *testing.T) {
+	lex := NewLexer("<<stereotype>>")
+	tok := lex.readStereotype()
+	require.Equal(t, STEREOTYPE, tok.Type)
+	require.Equal(t, "<<stereotype>>", tok.Literal)
+}
+
+func TestReadLabel(t *testing.T) {
+	lex := NewLexer("Label text__")
+	label := lex.readLabel()
+	require.Equal(t, "Label text", label)
+	require.Equal(t, '_', lex.ch)
+}
+
+func TestReadNoteLine(t *testing.T) {
+	lex := NewLexer("  hello <b>world</b>\n")
+	line := lex.readNoteLine()
+	require.Equal(t, "hello <b>world</b>", line)
+}
+
+func TestReadLineComment(t *testing.T) {
+	lex := NewLexer("' comment here\n")
+	line := lex.readLineComment()
+	require.Equal(t, "comment here", line)
+}
+
+func TestReadUntil(t *testing.T) {
+	lex := NewLexer("abc:def")
+	out := lex.readUntil(':')
+	require.Equal(t, "abc", out)
+	require.Equal(t, ':', lex.ch)
+}
+
+func TestReadProperty(t *testing.T) {
+	lex := NewLexer(" separator ::\n")
+	prop := lex.readProperty()
+	require.Equal(t, "separator=::", prop)
+	require.Equal(t, []rune("::"), lex.packageSeparator)
+}
+
+func TestIsPackageSeparator(t *testing.T) {
+	lex := NewLexer("::foo")
+	lex.packageSeparator = []rune("::")
+	require.True(t, lex.isPackageSeparator())
+	require.Equal(t, 'f', lex.ch)
 }

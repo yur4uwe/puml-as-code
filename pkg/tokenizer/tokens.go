@@ -90,23 +90,23 @@ func (t TokenType) String() string {
 	case ENUM:
 		return "ENUM"
 	case LBRACE:
-		return "{"
+		return "LBRACE"
 	case RBRACE:
-		return "}"
+		return "RBRACE"
 	case LPAREN:
-		return "("
+		return "LPAREN"
 	case RPAREN:
-		return ")"
+		return "RPAREN"
 	case LBRACKET:
-		return "["
+		return "LBRACKET"
 	case RBRACKET:
-		return "]"
+		return "RBRACKET"
 	case SEMICOLON:
-		return ";"
+		return "SEMICOLON"
 	case COLON:
-		return ":"
+		return "COLON"
 	case COMMA:
-		return ","
+		return "COMMA"
 	case VISIBILITY:
 		return "VISIBILITY"
 	case RELATIONSHIP:
@@ -114,9 +114,9 @@ func (t TokenType) String() string {
 	case COMMENT:
 		return "COMMENT"
 	case START:
-		return "@startuml"
+		return "START"
 	case END:
-		return "@enduml"
+		return "END"
 	case PACKAGE:
 		return "PACKAGE"
 	case ANNOTATION:

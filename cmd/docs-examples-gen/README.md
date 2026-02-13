@@ -5,7 +5,7 @@ Generates tokenizer example test cases from the `<plantuml>` blocks in the class
 ## Usage
 
 ```zsh
-go run ./cmd/docs-examples-gen -docs-dir docs/class-diagram -out pkg/tokenizer/examples_generated_testdata.go
+go run ./cmd/docs-examples-gen -docs-dir docs/class-diagram -out pkg/tokenizer/examples_generated.json
 ```
 
 After generation, run tokenizer tests:

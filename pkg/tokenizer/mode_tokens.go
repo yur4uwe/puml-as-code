@@ -115,6 +115,10 @@ func resolveLabelModeToken(l *Lexer) (Token, bool) {
 	case l.ch == '\n':
 		l.PopMode()
 		return l.consumeChar(NEWLINE, "\n"), true
+	case l.ch == '(':
+		return l.consumeChar(LPAREN, "("), true
+	case l.ch == ')':
+		return l.consumeChar(RPAREN, ")"), true
 	case helpers.IsClassSeparator(l.ch) && helpers.IsClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 		sepRune := l.ch
 		l.readChar()
