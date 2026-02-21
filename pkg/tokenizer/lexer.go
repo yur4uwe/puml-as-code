@@ -8,6 +8,7 @@ import (
 	"yur4uwe/pac/internal/helpers"
 )
 
+//go:generate enumer -type=lexerMode -transform=upper
 type lexerMode byte
 
 const (
@@ -16,24 +17,9 @@ const (
 	MODE_LABEL
 	MODE_CLASS_DEF
 	MODE_CLASS
+	MODE_STYLE
+	MODE_ACTION
 )
-
-func (l lexerMode) String() string {
-	switch l {
-	case MODE_DEFAULT:
-		return "MODE_DEFAULT"
-	case MODE_NOTE:
-		return "MODE_NOTE"
-	case MODE_LABEL:
-		return "MODE_LABEL"
-	case MODE_CLASS:
-		return "MODE_CLASS"
-	case MODE_CLASS_DEF:
-		return "MODE_CLASS_DEF"
-	default:
-		return "UNKNOWN_MODE"
-	}
-}
 
 func (l *Lexer) CurrentMode() lexerMode {
 	if len(l.modeStack) == 0 {
@@ -56,14 +42,8 @@ func (l *Lexer) PopMode() lexerMode {
 }
 
 type Lexer struct {
-	input                   []rune
-	position                int
-	readPos                 int
-	ch                      rune
-	modeStack               []lexerMode
-	isMultilineNote         bool
-	noteDeclarationComplete bool
-	packageSeparator        []rune
+	input []rune
+	lexerState
 }
 
 type lexerState struct {
@@ -74,6 +54,7 @@ type lexerState struct {
 	isMultilineNote         bool
 	noteDeclarationComplete bool
 	packageSeparator        []rune
+	isTargetDetermined      bool
 }
 
 func (l lexerState) String() string {
@@ -82,15 +63,18 @@ func (l lexerState) String() string {
 
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
-		input:            []rune(input),
-		modeStack:        make([]lexerMode, 0, 5),
-		packageSeparator: []rune{'.'},
+		input: []rune(input),
+		lexerState: lexerState{
+			modeStack:        make([]lexerMode, 0, 5),
+			packageSeparator: []rune{'.'},
+		},
 	}
 	l.readChar()
 	return l
 }
 
-func (l *Lexer) readChar() {
+func (l *Lexer) readChar() (ch rune) {
+	ch = l.ch
 	if l.readPos >= len(l.input) {
 		l.ch = 0
 	} else {
@@ -98,6 +82,7 @@ func (l *Lexer) readChar() {
 	}
 	l.position = l.readPos
 	l.readPos++
+	return
 }
 
 // consumeChar creates a token for the current character, advances the lexer, and returns the token.
@@ -252,14 +237,8 @@ func lookupKeyword(ident string) TokenType {
 		return STEREOTYPE
 
 	// Visibility and display control
-	case "hide":
-		return HIDE
-	case "show":
-		return SHOW
-	case "remove":
-		return REMOVE
-	case "restore":
-		return RESTORE
+	case "hide", "show", "remove", "restore":
+		return ACTION
 
 	// Configuration
 	case "skinparam":
@@ -424,16 +403,17 @@ func (l *Lexer) lookAhead(n int) []rune {
 
 func (l *Lexer) readUMLBounds() Token {
 	start := l.position
-	l.readChar() // consume '@'
+	ch := string(l.readChar()) // consume '@'
 	ident := l.readIdentifier()
 	switch ident {
 	case "startuml":
 		return Token{Type: START, Literal: ident, Pos: start}
 	case "enduml":
 		return Token{Type: END, Literal: ident, Pos: start}
+	case "unlinked":
+		return Token{Type: TARGET, Literal: ch + ident, Pos: start}
 	default:
-		// Keep the @ prefix for special identifiers like @unlinked
-		return Token{Type: IDENTIFIER, Literal: "@" + ident, Pos: start}
+		return Token{Type: ILLEGAL, Literal: ch + ident, Pos: start}
 	}
 }
 
@@ -472,6 +452,9 @@ func (l *Lexer) keywordModeSwitcher(tt TokenType) {
 	case NOTE:
 		l.PushMode(MODE_NOTE)
 		l.isMultilineNote = false // Default to single-line until we see NOTE_POSITION
+	case ACTION:
+		l.isTargetDetermined = false
+		l.PushMode(MODE_ACTION)
 	}
 }
 
@@ -495,4 +478,13 @@ func (l *Lexer) readUntil(runes ...rune) string {
 		l.readChar()
 	}
 	return sb.String()
+}
+
+func (l *Lexer) isActionAspect(lit string) bool {
+	switch lit {
+	case "members", "circle", "methods", "fields", "stereotype":
+		return true
+	default:
+		return l.isTargetDetermined
+	}
 }

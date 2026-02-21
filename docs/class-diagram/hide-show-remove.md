@@ -13,7 +13,7 @@ Instead of ``empty members``, you can use:
 * ``methods`` which will hide methods, even if they are described,
 * ``members`` which will hide fields __and__ methods, even if they are described,
 * ``circle`` for the circled character in front of class name,
-* ``stereotype`` for the stereotype.
+* ``stereotype`` for the stereotypee
 
 You can also provide, just after the ``hide`` or ``show`` keyword:
 * ``class`` for all classes,

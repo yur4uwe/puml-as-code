@@ -7,6 +7,22 @@ import (
 	"yur4uwe/pac/internal/helpers"
 )
 
+func resolveStyleModeToken(l *Lexer) (Token, bool) {
+	switch l.ch {
+	case '\n':
+		l.PopMode()
+		return l.consumeChar(NEWLINE, "\n"), true
+	case '{':
+		l.PopMode()
+		l.PushMode(MODE_CLASS)
+		return l.consumeChar(LBRACE, "{"), true
+	case '#':
+		l.PushMode(MODE_STYLE)
+		return l.consumeChar(HASH, "#"), true
+	}
+	return Token{}, false
+}
+
 func resolveDefaultModeToken(l *Lexer) (Token, bool) {
 	switch l.ch {
 	case '\n':
@@ -42,6 +58,9 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 		l.PopMode()
 		l.PushMode(MODE_CLASS)
 		return l.consumeChar(LBRACE, "{"), true
+	case l.ch == '#':
+		l.PushMode(MODE_STYLE)
+		return l.consumeChar(HASH, "#"), true
 	case string(l.lookAhead(len("extends"))) == "extends":
 		start := l.position
 		for _ = range "extends" {
@@ -90,22 +109,9 @@ func resolveClassModeToken(l *Lexer) (Token, bool) {
 		return l.consumeChar(VISIBILITY, string(l.ch)), true
 	case helpers.IsIdentifierRune(l.ch) || l.ch == '\\':
 		start := l.position
-		lit := l.readIdentifier()
-		tt := lookupKeyword(lit)
-		if lit == "implements" {
-			return Token{Type: RELATIONSHIP, Literal: lit, Pos: start}, true
-		}
-		if lit == "extends" {
-			return Token{Type: RELATIONSHIP, Literal: lit, Pos: start}, true
-		}
-		if tt == NOTE {
-			l.PushMode(MODE_NOTE)
-			l.isMultilineNote = false
-		}
-		if tt == IDENTIFIER {
-			return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: start}, true
-		}
-		return Token{Type: tt, Literal: strings.TrimSpace(lit), Pos: start}, true
+		lit := l.readUntil('\n', '\r', ' ', ':', '(', ')')
+		lit = strings.ReplaceAll(lit, "\\", "")
+		return Token{Type: IDENTIFIER, Literal: strings.TrimSpace(lit), Pos: start}, true
 	}
 	return Token{}, false
 }
@@ -300,5 +306,33 @@ func resolveNoteModeToken(l *Lexer) (Token, bool) {
 		}
 		lit := strings.TrimSpace(string(l.input[start:l.position]))
 		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}, true
+	}
+}
+
+func resolveActionModeToken(l *Lexer) (Token, bool) {
+	switch l.ch {
+	case '\n':
+		l.PopMode()
+		return l.consumeChar(NEWLINE, "\n"), true
+	case '*':
+		l.isTargetDetermined = true
+		return l.consumeChar(TARGET, "*"), true
+	case '@', '$':
+		start := l.position
+		ch := string(l.readChar())
+		lit := l.readIdentifier()
+		l.isTargetDetermined = true
+		return Token{Type: TARGET, Literal: ch + lit, Pos: start}, true
+	default:
+		start := l.position
+		lit := l.readIdentifier()
+
+		currentActionToken := TARGET
+		if l.isActionAspect(lit) {
+			currentActionToken = ASPECT
+		} else {
+			l.isTargetDetermined = true
+		}
+		return Token{Type: currentActionToken, Literal: lit, Pos: start}, true
 	}
 }

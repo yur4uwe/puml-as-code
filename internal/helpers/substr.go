@@ -1,6 +1,8 @@
 package helpers
 
-import "fmt"
+import (
+	"fmt"
+)
 
 func SubstrRunes(s string, start, end int) (string, error) {
 	r := []rune(s)

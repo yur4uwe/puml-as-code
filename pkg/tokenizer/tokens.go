@@ -1,11 +1,15 @@
 package tokenizer
 
 import (
+	"encoding/json"
 	"unicode"
 	"yur4uwe/pac/internal/helpers"
 )
 
-type TokenType int
+//go:generate enumer -type=TokenType -transform=upper -json
+type TokenType byte
+
+var _ json.Unmarshaler = (*TokenType)(nil)
 
 const (
 	ILLEGAL TokenType = iota
@@ -28,15 +32,13 @@ const (
 	DATACLASS
 	EXCEPTION
 	PROTOCOL
-	HIDE
-	SHOW
-	REMOVE
-	RESTORE
+	ACTION
 	SKINPARAM
 	SET_PROPERTY
 	TOGETHER
 	END_BLOCK
 	GENERIC
+	TAG
 
 	// Note tokens
 	NOTE_DIRECTION
@@ -51,6 +53,7 @@ const (
 	SEMICOLON
 	COLON
 	COMMA
+	HASH
 
 	VISIBILITY
 	MODIFIER
@@ -63,110 +66,9 @@ const (
 	START
 	END
 	PREPROCESSOR
+	TARGET
+	ASPECT
 )
-
-func (t TokenType) String() string {
-	switch t {
-	case ILLEGAL:
-		return "ILLEGAL"
-	case EOF:
-		return "EOF"
-	case NEWLINE:
-		return "NEWLINE"
-	case IDENTIFIER:
-		return "IDENTIFIER"
-	case STRING:
-		return "STRING"
-	case NUMBER:
-		return "NUMBER"
-	case CLASS:
-		return "CLASS"
-	case ABSTRACT:
-		return "ABSTRACT"
-	case STRUCT:
-		return "STRUCT"
-	case INTERFACE:
-		return "INTERFACE"
-	case ENUM:
-		return "ENUM"
-	case LBRACE:
-		return "LBRACE"
-	case RBRACE:
-		return "RBRACE"
-	case LPAREN:
-		return "LPAREN"
-	case RPAREN:
-		return "RPAREN"
-	case LBRACKET:
-		return "LBRACKET"
-	case RBRACKET:
-		return "RBRACKET"
-	case SEMICOLON:
-		return "SEMICOLON"
-	case COLON:
-		return "COLON"
-	case COMMA:
-		return "COMMA"
-	case VISIBILITY:
-		return "VISIBILITY"
-	case RELATIONSHIP:
-		return "RELATIONSHIP"
-	case COMMENT:
-		return "COMMENT"
-	case START:
-		return "START"
-	case END:
-		return "END"
-	case PACKAGE:
-		return "PACKAGE"
-	case ANNOTATION:
-		return "ANNOTATION"
-	case NOTE:
-		return "NOTE"
-	case RECORD:
-		return "RECORD"
-	case DATACLASS:
-		return "DATACLASS"
-	case EXCEPTION:
-		return "EXCEPTION"
-	case PROTOCOL:
-		return "PROTOCOL"
-	case HIDE:
-		return "HIDE"
-	case SHOW:
-		return "SHOW"
-	case REMOVE:
-		return "REMOVE"
-	case RESTORE:
-		return "RESTORE"
-	case SKINPARAM:
-		return "SKINPARAM"
-	case SET_PROPERTY:
-		return "SET_PROPERTY"
-	case TOGETHER:
-		return "TOGETHER"
-	case END_BLOCK:
-		return "END_BLOCK"
-	case MODIFIER:
-		return "MODIFIER"
-	case ALIAS:
-		return "ALIAS"
-	case STEREOTYPE:
-		return "STEREOTYPE"
-	case SEPARATOR:
-		return "SEPARATOR"
-	case NOTE_DIRECTION:
-		return "NOTE_DIRECTION"
-	case NOTE_POSITION:
-		return "NOTE_POSITION"
-	case GENERIC:
-		return "GENERIC"
-	case PREPROCESSOR:
-		return "PREPROCESSOR"
-	default:
-		return "UNKNOWN"
-	}
-}
 
 type TokenPos struct {
 	line uint
@@ -251,6 +153,10 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 		return resolveLabelModeToken(l)
 	case MODE_NOTE:
 		return resolveNoteModeToken(l)
+	case MODE_STYLE:
+		return resolveStyleModeToken(l)
+	case MODE_ACTION:
+		return resolveActionModeToken(l)
 	}
 	return Token{}, false
 }
@@ -258,7 +164,10 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles lookahead-heavy cases.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	switch {
-	case (l.ch == '\\' || l.ch == '$' || helpers.IsIdentifierRune(l.ch)) && !helpers.IsRelationLineChar(l.peekChar()):
+	case l.ch == '$':
+		start := l.position
+		return Token{Type: TAG, Literal: l.readIdentifier(), Pos: start}
+	case (l.ch == '\\' || helpers.IsIdentifierRune(l.ch)) && !helpers.IsRelationLineChar(l.peekChar()):
 		start := l.position
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)
