@@ -1,26 +1,21 @@
 package tokenizer
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 	"yur4uwe/pac/internal/helpers"
 )
 
-func resolveStyleModeToken(l *Lexer) (Token, bool) {
-	switch l.ch {
-	case '\n':
-		l.PopMode()
-		return l.consumeChar(NEWLINE, "\n"), true
-	case '{':
-		l.PopMode()
-		l.PushMode(MODE_CLASS)
-		return l.consumeChar(LBRACE, "{"), true
-	case '#':
-		l.PushMode(MODE_STYLE)
-		return l.consumeChar(HASH, "#"), true
+func resolveStyleModeToken(l *Lexer) Token {
+	if l.ch == '#' {
+		return l.consumeChar(HASH, "#")
 	}
-	return Token{}, false
+
+	l.PopMode()
+
+	start := l.position
+	lit := l.readUntil(' ', '\n', '\r', '\t')
+	return Token{Type: IDENTIFIER, Literal: lit, Pos: start}
 }
 
 func resolveDefaultModeToken(l *Lexer) (Token, bool) {
@@ -53,14 +48,24 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
 		l.PopMode()
+		l.isClassNameSet = false
 		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == '{':
 		l.PopMode()
-		l.PushMode(MODE_CLASS)
+		l.isClassNameSet = false
+		if l.CurrentMode() == MODE_CLASS_DEF {
+			l.PushMode(MODE_CLASS)
+		}
 		return l.consumeChar(LBRACE, "{"), true
 	case l.ch == '#':
 		l.PushMode(MODE_STYLE)
 		return l.consumeChar(HASH, "#"), true
+	case l.isPackageSeparator():
+		start := l.position
+		for _ = range l.packageSeparator {
+			l.readChar()
+		}
+		return Token{Type: SEPARATOR, Literal: string(l.packageSeparator), Pos: start}, true
 	case string(l.lookAhead(len("extends"))) == "extends":
 		start := l.position
 		for _ = range "extends" {
@@ -73,12 +78,19 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 			l.readChar()
 		}
 		return Token{Type: RELATIONSHIP, Literal: "implements", Pos: start}, true
-	case l.isPackageSeparator():
-		return Token{Type: SEPARATOR, Literal: string(l.packageSeparator), Pos: l.position - len(l.packageSeparator)}, true
+	case l.ch == '$' && l.isClassNameSet:
+		start := l.position
+		lit := l.readIdentifier()
+		return Token{Type: TAG, Literal: lit, Pos: start}, true
 	case helpers.IsIdentifierRune(l.ch) || l.ch == '\\' || l.ch == '$':
 		start := l.position
 		lit := l.readIdentifier()
+		if l.peekChar() != ' ' && !l.isPackageSeparator() {
+			// we have a 'none' package separator read until ' ' or '\n'
+			lit += l.readUntil(' ', '\n', '\r')
+		}
 		tt := lookupKeyword(lit)
+		l.isClassNameSet = tt == IDENTIFIER
 		// In CLASS_DEF mode, identifiers are class names or keywords
 		return Token{Type: tt, Literal: lit, Pos: start}, true
 	}
@@ -148,165 +160,63 @@ func resolveNoteModeToken(l *Lexer) (Token, bool) {
 			l.noteDeclarationComplete = true
 		}
 		return l.consumeChar(NEWLINE, "\n"), true
+	case l.ch == '"':
+		start := l.position
+		lit := l.readString()
+		if string(l.input[start-2:start]) != "::" {
+			l.isMultilineNote = false
+			l.noteDeclarationComplete = true
+			l.PopMode()
+		}
+		return Token{Type: STRING, Literal: lit, Pos: start}, true
+	case l.ch == ':' && l.peekChar() == ':':
+		start := l.position
+		first_colon := string(l.readChar())
+		second_colon := string(l.readChar())
+		return Token{Type: SEPARATOR, Literal: second_colon + first_colon, Pos: start}, true
 	case l.ch == ':':
-		l.PopMode()
-		l.PushMode(MODE_LABEL)
 		l.isMultilineNote = false
-		l.noteDeclarationComplete = false
+		l.noteDeclarationComplete = true
 		return l.consumeChar(COLON, ":"), true
-	case helpers.IsIdentifierRune(l.ch) || unicode.IsNumber(l.ch) || l.ch == '<':
+	case l.ch == '#':
+		l.PushMode(MODE_STYLE)
+		return l.consumeChar(HASH, "#"), true
+	case l.noteDeclarationComplete && l.isMultilineNote:
+		start := l.position
+		sb := strings.Builder{}
+		for l.ch != 0 {
+			if l.ch == '\n' {
+				sb.WriteRune(l.readChar())
+				// check if 'end note' is after a newline to close multiline note
+				str := string(l.lookAhead(8))
+				if str == "end note" {
+					l.isMultilineNote = false
+					l.noteDeclarationComplete = false
+					return Token{Type: STRING, Literal: sb.String(), Pos: start}, true
+				}
+			}
+			sb.WriteRune(l.readChar())
+		}
+		panic("malformed multiline note")
+	case l.noteDeclarationComplete && !l.isMultilineNote:
+		start := l.position
+		lit := l.readUntil('\r', '\n')
+		l.PopMode()
+		return Token{Type: STRING, Literal: lit, Pos: start}, true
+	case helpers.IsIdentifierRune(l.ch):
 		start := l.position
 		lit := l.readIdentifier()
-		ntt := lookupNoteKeyword(lit)
-		if ntt == END_BLOCK {
-			if l.ch == ' ' {
-				l.readChar()
-			}
-			noteStr := l.readIdentifier()
+		tt := lookupNoteKeyword(lit)
+		if tt == END_BLOCK {
+			// consume ' ' between 'end' and 'note'
+			l.readChar()
+			// read 'note' after 'end' at the end of the note on beginning of the line
+			lit += " " + l.readIdentifier()
 			l.PopMode()
-			l.isMultilineNote = false
-			l.noteDeclarationComplete = false
-			return Token{Type: END_BLOCK, Literal: fmt.Sprintf("%s %s", lit, noteStr), Pos: start}, true
 		}
-		if ntt == NOTE_POSITION {
-			if lit == "on" {
-				l.findNextTokenStart()
-				if l.ch != 0 && unicode.IsLetter(l.ch) {
-					linkStart := l.position
-					nextWord := l.readIdentifier()
-					if nextWord == "link" {
-						l.isMultilineNote = true
-						l.noteDeclarationComplete = false
-						return Token{Type: NOTE_POSITION, Literal: "on link", Pos: start}, true
-					}
-					l.jumpToPosition(linkStart)
-				}
-			}
-			l.isMultilineNote = true
-			l.noteDeclarationComplete = false
-			return Token{Type: ntt, Literal: strings.TrimSpace(lit), Pos: start}, true
-		}
-		if ntt != IDENTIFIER {
-			return Token{Type: ntt, Literal: strings.TrimSpace(lit), Pos: start}, true
-		}
-		// IDENTIFIER in multiline note: check if we should consume all content
-		if l.isMultilineNote && l.noteDeclarationComplete {
-			// Consume all note content until "end note"
-			contentStart := start
-			var contentLines []string
-
-			// Read rest of current line
-			for l.ch != '\n' && l.ch != 0 {
-				l.readChar()
-			}
-			firstLine := strings.TrimSpace(string(l.input[start:l.position]))
-			if firstLine != "" {
-				contentLines = append(contentLines, firstLine)
-			}
-
-			// Consume all following lines until "end note"
-			for {
-				if l.ch == '\n' {
-					l.readChar()
-				}
-				if l.ch == 0 {
-					break
-				}
-
-				l.findNextTokenStart()
-
-				// Check for "end note"
-				if unicode.IsLetter(l.ch) {
-					checkPos := l.position
-					checkWord := l.readIdentifier()
-					if checkWord == "end" {
-						if l.ch == ' ' {
-							l.readChar()
-							nextWord := l.readIdentifier()
-							if nextWord == "note" {
-								l.jumpToPosition(checkPos)
-								break
-							}
-						}
-					}
-					l.jumpToPosition(checkPos)
-				}
-
-				// Read this line as content
-				lineStart := l.position
-				for l.ch != '\n' && l.ch != 0 {
-					l.readChar()
-				}
-				line := strings.TrimSpace(string(l.input[lineStart:l.position]))
-				if line != "" {
-					contentLines = append(contentLines, line)
-				}
-			}
-
-			content := strings.Join(contentLines, "\n")
-			return Token{Type: IDENTIFIER, Literal: content, Pos: contentStart}, true
-		}
-		// Just return the identifier (target element name on declaration line)
-		for l.ch != '\n' && l.ch != 0 {
-			l.readChar()
-		}
-		lit = strings.TrimSpace(string(l.input[start:l.position]))
-		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}, true
-	default:
-		// Non-letter character (like <, /)
-		if l.isMultilineNote && l.noteDeclarationComplete {
-			// Consume all content until "end note"
-			start := l.position
-			var contentLines []string
-
-			for {
-				lineStart := l.position
-				for l.ch != '\n' && l.ch != 0 {
-					l.readChar()
-				}
-				line := strings.TrimSpace(string(l.input[lineStart:l.position]))
-				if line != "" {
-					contentLines = append(contentLines, line)
-				}
-
-				if l.ch == '\n' {
-					l.readChar()
-				}
-				if l.ch == 0 {
-					break
-				}
-
-				l.findNextTokenStart()
-
-				// Check for "end note"
-				if unicode.IsLetter(l.ch) {
-					checkPos := l.position
-					checkWord := l.readIdentifier()
-					if checkWord == "end" {
-						if l.ch == ' ' {
-							l.readChar()
-							nextWord := l.readIdentifier()
-							if nextWord == "note" {
-								l.jumpToPosition(checkPos)
-								break
-							}
-						}
-					}
-					l.jumpToPosition(checkPos)
-				}
-			}
-
-			content := strings.Join(contentLines, "\n")
-			return Token{Type: IDENTIFIER, Literal: content, Pos: start}, true
-		}
-		// Single-line or still on declaration line
-		start := l.position
-		for l.ch != '\n' && l.ch != 0 {
-			l.readChar()
-		}
-		lit := strings.TrimSpace(string(l.input[start:l.position]))
-		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}, true
+		return Token{Type: tt, Literal: lit, Pos: start}, true
 	}
+	return Token{}, false
 }
 
 func resolveActionModeToken(l *Lexer) (Token, bool) {
@@ -319,10 +229,9 @@ func resolveActionModeToken(l *Lexer) (Token, bool) {
 		return l.consumeChar(TARGET, "*"), true
 	case '@', '$':
 		start := l.position
-		ch := string(l.readChar())
 		lit := l.readIdentifier()
 		l.isTargetDetermined = true
-		return Token{Type: TARGET, Literal: ch + lit, Pos: start}, true
+		return Token{Type: TARGET, Literal: lit, Pos: start}, true
 	default:
 		start := l.position
 		lit := l.readIdentifier()

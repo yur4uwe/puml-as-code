@@ -96,11 +96,6 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	switch l.ch {
 	case 0:
 		return Token{Type: EOF, Literal: "", Pos: l.position}, true
-
-	case '"':
-		start := l.position
-		lit := l.readString()
-		return Token{Type: STRING, Literal: lit, Pos: start}, true
 	case ')':
 		return l.consumeChar(RPAREN, ")"), true
 	case '[':
@@ -154,7 +149,7 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 	case MODE_NOTE:
 		return resolveNoteModeToken(l)
 	case MODE_STYLE:
-		return resolveStyleModeToken(l)
+		return resolveStyleModeToken(l), true
 	case MODE_ACTION:
 		return resolveActionModeToken(l)
 	}
@@ -164,6 +159,9 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles lookahead-heavy cases.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	switch {
+	case l.ch == '"':
+		start := l.position
+		return Token{Type: STRING, Literal: l.readString(), Pos: start}
 	case l.ch == '$':
 		start := l.position
 		return Token{Type: TAG, Literal: l.readIdentifier(), Pos: start}
@@ -178,6 +176,12 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 			return Token{Type: SET_PROPERTY, Literal: l.readProperty(), Pos: start}
 		}
 		return Token{Type: tt, Literal: lit, Pos: start}
+	case l.isPackageSeparator():
+		start := l.position
+		for _ = range l.packageSeparator {
+			l.readChar()
+		}
+		return Token{Type: SEPARATOR, Literal: string(l.packageSeparator), Pos: start}
 	case l.ch == ':':
 		return l.consumeChar(COLON, ":")
 	case l.ch == '{':

@@ -15,6 +15,7 @@ const (
 	MODE_DEFAULT lexerMode = iota
 	MODE_NOTE
 	MODE_LABEL
+	MODE_PACKAGE_DEF
 	MODE_CLASS_DEF
 	MODE_CLASS
 	MODE_STYLE
@@ -29,6 +30,13 @@ func (l *Lexer) CurrentMode() lexerMode {
 }
 
 func (l *Lexer) PushMode(mode lexerMode) {
+	switch mode {
+	case MODE_NOTE:
+		l.isMultilineNote = true
+		l.noteDeclarationComplete = false
+	case MODE_ACTION:
+		l.isTargetDetermined = false
+	}
 	l.modeStack = append(l.modeStack, mode)
 }
 
@@ -51,14 +59,15 @@ type lexerState struct {
 	readPos                 int
 	ch                      rune
 	modeStack               []lexerMode
+	packageSeparator        []rune
 	isMultilineNote         bool
 	noteDeclarationComplete bool
-	packageSeparator        []rune
 	isTargetDetermined      bool
+	isClassNameSet          bool
 }
 
 func (l lexerState) String() string {
-	return fmt.Sprintf("position: %d\nreadPos: %d\nch: %q\nmodeStack: %v\nisMultilineNote: %t", l.position, l.readPos, l.ch, l.modeStack, l.isMultilineNote)
+	return fmt.Sprintf("\nposition: %d\nreadPos: %d\nch: %q\nmodeStack: %v\nisMultilineNote: %t\nisClassNameSet: %t\nisTargetSet: %t\nisTargetDetermined: %t", l.position, l.readPos, l.ch, l.modeStack, l.isMultilineNote, l.isClassNameSet, l.isTargetDetermined, l.isTargetDetermined)
 }
 
 func NewLexer(input string) *Lexer {
@@ -154,15 +163,8 @@ func (l *Lexer) readClassIdentifier() string {
 }
 
 func (l *Lexer) isPackageSeparator() bool {
-	var cascade bool = true
-	for _, r := range l.packageSeparator {
-		if l.ch != r {
-			cascade = false
-			break
-		}
-		l.readChar()
-	}
-	return cascade
+	sep := l.lookAhead(len(l.packageSeparator))
+	return slices.Equal(sep, l.packageSeparator)
 }
 
 func (l *Lexer) readGeneric() string {
@@ -178,7 +180,7 @@ func (l *Lexer) readGeneric() string {
 func (l *Lexer) readIdentifier() string {
 	var result []rune
 
-	if l.ch == '$' {
+	if l.ch == '$' || l.ch == '@' {
 		result = append(result, l.ch)
 		l.readChar()
 	}
@@ -303,8 +305,9 @@ func (l *Lexer) readNoteLine() string {
 	return strings.TrimSpace(string(l.input[start:l.position]))
 }
 
+// Assumes to be called after encountering a double quote
+// reads a string until the closing double quote or end of input
 func (l *Lexer) readString() string {
-	// assumes l.ch == '"'
 	start := l.position
 	l.readChar() // consume opening "
 	for l.ch != '"' && l.ch != 0 {
@@ -449,11 +452,11 @@ func (l *Lexer) keywordModeSwitcher(tt TokenType) {
 	switch tt {
 	case CLASS, INTERFACE, ENUM, STRUCT, RECORD, DATACLASS, EXCEPTION, PROTOCOL, ANNOTATION:
 		l.PushMode(MODE_CLASS_DEF)
+	case PACKAGE:
+		l.PushMode(MODE_PACKAGE_DEF)
 	case NOTE:
 		l.PushMode(MODE_NOTE)
-		l.isMultilineNote = false // Default to single-line until we see NOTE_POSITION
 	case ACTION:
-		l.isTargetDetermined = false
 		l.PushMode(MODE_ACTION)
 	}
 }
@@ -474,8 +477,7 @@ func (l *Lexer) readProperty() string {
 func (l *Lexer) readUntil(runes ...rune) string {
 	var sb strings.Builder
 	for !slices.Contains(runes, l.ch) && l.ch != 0 {
-		sb.WriteRune(l.ch)
-		l.readChar()
+		sb.WriteRune(l.readChar())
 	}
 	return sb.String()
 }
