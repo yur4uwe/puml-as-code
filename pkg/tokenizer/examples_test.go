@@ -70,6 +70,7 @@ func assertTokenSequence(t *testing.T, input string, expected []expectedToken) {
 	n := len(expected)
 	l := NewLexer(input)
 	actual := make([]expectedToken, 0, 32)
+	lastState := l.dumpState()
 
 	var i int = 0
 	for tok := l.NextToken(); tok.Type != EOF; tok = l.NextToken() {
@@ -78,11 +79,12 @@ func assertTokenSequence(t *testing.T, input string, expected []expectedToken) {
 			Literal: tok.Literal,
 		})
 		if i < n && (tok.Type != expected[i].Type || tok.Literal != expected[i].Literal) {
-			t.Errorf("token mismatch at index %d: expected %v, got %v\nneighbouting input: \n%q\nstate: %s",
+			t.Errorf("token mismatch at index %d: expected %v, got %v\nneighbouting input: \n%q\nstate before last token: %s",
 				i, expected[i], tok,
 				string(l.input[max(0, l.position-10):min(len(l.input), l.position+10)]),
-				l.dumpState())
+				lastState)
 		}
+		lastState = l.dumpState()
 		if i >= n {
 			t.Errorf("unexpected token at index %d: %v", i, tok)
 		}

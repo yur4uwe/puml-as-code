@@ -13,8 +13,17 @@ func resolveStyleModeToken(l *Lexer) Token {
 
 	l.PopMode()
 
+	break_chars := make([]rune, 0, 5)
+	break_chars = append(break_chars, ' ', '\n', '\r', '\t')
+
+	if l.CurrentMode() == MODE_NOTE {
+		break_chars = append(break_chars, ':')
+	} else if l.CurrentMode() == MODE_CLASS_DEF {
+		break_chars = append(break_chars, '{')
+	}
+
 	start := l.position
-	lit := l.readUntil(' ', '\n', '\r', '\t')
+	lit := l.readUntil(break_chars...)
 	return Token{Type: IDENTIFIER, Literal: lit, Pos: start}
 }
 
@@ -48,12 +57,9 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 	switch {
 	case l.ch == '\n':
 		l.PopMode()
-		l.isClassNameSet = false
 		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == '{':
-		l.PopMode()
-		l.isClassNameSet = false
-		if l.CurrentMode() == MODE_CLASS_DEF {
+		if l.PopMode() != MODE_PACKAGE_DEF {
 			l.PushMode(MODE_CLASS)
 		}
 		return l.consumeChar(LBRACE, "{"), true
@@ -85,8 +91,9 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 	case helpers.IsIdentifierRune(l.ch) || l.ch == '\\' || l.ch == '$':
 		start := l.position
 		lit := l.readIdentifier()
-		if l.peekChar() != ' ' && !l.isPackageSeparator() {
+		if l.peekChar() != ' ' && !l.isPackageSeparator() && l.ch != '<' {
 			// we have a 'none' package separator read until ' ' or '\n'
+			// TODO: Should actually stop if finds  a package separator
 			lit += l.readUntil(' ', '\n', '\r')
 		}
 		tt := lookupKeyword(lit)
@@ -112,11 +119,9 @@ func resolveClassModeToken(l *Lexer) (Token, bool) {
 		return l.consumeChar(RBRACE, "}"), true
 	case helpers.IsClassSeparator(l.ch) && helpers.IsClassSeparator(l.peekChar()) && l.ch == l.peekChar():
 		start := l.position
-		sepRune := l.ch
-		l.readChar()
-		l.readChar()
+		sepRune := string(l.readChar()) + string(l.readChar())
 		l.PushMode(MODE_LABEL)
-		return Token{Type: SEPARATOR, Literal: string(sepRune) + string(sepRune), Pos: start}, true
+		return Token{Type: SEPARATOR, Literal: sepRune, Pos: start}, true
 	case helpers.IsVisibilityRune(l.ch):
 		return l.consumeChar(VISIBILITY, string(l.ch)), true
 	case helpers.IsIdentifierRune(l.ch) || l.ch == '\\':
@@ -169,11 +174,6 @@ func resolveNoteModeToken(l *Lexer) (Token, bool) {
 			l.PopMode()
 		}
 		return Token{Type: STRING, Literal: lit, Pos: start}, true
-	case l.ch == ':' && l.peekChar() == ':':
-		start := l.position
-		first_colon := string(l.readChar())
-		second_colon := string(l.readChar())
-		return Token{Type: SEPARATOR, Literal: second_colon + first_colon, Pos: start}, true
 	case l.ch == ':':
 		l.isMultilineNote = false
 		l.noteDeclarationComplete = true
@@ -243,5 +243,18 @@ func resolveActionModeToken(l *Lexer) (Token, bool) {
 			l.isTargetDetermined = true
 		}
 		return Token{Type: currentActionToken, Literal: lit, Pos: start}, true
+	}
+}
+
+func resolveQualifierToken(l *Lexer) (Token, bool) {
+	switch {
+	case helpers.IsIdentifierRune(l.ch):
+		start := l.position
+		lit := l.readIdentifier()
+		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}, true
+	case l.ch == ':':
+		return l.consumeChar(COLON, ":"), true
+	default:
+		return Token{}, false
 	}
 }

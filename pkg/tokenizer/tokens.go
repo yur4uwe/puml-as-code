@@ -57,6 +57,7 @@ const (
 
 	VISIBILITY
 	MODIFIER
+	QUALIFIER
 
 	RELATIONSHIP
 
@@ -99,8 +100,14 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	case ')':
 		return l.consumeChar(RPAREN, ")"), true
 	case '[':
+		if l.CurrentMode() == MODE_DEFAULT {
+			l.PushMode(MODE_QUALIFIER)
+		}
 		return l.consumeChar(LBRACKET, "["), true
 	case ']':
+		if l.CurrentMode() == MODE_QUALIFIER {
+			l.PopMode()
+		}
 		return l.consumeChar(RBRACKET, "]"), true
 	case ',':
 		return l.consumeChar(COMMA, ","), true
@@ -130,6 +137,11 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		l.readChar() // consume '!'
 		directive := l.readIdentifier()
 		return Token{Type: PREPROCESSOR, Literal: "!" + directive, Pos: start}, true
+	case l.ch == ':' && l.peekChar() == ':':
+		start := l.position
+		first_colon := string(l.readChar())
+		second_colon := string(l.readChar())
+		return Token{Type: SEPARATOR, Literal: second_colon + first_colon, Pos: start}, true
 	}
 
 	return Token{}, false
@@ -140,7 +152,7 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 	switch l.CurrentMode() {
 	case MODE_DEFAULT:
 		return resolveDefaultModeToken(l)
-	case MODE_CLASS_DEF:
+	case MODE_CLASS_DEF, MODE_PACKAGE_DEF:
 		return resolveClassDefModeToken(l)
 	case MODE_CLASS:
 		return resolveClassModeToken(l)
@@ -159,6 +171,8 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles lookahead-heavy cases.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	switch {
+	case l.ch == ':':
+		return l.consumeChar(COLON, ":")
 	case l.ch == '"':
 		start := l.position
 		return Token{Type: STRING, Literal: l.readString(), Pos: start}
@@ -176,14 +190,6 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 			return Token{Type: SET_PROPERTY, Literal: l.readProperty(), Pos: start}
 		}
 		return Token{Type: tt, Literal: lit, Pos: start}
-	case l.isPackageSeparator():
-		start := l.position
-		for _ = range l.packageSeparator {
-			l.readChar()
-		}
-		return Token{Type: SEPARATOR, Literal: string(l.packageSeparator), Pos: start}
-	case l.ch == ':':
-		return l.consumeChar(COLON, ":")
 	case l.ch == '{':
 		if helpers.IsIdentifierRune(l.peekChar()) {
 			return l.readModifier()

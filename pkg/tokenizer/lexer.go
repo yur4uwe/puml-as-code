@@ -20,6 +20,7 @@ const (
 	MODE_CLASS
 	MODE_STYLE
 	MODE_ACTION
+	MODE_QUALIFIER
 )
 
 func (l *Lexer) CurrentMode() lexerMode {
@@ -29,6 +30,13 @@ func (l *Lexer) CurrentMode() lexerMode {
 	return l.modeStack[len(l.modeStack)-1]
 }
 
+func (l *Lexer) ModeAt(index int) lexerMode {
+	if index < 0 || index >= len(l.modeStack) {
+		return MODE_DEFAULT
+	}
+	return l.modeStack[len(l.modeStack)-1-index]
+}
+
 func (l *Lexer) PushMode(mode lexerMode) {
 	switch mode {
 	case MODE_NOTE:
@@ -36,6 +44,8 @@ func (l *Lexer) PushMode(mode lexerMode) {
 		l.noteDeclarationComplete = false
 	case MODE_ACTION:
 		l.isTargetDetermined = false
+	case MODE_CLASS_DEF:
+		l.isClassNameSet = false
 	}
 	l.modeStack = append(l.modeStack, mode)
 }
