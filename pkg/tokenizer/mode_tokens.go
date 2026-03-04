@@ -7,8 +7,28 @@ import (
 )
 
 func resolveStyleModeToken(l *Lexer) Token {
-	if l.ch == '#' {
+	switch l.ch {
+	case '\n':
+		l.PopMode()
+		return l.consumeChar(NEWLINE, "\n")
+	case '#':
 		return l.consumeChar(HASH, "#")
+	}
+
+	if (helpers.IsIdentifierRune(l.ch) || unicode.IsNumber(l.ch)) && l.input[l.position-1] != '#' {
+		start := l.position
+		if !l.isTargetDetermined {
+			lit := l.readIdentifier()
+			if lit == "class" {
+				l.PushMode(MODE_CLASS_DEF)
+				return Token{Type: CLASS, Literal: lit, Pos: start}
+			}
+			l.isTargetDetermined = true
+			return Token{Type: TARGET, Literal: lit, Pos: start}
+		}
+		lit := l.readUntil(' ', '\n', '\r', '\t')
+		l.PopMode()
+		return Token{Type: ASPECT, Literal: lit, Pos: start}
 	}
 
 	l.PopMode()
@@ -60,7 +80,12 @@ func resolveClassDefModeToken(l *Lexer) (Token, bool) {
 		return l.consumeChar(NEWLINE, "\n"), true
 	case l.ch == '{':
 		if l.PopMode() != MODE_PACKAGE_DEF {
-			l.PushMode(MODE_CLASS)
+			if l.CurrentMode() == MODE_STYLE {
+				l.PopMode()
+				l.PushMode(MODE_CLASS_STYLE)
+			} else {
+				l.PushMode(MODE_CLASS)
+			}
 		}
 		return l.consumeChar(LBRACE, "{"), true
 	case l.ch == '#':
@@ -254,6 +279,44 @@ func resolveQualifierToken(l *Lexer) (Token, bool) {
 		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}, true
 	case l.ch == ':':
 		return l.consumeChar(COLON, ":"), true
+	default:
+		return Token{}, false
+	}
+}
+
+func resolveStyleClassToken(l *Lexer) (Token, bool) {
+	// style class block lines have the form:
+	// TARGET [STEREOTYPE]? ASPECT\n
+	// consume whitespace/newlines
+	switch {
+	case l.ch == '\n':
+		// stay in MODE_CLASS_STYLE; newline is a separator
+		l.isTargetDetermined = false
+		return l.consumeChar(NEWLINE, "\n"), true
+	case l.ch == '}':
+		// end of class style block
+		l.PopMode()
+		return l.consumeChar(RBRACE, "}"), true
+	case l.ch == '<' && l.peekChar() == '<':
+		// stereotype token
+		start := l.position
+		tok := l.readStereotype()
+		tok.Pos = start
+		return tok, true
+	case helpers.IsIdentifierRune(l.ch):
+		start := l.position
+		// read first identifier as TARGET
+		target := l.readIdentifier()
+		if !l.isTargetDetermined {
+			l.isTargetDetermined = true
+			return Token{Type: TARGET, Literal: target, Pos: start}, true
+		}
+		// After target there may be a stereotype immediately (no space) or whitespace
+		// Position the lexer at the next non-space so subsequent NextToken() returns STEREOTYPE or ASPECT
+		return Token{Type: ASPECT, Literal: target, Pos: start}, true
+	case l.ch == '#':
+		// color/hash start, delegate
+		return l.consumeChar(HASH, "#"), true
 	default:
 		return Token{}, false
 	}

@@ -18,6 +18,7 @@ const (
 	MODE_PACKAGE_DEF
 	MODE_CLASS_DEF
 	MODE_CLASS
+	MODE_CLASS_STYLE
 	MODE_STYLE
 	MODE_ACTION
 	MODE_QUALIFIER
@@ -42,7 +43,7 @@ func (l *Lexer) PushMode(mode lexerMode) {
 	case MODE_NOTE:
 		l.isMultilineNote = true
 		l.noteDeclarationComplete = false
-	case MODE_ACTION:
+	case MODE_ACTION, MODE_STYLE:
 		l.isTargetDetermined = false
 	case MODE_CLASS_DEF:
 		l.isClassNameSet = false
@@ -468,6 +469,8 @@ func (l *Lexer) keywordModeSwitcher(tt TokenType) {
 		l.PushMode(MODE_NOTE)
 	case ACTION:
 		l.PushMode(MODE_ACTION)
+	case SKINPARAM:
+		l.PushMode(MODE_STYLE)
 	}
 }
 

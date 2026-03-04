@@ -100,7 +100,8 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	case ')':
 		return l.consumeChar(RPAREN, ")"), true
 	case '[':
-		if l.CurrentMode() == MODE_DEFAULT {
+		// Enter qualifier mode when encountering '[' in most contexts
+		if l.CurrentMode() != MODE_QUALIFIER {
 			l.PushMode(MODE_QUALIFIER)
 		}
 		return l.consumeChar(LBRACKET, "["), true
@@ -109,6 +110,9 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 			l.PopMode()
 		}
 		return l.consumeChar(RBRACKET, "]"), true
+	case '#':
+		// Treat '#' as an explicit hash token (e.g., color specifiers like [#red])
+		return l.consumeChar(HASH, "#"), true
 	case ',':
 		return l.consumeChar(COMMA, ","), true
 	case ';':
@@ -162,6 +166,8 @@ func ResolveContextAwareToken(l *Lexer) (Token, bool) {
 		return resolveNoteModeToken(l)
 	case MODE_STYLE:
 		return resolveStyleModeToken(l), true
+	case MODE_CLASS_STYLE:
+		return resolveStyleClassToken(l)
 	case MODE_ACTION:
 		return resolveActionModeToken(l)
 	}
