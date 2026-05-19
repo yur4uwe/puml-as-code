@@ -29,15 +29,38 @@ func TestResolveUnambiguousToken_String(t *testing.T) {
 	require.Equal(t, `"hello world"`, tok.Literal)
 }
 
-func TestResolveUnambiguousToken_Brackets(t *testing.T) {
+func TestResolveUnambiguousToken_Physical(t *testing.T) {
 	testCases := []struct {
 		name     string
 		input    string
 		expected TokenType
-		literal  string
 	}{
-		{"left bracket", "[", LBRACKET, "["},
-		{"right bracket", "]", RBRACKET, "]"},
+		{"left bracket", "[", LBRACKET},
+		{"right bracket", "]", RBRACKET},
+		{"left paren", "(", LPAREN},
+		{"right paren", ")", RPAREN},
+		{"left brace", "{", LBRACE},
+		{"right brace", "}", RBRACE},
+		{"left angle", "<", LANGLE},
+		{"right angle", ">", RANGLE},
+		{"comma", ",", COMMA},
+		{"semicolon", ";", SEMICOLON},
+		{"colon", ":", COLON},
+		{"dot", ".", DOT},
+		{"equals", "=", EQUALS},
+		{"plus", "+", PLUS},
+		{"hyphen", "-", HYPHEN},
+		{"tilde", "~", TILDE},
+		{"hash", "#", HASH},
+		{"vbar", "|", VBAR},
+		{"asterisk", "*", ASTERISK},
+		{"slash", "/", SLASH},
+		{"backslash", "\\", BACKSLASH},
+		{"caret", "^", CARET},
+		{"dollar", "$", DOLLAR},
+		{"percent", "%", PERCENT},
+		{"at", "@", AT},
+		{"exclamation", "!", EXCLAMATION},
 	}
 
 	for _, tc := range testCases {
@@ -47,25 +70,18 @@ func TestResolveUnambiguousToken_Brackets(t *testing.T) {
 
 			require.True(t, resolved)
 			assertTokenType(t, tc.expected, tok.Type)
-			require.Equal(t, tc.literal, tok.Literal)
+			require.Equal(t, tc.input, tok.Literal)
 		})
 	}
 }
 
-func TestResolveUnambiguousToken_Comma(t *testing.T) {
-	l := NewLexer(",")
-	tok, resolved := ResolveUnambiguousToken(l)
+func TestResolveUnambiguousToken_Separator(t *testing.T) {
+	l := NewLexer("::")
+	l.packageSeparator = []rune("::")
+	tok := l.Emit()
 
-	require.True(t, resolved)
-	assertTokenType(t, COMMA, tok.Type)
-}
-
-func TestResolveUnambiguousToken_Semicolon(t *testing.T) {
-	l := NewLexer(";")
-	tok, resolved := ResolveUnambiguousToken(l)
-
-	require.True(t, resolved)
-	assertTokenType(t, SEMICOLON, tok.Type)
+	assertTokenType(t, SEPARATOR, tok.Type)
+	require.Equal(t, "::", tok.Literal)
 }
 
 func TestResolveUnambiguousToken_Comment(t *testing.T) {
@@ -76,48 +92,48 @@ func TestResolveUnambiguousToken_Comment(t *testing.T) {
 	assertTokenType(t, COMMENT, tok.Type)
 }
 
-func TestResolveUnambiguousToken_Generic(t *testing.T) {
-	l := NewLexer("<T>")
-	tok, resolved := ResolveUnambiguousToken(l)
-
-	require.True(t, resolved)
-	assertTokenType(t, GENERIC, tok.Type)
-	require.Equal(t, "<T>", tok.Literal)
-}
-
-func TestResolveUnambiguousToken_Stereotype(t *testing.T) {
-	l := NewLexer("<<interface>>")
-	tok, resolved := ResolveUnambiguousToken(l)
-
-	require.True(t, resolved)
-	assertTokenType(t, STEREOTYPE, tok.Type)
-	require.Equal(t, "<<interface>>", tok.Literal)
-}
-
-func TestResolveUnambiguousToken_UMLBounds(t *testing.T) {
-	testCases := []struct {
-		name     string
-		input    string
-		expected TokenType
-	}{
-		{"startuml", "@startuml", START},
-		{"enduml", "@enduml", END},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			l := NewLexer(tc.input)
-			tok, resolved := ResolveUnambiguousToken(l)
-
-			require.True(t, resolved)
-			assertTokenType(t, tc.expected, tok.Type)
-		})
-	}
-}
-
 func TestResolveUnambiguousToken_Unresolved(t *testing.T) {
 	l := NewLexer("foo")
 	_, resolved := ResolveUnambiguousToken(l)
 
 	require.False(t, resolved, "identifiers should not be resolved as unambiguous")
+}
+
+func TestResolveAmbiguousToken_Identifier(t *testing.T) {
+	l := NewLexer("class")
+	tok := ResolveAmbiguousToken(l)
+	assertTokenType(t, CLASS, tok.Type)
+	require.Equal(t, "class", tok.Literal)
+
+	l = NewLexer("foo_bar")
+	tok = ResolveAmbiguousToken(l)
+	assertTokenType(t, IDENTIFIER, tok.Type)
+	require.Equal(t, "foo_bar", tok.Literal)
+}
+
+func TestResolveAmbiguousToken_Number(t *testing.T) {
+	l := NewLexer("123")
+	tok := ResolveAmbiguousToken(l)
+	assertTokenType(t, NUMBER, tok.Type)
+	require.Equal(t, "123", tok.Literal)
+
+	l = NewLexer("123.456")
+	tok = ResolveAmbiguousToken(l)
+	assertTokenType(t, NUMBER, tok.Type)
+	require.Equal(t, "123.456", tok.Literal)
+
+	l = NewLexer("0x123")
+	tok = ResolveAmbiguousToken(l)
+	assertTokenType(t, NUMBER, tok.Type)
+	require.Equal(t, "0x123", tok.Literal)
+
+	l = NewLexer("0o123")
+	tok = ResolveAmbiguousToken(l)
+	assertTokenType(t, NUMBER, tok.Type)
+	require.Equal(t, "0o123", tok.Literal)
+
+	l = NewLexer("0b101")
+	tok = ResolveAmbiguousToken(l)
+	assertTokenType(t, NUMBER, tok.Type)
+	require.Equal(t, "0b101", tok.Literal)
 }
