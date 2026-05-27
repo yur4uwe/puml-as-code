@@ -8,12 +8,9 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/types"
 )
 
 type GoCodeGenerator struct{}
-
-var _ types.CodeGenerator = GoCodeGenerator{}
 
 func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (string, error) {
 	if diagram == nil {

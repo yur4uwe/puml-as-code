@@ -3,10 +3,16 @@ package generator
 import (
 	"fmt"
 	gogenerator "yur4uwe/pac/pkg/generator/go"
-	"yur4uwe/pac/types"
+	"yur4uwe/pac/pkg/parser/ast"
 )
 
-func CodeGeneratorByLang(lang string) (types.CodeGenerator, error) {
+type CodeGenerator interface {
+	GenerateFromClassDiagram(diagram *ast.ClassDiagram) (string, error)
+}
+
+var _ CodeGenerator = gogenerator.GoCodeGenerator{}
+
+func CodeGeneratorByLang(lang string) (CodeGenerator, error) {
 	switch lang {
 	case "go":
 		return gogenerator.GoCodeGenerator{}, nil

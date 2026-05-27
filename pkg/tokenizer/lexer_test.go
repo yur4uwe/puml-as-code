@@ -18,11 +18,46 @@ func TestReadIdentifier(t *testing.T) {
 }
 
 func TestReadNumber(t *testing.T) {
-	lex := NewLexer("12.34")
-	require.Equal(t, "12.34", lex.readNumber())
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+		wantErr  bool
+	}{
+		// Valid cases
+		{"Integer", "123", "123", false},
+		{"Decimal", "12.34", "12.34", false},
+		{"LeadingZeros", "007", "007", false},
+		{"HexLowercase", "0x1a2b", "0x1a2b", false},
+		{"HexUppercase", "0X1A2B", "0X1A2B", false},
+		{"Binary", "0b1010", "0b1010", false},
+		{"Octal", "0o755", "0o755", false},
+		{"Scientific", "1e10", "1e10", false},
+		{"ScientificNegative", "1.2e-5", "1.2e-5", false},
+		{"ScientificPositive", "1E+5", "1E+5", false},
 
-	lex = NewLexer("007")
-	require.Equal(t, "007", lex.readNumber())
+		// Error / Edge cases
+		{"MultipleDots", "1.2.3", "", true},
+		{"InvalidHex", "0x12G", "", true},
+		{"InvalidBinary", "0b102", "", true},
+		{"InvalidOctal", "0o789", "", true},
+		{"IncompleteHex", "0x", "", true},
+		{"IncompleteScientific", "1e", "", true},
+		{"DigitAfterScientific", "1e10.5", "", true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			lex := NewLexer(tt.input)
+			lit, err := lex.readNumber()
+			if tt.wantErr {
+				require.Error(t, err, "Expected error for input: %s", tt.input)
+			} else {
+				require.NoError(t, err, "Unexpected error for input: %s", tt.input)
+				require.Equal(t, tt.expected, lit)
+			}
+		})
+	}
 }
 
 func TestReadString(t *testing.T) {

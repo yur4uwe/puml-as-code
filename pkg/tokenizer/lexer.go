@@ -1,10 +1,20 @@
 package tokenizer
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"unicode"
 	"yur4uwe/pac/internal/helpers"
+)
+
+var (
+	ErrInvalidDot          = errors.New("invalid dot in number")
+	ErrInvalidTrailingChar = errors.New("invalid trailing character")
+	ErrInvalidScientific   = errors.New("invalid scientific notation")
+	ErrInvalidEncDigit     = errors.New("invalid digit for base")
+	ErrInvalidBase         = errors.New("invalid number base")
+	ErrMissingDigits       = errors.New("encoded number missing digits")
 )
 
 type Lexer struct {
@@ -45,6 +55,10 @@ func (l *Lexer) readChar() (ch rune) {
 	l.position = l.readPos
 	l.readPos++
 	return
+}
+
+func (l *Lexer) isEOF() bool {
+	return l.ch == 0
 }
 
 func (l *Lexer) consumeChar(tokenType TokenType, literal string) Token {
@@ -133,16 +147,20 @@ func (l *Lexer) consumePackageSeparator() string {
 
 func (l *Lexer) readUntilWhitespaceOrNewline() string {
 	start := l.position
-	for l.ch != 0 && !unicode.IsSpace(l.ch) {
+	for !l.isEOF() && !unicode.IsSpace(l.ch) {
 		l.readChar()
 	}
 	return string(l.input[start:l.position])
 }
 
+func (l *Lexer) isIdentifierRune() bool {
+	return helpers.IsIdentifierRune(l.ch) || l.ch == '\\' || l.ch == '_'
+}
+
 func (l *Lexer) readIdentifier() string {
 	var result []rune
 
-	for {
+	for !l.isEOF() {
 		if l.ch == '\\' && l.peekChar() != 0 {
 			// Skip the backslash and take the next character literally
 			l.readChar()
@@ -220,26 +238,132 @@ func lookupKeyword(ident string) TokenType {
 	}
 }
 
-func (l *Lexer) readNumber() string {
+func (l *Lexer) readEncodedNumber() (string, error) {
 	start := l.position
-	// Read leading
-	if l.ch == '0' {
+	l.readChar() // consume '0'
+
+	encoding := l.ch
+	l.readChar() // consume encoding char (x, b, o)
+
+	var base int
+	switch encoding {
+	case 'x', 'X':
+		base = 16
+	case 'b', 'B':
+		base = 2
+	case 'o', 'O':
+		base = 8
+	default:
+		return string(l.input[start:l.position]), fmt.Errorf("%w: %c", ErrInvalidBase, encoding)
+	}
+
+	hasDigits := false
+	for !l.isEOF() {
+		if !unicode.IsDigit(l.ch) && !helpers.IsIdentifierRune(l.ch) {
+			break
+		}
+
+		val, ok := getDigitValue(l.ch)
+		if !ok || val >= base {
+			return string(l.input[start:l.position]), fmt.Errorf("%w: base: '%d', digit: %c", ErrInvalidEncDigit, base, l.ch)
+		}
+		hasDigits = true
 		l.readChar()
-		if l.ch == 'x' || l.ch == 'X' || l.ch == 'o' || l.ch == 'O' || l.ch == 'b' || l.ch == 'B' {
-			l.readChar()
+	}
+
+	if !hasDigits {
+		return string(l.input[start:l.position]), ErrMissingDigits
+	}
+
+	return string(l.input[start:l.position]), nil
+}
+
+func getDigitValue(ch rune) (int, bool) {
+	if ch >= '0' && ch <= '9' {
+		return int(ch - '0'), true
+	}
+	if ch >= 'a' && ch <= 'f' {
+		return int(ch - 'a' + 10), true
+	}
+	if ch >= 'A' && ch <= 'F' {
+		return int(ch - 'A' + 10), true
+	}
+	return 0, false
+}
+
+func (l *Lexer) readNumber() (string, error) {
+	start := l.position
+
+	// Check for encoded numbers (0x, 0b, 0o)
+	if l.ch == '0' {
+		peek := l.peekChar()
+		if peek == 'x' || peek == 'X' || peek == 'b' || peek == 'B' || peek == 'o' || peek == 'O' {
+			return l.readEncodedNumber()
 		}
 	}
 
-	for unicode.IsDigit(l.ch) || l.ch == '.' {
+state_integer:
+	if unicode.IsDigit(l.ch) {
+		l.readChar()
+		goto state_integer
+	}
+	if l.ch == '.' {
+		l.readChar()
+		goto state_fraction
+	}
+	if l.ch == 'e' || l.ch == 'E' {
+		l.readChar()
+		goto state_exponent_start
+	}
+	goto state_validate
+
+state_fraction:
+	if unicode.IsDigit(l.ch) {
+		l.readChar()
+		goto state_fraction
+	}
+	if l.ch == 'e' || l.ch == 'E' {
+		l.readChar()
+		goto state_exponent_start
+	}
+	if l.ch == '.' {
+		return string(l.input[start:l.position]), ErrInvalidDot
+	}
+	goto state_validate
+
+state_exponent_start:
+	if l.ch == '+' || l.ch == '-' {
 		l.readChar()
 	}
-	return string(l.input[start:l.position])
+	if !unicode.IsDigit(l.ch) {
+		return string(l.input[start:l.position]), ErrInvalidScientific
+	}
+	goto state_exponent
+
+state_exponent:
+	if unicode.IsDigit(l.ch) {
+		l.readChar()
+		goto state_exponent
+	}
+	if l.ch == '.' {
+		return string(l.input[start:l.position]), ErrInvalidDot
+	}
+	if l.ch == 'e' || l.ch == 'E' {
+		return string(l.input[start:l.position]), ErrInvalidScientific
+	}
+	goto state_validate
+
+state_validate:
+	if helpers.IsIdentifierRune(l.ch) {
+		return string(l.input[start:l.position]), fmt.Errorf("%w: '%c'", ErrInvalidTrailingChar, l.ch)
+	}
+	return string(l.input[start:l.position]), nil
 }
 
 func (l *Lexer) readString() string {
 	start := l.position
 	l.readChar() // consume opening "
-	for l.ch != '"' && l.ch != 0 {
+	for l.ch != '"' && !l.isEOF() {
 		if l.ch == '\\' && l.peekChar() != 0 {
 			l.readChar() // consume backslash
 			l.readChar() // consume escaped char
@@ -257,7 +381,7 @@ func (l *Lexer) readLineComment() string {
 	// consume single quote
 	l.readChar()
 	start := l.position
-	for l.ch != '\n' && l.ch != 0 {
+	for l.ch != '\n' && !l.isEOF() {
 		l.readChar()
 	}
 	return strings.TrimSpace(string(l.input[start:l.position]))

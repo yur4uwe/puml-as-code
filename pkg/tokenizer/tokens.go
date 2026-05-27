@@ -2,6 +2,7 @@ package tokenizer
 
 import (
 	"encoding/json"
+	"errors"
 	"unicode"
 	"yur4uwe/pac/internal/helpers"
 )
@@ -169,7 +170,18 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 
 	if unicode.IsDigit(l.ch) {
 		start := l.position
-		lit := l.readNumber()
+		lit, err := l.readNumber()
+		if err != nil {
+			// If the error is about a trailing identifier character, it means this is
+			// an identifier that just happens to start with digits (like a hex color 00FFFF).
+			// We continue reading it as an identifier and combine the literals.
+			if errors.Is(err, ErrInvalidTrailingChar) {
+				rest := l.readIdentifier()
+				fullLit := lit + rest
+				return Token{Type: IDENTIFIER, Literal: fullLit, Pos: start}
+			}
+			return Token{Type: ILLEGAL, Literal: err.Error(), Pos: start}
+		}
 		return Token{Type: NUMBER, Literal: lit, Pos: start}
 	}
 
