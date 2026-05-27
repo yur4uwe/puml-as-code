@@ -7,7 +7,7 @@ import (
 )
 
 type CodeGenerator interface {
-	GenerateFromClassDiagram(diagram *ast.ClassDiagram) (string, error)
+	GenerateFromClassDiagram(diagram *ast.Diagram) (string, error)
 }
 
 var _ CodeGenerator = gogenerator.GoCodeGenerator{}

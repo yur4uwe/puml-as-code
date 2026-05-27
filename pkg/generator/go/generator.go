@@ -12,7 +12,7 @@ import (
 
 type GoCodeGenerator struct{}
 
-func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.ClassDiagram) (string, error) {
+func (GoCodeGenerator) GenerateFromClassDiagram(diagram *ast.Diagram) (string, error) {
 	if diagram == nil {
 		return "", fmt.Errorf("nil diagram")
 	}

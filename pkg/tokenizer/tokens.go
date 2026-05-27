@@ -86,67 +86,48 @@ type Token struct {
 	Pos     int
 }
 
+var singleCharTokens = map[rune]TokenType{
+	'\n': NEWLINE,
+	'(':  LPAREN,
+	')':  RPAREN,
+	'{':  LBRACE,
+	'}':  RBRACE,
+	'[':  LBRACKET,
+	']':  RBRACKET,
+	'<':  LANGLE,
+	'>':  RANGLE,
+	',':  COMMA,
+	';':  SEMICOLON,
+	':':  COLON,
+	'.':  DOT,
+	'=':  EQUALS,
+	'+':  PLUS,
+	'-':  HYPHEN,
+	'~':  TILDE,
+	'#':  HASH,
+	'|':  VBAR,
+	'*':  ASTERISK,
+	'/':  SLASH,
+	'\\': BACKSLASH,
+	'^':  CARET,
+	'$':  DOLLAR,
+	'%':  PERCENT,
+	'@':  AT,
+	'!':  EXCLAMATION,
+	'_':  UNDERSCORE,
+}
+
 // ResolveUnambiguousToken handles tokens with obvious, unambiguous identification (no lookahead, no mode).
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
-	switch l.ch {
-	case 0:
+	if l.isEOF() {
 		return Token{Type: EOF, Literal: "", Pos: l.position}, true
-	case '\n':
-		return l.consumeChar(NEWLINE, "\n"), true
-	case '(':
-		return l.consumeChar(LPAREN, "("), true
-	case ')':
-		return l.consumeChar(RPAREN, ")"), true
-	case '{':
-		return l.consumeChar(LBRACE, "{"), true
-	case '}':
-		return l.consumeChar(RBRACE, "}"), true
-	case '[':
-		return l.consumeChar(LBRACKET, "["), true
-	case ']':
-		return l.consumeChar(RBRACKET, "]"), true
-	case '<':
-		return l.consumeChar(LANGLE, "<"), true
-	case '>':
-		return l.consumeChar(RANGLE, ">"), true
-	case ',':
-		return l.consumeChar(COMMA, ","), true
-	case ';':
-		return l.consumeChar(SEMICOLON, ";"), true
-	case ':':
-		return l.consumeChar(COLON, ":"), true
-	case '.':
-		return l.consumeChar(DOT, "."), true
-	case '=':
-		return l.consumeChar(EQUALS, "="), true
-	case '+':
-		return l.consumeChar(PLUS, "+"), true
-	case '-':
-		return l.consumeChar(HYPHEN, "-"), true
-	case '_':
-		return l.consumeChar(UNDERSCORE, "_"), true
-	case '~':
-		return l.consumeChar(TILDE, "~"), true
-	case '#':
-		return l.consumeChar(HASH, "#"), true
-	case '|':
-		return l.consumeChar(VBAR, "|"), true
-	case '*':
-		return l.consumeChar(ASTERISK, "*"), true
-	case '/':
-		return l.consumeChar(SLASH, "/"), true
-	case '\\':
-		return l.consumeChar(BACKSLASH, "\\"), true
-	case '^':
-		return l.consumeChar(CARET, "^"), true
-	case '$':
-		return l.consumeChar(DOLLAR, "$"), true
-	case '%':
-		return l.consumeChar(PERCENT, "%"), true
-	case '@':
-		return l.consumeChar(AT, "@"), true
-	case '!':
-		return l.consumeChar(EXCLAMATION, "!"), true
+	}
+
+	if tt, ok := singleCharTokens[l.ch]; ok {
+		return l.consumeChar(tt, string(l.ch)), true
+	}
+
+	switch l.ch {
 	case '"':
 		start := l.position
 		return Token{Type: STRING, Literal: l.readString(), Pos: start}, true

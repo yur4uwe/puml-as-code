@@ -1,31 +1,28 @@
 package ast
 
-type Attribute struct {
-	Name       string
-	Type       TypeRef
-	Visibility Visibility
+type Statement interface {
+	Node() any
 }
 
-type Method struct {
-	Name       string
-	ReturnType TypeRef
-	Parameters []Attribute
-	Visibility Visibility
-}
+type EntityKind int
 
-type Class struct {
-	Name       string
-	Attributes []Attribute
-	Methods    []Method
-}
+const (
+	UnknownEntityKind EntityKind = iota
+	ClassEntityKind
+	InterfaceEntityKind
+	PackageEntityKind
+)
 
-func (c *Class) String() string {
-	return c.Name
+type Entity struct {
+	Identifier string
+	Alias      string
+	Kind       EntityKind
+	Properties map[string]string
 }
 
 type Relationship struct {
-	From *Class
-	To   *Class
+	From string
+	To   string
 	Type RelationType
 
 	MultiplicityFrom Multiplicity
@@ -34,19 +31,6 @@ type Relationship struct {
 	Comment string
 }
 
-type RelationshipsRepo map[string][]*Relationship
-
-func (r RelationshipsRepo) AddRelationship(rel *Relationship) {
-	r[rel.From.Name] = append(r[rel.From.Name], rel)
-	r[rel.To.Name] = append(r[rel.To.Name], rel)
-}
-
-func (r RelationshipsRepo) GetRelationships(className string) ([]*Relationship, bool) {
-	rel, exists := r[className]
-	return rel, exists
-}
-
-type ClassDiagram struct {
-	Classes       map[string]*Class
-	Relationships RelationshipsRepo
+type Diagram struct {
+	Statements []Statement
 }
