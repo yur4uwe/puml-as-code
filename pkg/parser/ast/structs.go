@@ -8,36 +8,31 @@ type Member interface {
 	MemberNode() any
 }
 
-type DirectiveKind int
-
-const (
-	Unknown DirectiveKind = iota
-	Include
-	Hide
-	Show
-	Remove
-	Restore
-	Set
-	Scale
-)
-
-type Directive struct {
-}
-
 type EntityKind int
 
 const (
-	UnknownEntityKind EntityKind = iota
-	ClassEntityKind
-	InterfaceEntityKind
-	PackageEntityKind
+	UnknownKind EntityKind = iota
+	ClassKind
+	InterfaceKind
+	PackageKind
 )
 
 type Entity struct {
 	Identifier string
 	Alias      string
 	Kind       EntityKind
-	Properties map[string]string
+	Members    []Member
+}
+
+var _ Statement = Entity{}
+var _ Member = Entity{}
+
+func (e Entity) StatementNode() any {
+	return e
+}
+
+func (e Entity) MemberNode() any {
+	return e
 }
 
 type Relationship struct {
@@ -49,6 +44,17 @@ type Relationship struct {
 	MultiplicityTo   Cardinality
 
 	Comment string
+}
+
+var _ Statement = Relationship{}
+var _ Member = Relationship{}
+
+func (r Relationship) StatementNode() any {
+	return r
+}
+
+func (r Relationship) MemberNode() any {
+	return r
 }
 
 type Diagram struct {

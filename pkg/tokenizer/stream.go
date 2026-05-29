@@ -12,7 +12,7 @@ type UnexpectedTokenError struct {
 }
 
 func (e UnexpectedTokenError) Error() string {
-	return fmt.Sprintf("unexpected token %s at %d:%d, expected %s", e.Found, e.Pos.Line, e.Pos.Col, e.Expected)
+	return fmt.Sprintf("token stream: unexpected token %s at %d:%d, expected %s", e.Found, e.Pos.Line, e.Pos.Col, e.Expected)
 }
 
 func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) error {
@@ -20,8 +20,9 @@ func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) err
 }
 
 type TokenStream struct {
-	lexer  *Lexer
-	buffer []Token
+	lexer         *Lexer
+	buffer        []Token
+	leadingTrivia []Token
 }
 
 func NewTokenStream(input string) *TokenStream {
@@ -41,6 +42,17 @@ func (ts *TokenStream) PeekTokenAt(idx int) Token {
 }
 
 func (ts *TokenStream) Emit() Token {
+	tok := ts.PeekTokenAt(0)
+	if len(ts.buffer) > 0 {
+		ts.buffer = ts.buffer[1:]
+	}
+	if len(ts.leadingTrivia) > 0 && tok.Type != COMMENT {
+		tok.LeadingTrivia = ts.leadingTrivia
+	}
+	return tok
+}
+
+func (ts *TokenStream) EmitRaw() Token {
 	tok := ts.PeekTokenAt(0)
 	if len(ts.buffer) > 0 {
 		ts.buffer = ts.buffer[1:]
@@ -154,18 +166,39 @@ func (ts *TokenStream) TryReadDiagramBounds() (string, bool) {
 	return ts.Emit().Literal, true
 }
 
-func (ts *TokenStream) ReadUntilNewline() (string, bool) {
+func (ts *TokenStream) readUntilNewline(emitter func() Token) string {
 	if ts.Assert(EOF) || ts.Assert(NEWLINE) {
-		return "", false
+		return ""
 	}
-	tok := ts.Emit()
+	tok := emitter()
 	titleStart := tok.Pos.Offset
 	for tok.Type != NEWLINE && tok.Type != EOF {
-		tok = ts.Emit()
+		tok = emitter()
 	}
-	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos.Offset])), true
+	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos.Offset]))
+}
+
+func (ts *TokenStream) ReadUntilNewline() string {
+	return ts.readUntilNewline(ts.Emit)
+}
+
+func (ts *TokenStream) ReadRawUntilNewline() string {
+	return ts.readUntilNewline(ts.EmitRaw)
 }
 
 func (ts *TokenStream) ReadMultilineComment() (string, bool) {
+	return "", false
+}
+
+func (ts *TokenStream) ReadBlock(endMark TokenType) (string, bool) {
+	tok := ts.EmitRaw()
+	startPos := tok.Pos
+	for tok.Type != EOF {
+		if tok.Type == END_BLOCK && ts.Assert(endMark) {
+			endPos := tok.Pos
+			return string(ts.lexer.input[startPos.Offset:endPos.Offset]), true
+		}
+		tok = ts.EmitRaw()
+	}
 	return "", false
 }

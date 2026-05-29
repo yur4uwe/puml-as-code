@@ -96,9 +96,10 @@ func (p TokenPos) String() string {
 }
 
 type Token struct {
-	Type    TokenType
-	Literal string
-	Pos     TokenPos
+	Type          TokenType
+	Literal       string
+	Pos           TokenPos
+	LeadingTrivia []Token
 }
 
 var singleCharTokens = map[rune]TokenType{
