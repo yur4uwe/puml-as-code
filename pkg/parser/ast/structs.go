@@ -1,7 +1,27 @@
 package ast
 
 type Statement interface {
-	Node() any
+	StatementNode() any
+}
+
+type Member interface {
+	MemberNode() any
+}
+
+type DirectiveKind int
+
+const (
+	Unknown DirectiveKind = iota
+	Include
+	Hide
+	Show
+	Remove
+	Restore
+	Set
+	Scale
+)
+
+type Directive struct {
 }
 
 type EntityKind int
@@ -25,8 +45,8 @@ type Relationship struct {
 	To   string
 	Type RelationType
 
-	MultiplicityFrom Multiplicity
-	MultiplicityTo   Multiplicity
+	MultiplicityFrom Cardinality
+	MultiplicityTo   Cardinality
 
 	Comment string
 }

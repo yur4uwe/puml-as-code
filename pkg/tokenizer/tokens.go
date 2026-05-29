@@ -3,6 +3,7 @@ package tokenizer
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"unicode"
 	"yur4uwe/pac/internal/helpers"
 )
@@ -85,14 +86,19 @@ const (
 )
 
 type TokenPos struct {
-	line uint
-	col  uint
+	Line   uint
+	Col    uint
+	Offset uint
+}
+
+func (p TokenPos) String() string {
+	return fmt.Sprintf("%d:%d", p.Line, p.Col)
 }
 
 type Token struct {
 	Type    TokenType
 	Literal string
-	Pos     int
+	Pos     TokenPos
 }
 
 var singleCharTokens = map[rune]TokenType{
@@ -116,7 +122,6 @@ var singleCharTokens = map[rune]TokenType{
 	'#':  HASH,
 	'|':  VBAR,
 	'*':  ASTERISK,
-	'/':  SLASH,
 	'\\': BACKSLASH,
 	'^':  CARET,
 	'$':  DOLLAR,
@@ -129,21 +134,24 @@ var singleCharTokens = map[rune]TokenType{
 // ResolveUnambiguousToken handles tokens with obvious, unambiguous identification (no lookahead, no mode).
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	if l.isEOF() {
-		return Token{Type: EOF, Literal: "", Pos: l.position}, true
+		return Token{Type: EOF, Literal: "", Pos: l.getPos()}, true
 	}
 
 	if tt, ok := singleCharTokens[l.ch]; ok {
 		return l.consumeChar(tt, string(l.ch)), true
 	}
 
+	start := l.getPos()
 	switch l.ch {
 	case '"':
-		start := l.position
 		return Token{Type: STRING, Literal: l.readString(), Pos: start}, true
 	case '\'':
-		start := l.position
-		lit := l.readLineComment()
-		return Token{Type: COMMENT, Literal: lit, Pos: start}, true
+		return Token{Type: COMMENT, Literal: l.readLineComment(), Pos: start}, true
+	case '/':
+		if l.peekChar() == '\'' {
+			return Token{Type: COMMENT, Literal: l.readBlockComment(), Pos: start}, true
+		}
+		return Token{Type: SLASH, Literal: string(l.ch), Pos: start}, true
 	}
 
 	return Token{}, false
@@ -152,14 +160,14 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles identifiers, keywords and numbers.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	if helpers.IsIdentifierRune(l.ch) || l.ch == '\\' {
-		start := l.position
+		start := l.getPos()
 		lit := l.readIdentifier()
 		tt := lookupKeyword(lit)
 		return Token{Type: tt, Literal: lit, Pos: start}
 	}
 
 	if unicode.IsDigit(l.ch) {
-		start := l.position
+		start := l.getPos()
 		lit, err := l.readNumber()
 		if err != nil {
 			// If the error is about a trailing identifier character, it means this is

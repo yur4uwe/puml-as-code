@@ -56,22 +56,22 @@ func TestToValueType(t *testing.T) {
 func TestParseMultiplicity(t *testing.T) {
 	cases := []struct {
 		in        string
-		want      Multiplicity
+		want      Cardinality
 		shouldErr bool
 	}{
-		{`"*"`, Multiplicity{Raw: "*", Min: 0, Max: -1}, false},
-		{`*`, Multiplicity{Raw: "*", Min: 0, Max: -1}, false},
-		{`"1"`, Multiplicity{Raw: "1", Min: 1, Max: 1}, false},
-		{`1`, Multiplicity{Raw: "1", Min: 1, Max: 1}, false},
-		{`"0..*"`, Multiplicity{Raw: "0..*", Min: 0, Max: -1}, false},
-		{`0..*`, Multiplicity{Raw: "0..*", Min: 0, Max: -1}, false},
-		{`"1..4"`, Multiplicity{Raw: "1..4", Min: 1, Max: 4}, false},
+		{`"*"`, Cardinality{Raw: "*", Min: 0, Max: -1}, false},
+		{`*`, Cardinality{Raw: "*", Min: 0, Max: -1}, false},
+		{`"1"`, Cardinality{Raw: "1", Min: 1, Max: 1}, false},
+		{`1`, Cardinality{Raw: "1", Min: 1, Max: 1}, false},
+		{`"0..*"`, Cardinality{Raw: "0..*", Min: 0, Max: -1}, false},
+		{`0..*`, Cardinality{Raw: "0..*", Min: 0, Max: -1}, false},
+		{`"1..4"`, Cardinality{Raw: "1..4", Min: 1, Max: 4}, false},
 		{"", UnknownMultiplicity, false},
 		{"abc", UnknownMultiplicity, true},
 	}
 
 	for _, c := range cases {
-		m, err := ParseMultiplicity(c.in)
+		m, err := ParseCardinality(c.in)
 		if c.shouldErr {
 			require.Error(t, err, "input=%q", c.in)
 			continue
@@ -84,16 +84,16 @@ func TestParseMultiplicity(t *testing.T) {
 }
 
 func TestMultiplicityString(t *testing.T) {
-	m, _ := ParseMultiplicity(`"*"`)
+	m, _ := ParseCardinality(`"*"`)
 	require.Equal(t, "*", m.String())
 
-	m, _ = ParseMultiplicity(`"1"`)
+	m, _ = ParseCardinality(`"1"`)
 	require.Equal(t, "1", m.String())
 
-	m, _ = ParseMultiplicity(`"1..*"`)
+	m, _ = ParseCardinality(`"1..*"`)
 	require.Equal(t, "1..*", m.String())
 
-	m, _ = ParseMultiplicity(`"1..4"`)
+	m, _ = ParseCardinality(`"1..4"`)
 	require.Equal(t, "1..4", m.String())
 
 	require.Equal(t, "", UnknownMultiplicity.String())

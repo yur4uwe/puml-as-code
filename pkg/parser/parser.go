@@ -34,9 +34,17 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		tok := stream.Emit()
 		if tok.Type == tokenizer.EOF {
 			return nil, errors.New("Unexpected EOF")
+		} else if tok.Type == tokenizer.NEWLINE {
+			// We can leave it like this for now
+			// If the newline is relevant it will be consumed
+			// by the statement parser in some function
+			continue
 		}
 
-		// Imports via !import
+		// Here tokens that are first in line are handled
+		// Parsing shuld be constructed to result in a single statement per iteration
+
+		// Imports via !include
 		// Styles via <style>
 		// Keyword handling switch
 		// Handle comments
@@ -47,10 +55,13 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			if title, found := stream.ReadUntilNewline(); found {
 				p.ast.Title = title
 			}
+		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
 		case tokenizer.LANGLE:
 		case tokenizer.EXCLAMATION:
-		case tokenizer.COMMENT:
+		case tokenizer.SLASH:
+
 		}
+
 	}
 
 	return p.ast, nil

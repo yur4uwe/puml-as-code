@@ -165,22 +165,22 @@ func ToValueType(typeStr string) ValueType {
 	}
 }
 
-type Multiplicity struct {
+type Cardinality struct {
 	Raw string
 	Min int
 	Max int // -1 represents '*' (unbounded)
 }
 
 // UnknownMultiplicity is an empty/unknown multiplicity.
-var UnknownMultiplicity = Multiplicity{Raw: "", Min: -2, Max: -2}
+var UnknownMultiplicity = Cardinality{Raw: "", Min: -2, Max: -2}
 
-func ParseMultiplicity(s string) (Multiplicity, error) {
+func ParseCardinality(s string) (Cardinality, error) {
 	s = strings.TrimSpace(strings.Trim(s, `"`))
 	if s == "" {
 		return UnknownMultiplicity, nil
 	}
 	if s == "*" {
-		return Multiplicity{Raw: s, Min: 0, Max: -1}, nil
+		return Cardinality{Raw: s, Min: 0, Max: -1}, nil
 	}
 	if strings.Contains(s, "..") {
 		parts := strings.SplitN(s, "..", 2)
@@ -193,23 +193,23 @@ func ParseMultiplicity(s string) (Multiplicity, error) {
 		}
 		maxStr := strings.TrimSpace(parts[1])
 		if maxStr == "*" {
-			return Multiplicity{Raw: s, Min: min, Max: -1}, nil
+			return Cardinality{Raw: s, Min: min, Max: -1}, nil
 		}
 		max, err := strconv.Atoi(maxStr)
 		if err != nil {
 			return UnknownMultiplicity, fmt.Errorf("invalid max in multiplicity %q: %w", s, err)
 		}
-		return Multiplicity{Raw: s, Min: min, Max: max}, nil
+		return Cardinality{Raw: s, Min: min, Max: max}, nil
 	}
 	// single number
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return UnknownMultiplicity, fmt.Errorf("invalid multiplicity: %q", s)
 	}
-	return Multiplicity{Raw: s, Min: n, Max: n}, nil
+	return Cardinality{Raw: s, Min: n, Max: n}, nil
 }
 
-func (m Multiplicity) String() string {
+func (m Cardinality) String() string {
 	if m == UnknownMultiplicity {
 		return ""
 	}

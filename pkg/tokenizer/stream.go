@@ -5,6 +5,20 @@ import (
 	"strings"
 )
 
+type UnexpectedTokenError struct {
+	Expected TokenType
+	Found    TokenType
+	Pos      TokenPos
+}
+
+func (e UnexpectedTokenError) Error() string {
+	return fmt.Sprintf("unexpected token %s at %d:%d, expected %s", e.Found, e.Pos.Line, e.Pos.Col, e.Expected)
+}
+
+func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) error {
+	return UnexpectedTokenError{Expected: expected, Found: found, Pos: pos}
+}
+
 type TokenStream struct {
 	lexer  *Lexer
 	buffer []Token
@@ -34,16 +48,17 @@ func (ts *TokenStream) Emit() Token {
 	return tok
 }
 
-func (ts *TokenStream) Assert(token TokenType) error {
+// Assert checks if the next token is of the given type.
+// Does not emit the token.
+func (ts *TokenStream) Assert(token TokenType) bool {
 	if ts.PeekTokenAt(0).Type != token {
-		return fmt.Errorf("expected %s, found %s", token, ts.PeekTokenAt(0).Type)
+		return false
 	}
-	ts.Emit()
-	return nil
+	return true
 }
 
 func (ts *TokenStream) Consume(token TokenType) (Token, bool) {
-	if ts.PeekTokenAt(0).Type == token {
+	if ts.Assert(token) {
 		return ts.Emit(), true
 	}
 	return Token{}, false
@@ -73,7 +88,7 @@ func (ts *TokenStream) readBetween(start, end []TokenType) (string, bool) {
 	// 3. Read content until end markers
 	var sb strings.Builder
 	for {
-		if ts.PeekTokenAt(0).Type == EOF || ts.PeekTokenAt(0).Type == NEWLINE {
+		if ts.Assert(EOF) || ts.Assert(NEWLINE) {
 			return "", false
 		}
 
@@ -121,7 +136,7 @@ func (ts *TokenStream) TryReadClassSeparator() (string, bool) {
 }
 
 func (ts *TokenStream) TryReadTag() (string, bool) {
-	if ts.PeekTokenAt(0).Type != DOLLAR {
+	if ts.Assert(DOLLAR) {
 		return "", false
 	}
 	ts.Emit() // consume $
@@ -129,24 +144,28 @@ func (ts *TokenStream) TryReadTag() (string, bool) {
 }
 
 func (ts *TokenStream) TryReadDiagramBounds() (string, bool) {
-	if ts.PeekTokenAt(0).Type != AT {
+	if ts.Assert(AT) {
 		return "", false
 	}
 	ts.Emit() // consume @
-	if ts.PeekTokenAt(0).Type != IDENTIFIER {
+	if ts.Assert(IDENTIFIER) {
 		return "", false
 	}
 	return ts.Emit().Literal, true
 }
 
 func (ts *TokenStream) ReadUntilNewline() (string, bool) {
-	tok := ts.Emit() // either first Title token or '\n'
-	if tok.Type == EOF || tok.Type == NEWLINE {
+	if ts.Assert(EOF) || ts.Assert(NEWLINE) {
 		return "", false
 	}
-	titleStart := tok.Pos
+	tok := ts.Emit()
+	titleStart := tok.Pos.Offset
 	for tok.Type != NEWLINE && tok.Type != EOF {
 		tok = ts.Emit()
 	}
-	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos])), true
+	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos.Offset])), true
+}
+
+func (ts *TokenStream) ReadMultilineComment() (string, bool) {
+	return "", false
 }

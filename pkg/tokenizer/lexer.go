@@ -28,10 +28,20 @@ type lexerState struct {
 	ch                      rune
 	packageSeparator        []rune
 	expectingSeparatorValue bool
+	line                    uint
+	col                     uint
+}
+
+func (l lexerState) getPos() TokenPos {
+	return TokenPos{
+		Line:   l.line,
+		Col:    l.col,
+		Offset: uint(l.position),
+	}
 }
 
 func (l lexerState) String() string {
-	return fmt.Sprintf("\nposition: %d\nreadPos: %d\nch: %q", l.position, l.readPos, l.ch)
+	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.getPos().String(), l.readPos, l.ch)
 }
 
 func NewLexer(input string) *Lexer {
@@ -52,6 +62,14 @@ func (l *Lexer) readChar() (ch rune) {
 	} else {
 		l.ch = l.input[l.readPos]
 	}
+
+	if l.ch == '\n' {
+		l.line++
+		l.col = 0
+	} else {
+		l.col++
+	}
+
 	l.position = l.readPos
 	l.readPos++
 	return
@@ -62,7 +80,7 @@ func (l *Lexer) isEOF() bool {
 }
 
 func (l *Lexer) consumeChar(tokenType TokenType, literal string) Token {
-	tok := Token{Type: tokenType, Literal: literal, Pos: l.position}
+	tok := Token{Type: tokenType, Literal: literal, Pos: l.getPos()}
 	l.readChar()
 	return tok
 }
@@ -79,7 +97,7 @@ func (l *Lexer) Emit() Token {
 
 	if l.expectingSeparatorValue {
 		l.expectingSeparatorValue = false
-		start := l.position
+		start := l.getPos()
 		val := l.readUntilWhitespaceOrNewline()
 		if val == "none" {
 			l.packageSeparator = nil
@@ -90,7 +108,7 @@ func (l *Lexer) Emit() Token {
 	}
 
 	if len(l.packageSeparator) > 0 && l.isPackageSeparator() {
-		start := l.position
+		start := l.getPos()
 		return Token{Type: SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
 	}
 
@@ -331,4 +349,21 @@ func (l *Lexer) readLineComment() string {
 		l.readChar()
 	}
 	return strings.TrimSpace(string(l.input[start:l.position]))
+}
+
+func (l *Lexer) readBlockComment() string {
+	// consume "/'"
+	l.readChar()
+	l.readChar()
+	var sb strings.Builder
+	for !l.isEOF() {
+		if l.ch == '\'' && l.peekChar() == '/' {
+			l.readChar()
+			l.readChar()
+			break
+		}
+		sb.WriteRune(l.ch)
+		l.readChar()
+	}
+	return sb.String()
 }

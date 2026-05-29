@@ -42,7 +42,8 @@ func main() {
 
 	fd.Close()
 
-	AST, err := parser.ParseClassDiagram(string(content))
+	p := parser.Parser{}
+	AST, err := p.Parse(string(content))
 	if err != nil {
 		fmt.Printf("Error parsing PUML content: %v\n", err)
 		return
