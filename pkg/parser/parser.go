@@ -12,21 +12,44 @@ type Parser struct {
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
-	stream := tokenizer.NewTokenStream(input)
-	_ = stream
+	p.ast = &ast.Diagram{}
+	p.symbol_table = make(map[string]*ast.Entity)
 
-	if str, found := stream.TryReadDiagramBounds(); found && str == "startuml" {
+	stream := tokenizer.NewTokenStream(input)
+
+	if str, found := stream.TryReadDiagramBounds(); !found || str != "startuml" {
 		return nil, errors.New("Could not find diagram start (@startuml)")
 	}
 
+	if title, found := stream.ReadUntilNewline(); found {
+		p.ast.Name = title
+	}
+
 	for {
+		// End condition check should be before consuming a token to avoid swallowing '@'
+		if str, found := stream.TryReadDiagramBounds(); found && str == "enduml" {
+			break
+		}
+
 		tok := stream.Emit()
 		if tok.Type == tokenizer.EOF {
 			return nil, errors.New("Unexpected EOF")
 		}
 
-		if str, found := stream.TryReadDiagramBounds(); found && str == "enduml" {
-			break
+		// Imports via !import
+		// Styles via <style>
+		// Keyword handling switch
+		// Handle comments
+		// Handle Identifiers
+
+		switch tok.Type {
+		case tokenizer.TITLE:
+			if title, found := stream.ReadUntilNewline(); found {
+				p.ast.Title = title
+			}
+		case tokenizer.LANGLE:
+		case tokenizer.EXCLAMATION:
+		case tokenizer.COMMENT:
 		}
 	}
 

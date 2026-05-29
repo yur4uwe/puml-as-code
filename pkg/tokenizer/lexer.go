@@ -177,65 +177,11 @@ func (l *Lexer) readIdentifier() string {
 }
 
 func lookupKeyword(ident string) TokenType {
-	switch ident {
-	// Class declarations
-	case "class":
-		return CLASS
-	case "interface":
-		return INTERFACE
-	case "enum":
-		return ENUM
-	case "struct":
-		return STRUCT
-	case "record":
-		return RECORD
-	case "dataclass":
-		return DATACLASS
-	case "exception":
-		return EXCEPTION
-	case "protocol":
-		return PROTOCOL
-
-	// Modifiers and keywords
-	case "abstract":
-		return ABSTRACT
-	case "package", "namespace":
-		return PACKAGE
-	case "as":
-		return ALIAS
-	case "annotation":
-		return ANNOTATION
-
-	// Documentation and layout
-	case "note":
-		return NOTE
-
-	// Configuration
-	case "skinparam":
-		return SKINPARAM
-
-	// Layout grouping
-	case "together":
-		return TOGETHER
-
-	// Note direction/position (can be treated as identifiers but keeping as keywords for now)
-	case "left", "right", "top", "bottom", "up", "down":
-		return NOTE_DIRECTION
-	case "of", "on":
-		return NOTE_POSITION
-	case "end":
-		return END_BLOCK
-
-	// Actions
-	case "hide", "show", "remove", "restore":
-		return ACTION
-
-	case "set":
-		return SET
-
-	default:
+	tok, err := TokenTypeString(ident)
+	if err != nil {
 		return IDENTIFIER
 	}
+	return tok
 }
 
 func (l *Lexer) readEncodedNumber() (string, error) {

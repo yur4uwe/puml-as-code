@@ -138,3 +138,15 @@ func (ts *TokenStream) TryReadDiagramBounds() (string, bool) {
 	}
 	return ts.Emit().Literal, true
 }
+
+func (ts *TokenStream) ReadUntilNewline() (string, bool) {
+	tok := ts.Emit() // either first Title token or '\n'
+	if tok.Type == EOF || tok.Type == NEWLINE {
+		return "", false
+	}
+	titleStart := tok.Pos
+	for tok.Type != NEWLINE && tok.Type != EOF {
+		tok = ts.Emit()
+	}
+	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos])), true
+}

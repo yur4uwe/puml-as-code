@@ -20,6 +20,7 @@ const (
 	STRING
 	NUMBER
 
+	// keywords
 	CLASS
 	ABSTRACT
 	STRUCT
@@ -35,13 +36,21 @@ const (
 	ACTION
 	SKINPARAM
 	TOGETHER
-	SET       // set
-	ALIAS     // as
-	END_BLOCK // end
+
+	// commands
+	HIDE
+	SHOW
+	REMOVE
+	RESTORE
+	SET
+	SCALE
+	ALIAS
+	TITLE
 
 	// Note tokens
 	NOTE_DIRECTION
 	NOTE_POSITION
+	END_BLOCK
 
 	LBRACE      // {
 	RBRACE      // }
@@ -72,7 +81,7 @@ const (
 	UNDERSCORE  // _
 
 	COMMENT
-	SEPARATOR // ::
+	SEPARATOR // :: by default, configurable
 )
 
 type TokenPos struct {

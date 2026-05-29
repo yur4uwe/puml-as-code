@@ -32,5 +32,7 @@ type Relationship struct {
 }
 
 type Diagram struct {
+	Name       string
+	Title      string
 	Statements []Statement
 }
