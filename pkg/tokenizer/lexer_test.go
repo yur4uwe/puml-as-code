@@ -76,7 +76,7 @@ func TestSetSeparator(t *testing.T) {
 
 	// set
 	tok := lex.Emit()
-	require.Equal(t, SET, tok.Type)
+	require.Equal(t, SET_CMD, tok.Type)
 
 	// separator
 	tok = lex.Emit()
@@ -85,7 +85,7 @@ func TestSetSeparator(t *testing.T) {
 
 	// ::
 	tok = lex.Emit()
-	require.Equal(t, SEPARATOR, tok.Type)
+	require.Equal(t, IDENTIFIER, tok.Type)
 	require.Equal(t, "::", tok.Literal)
 	require.Equal(t, []rune("::"), lex.packageSeparator)
 
@@ -104,7 +104,7 @@ func TestSetSeparator(t *testing.T) {
 
 	// :: (as separator)
 	tok = lex.Emit()
-	require.Equal(t, SEPARATOR, tok.Type)
+	require.Equal(t, PACKAGE_SEPARATOR, tok.Type)
 	require.Equal(t, "::", tok.Literal)
 
 	// B

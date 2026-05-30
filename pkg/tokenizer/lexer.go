@@ -27,7 +27,9 @@ type lexerState struct {
 	readPos                 int
 	ch                      rune
 	packageSeparator        []rune
+	isDefaultSeparator      bool
 	expectingSeparatorValue bool
+	previousTokenType       TokenType
 	line                    uint
 	col                     uint
 }
@@ -48,7 +50,9 @@ func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: []rune(input),
 		lexerState: lexerState{
-			packageSeparator: []rune{'.'},
+			packageSeparator:   []rune{'.'},
+			isDefaultSeparator: true,
+			previousTokenType:  ILLEGAL,
 		},
 	}
 	l.readChar()
@@ -97,6 +101,7 @@ func (l *Lexer) Emit() Token {
 
 	if l.expectingSeparatorValue {
 		l.expectingSeparatorValue = false
+		l.isDefaultSeparator = false // Explicitly mark as non-default
 		start := l.getPos()
 		val := l.readUntilWhitespaceOrNewline()
 		if val == "none" {
@@ -104,12 +109,23 @@ func (l *Lexer) Emit() Token {
 		} else {
 			l.packageSeparator = []rune(val)
 		}
-		return Token{Type: SEPARATOR, Literal: val, Pos: start}
+		return Token{Type: IDENTIFIER, Literal: val, Pos: start}
 	}
 
 	if len(l.packageSeparator) > 0 && l.isPackageSeparator() {
-		start := l.getPos()
-		return Token{Type: SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
+		// Prioritize PACKAGE_SEPARATOR if:
+		// 1. It's multi-character (like the default "::" in some tests, or custom ones)
+		// 2. It's explicitly set (not default)
+		// 3. It's NOT the default single-character dot (which should be DOT token)
+
+		isMultiChar := len(l.packageSeparator) > 1
+		isExplicit := !l.isDefaultSeparator
+		isDefaultDot := len(l.packageSeparator) == 1 && l.packageSeparator[0] == '.'
+
+		if isMultiChar || isExplicit || !isDefaultDot {
+			start := l.getPos()
+			return Token{Type: PACKAGE_SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
+		}
 	}
 
 	var tok Token
@@ -120,17 +136,16 @@ func (l *Lexer) Emit() Token {
 	}
 
 	// Dynamic state update for "set separator"
-	if tok.Type == IDENTIFIER &&
-		tok.Literal == "separator" &&
-		string(l.input[l.position-len("separator")-4:l.position-len("separator")]) == "set " {
+	if l.previousTokenType == SET_CMD && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
 		l.expectingSeparatorValue = true
 	}
+	l.previousTokenType = tok.Type
 
 	return tok
 }
 
 func (l *Lexer) findNextTokenStart() {
-	for l.ch == ' ' || l.ch == '\t' || l.ch == '\r' {
+	for l.ch != '\n' && unicode.IsSpace(l.ch) {
 		l.readChar()
 	}
 }
@@ -182,8 +197,10 @@ func (l *Lexer) readIdentifier() string {
 		if l.ch == '\\' && l.peekChar() != 0 {
 			// Skip the backslash and take the next character literally
 			l.readChar()
-			result = append(result, l.ch)
-			l.readChar()
+			if l.ch != 0 {
+				result = append(result, l.ch)
+				l.readChar()
+			}
 		} else if helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch) {
 			result = append(result, l.ch)
 			l.readChar()
@@ -195,7 +212,11 @@ func (l *Lexer) readIdentifier() string {
 }
 
 func lookupKeyword(ident string) TokenType {
-	tok, err := TokenTypeString(ident)
+	upper := strings.ToUpper(ident)
+	if upper == "SET" {
+		return SET_CMD
+	}
+	tok, err := TokenTypeString(upper)
 	if err != nil {
 		return IDENTIFIER
 	}

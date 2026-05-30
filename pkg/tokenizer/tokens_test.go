@@ -80,7 +80,7 @@ func TestResolveUnambiguousToken_Separator(t *testing.T) {
 	l.packageSeparator = []rune("::")
 	tok := l.Emit()
 
-	assertTokenType(t, SEPARATOR, tok.Type)
+	assertTokenType(t, PACKAGE_SEPARATOR, tok.Type)
 	require.Equal(t, "::", tok.Literal)
 }
 

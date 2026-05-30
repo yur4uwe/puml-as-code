@@ -19,6 +19,21 @@ func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) err
 	return UnexpectedTokenError{Expected: expected, Found: found, Pos: pos}
 }
 
+func (ts *TokenStream) assertSeq(seq []Token) bool {
+	for i, t := range seq {
+		if ts.PeekTokenAt(i).Type != t.Type {
+			return false
+		}
+
+		if t.Type == IDENTIFIER {
+			if ts.PeekTokenAt(i).Literal != t.Literal {
+				return false
+			}
+		}
+	}
+	return true
+}
+
 type TokenStream struct {
 	lexer         *Lexer
 	buffer        []Token
@@ -77,24 +92,15 @@ func (ts *TokenStream) Consume(token TokenType) (Token, bool) {
 }
 
 // readBetween handles the common pattern of [start markers]...[end markers]
-func (ts *TokenStream) readBetween(start, end []TokenType) (string, bool) {
-	assertSeq := func(seq []TokenType) bool {
-		for i, t := range seq {
-			if ts.PeekTokenAt(i).Type != t {
-				return false
-			}
-		}
-		return true
-	}
-
+func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, bool) {
 	// 1. Check if start markers match
-	if !assertSeq(start) {
+	if !ts.assertSeq(start) {
 		return "", false
 	}
 
 	// 2. Consume start markers
 	for range start {
-		ts.Emit()
+		emitter()
 	}
 
 	// 3. Read content until end markers
@@ -105,46 +111,57 @@ func (ts *TokenStream) readBetween(start, end []TokenType) (string, bool) {
 		}
 
 		// Check if we hit the end markers
-		if !assertSeq(end) {
-			sb.WriteString(ts.Emit().Literal)
-			continue
+		if ts.assertSeq(end) {
+			for range end {
+				emitter() // consume end markers
+			}
+			break
 		}
 
-		// If we are here, we found the end markers
-		for range end {
-			ts.Emit()
-		}
-		break
+		// If we are here, we didn't find the end markers yet
+		sb.WriteString(emitter().Literal)
 	}
 
 	return sb.String(), true
 }
 
 func (ts *TokenStream) TryReadModifier() (string, bool) {
-	return ts.readBetween([]TokenType{LBRACE}, []TokenType{RBRACE})
+	start := []Token{{Type: LBRACE}}
+	end := []Token{{Type: RBRACE}}
+	return ts.readBetween(start, end, ts.Emit)
 }
 
 func (ts *TokenStream) TryReadStereotype() (string, bool) {
-	return ts.readBetween([]TokenType{LANGLE, LANGLE}, []TokenType{RANGLE, RANGLE})
+	start := []Token{{Type: LANGLE}, {Type: LANGLE}}
+	end := []Token{{Type: RANGLE}, {Type: RANGLE}}
+	return ts.readBetween(start, end, ts.Emit)
 }
 
 func (ts *TokenStream) TryReadGeneric() (string, bool) {
-	return ts.readBetween([]TokenType{LANGLE}, []TokenType{RANGLE})
+	start := []Token{{Type: LANGLE}}
+	end := []Token{{Type: RANGLE}}
+	return ts.readBetween(start, end, ts.Emit)
 }
 
 func (ts *TokenStream) TryReadClassSeparator() (string, bool) {
+	var start, end []Token
 	switch ts.PeekTokenAt(0).Type {
 	case HYPHEN:
-		return ts.readBetween([]TokenType{HYPHEN, HYPHEN}, []TokenType{HYPHEN, HYPHEN})
+		start = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
+		end = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
 	case DOT:
-		return ts.readBetween([]TokenType{DOT, DOT}, []TokenType{DOT, DOT})
+		start = []Token{{Type: DOT}, {Type: DOT}}
+		end = []Token{{Type: DOT}, {Type: DOT}}
 	case EQUALS:
-		return ts.readBetween([]TokenType{EQUALS, EQUALS}, []TokenType{EQUALS, EQUALS})
+		start = []Token{{Type: EQUALS}, {Type: EQUALS}}
+		end = []Token{{Type: EQUALS}, {Type: EQUALS}}
 	case UNDERSCORE:
-		return ts.readBetween([]TokenType{UNDERSCORE, UNDERSCORE}, []TokenType{UNDERSCORE, UNDERSCORE})
+		start = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
+		end = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 	default:
 		return "", false
 	}
+	return ts.readBetween(start, end, ts.Emit)
 }
 
 func (ts *TokenStream) TryReadTag() (string, bool) {
@@ -190,12 +207,17 @@ func (ts *TokenStream) ReadMultilineComment() (string, bool) {
 	return "", false
 }
 
-func (ts *TokenStream) ReadBlock(endMark TokenType) (string, bool) {
+// ReadBlock assumes that end tokens are first in the line
+// So actual end markers are implicitly append([]TokenType{NEWLINE}, ...endMark)
+func (ts *TokenStream) ReadBlock(endMark ...Token) (string, bool) {
 	tok := ts.EmitRaw()
 	startPos := tok.Pos
 	for tok.Type != EOF {
-		if tok.Type == END_BLOCK && ts.Assert(endMark) {
+		if tok.Type == NEWLINE && ts.assertSeq(endMark) {
 			endPos := tok.Pos
+			for range endMark {
+				ts.EmitRaw() // consume end markers
+			}
 			return string(ts.lexer.input[startPos.Offset:endPos.Offset]), true
 		}
 		tok = ts.EmitRaw()

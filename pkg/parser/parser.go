@@ -25,6 +25,8 @@ type Parser struct {
 	symbol_table map[string]*ast.Entity
 	ast          *ast.Diagram
 	stream       *tokenizer.TokenStream
+	skinparam    ast.Skinparam
+	styles       []string // TODO: should be an actual struct and not collection of strings
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
@@ -71,7 +73,9 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			p.parseTitle()
 		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
 
-		case tokenizer.LANGLE:
+		case tokenizer.LANGLE, tokenizer.SKINPARAM:
+			p.parseStyles(tok)
+
 		case tokenizer.EXCLAMATION:
 		case tokenizer.SLASH:
 

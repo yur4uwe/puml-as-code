@@ -43,7 +43,7 @@ const (
 	SHOW
 	REMOVE
 	RESTORE
-	SET
+	SET_CMD
 	SCALE
 	ALIAS
 	TITLE
@@ -82,7 +82,7 @@ const (
 	UNDERSCORE  // _
 
 	COMMENT
-	SEPARATOR // :: by default, configurable
+	PACKAGE_SEPARATOR // :: by default, configurable
 )
 
 type TokenPos struct {
@@ -152,7 +152,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		if l.peekChar() == '\'' {
 			return Token{Type: COMMENT, Literal: l.readBlockComment(), Pos: start}, true
 		}
-		return Token{Type: SLASH, Literal: string(l.ch), Pos: start}, true
+		return l.consumeChar(SLASH, string(l.ch)), true
 	}
 
 	return Token{}, false
