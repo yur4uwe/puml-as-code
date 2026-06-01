@@ -18,18 +18,18 @@ func (p *Parser) parseDirective(tok tokenizer.Token) (any, error) {
 }
 
 func (p *Parser) parseTitle() error {
-	if !p.stream.Assert(tokenizer.NEWLINE) {
+	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		// We are in luck and ints single line title
 		p.ast.Title = p.stream.ReadRawUntilNewline()
 		return nil
 	}
-	if _, ok := p.stream.Consume(tokenizer.NEWLINE); !ok {
+	if _, ok := p.stream.ConsumeType(tokenizer.NEWLINE); !ok {
 		return NewParserError("Expected newline after multiline title", p.stream.PeekTokenAt(0).Pos)
 	}
 
 	// Otherwise we are inside a multiline title block
-	title, found := p.stream.ReadBlock(unamb(tokenizer.END_BLOCK), unamb(tokenizer.TITLE))
-	if !found {
+	title, err := p.stream.ReadBlock(unamb(tokenizer.END_BLOCK), unamb(tokenizer.TITLE))
+	if err != nil {
 		return NewParserError("Expected title block to end", p.stream.PeekTokenAt(0).Pos)
 	}
 
@@ -43,8 +43,8 @@ func (p *Parser) parseStyles(tok tokenizer.Token) error {
 		// and ignore it
 		// I probebly should actually assert internal value of the IDENTIFIER token
 		seq := []tokenizer.Token{unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}
-		styles, ok := p.stream.ReadBlock(seq...)
-		if !ok {
+		styles, err := p.stream.ReadBlock(seq...)
+		if err != nil {
 			return NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
 		}
 		p.styles = append(p.styles, styles)

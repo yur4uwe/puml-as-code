@@ -53,13 +53,7 @@ func computeTokenDiff(expected, actual []expectedToken) []diffItem {
 			deleteCost := dp[i-1][j] + 1
 			insertCost := dp[i][j-1] + 1
 
-			minCost := replaceCost
-			if deleteCost < minCost {
-				minCost = deleteCost
-			}
-			if insertCost < minCost {
-				minCost = insertCost
-			}
+			minCost := min(insertCost, min(deleteCost, replaceCost))
 
 			dp[i][j] = minCost
 		}
@@ -104,6 +98,10 @@ func computeTokenDiff(expected, actual []expectedToken) []diffItem {
 	return alignment
 }
 
+func TokenFormat(tok expectedToken) string {
+	return fmt.Sprintf("%s (%q)", tok.Type.String(), tok.Literal)
+}
+
 // FormatTokenDiff returns a string showing expected vs actual tokens side-by-side.
 func FormatTokenDiff(expected []expectedToken, actual []expectedToken) string {
 	alignment := computeTokenDiff(expected, actual)
@@ -121,33 +119,34 @@ func FormatTokenDiff(expected []expectedToken, actual []expectedToken) string {
 
 		switch item.op {
 		case opMatch:
-			expStr = fmt.Sprintf("%s (%q)", expected[item.expIdx].Type.String(), expected[item.expIdx].Literal)
-			actStr = fmt.Sprintf("%s (%q)", actual[item.actIdx].Type.String(), actual[item.actIdx].Literal)
+			expStr = TokenFormat(expected[item.expIdx])
+			actStr = TokenFormat(actual[item.actIdx])
 			match = "✓"
 			idxStr = fmt.Sprintf("%d", item.expIdx)
 		case opSubstitute:
-			expStr = fmt.Sprintf("%s (%q)", expected[item.expIdx].Type.String(), expected[item.expIdx].Literal)
-			actStr = fmt.Sprintf("%s (%q)", actual[item.actIdx].Type.String(), actual[item.actIdx].Literal)
+			expStr = TokenFormat(expected[item.actIdx])
+			actStr = TokenFormat(actual[item.actIdx])
 			match = "✗"
 			idxStr = fmt.Sprintf("%d", item.expIdx)
 		case opDelete:
-			expStr = fmt.Sprintf("%s (%q)", expected[item.expIdx].Type.String(), expected[item.expIdx].Literal)
+			expStr = TokenFormat(expected[item.expIdx])
 			match = "-"
 			idxStr = fmt.Sprintf("%d", item.expIdx)
 		case opInsert:
-			actStr = fmt.Sprintf("%s (%q)", actual[item.actIdx].Type.String(), actual[item.actIdx].Literal)
+			actStr = TokenFormat(actual[item.actIdx])
 			match = "+"
 			idxStr = fmt.Sprintf("+%d", item.actIdx)
 		}
 
 		fmt.Fprintf(&sb, "%-5s | %-20s | %-20s | %s\n", idxStr, truncate(expStr, 20), truncate(actStr, 20), match)
 
-		if item.op == opSubstitute {
+		switch item.op {
+		case opSubstitute:
 			fmt.Fprintf(&sb, "        exp: %s %q\n", expected[item.expIdx].Type, expected[item.expIdx].Literal)
 			fmt.Fprintf(&sb, "        act: %s %q\n", actual[item.actIdx].Type, actual[item.actIdx].Literal)
-		} else if item.op == opDelete {
+		case opDelete:
 			fmt.Fprintf(&sb, "        missing token\n")
-		} else if item.op == opInsert {
+		case opInsert:
 			fmt.Fprintf(&sb, "        unexpected token\n")
 		}
 	}

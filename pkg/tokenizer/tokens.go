@@ -49,7 +49,7 @@ const (
 	TITLE
 
 	// Note tokens
-	NOTE_DIRECTION
+	DIRECTION
 	NOTE_POSITION
 	END_BLOCK
 

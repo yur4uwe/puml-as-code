@@ -26,11 +26,11 @@ func TestStreamPeekEmitConsume(t *testing.T) {
 	require.Equal(t, "Foo", tok1.Literal)
 
 	// Assert
-	require.True(t, ts.Assert(CLASS))
-	require.False(t, ts.Assert(LBRACE))
+	require.True(t, ts.AssertType(CLASS))
+	require.False(t, ts.AssertType(LBRACE))
 
 	// Consume
-	tok, ok := ts.Consume(CLASS)
+	tok, ok := ts.ConsumeType(CLASS)
 	require.True(t, ok)
 	require.Equal(t, "class", tok.Literal)
 
@@ -80,28 +80,28 @@ func TestStreamAssertSeq(t *testing.T) {
 func TestStreamTryReadModifier(t *testing.T) {
 	ts := NewTokenStream("{abstract} {static} class")
 	
-	mod, ok := ts.TryReadModifier()
-	require.True(t, ok)
+	mod, err := ts.TryReadModifier()
+	require.NoError(t, err)
 	require.Equal(t, "abstract", mod)
 
-	mod, ok = ts.TryReadModifier()
-	require.True(t, ok)
+	mod, err = ts.TryReadModifier()
+	require.NoError(t, err)
 	require.Equal(t, "static", mod)
 
-	mod, ok = ts.TryReadModifier()
-	require.False(t, ok)
+	mod, err = ts.TryReadModifier()
+	require.Error(t, err)
 }
 
 func TestStreamTryReadStereotype(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("<<stereotype>> <<foo bar>>")
 	
-	stereo, ok := ts.TryReadStereotype()
-	require.True(t, ok)
+	stereo, err := ts.TryReadStereotype()
+	require.NoError(t, err)
 	require.Equal(t, "stereotype", stereo)
 
-	stereo, ok = ts.TryReadStereotype()
-	require.True(t, ok)
+	stereo, err = ts.TryReadStereotype()
+	require.NoError(t, err)
 	require.Equal(t, "foo bar", stereo)
 }
 
@@ -109,26 +109,26 @@ func TestStreamTryReadGeneric(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("<T> <T, U>")
 	
-	gen, ok := ts.TryReadGeneric()
-	require.True(t, ok)
+	gen, err := ts.TryReadGeneric()
+	require.NoError(t, err)
 	require.Equal(t, "T", gen)
 
-	gen, ok = ts.TryReadGeneric()
-	require.True(t, ok)
+	gen, err = ts.TryReadGeneric()
+	require.NoError(t, err)
 	require.Equal(t, "T, U", gen)
 }
 
 func TestStreamTryReadClassSeparator(t *testing.T) {
 	ts := NewTokenStream(".. separator ..\n== sep ==")
 	
-	sep, ok := ts.TryReadClassSeparator()
-	require.True(t, ok)
+	sep, err := ts.TryReadClassSeparator()
+	require.NoError(t, err)
 	require.Equal(t, "separator", sep)
 
-	ts.Consume(NEWLINE)
+	ts.ConsumeType(NEWLINE)
 
-	sep, ok = ts.TryReadClassSeparator()
-	require.True(t, ok)
+	sep, err = ts.TryReadClassSeparator()
+	require.NoError(t, err)
 	require.Equal(t, "sep", sep)
 }
 
@@ -136,12 +136,12 @@ func TestStreamTryReadTag(t *testing.T) {
 	t.Skip("Abandoned for now per user instruction")
 	ts := NewTokenStream("$tagName $another")
 	
-	tag, ok := ts.TryReadTag()
-	require.True(t, ok)
+	tag, err := ts.TryReadTag()
+	require.NoError(t, err)
 	require.Equal(t, "tagName", tag)
 
-	tag, ok = ts.TryReadTag()
-	require.True(t, ok)
+	tag, err = ts.TryReadTag()
+	require.NoError(t, err)
 	require.Equal(t, "another", tag)
 }
 
@@ -149,14 +149,14 @@ func TestStreamTryReadDiagramBounds(t *testing.T) {
 	// Note: Currently fails due to apparent implementation bug (Assert(AT) returns false)
 	ts := NewTokenStream("@startuml\n@enduml")
 	
-	b, ok := ts.TryReadDiagramBounds()
-	require.True(t, ok)
+	b, err := ts.TryReadDiagramBounds()
+	require.NoError(t, err)
 	require.Equal(t, "startuml", b)
 
-	ts.Consume(NEWLINE)
+	ts.ConsumeType(NEWLINE)
 
-	b, ok = ts.TryReadDiagramBounds()
-	require.True(t, ok)
+	b, err = ts.TryReadDiagramBounds()
+	require.NoError(t, err)
 	require.Equal(t, "enduml", b)
 }
 
@@ -179,15 +179,15 @@ func TestStreamReadBlock(t *testing.T) {
 	
 	ts.ReadUntilNewline()
 
-	block, ok := ts.ReadBlock(Token{Type: END_BLOCK}, Token{Type: NOTE})
-	require.True(t, ok)
+	block, err := ts.ReadBlock(Token{Type: END_BLOCK}, Token{Type: NOTE})
+	require.NoError(t, err)
 	require.Contains(t, block, "This is a block")
 }
 
 func TestStreamReadMultilineComment(t *testing.T) {
 	ts := NewTokenStream("something")
-	c, ok := ts.ReadMultilineComment()
-	require.False(t, ok)
+	c, err := ts.ReadMultilineComment()
+	require.Error(t, err)
 	require.Empty(t, c)
 }
 
@@ -198,7 +198,7 @@ func TestStreamReadBetween(t *testing.T) {
 	startSeq := []Token{{Type: IDENTIFIER, Literal: "START"}}
 	endSeq := []Token{{Type: IDENTIFIER, Literal: "END"}}
 	
-	res, ok := ts.readBetween(startSeq, endSeq, ts.EmitRaw)
-	require.True(t, ok)
+	res, err := ts.readBetween(startSeq, endSeq, ts.EmitRaw)
+	require.NoError(t, err)
 	require.Equal(t, " foo bar ", res)
 }

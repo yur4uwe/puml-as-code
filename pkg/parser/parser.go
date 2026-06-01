@@ -35,7 +35,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	p.stream = tokenizer.NewTokenStream(input)
 
-	if str, found := p.stream.TryReadDiagramBounds(); !found || str != "startuml" {
+	if str, err := p.stream.TryReadDiagramBounds(); err != nil || str != "startuml" {
 		return nil, NewParserError("Could not find diagram start (@startuml)", p.stream.PeekTokenAt(0).Pos)
 	}
 
@@ -45,7 +45,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
-		if str, found := p.stream.TryReadDiagramBounds(); found && str == "enduml" {
+		if str, err := p.stream.TryReadDiagramBounds(); err == nil && str == "enduml" {
 			break
 		}
 
@@ -72,10 +72,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		case tokenizer.TITLE:
 			p.parseTitle()
 		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
-
 		case tokenizer.LANGLE, tokenizer.SKINPARAM:
 			p.parseStyles(tok)
-
 		case tokenizer.EXCLAMATION:
 		case tokenizer.SLASH:
 

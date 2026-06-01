@@ -213,9 +213,20 @@ func (l *Lexer) readIdentifier() string {
 
 func lookupKeyword(ident string) TokenType {
 	upper := strings.ToUpper(ident)
-	if upper == "SET" {
+	// Special cases where keyword string isn't exactly the same as the enum name
+	switch upper {
+	case "SET":
 		return SET_CMD
+	case "END":
+		return END_BLOCK
+	case "AS":
+		return ALIAS
+	case "LEFT", "RIGHT", "UP", "DOWN":
+		return DIRECTION
+	case "OF", "AT":
+		return NOTE_POSITION
 	}
+
 	tok, err := TokenTypeString(upper)
 	if err != nil {
 		return IDENTIFIER

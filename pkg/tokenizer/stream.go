@@ -2,8 +2,23 @@ package tokenizer
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
+
+var possibleBounds = []string{
+	"uml",
+	"gantt",
+	"mindmap",
+	"def",
+}
+
+type DiagramBound struct {
+	Type string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
+	ID   string // for identifying the diagram in files there there are more than one
+	Name string // in essence file name for the rendered diagram
+	Opts map[string]string
+}
 
 type UnexpectedTokenError struct {
 	Expected TokenType
@@ -19,31 +34,80 @@ func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) err
 	return UnexpectedTokenError{Expected: expected, Found: found, Pos: pos}
 }
 
-func (ts *TokenStream) assertSeq(seq []Token) bool {
-	for i, t := range seq {
-		if ts.PeekTokenAt(i).Type != t.Type {
-			return false
-		}
+type TokenStream struct {
+	lexer         *Lexer
+	leadingTrivia []Token
+	buffer        []Token
+	sinks         []TokenSink
+}
 
-		if t.Type == IDENTIFIER {
-			if ts.PeekTokenAt(i).Literal != t.Literal {
-				return false
+func (ts *TokenStream) Attach(sink TokenSink) func() {
+	ts.sinks = append(ts.sinks, sink)
+	return func() {
+		for i, s := range ts.sinks {
+			if s == sink {
+				ts.sinks = append(ts.sinks[:i], ts.sinks[i+1:]...)
+				return
 			}
 		}
 	}
-	return true
-}
-
-type TokenStream struct {
-	lexer         *Lexer
-	buffer        []Token
-	leadingTrivia []Token
 }
 
 func NewTokenStream(input string) *TokenStream {
 	return &TokenStream{
 		lexer: NewLexer(input),
+		sinks: make([]TokenSink, 0, 2),
 	}
+}
+
+func (ts *TokenStream) assertSeq(seq []Token) bool {
+	for i, t := range seq {
+		next := ts.PeekTokenAt(i)
+		if next.Type != t.Type {
+			return false
+		}
+		if t.Literal != "" && next.Literal != t.Literal {
+			return false
+		}
+	}
+	return true
+}
+
+func (ts *TokenStream) TokensToString(toks []Token) string {
+	isRaw := false
+	for _, tok := range toks {
+		if tok.Type == COMMENT {
+			isRaw = true
+			break
+		}
+	}
+
+	start := toks[0].Pos.Offset
+	end := toks[len(toks)-1].Pos.Offset + uint(len(toks[len(toks)-1].Literal))
+	str := ts.lexer.input[start:end]
+	if isRaw {
+		return string(str)
+	}
+
+	var sb strings.Builder
+	inComment := false
+	for i, r := range str {
+		if r == '/' && i < len(str)-1 && str[i+1] == '\'' {
+			inComment = true
+			continue
+		}
+		if inComment && r == '\'' && i < len(str)-1 && str[i+1] == '/' {
+			inComment = false
+			continue
+		}
+		if inComment {
+			continue
+		}
+
+		sb.WriteRune(r)
+	}
+
+	return sb.String()
 }
 
 func (ts *TokenStream) PeekTokenAt(idx int) Token {
@@ -57,10 +121,7 @@ func (ts *TokenStream) PeekTokenAt(idx int) Token {
 }
 
 func (ts *TokenStream) Emit() Token {
-	tok := ts.PeekTokenAt(0)
-	if len(ts.buffer) > 0 {
-		ts.buffer = ts.buffer[1:]
-	}
+	tok := ts.EmitRaw()
 	if len(ts.leadingTrivia) > 0 && tok.Type != COMMENT {
 		tok.LeadingTrivia = ts.leadingTrivia
 	}
@@ -72,30 +133,73 @@ func (ts *TokenStream) EmitRaw() Token {
 	if len(ts.buffer) > 0 {
 		ts.buffer = ts.buffer[1:]
 	}
+	for _, sink := range ts.sinks {
+		sink.Receive(tok)
+	}
 	return tok
 }
 
-// Assert checks if the next token is of the given type.
+// Assert checks if the next token matches the given token (Type and Literal if literal is set).
 // Does not emit the token.
-func (ts *TokenStream) Assert(token TokenType) bool {
+func (ts *TokenStream) Assert(token Token) bool {
+	next := ts.PeekTokenAt(0)
+	if next.Type != token.Type {
+		return false
+	}
+	if token.Literal != "" && next.Literal != token.Literal {
+		return false
+	}
+	return true
+}
+
+func (ts *TokenStream) AssertType(token TokenType) bool {
 	if ts.PeekTokenAt(0).Type != token {
 		return false
 	}
 	return true
 }
 
-func (ts *TokenStream) Consume(token TokenType) (Token, bool) {
+func (ts *TokenStream) AssertAny(tokens ...Token) bool {
+	return slices.ContainsFunc(tokens, ts.Assert)
+}
+
+func (ts *TokenStream) AssertAnyType(tokens ...TokenType) bool {
+	return slices.ContainsFunc(tokens, ts.AssertType)
+}
+
+func (ts *TokenStream) Consume(token Token) (Token, bool) {
 	if ts.Assert(token) {
 		return ts.Emit(), true
 	}
 	return Token{}, false
 }
 
+func (ts *TokenStream) ConsumeType(token TokenType) (Token, bool) {
+	if ts.AssertType(token) {
+		return ts.Emit(), true
+	}
+	return Token{}, false
+}
+
+func (ts *TokenStream) ConsumeUntil(token ...Token) Token {
+	for !ts.AssertAny(token...) && !ts.AssertType(EOF) {
+		ts.Emit()
+	}
+	return ts.PeekTokenAt(0)
+}
+
+func (ts *TokenStream) ConsumeUntilType(token ...TokenType) Token {
+	for !ts.AssertAnyType(token...) && !ts.AssertType(EOF) {
+		ts.Emit()
+	}
+	return ts.PeekTokenAt(0)
+}
+
 // readBetween handles the common pattern of [start markers]...[end markers]
-func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, bool) {
+func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, error) {
 	// 1. Check if start markers match
 	if !ts.assertSeq(start) {
-		return "", false
+		return "", fmt.Errorf("failed to assert start marker")
 	}
 
 	// 2. Consume start markers
@@ -104,46 +208,51 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 	}
 
 	// 3. Read content until end markers
-	var sb strings.Builder
+	var tc TokenCollector
+	detach := ts.Attach(&tc)
+	defer detach()
+
 	for {
-		if ts.Assert(EOF) || ts.Assert(NEWLINE) {
-			return "", false
+		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
+			return "", fmt.Errorf("unexpected EOF or newline")
 		}
 
-		// Check if we hit the end markers
 		if ts.assertSeq(end) {
-			for range end {
-				emitter() // consume end markers
-			}
 			break
 		}
 
-		// If we are here, we didn't find the end markers yet
-		sb.WriteString(emitter().Literal)
+		emitter()
 	}
 
-	return sb.String(), true
+	res := ts.TokensToString(tc.tokens)
+
+	// Consume end markers
+	for range end {
+		emitter()
+	}
+
+	return res, nil
 }
 
-func (ts *TokenStream) TryReadModifier() (string, bool) {
+func (ts *TokenStream) TryReadModifier() (string, error) {
 	start := []Token{{Type: LBRACE}}
 	end := []Token{{Type: RBRACE}}
 	return ts.readBetween(start, end, ts.Emit)
 }
 
-func (ts *TokenStream) TryReadStereotype() (string, bool) {
+func (ts *TokenStream) TryReadStereotype() (string, error) {
 	start := []Token{{Type: LANGLE}, {Type: LANGLE}}
 	end := []Token{{Type: RANGLE}, {Type: RANGLE}}
 	return ts.readBetween(start, end, ts.Emit)
 }
 
-func (ts *TokenStream) TryReadGeneric() (string, bool) {
+func (ts *TokenStream) TryReadGeneric() (string, error) {
 	start := []Token{{Type: LANGLE}}
 	end := []Token{{Type: RANGLE}}
 	return ts.readBetween(start, end, ts.Emit)
 }
 
-func (ts *TokenStream) TryReadClassSeparator() (string, bool) {
+func (ts *TokenStream) TryReadClassSeparator() (string, error) {
 	var start, end []Token
 	switch ts.PeekTokenAt(0).Type {
 	case HYPHEN:
@@ -159,32 +268,162 @@ func (ts *TokenStream) TryReadClassSeparator() (string, bool) {
 		start = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 		end = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 	default:
-		return "", false
+		return "", fmt.Errorf("unexpected class separator")
 	}
+
+	// separator can have no description
+	// Here we find out if its true
+	if ts.assertSeq(append(start, Token{Type: NEWLINE})) {
+		return "", nil
+	}
+
 	return ts.readBetween(start, end, ts.Emit)
 }
 
-func (ts *TokenStream) TryReadTag() (string, bool) {
-	if ts.Assert(DOLLAR) {
-		return "", false
+func (ts *TokenStream) TryReadTag() (string, error) {
+	if !ts.AssertType(DOLLAR) {
+		return "", unexpectedTokenError(DOLLAR, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
 	}
 	ts.Emit() // consume $
-	return ts.Emit().Literal, true
+	return ts.Emit().Literal, nil
 }
 
-func (ts *TokenStream) TryReadDiagramBounds() (string, bool) {
-	if ts.Assert(AT) {
-		return "", false
+func (ts *TokenStream) IsDiagramBound() bool {
+	if !ts.AssertType(AT) {
+		return false
 	}
+	tok := ts.PeekTokenAt(1)
+	if tok.Type != IDENTIFIER {
+		return false
+	}
+	return strings.HasPrefix(tok.Literal, "start") || strings.HasPrefix(tok.Literal, "end")
+}
+
+func (ts *TokenStream) TryReadDiagramBounds() (string, error) {
+	if !ts.IsDiagramBound() {
+		return "", fmt.Errorf("not a diagram bound")
+	}
+	// For tests, we want to return the literal like "startuml"
 	ts.Emit() // consume @
-	if ts.Assert(IDENTIFIER) {
-		return "", false
+	return ts.Emit().Literal, nil
+}
+
+func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
+	if _, consumed := ts.ConsumeType(AT); !consumed {
+		return DiagramBound{}, unexpectedTokenError(AT, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
 	}
-	return ts.Emit().Literal, true
+
+	tok, ok := ts.ConsumeType(IDENTIFIER)
+	if !ok {
+		return DiagramBound{}, unexpectedTokenError(IDENTIFIER, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+	}
+
+	if !strings.HasPrefix(tok.Literal, "start") &&
+		!strings.HasPrefix(tok.Literal, "end") {
+		return DiagramBound{}, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start' or 'end'")
+	}
+
+	diag := DiagramBound{
+		Opts: make(map[string]string),
+	}
+
+	if typ, found := strings.CutPrefix(tok.Literal, "start"); found {
+		diag.Type = typ
+	} else if typ, found := strings.CutPrefix(tok.Literal, "end"); found {
+		diag.Type = typ
+	}
+
+	// Check for legacy name syntax: @startuml NAME
+	if ts.AssertType(IDENTIFIER) {
+		diag.Name = ts.ReadRawUntilNewline()
+		return diag, nil
+	}
+
+	readKvp := func() error {
+		keyTok, ok := ts.ConsumeType(IDENTIFIER)
+		if !ok {
+			return fmt.Errorf("expected a key")
+		}
+		if _, ok := ts.ConsumeType(EQUALS); !ok {
+			return unexpectedTokenError(EQUALS, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+		}
+		valTok := ts.Emit()
+		if keyTok.Literal == "id" {
+			diag.ID = valTok.Literal
+		} else if _, ok := diag.Opts[keyTok.Literal]; ok {
+			return fmt.Errorf("duplicate key in diagram bounds: %s", keyTok.Literal)
+		} else {
+			diag.Opts[keyTok.Literal] = valTok.Literal
+		}
+		return nil
+	}
+
+	// First tag (id=TAG, key=value, ...)
+	if _, consumed := ts.ConsumeType(LPAREN); consumed {
+		for !ts.AssertType(RPAREN) && !ts.AssertType(EOF) && !ts.AssertType(NEWLINE) {
+			if err := readKvp(); err != nil {
+				return diag, err
+			}
+			if _, ok := ts.ConsumeType(COMMA); !ok {
+				break
+			}
+		}
+		if _, ok := ts.ConsumeType(RPAREN); !ok {
+			return diag, fmt.Errorf("expected closing parenthesis in diagram bounds")
+		}
+	}
+
+	// Check for legacy syntax: @startuml NAME, again
+	if ts.AssertType(IDENTIFIER) {
+		diag.Name = ts.ReadRawUntilNewline()
+		return diag, nil
+	}
+
+	// Then options {filename, caption, key=value, ...}
+	if _, consumed := ts.ConsumeType(LBRACE); consumed {
+		// read filename
+		buf := TokenCollector{}
+		detach := ts.Attach(&buf)
+		tok := ts.ConsumeUntilType(EOF, NEWLINE, COMMA, RBRACE)
+		if tok.Type == EOF || tok.Type == NEWLINE {
+			return diag, fmt.Errorf("unexpected EOF or newline")
+		}
+		detach()
+		diag.Name = ts.TokensToString(buf.tokens)
+
+		if _, ok := ts.ConsumeType(COMMA); ok {
+			// read caption
+			buf := TokenCollector{}
+			detach := ts.Attach(&buf)
+			tok := ts.ConsumeUntilType(EOF, NEWLINE, COMMA, RBRACE)
+			if tok.Type == EOF || tok.Type == NEWLINE {
+				return diag, fmt.Errorf("unexpected EOF or newline")
+			}
+			detach()
+			diag.Opts["caption"] = ts.TokensToString(buf.tokens)
+		}
+
+		// Handle key=value pairs or more options if needed
+		for {
+			if !ts.AssertType(COMMA) {
+				break
+			}
+			ts.ConsumeType(COMMA)
+			if err := readKvp(); err != nil {
+				return diag, err
+			}
+		}
+
+		if _, ok := ts.ConsumeType(RBRACE); !ok {
+			return diag, fmt.Errorf("expected closing brace in diagram bounds")
+		}
+	}
+
+	return diag, nil
 }
 
 func (ts *TokenStream) readUntilNewline(emitter func() Token) string {
-	if ts.Assert(EOF) || ts.Assert(NEWLINE) {
+	if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
 		return ""
 	}
 	tok := emitter()
@@ -203,13 +442,13 @@ func (ts *TokenStream) ReadRawUntilNewline() string {
 	return ts.readUntilNewline(ts.EmitRaw)
 }
 
-func (ts *TokenStream) ReadMultilineComment() (string, bool) {
-	return "", false
+func (ts *TokenStream) ReadMultilineComment() (string, error) {
+	return "", fmt.Errorf("multiline comment not found")
 }
 
 // ReadBlock assumes that end tokens are first in the line
 // So actual end markers are implicitly append([]TokenType{NEWLINE}, ...endMark)
-func (ts *TokenStream) ReadBlock(endMark ...Token) (string, bool) {
+func (ts *TokenStream) ReadBlock(endMark ...Token) (string, error) {
 	tok := ts.EmitRaw()
 	startPos := tok.Pos
 	for tok.Type != EOF {
@@ -218,9 +457,9 @@ func (ts *TokenStream) ReadBlock(endMark ...Token) (string, bool) {
 			for range endMark {
 				ts.EmitRaw() // consume end markers
 			}
-			return string(ts.lexer.input[startPos.Offset:endPos.Offset]), true
+			return string(ts.lexer.input[startPos.Offset:endPos.Offset]), nil
 		}
 		tok = ts.EmitRaw()
 	}
-	return "", false
+	return "", fmt.Errorf("block end not found")
 }
