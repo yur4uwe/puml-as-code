@@ -35,17 +35,30 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	p.stream = tokenizer.NewTokenStream(input)
 
-	if str, err := p.stream.TryReadDiagramBounds(); err != nil || str != "startuml" {
-		return nil, NewParserError("Could not find diagram start (@startuml)", p.stream.PeekTokenAt(0).Pos)
+	startBound, err := p.stream.ReadDiagramBounds()
+	if err != nil {
+		return nil, err
+	} else if !startBound.IsStart {
+		return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0).Pos)
 	}
 
-	if title := p.stream.ReadUntilNewline(); title != "" {
-		p.ast.Name = title
-	}
+	p.ast.Statements = append(p.ast.Statements, startBound)
+	p.ast.Name = startBound.Name
 
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
-		if str, err := p.stream.TryReadDiagramBounds(); err == nil && str == "enduml" {
+		if p.stream.IsDiagramBound() {
+			endBound, err := p.stream.ReadDiagramBounds()
+			if err != nil {
+				return nil, err
+			}
+			if endBound.IsStart {
+				return nil, NewParserError("Unexpected diagram end marker", p.stream.PeekTokenAt(0).Pos)
+			}
+			if endBound.Type != startBound.Type {
+				return nil, NewParserError("Types of starting and ending markers don't match", p.stream.PeekTokenAt(0).Pos)
+			}
+			p.ast.Statements = append(p.ast.Statements, endBound)
 			break
 		}
 
@@ -68,17 +81,21 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
+		var err error
 		switch tok.Type {
 		case tokenizer.TITLE:
-			p.parseTitle()
+			err = p.parseTitle()
 		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
+			err = p.parseVisibilityCommand(tok)
 		case tokenizer.LANGLE, tokenizer.SKINPARAM:
-			p.parseStyles(tok)
+			err = p.parseStyles(tok)
 		case tokenizer.EXCLAMATION:
-		case tokenizer.SLASH:
-
+		case tokenizer.DIRECTION:
+			err = p.parseDiagDirection(tok)
 		}
-
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return p.ast, nil

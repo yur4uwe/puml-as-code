@@ -1,8 +1,8 @@
 package tokenizer
 
 import (
-	"testing"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func TestNewTokenStream(t *testing.T) {
@@ -49,7 +49,7 @@ func TestStreamEmitRaw(t *testing.T) {
 	tokC := ts.EmitRaw()
 	require.Equal(t, COMMENT, tokC.Type)
 	require.Equal(t, " comment ", tokC.Literal)
-	
+
 	tokB := ts.EmitRaw()
 	require.Equal(t, IDENTIFIER, tokB.Type)
 	require.Equal(t, "B", tokB.Literal)
@@ -57,13 +57,13 @@ func TestStreamEmitRaw(t *testing.T) {
 
 func TestStreamAssertSeq(t *testing.T) {
 	ts := NewTokenStream("class Foo {")
-	
+
 	require.True(t, ts.assertSeq([]Token{
 		{Type: CLASS, Literal: "class"},
 		{Type: IDENTIFIER, Literal: "Foo"},
 		{Type: LBRACE},
 	}))
-	
+
 	require.False(t, ts.assertSeq([]Token{
 		{Type: CLASS, Literal: "class"},
 		{Type: IDENTIFIER, Literal: "Bar"},
@@ -79,7 +79,7 @@ func TestStreamAssertSeq(t *testing.T) {
 
 func TestStreamTryReadModifier(t *testing.T) {
 	ts := NewTokenStream("{abstract} {static} class")
-	
+
 	mod, err := ts.TryReadModifier()
 	require.NoError(t, err)
 	require.Equal(t, "abstract", mod)
@@ -95,7 +95,7 @@ func TestStreamTryReadModifier(t *testing.T) {
 func TestStreamTryReadStereotype(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("<<stereotype>> <<foo bar>>")
-	
+
 	stereo, err := ts.TryReadStereotype()
 	require.NoError(t, err)
 	require.Equal(t, "stereotype", stereo)
@@ -108,7 +108,7 @@ func TestStreamTryReadStereotype(t *testing.T) {
 func TestStreamTryReadGeneric(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("<T> <T, U>")
-	
+
 	gen, err := ts.TryReadGeneric()
 	require.NoError(t, err)
 	require.Equal(t, "T", gen)
@@ -120,7 +120,7 @@ func TestStreamTryReadGeneric(t *testing.T) {
 
 func TestStreamTryReadClassSeparator(t *testing.T) {
 	ts := NewTokenStream(".. separator ..\n== sep ==")
-	
+
 	sep, err := ts.TryReadClassSeparator()
 	require.NoError(t, err)
 	require.Equal(t, "separator", sep)
@@ -135,7 +135,7 @@ func TestStreamTryReadClassSeparator(t *testing.T) {
 func TestStreamTryReadTag(t *testing.T) {
 	t.Skip("Abandoned for now per user instruction")
 	ts := NewTokenStream("$tagName $another")
-	
+
 	tag, err := ts.TryReadTag()
 	require.NoError(t, err)
 	require.Equal(t, "tagName", tag)
@@ -145,25 +145,153 @@ func TestStreamTryReadTag(t *testing.T) {
 	require.Equal(t, "another", tag)
 }
 
-func TestStreamTryReadDiagramBounds(t *testing.T) {
-	// Note: Currently fails due to apparent implementation bug (Assert(AT) returns false)
-	ts := NewTokenStream("@startuml\n@enduml")
-	
-	b, err := ts.TryReadDiagramBounds()
-	require.NoError(t, err)
-	require.Equal(t, "startuml", b)
+// func TestStreamTryReadDiagramBounds(t *testing.T) {
+// 	// Note: Currently fails due to apparent implementation bug (Assert(AT) returns false)
+// 	ts := NewTokenStream("@startuml\n@enduml")
+//
+// 	b, err := ts.TryReadDiagramBounds()
+// 	require.NoError(t, err)
+// 	require.Equal(t, "startuml", b)
+//
+// 	ts.ConsumeType(NEWLINE)
+//
+// 	b, err = ts.TryReadDiagramBounds()
+// 	require.NoError(t, err)
+// 	require.Equal(t, "enduml", b)
+// }
 
-	ts.ConsumeType(NEWLINE)
+func TestReadDiagramBounds(t *testing.T) {
+	tt := []struct {
+		name             string
+		input            string
+		expectedKvps     map[string]string
+		expectError      bool
+		expectedFilename string
+		expectedType     string
+		expectedID       string
+	}{
+		// general parsing
+		{
+			name:         "Default case",
+			input:        "@startuml\n@enduml",
+			expectedType: "uml",
+		},
+		{
+			name:             "With filename",
+			input:            "@startuml filename.puml\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+		},
+		// id parsing
+		{
+			name:         "With tag",
+			input:        "@startuml(id=tag)\n@enduml",
+			expectedType: "uml",
+			expectedID:   "tag",
+		},
+		{
+			name:             "With filename and tag",
+			input:            "@startuml(id=tag) filename.puml\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+			expectedID:       "tag",
+		},
+		// options parsing
+		{
+			name:             "filename using tool options",
+			input:            "@startuml{filename.puml}\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+		},
+		{
+			name:             "filename and caption using tool options",
+			input:            "@startuml{filename.puml, foo bar}\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+			expectedKvps: map[string]string{
+				"caption": "foo bar",
+			},
+		},
+		{
+			name:             "kvp parsing",
+			input:            "@startuml{filename.puml, foo bar, key=value}\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+			expectedKvps: map[string]string{
+				"caption": "foo bar",
+				"key":     "value",
+			},
+		},
+		{
+			name:             "parsing kvp's right after filename and no caption",
+			input:            "@startuml{filename.puml, key=value}\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+			expectedKvps: map[string]string{
+				"key": "value",
+			},
+		},
+		{
+			name:             "Tools and id parsing simulatenously",
+			input:            "@startuml(id=tag){filename.puml, foo bar, key=value}\n@enduml",
+			expectedFilename: "filename.puml",
+			expectedType:     "uml",
+			expectedID:       "tag",
+			expectedKvps: map[string]string{
+				"caption": "foo bar",
+				"key":     "value",
+			},
+		},
+		// error cases
+		{
+			name:        "Incorrect order of tools and id",
+			input:       "@startuml{filename.puml, foo bar, key=value}(id=tag)\n@enduml",
+			expectError: true,
+		},
+		{
+			name:        "legacy filename syntax after tools",
+			input:       "@startuml{filename.puml, foo bar, key=value} filename.puml\n@enduml",
+			expectError: true,
+		},
+	}
 
-	b, err = ts.TryReadDiagramBounds()
-	require.NoError(t, err)
-	require.Equal(t, "enduml", b)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			ts := NewTokenStream(tc.input)
+			b, err := ts.ReadDiagramBounds()
+			if tc.expectError {
+				require.Error(t, err)
+				return
+			}
+
+			require.NoError(t, err)
+			require.True(t, b.IsStart)
+			require.Equal(t, tc.expectedType, b.Type)
+
+			if tc.expectedKvps != nil {
+				require.Equal(t, tc.expectedKvps, b.Opts)
+			}
+			if tc.expectedFilename != "" {
+				require.Equal(t, tc.expectedFilename, b.Name)
+			}
+			if tc.expectedID != "" {
+				require.Equal(t, tc.expectedID, b.ID)
+			}
+
+			ts.ConsumeType(NEWLINE)
+			b, err = ts.ReadDiagramBounds()
+			require.NoError(t, err)
+			require.False(t, b.IsStart)
+			require.Equal(t, tc.expectedType, b.Type)
+		})
+	}
+
 }
 
 func TestStreamReadUntilNewline(t *testing.T) {
 	t.Skip("Abandoned for now per user instruction")
 	ts := NewTokenStream("foo bar /' comment '/ baz\nnext")
-	
+
 	line := ts.ReadUntilNewline()
 	require.Equal(t, "foo bar  baz", line)
 
@@ -176,7 +304,7 @@ func TestStreamReadBlock(t *testing.T) {
 	// Note: Currently fails because 'end' is tokenized as IDENTIFIER instead of END_BLOCK
 	input := "note right of Foo\n  This is a block\n  with multiple lines\nend note"
 	ts := NewTokenStream(input)
-	
+
 	ts.ReadUntilNewline()
 
 	block, err := ts.ReadBlock(Token{Type: END_BLOCK}, Token{Type: NOTE})
@@ -194,10 +322,10 @@ func TestStreamReadMultilineComment(t *testing.T) {
 func TestStreamReadBetween(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("START foo bar END")
-	
+
 	startSeq := []Token{{Type: IDENTIFIER, Literal: "START"}}
 	endSeq := []Token{{Type: IDENTIFIER, Literal: "END"}}
-	
+
 	res, err := ts.readBetween(startSeq, endSeq, ts.EmitRaw)
 	require.NoError(t, err)
 	require.Equal(t, " foo bar ", res)

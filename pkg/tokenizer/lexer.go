@@ -221,7 +221,7 @@ func lookupKeyword(ident string) TokenType {
 		return END_BLOCK
 	case "AS":
 		return ALIAS
-	case "LEFT", "RIGHT", "UP", "DOWN":
+	case "LEFT", "RIGHT", "UP", "DOWN", "TOP", "BOTTOM":
 		return DIRECTION
 	case "OF", "AT":
 		return NOTE_POSITION

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"yur4uwe/pac/pkg/parser/ast"
 )
 
 var possibleBounds = []string{
@@ -14,24 +15,30 @@ var possibleBounds = []string{
 }
 
 type DiagramBound struct {
-	Type string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
-	ID   string // for identifying the diagram in files there there are more than one
-	Name string // in essence file name for the rendered diagram
-	Opts map[string]string
+	IsStart bool
+	Type    string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
+	ID      string // for identifying the diagram in files there there are more than one
+	Name    string // in essence file name for the rendered diagram
+	Opts    map[string]string
+}
+
+var _ ast.Statement = DiagramBound{}
+
+func (d DiagramBound) StatementNode() any {
+	return d
 }
 
 type UnexpectedTokenError struct {
-	Expected TokenType
-	Found    TokenType
-	Pos      TokenPos
+	Expected Token
+	Found    Token
 }
 
 func (e UnexpectedTokenError) Error() string {
-	return fmt.Sprintf("token stream: unexpected token %s at %d:%d, expected %s", e.Found, e.Pos.Line, e.Pos.Col, e.Expected)
+	return fmt.Sprintf("token stream: unexpected token %s(%q) at %d:%d, expected %s(%q)", e.Found.Type, e.Found.Literal, e.Found.Pos.Line, e.Found.Pos.Col, e.Expected.Type, e.Expected.Literal)
 }
 
-func unexpectedTokenError(expected TokenType, found TokenType, pos TokenPos) error {
-	return UnexpectedTokenError{Expected: expected, Found: found, Pos: pos}
+func unexpectedTokenError(expected Token, found Token) error {
+	return UnexpectedTokenError{Expected: expected, Found: found}
 }
 
 type TokenStream struct {
@@ -74,6 +81,10 @@ func (ts *TokenStream) assertSeq(seq []Token) bool {
 }
 
 func (ts *TokenStream) TokensToString(toks []Token) string {
+	if len(toks) == 0 {
+		return ""
+	}
+
 	isRaw := false
 	for _, tok := range toks {
 		if tok.Type == COMMENT {
@@ -282,7 +293,7 @@ func (ts *TokenStream) TryReadClassSeparator() (string, error) {
 
 func (ts *TokenStream) TryReadTag() (string, error) {
 	if !ts.AssertType(DOLLAR) {
-		return "", unexpectedTokenError(DOLLAR, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+		return "", unexpectedTokenError(Token{Type: DOLLAR}, ts.PeekTokenAt(0))
 	}
 	ts.Emit() // consume $
 	return ts.Emit().Literal, nil
@@ -310,12 +321,12 @@ func (ts *TokenStream) TryReadDiagramBounds() (string, error) {
 
 func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 	if _, consumed := ts.ConsumeType(AT); !consumed {
-		return DiagramBound{}, unexpectedTokenError(AT, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+		return DiagramBound{}, unexpectedTokenError(Token{Type: AT}, ts.PeekTokenAt(0))
 	}
 
 	tok, ok := ts.ConsumeType(IDENTIFIER)
 	if !ok {
-		return DiagramBound{}, unexpectedTokenError(IDENTIFIER, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+		return DiagramBound{}, unexpectedTokenError(Token{Type: IDENTIFIER}, ts.PeekTokenAt(0))
 	}
 
 	if !strings.HasPrefix(tok.Literal, "start") &&
@@ -328,13 +339,17 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 	}
 
 	if typ, found := strings.CutPrefix(tok.Literal, "start"); found {
+		diag.IsStart = true
 		diag.Type = typ
 	} else if typ, found := strings.CutPrefix(tok.Literal, "end"); found {
+		diag.IsStart = false
 		diag.Type = typ
+		// Fast return for end markers
+		return diag, nil
 	}
 
 	// Check for legacy name syntax: @startuml NAME
-	if ts.AssertType(IDENTIFIER) {
+	if !ts.AssertType(LPAREN) && !ts.AssertType(LBRACE) {
 		diag.Name = ts.ReadRawUntilNewline()
 		return diag, nil
 	}
@@ -345,7 +360,7 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 			return fmt.Errorf("expected a key")
 		}
 		if _, ok := ts.ConsumeType(EQUALS); !ok {
-			return unexpectedTokenError(EQUALS, ts.PeekTokenAt(0).Type, ts.PeekTokenAt(0).Pos)
+			return unexpectedTokenError(Token{Type: EQUALS}, ts.PeekTokenAt(0))
 		}
 		valTok := ts.Emit()
 		if keyTok.Literal == "id" {
@@ -373,8 +388,8 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 		}
 	}
 
-	// Check for legacy syntax: @startuml NAME, again
-	if ts.AssertType(IDENTIFIER) {
+	// Check for legacy syntax: @startuml(id=tag) NAME, again
+	if !ts.AssertType(LBRACE) {
 		diag.Name = ts.ReadRawUntilNewline()
 		return diag, nil
 	}
@@ -391,7 +406,10 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 		detach()
 		diag.Name = ts.TokensToString(buf.tokens)
 
-		if _, ok := ts.ConsumeType(COMMA); ok {
+		// We expect that there will not be a equal sign in the caption
+		// as the second token. We assume that that is a kvp
+		if ts.PeekTokenAt(2).Type != EQUALS {
+			ts.ConsumeType(COMMA)
 			// read caption
 			buf := TokenCollector{}
 			detach := ts.Attach(&buf)
@@ -401,6 +419,7 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 			}
 			detach()
 			diag.Opts["caption"] = ts.TokensToString(buf.tokens)
+			fmt.Println("Caption: ", diag.Opts["caption"])
 		}
 
 		// Handle key=value pairs or more options if needed
@@ -415,8 +434,16 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 		}
 
 		if _, ok := ts.ConsumeType(RBRACE); !ok {
-			return diag, fmt.Errorf("expected closing brace in diagram bounds")
+			return diag, unexpectedTokenError(Token{Type: RBRACE}, ts.PeekTokenAt(0))
 		}
+	}
+
+	if ts.AssertType(LPAREN) {
+		return diag, fmt.Errorf("possibly incorrect order of tools and id")
+	}
+
+	if !ts.AssertType(NEWLINE) {
+		return diag, fmt.Errorf("expected newline after diagram bounds")
 	}
 
 	return diag, nil

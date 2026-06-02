@@ -1,54 +1,69 @@
 package ast
 
-type GenericDirective struct {
+type GenericCommand struct {
 	Name string
 	Args []string
 }
 
-var _ Statement = GenericDirective{}
+var _ Statement = GenericCommand{}
 
-type IncludeDirective struct {
+type IncludeCommand struct {
 	Path string
 	Tag  string
 }
 
-var _ Statement = IncludeDirective{}
+var _ Statement = IncludeCommand{}
 
-type ScaleDirective struct {
+type ScaleCommand struct {
 	Scale  float64
 	Width  int // PlantUML allows "scale 200 width"
 	Height int
 	IsMax  bool // PlantUML also allows "scale max 200 width"
 }
 
-var _ Statement = ScaleDirective{}
+var _ Statement = ScaleCommand{}
 
-type VisibilityDirectiveKind int
+type VisibilityCommandKind int
 
 const (
-	Unknown VisibilityDirectiveKind = iota
+	Unknown VisibilityCommandKind = iota
 	Hide
 	Show
 	Remove
 	Restore
 )
 
-type VisibilityDirective struct {
-	Kind   VisibilityDirectiveKind // Hide, Show, Remove, Restore
-	Target string                  // "empty members", "class Name", "circle", etc.
+type VisibilityCommand struct {
+	Kind   VisibilityCommandKind // Hide, Show, Remove, Restore
+	Target string                // "empty members", "class Name", "circle", etc.
 }
 
-var _ Statement = VisibilityDirective{}
+var _ Statement = VisibilityCommand{}
 
-type SetDirective struct {
+type SetCommand struct {
 	Key   string // e.g. separator
-	Value string // e.g. ::
+	Value string // e.g. .
 }
 
-var _ Statement = SetDirective{}
+var _ Statement = SetCommand{}
 
-func (d GenericDirective) StatementNode() any    { return d }
-func (d IncludeDirective) StatementNode() any    { return d }
-func (d ScaleDirective) StatementNode() any      { return d }
-func (d VisibilityDirective) StatementNode() any { return d }
-func (d SetDirective) StatementNode() any        { return d }
+type DirectionCommandKind int
+
+const (
+	UnknownDirection DirectionCommandKind = iota
+	LeftToRightDirection
+	TopToBottomDirection
+)
+
+type DirectionCommand struct {
+	Direction DirectionCommandKind
+}
+
+var _ Statement = DirectionCommand{}
+
+func (d GenericCommand) StatementNode() any    { return d }
+func (d IncludeCommand) StatementNode() any    { return d }
+func (d ScaleCommand) StatementNode() any      { return d }
+func (d VisibilityCommand) StatementNode() any { return d }
+func (d SetCommand) StatementNode() any        { return d }
+func (d DirectionCommand) StatementNode() any  { return d }
