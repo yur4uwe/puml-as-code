@@ -4,9 +4,9 @@ This document contains the list of quirks that parser has due to the limitations
 
 **Note:** The word `space` that appears i this document refers to `0x20` ascii character.
 
-## List
+# List
 
-1. Uml diagrams bounds quirks
+## Uml diagrams bounds quirks
 - parser expects this structure of the start marker:
 1. `@` symbol
 2. `start` keyword
@@ -49,3 +49,9 @@ To sum up these rules:
 
 Other related quirks:
 - Caption cannot contain equal sign after a word as it will be considered as a key=value pair and parsed accordingly
+
+## Skinparams quirks
+- Parser expects any capitalization form of the target, param, and stereotype as:
+    - target is .ToLower()'ed and so is the param
+    - stereotype is simply read as it is
+- Though language spec disallows a space param and stereotype, parser allows it

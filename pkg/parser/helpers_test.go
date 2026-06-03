@@ -153,3 +153,101 @@ func TestParseDiagDirection(t *testing.T) {
 		})
 	}
 }
+
+func TestParseScale(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected ast.ScaleCommand
+	}{
+		{
+			name:  "scale factor",
+			input: "1.5",
+			expected: ast.ScaleCommand{
+				Scale: 1.5,
+			},
+		},
+		{
+			name:  "scale width",
+			input: "200 width",
+			expected: ast.ScaleCommand{
+				Width: 200,
+			},
+		},
+		{
+			name:  "scale height",
+			input: "300 height",
+			expected: ast.ScaleCommand{
+				Height: 300,
+			},
+		},
+		{
+			name:  "scale max width",
+			input: "max 1024 width",
+			expected: ast.ScaleCommand{
+				IsMax: true,
+				Width: 1024,
+			},
+		},
+		{
+			name:  "scale asterisk",
+			input: "200*300",
+			expected: ast.ScaleCommand{
+				Width:  200,
+				Height: 300,
+			},
+		},
+		{
+			name:  "scale asterisk spaces",
+			input: "200 * 300",
+			expected: ast.ScaleCommand{
+				Width:  200,
+				Height: 300,
+			},
+		},
+		{
+			name:  "scale x",
+			input: "200x300",
+			expected: ast.ScaleCommand{
+				Width:  200,
+				Height: 300,
+			},
+		},
+		{
+			name:  "scale max 200x300",
+			input: "max 200x300",
+			expected: ast.ScaleCommand{
+				IsMax:  true,
+				Width:  200,
+				Height: 300,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Parser{
+				stream: tokenizer.NewTokenStream(tt.input),
+				ast:    &ast.Diagram{},
+			}
+			err := p.parseScale()
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			if len(p.ast.Statements) != 1 {
+				t.Fatalf("expected 1 statement, got %d", len(p.ast.Statements))
+			}
+
+			cmd, ok := p.ast.Statements[0].(ast.ScaleCommand)
+			if !ok {
+				t.Fatalf("expected ScaleCommand, got %T", p.ast.Statements[0])
+			}
+
+			if cmd != tt.expected {
+				t.Errorf("expected %+v, got %+v", tt.expected, cmd)
+			}
+		})
+	}
+}
+

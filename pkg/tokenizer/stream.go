@@ -14,20 +14,6 @@ var possibleBounds = []string{
 	"def",
 }
 
-type DiagramBound struct {
-	IsStart bool
-	Type    string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
-	ID      string // for identifying the diagram in files there there are more than one
-	Name    string // in essence file name for the rendered diagram
-	Opts    map[string]string
-}
-
-var _ ast.Statement = DiagramBound{}
-
-func (d DiagramBound) StatementNode() any {
-	return d
-}
-
 type UnexpectedTokenError struct {
 	Expected Token
 	Found    Token
@@ -67,13 +53,23 @@ func NewTokenStream(input string) *TokenStream {
 	}
 }
 
-func (ts *TokenStream) assertSeq(seq []Token) bool {
+func (ts *TokenStream) AssertSeq(seq []Token) bool {
 	for i, t := range seq {
 		next := ts.PeekTokenAt(i)
 		if next.Type != t.Type {
 			return false
 		}
 		if t.Literal != "" && next.Literal != t.Literal {
+			return false
+		}
+	}
+	return true
+}
+
+func (ts *TokenStream) AssertSeqTypes(seq ...TokenType) bool {
+	for i, t := range seq {
+		next := ts.PeekTokenAt(i)
+		if next.Type != t {
 			return false
 		}
 	}
@@ -178,14 +174,28 @@ func (ts *TokenStream) AssertAnyType(tokens ...TokenType) bool {
 	return slices.ContainsFunc(tokens, ts.AssertType)
 }
 
-func (ts *TokenStream) Consume(token Token) (Token, bool) {
+func (ts *TokenStream) TryConsume(token Token) (Token, bool) {
 	if ts.Assert(token) {
 		return ts.Emit(), true
 	}
 	return Token{}, false
 }
 
-func (ts *TokenStream) ConsumeType(token TokenType) (Token, bool) {
+func (ts *TokenStream) MustConsume(token Token) Token {
+	if !ts.Assert(token) {
+		panic(fmt.Sprintf("expected %s, got %s", token.Type, ts.PeekTokenAt(0).Type))
+	}
+	return ts.Emit()
+}
+
+func (ts *TokenStream) MustConsumeType(token TokenType) Token {
+	if !ts.AssertType(token) {
+		panic(fmt.Sprintf("expected %s, got %s", token, ts.PeekTokenAt(0).Type))
+	}
+	return ts.Emit()
+}
+
+func (ts *TokenStream) TryConsumeType(token TokenType) (Token, bool) {
 	if ts.AssertType(token) {
 		return ts.Emit(), true
 	}
@@ -209,7 +219,7 @@ func (ts *TokenStream) ConsumeUntilType(token ...TokenType) Token {
 // readBetween handles the common pattern of [start markers]...[end markers]
 func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, error) {
 	// 1. Check if start markers match
-	if !ts.assertSeq(start) {
+	if !ts.AssertSeq(start) {
 		return "", fmt.Errorf("failed to assert start marker")
 	}
 
@@ -228,7 +238,7 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 			return "", fmt.Errorf("unexpected EOF or newline")
 		}
 
-		if ts.assertSeq(end) {
+		if ts.AssertSeq(end) {
 			break
 		}
 
@@ -284,7 +294,7 @@ func (ts *TokenStream) TryReadClassSeparator() (string, error) {
 
 	// separator can have no description
 	// Here we find out if its true
-	if ts.assertSeq(append(start, Token{Type: NEWLINE})) {
+	if ts.AssertSeq(append(start, Token{Type: NEWLINE})) {
 		return "", nil
 	}
 
@@ -319,22 +329,22 @@ func (ts *TokenStream) TryReadDiagramBounds() (string, error) {
 	return ts.Emit().Literal, nil
 }
 
-func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
-	if _, consumed := ts.ConsumeType(AT); !consumed {
-		return DiagramBound{}, unexpectedTokenError(Token{Type: AT}, ts.PeekTokenAt(0))
+func (ts *TokenStream) ReadDiagramBounds() (ast.DiagramBound, error) {
+	if _, consumed := ts.TryConsumeType(AT); !consumed {
+		return ast.DiagramBound{}, unexpectedTokenError(Token{Type: AT}, ts.PeekTokenAt(0))
 	}
 
-	tok, ok := ts.ConsumeType(IDENTIFIER)
+	tok, ok := ts.TryConsumeType(IDENTIFIER)
 	if !ok {
-		return DiagramBound{}, unexpectedTokenError(Token{Type: IDENTIFIER}, ts.PeekTokenAt(0))
+		return ast.DiagramBound{}, unexpectedTokenError(Token{Type: IDENTIFIER}, ts.PeekTokenAt(0))
 	}
 
 	if !strings.HasPrefix(tok.Literal, "start") &&
 		!strings.HasPrefix(tok.Literal, "end") {
-		return DiagramBound{}, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start' or 'end'")
+		return ast.DiagramBound{}, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start' or 'end'")
 	}
 
-	diag := DiagramBound{
+	diag := ast.DiagramBound{
 		Opts: make(map[string]string),
 	}
 
@@ -355,11 +365,11 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 	}
 
 	readKvp := func() error {
-		keyTok, ok := ts.ConsumeType(IDENTIFIER)
+		keyTok, ok := ts.TryConsumeType(IDENTIFIER)
 		if !ok {
 			return fmt.Errorf("expected a key")
 		}
-		if _, ok := ts.ConsumeType(EQUALS); !ok {
+		if _, ok := ts.TryConsumeType(EQUALS); !ok {
 			return unexpectedTokenError(Token{Type: EQUALS}, ts.PeekTokenAt(0))
 		}
 		valTok := ts.Emit()
@@ -374,16 +384,16 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 	}
 
 	// First tag (id=TAG, key=value, ...)
-	if _, consumed := ts.ConsumeType(LPAREN); consumed {
+	if _, consumed := ts.TryConsumeType(LPAREN); consumed {
 		for !ts.AssertType(RPAREN) && !ts.AssertType(EOF) && !ts.AssertType(NEWLINE) {
 			if err := readKvp(); err != nil {
 				return diag, err
 			}
-			if _, ok := ts.ConsumeType(COMMA); !ok {
+			if _, ok := ts.TryConsumeType(COMMA); !ok {
 				break
 			}
 		}
-		if _, ok := ts.ConsumeType(RPAREN); !ok {
+		if _, ok := ts.TryConsumeType(RPAREN); !ok {
 			return diag, fmt.Errorf("expected closing parenthesis in diagram bounds")
 		}
 	}
@@ -395,7 +405,7 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 	}
 
 	// Then options {filename, caption, key=value, ...}
-	if _, consumed := ts.ConsumeType(LBRACE); consumed {
+	if _, consumed := ts.TryConsumeType(LBRACE); consumed {
 		// read filename
 		buf := TokenCollector{}
 		detach := ts.Attach(&buf)
@@ -409,7 +419,7 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 		// We expect that there will not be a equal sign in the caption
 		// as the second token. We assume that that is a kvp
 		if ts.PeekTokenAt(2).Type != EQUALS {
-			ts.ConsumeType(COMMA)
+			ts.TryConsumeType(COMMA)
 			// read caption
 			buf := TokenCollector{}
 			detach := ts.Attach(&buf)
@@ -427,13 +437,13 @@ func (ts *TokenStream) ReadDiagramBounds() (DiagramBound, error) {
 			if !ts.AssertType(COMMA) {
 				break
 			}
-			ts.ConsumeType(COMMA)
+			ts.TryConsumeType(COMMA)
 			if err := readKvp(); err != nil {
 				return diag, err
 			}
 		}
 
-		if _, ok := ts.ConsumeType(RBRACE); !ok {
+		if _, ok := ts.TryConsumeType(RBRACE); !ok {
 			return diag, unexpectedTokenError(Token{Type: RBRACE}, ts.PeekTokenAt(0))
 		}
 	}
@@ -474,12 +484,12 @@ func (ts *TokenStream) ReadMultilineComment() (string, error) {
 }
 
 // ReadBlock assumes that end tokens are first in the line
-// So actual end markers are implicitly append([]TokenType{NEWLINE}, ...endMark)
+// So actual end markers are implicitly append([]Token{NEWLINE}, ...endMark)
 func (ts *TokenStream) ReadBlock(endMark ...Token) (string, error) {
 	tok := ts.EmitRaw()
 	startPos := tok.Pos
 	for tok.Type != EOF {
-		if tok.Type == NEWLINE && ts.assertSeq(endMark) {
+		if tok.Type == NEWLINE && ts.AssertSeq(endMark) {
 			endPos := tok.Pos
 			for range endMark {
 				ts.EmitRaw() // consume end markers

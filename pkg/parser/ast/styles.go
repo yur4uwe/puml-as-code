@@ -28,6 +28,26 @@ var knownSkinparamTargets = []string{
 	"stereotype",
 }
 
+var knownSkinparamParams = []string{
+	"backgroundColor",
+	"borderColor",
+	"color",
+	"defaultTextColor",
+	"footerBackgroundColor",
+	"footerBorderColor",
+	"footerFontColor",
+	"footerTextColor",
+	"headerBackgroundColor",
+	"headerBorderColor",
+	"headerFontColor",
+	"headerTextColor",
+	"shadowing",
+	"titleBackgroundColor",
+	"titleBorderColor",
+	"titleFontColor",
+	"titleTextColor",
+}
+
 func init() {
 	slices.SortFunc(knownSkinparamTargets, func(a, b string) int {
 		return len(b) - len(a)
@@ -36,8 +56,15 @@ func init() {
 
 type Skinparam map[string]string
 
-func (s Skinparam) Set(target, param, stereotype, value string) {
+func (s Skinparam) Set(target, param, stereotype, value string) error {
+	if slices.Contains(knownSkinparamTargets, target) {
+		return fmt.Errorf("unknown skinparam target: %s", target)
+	}
+	if slices.Contains(knownSkinparamParams, param) {
+		return fmt.Errorf("unknown skinparam param: %s", param)
+	}
 	s[fmt.Sprintf("%s.%s.%s", strings.ToLower(target), strings.ToLower(param), strings.ToLower(stereotype))] = value
+	return nil
 }
 
 func (s Skinparam) Get(target, param, stereotype string) string {
@@ -61,7 +88,7 @@ func (s Skinparam) Get(target, param, stereotype string) string {
 	return s[param]
 }
 
-func (s Skinparam) SetAndDecode(param, stereotype, value string) {
+func (s Skinparam) SetAndDecode(param, stereotype, value string) error {
 	knownTarget := ""
 	paramSlice := []rune(strings.ToLower(param))
 	for _, t := range knownSkinparamTargets {
@@ -75,8 +102,8 @@ func (s Skinparam) SetAndDecode(param, stereotype, value string) {
 		break
 	}
 	if knownTarget == "" {
-		s.Set("", param, stereotype, value)
+		return s.Set("", param, stereotype, value)
 	} else {
-		s.Set(knownTarget, param[len(knownTarget):], strings.ToLower(stereotype), value)
+		return s.Set(knownTarget, param[len(knownTarget):], strings.ToLower(stereotype), value)
 	}
 }

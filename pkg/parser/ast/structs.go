@@ -62,3 +62,17 @@ type Diagram struct {
 	Title      string
 	Statements []Statement
 }
+
+type DiagramBound struct {
+	IsStart bool
+	Type    string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
+	ID      string // for identifying the diagram in files there there are more than one
+	Name    string // in essence file name for the rendered diagram
+	Opts    map[string]string
+}
+
+var _ Statement = DiagramBound{}
+
+func (d DiagramBound) StatementNode() any {
+	return d
+}

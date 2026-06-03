@@ -30,7 +30,7 @@ func TestStreamPeekEmitConsume(t *testing.T) {
 	require.False(t, ts.AssertType(LBRACE))
 
 	// Consume
-	tok, ok := ts.ConsumeType(CLASS)
+	tok, ok := ts.TryConsumeType(CLASS)
 	require.True(t, ok)
 	require.Equal(t, "class", tok.Literal)
 
@@ -58,18 +58,18 @@ func TestStreamEmitRaw(t *testing.T) {
 func TestStreamAssertSeq(t *testing.T) {
 	ts := NewTokenStream("class Foo {")
 
-	require.True(t, ts.assertSeq([]Token{
+	require.True(t, ts.AssertSeq([]Token{
 		{Type: CLASS, Literal: "class"},
 		{Type: IDENTIFIER, Literal: "Foo"},
 		{Type: LBRACE},
 	}))
 
-	require.False(t, ts.assertSeq([]Token{
+	require.False(t, ts.AssertSeq([]Token{
 		{Type: CLASS, Literal: "class"},
 		{Type: IDENTIFIER, Literal: "Bar"},
 	}))
 
-	require.False(t, ts.assertSeq([]Token{
+	require.False(t, ts.AssertSeq([]Token{
 		{Type: CLASS, Literal: "class"},
 		{Type: IDENTIFIER, Literal: "Foo"},
 		{Type: LBRACE},
@@ -125,7 +125,7 @@ func TestStreamTryReadClassSeparator(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "separator", sep)
 
-	ts.ConsumeType(NEWLINE)
+	ts.TryConsumeType(NEWLINE)
 
 	sep, err = ts.TryReadClassSeparator()
 	require.NoError(t, err)
@@ -278,7 +278,7 @@ func TestReadDiagramBounds(t *testing.T) {
 				require.Equal(t, tc.expectedID, b.ID)
 			}
 
-			ts.ConsumeType(NEWLINE)
+			ts.TryConsumeType(NEWLINE)
 			b, err = ts.ReadDiagramBounds()
 			require.NoError(t, err)
 			require.False(t, b.IsStart)

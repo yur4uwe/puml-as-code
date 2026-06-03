@@ -87,6 +87,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			err = p.parseTitle()
 		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
 			err = p.parseVisibilityCommand(tok)
+		case tokenizer.SCALE:
+			err = p.parseScale()
 		case tokenizer.LANGLE, tokenizer.SKINPARAM:
 			err = p.parseStyles(tok)
 		case tokenizer.EXCLAMATION:
