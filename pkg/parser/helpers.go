@@ -166,6 +166,14 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) error {
 	return nil
 }
 
+func toInteger(f float64) (int, bool) {
+	i := int(f)
+	if float64(i) == f {
+		return i, true
+	}
+	return 0, false
+}
+
 func (p *Parser) parseScale() error {
 	cmd := ast.ScaleCommand{}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
@@ -174,7 +182,7 @@ func (p *Parser) parseScale() error {
 
 	tok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 	if !ok {
-		// Try to handle 200x300 which might be tokenized as an IDENTIFIER
+		// Try to handle 200x300 which is tokenized as an IDENTIFIER
 		if tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER); !ok {
 			return NewParserError("Expected number after scale", p.stream.PeekTokenAt(0).Pos)
 		}
@@ -199,20 +207,42 @@ func (p *Parser) parseScale() error {
 		return NewParserError(fmt.Sprintf("Invalid number: %s", err.Error()), tok.Pos)
 	}
 
-	if p.stream.AssertType(tokenizer.IDENTIFIER) {
-		next := p.stream.PeekTokenAt(0)
-		switch next.Literal {
+	tok = p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.IDENTIFIER:
+		switch tok.Literal {
 		case "width":
-			p.stream.Emit()
-			cmd.Width = int(val)
+			cmd.Width, ok = toInteger(val)
+			if !ok {
+				return NewParserError("Expected width to be an integer", tok.Pos)
+			}
 		case "height":
-			p.stream.Emit()
-			cmd.Height = int(val)
+			cmd.Height, ok = toInteger(val)
+			if !ok {
+				return NewParserError("Expected height to be an integer", tok.Pos)
+			}
+		case "x":
+			cmd.Width, ok = toInteger(val)
+			if !ok {
+				return NewParserError("Expected width to be an integer", tok.Pos)
+			}
+			heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+			if !ok {
+				return NewParserError("Expected height after 'x'", p.stream.PeekTokenAt(0).Pos)
+			}
+			h, err := strconv.Atoi(heightTok.Literal)
+			if err != nil {
+				return NewParserError("Invalid height", heightTok.Pos)
+			}
+			cmd.Height = h
 		default:
-			cmd.Scale = val
+			return NewParserError(fmt.Sprintf("Unexpected identifier: %s", tok.Literal), tok.Pos)
 		}
-	} else if _, ok := p.stream.TryConsumeType(tokenizer.ASTERISK); ok {
-		cmd.Width = int(val)
+	case tokenizer.ASTERISK:
+		cmd.Width, ok = toInteger(val)
+		if !ok {
+			return NewParserError("Expected width to be an integer", tok.Pos)
+		}
 		heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 		if !ok {
 			return NewParserError("Expected height after '*'", p.stream.PeekTokenAt(0).Pos)
@@ -222,8 +252,28 @@ func (p *Parser) parseScale() error {
 			return NewParserError("Invalid height", heightTok.Pos)
 		}
 		cmd.Height = h
-	} else {
+	case tokenizer.SLASH:
+		numer, ok := toInteger(val)
+		if !ok {
+			return NewParserError("Expected numerator to be an integer", tok.Pos)
+		}
+		denomTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+		if !ok {
+			return NewParserError("Expected denominator after '/'", p.stream.PeekTokenAt(0).Pos)
+		}
+		denom, err := strconv.Atoi(denomTok.Literal)
+		if err != nil {
+			return NewParserError("Invalid denominator", denomTok.Pos)
+		}
+		if denom == 0 {
+			return NewParserError("Denominator cannot be zero", denomTok.Pos)
+		}
+		cmd.Scale = float64(numer) / float64(denom)
+	case tokenizer.NEWLINE, tokenizer.EOF:
+		// EOF handling is a special case for a test case
 		cmd.Scale = val
+	default:
+		return NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok.Pos)
 	}
 
 	p.ast.Statements = append(p.ast.Statements, cmd)

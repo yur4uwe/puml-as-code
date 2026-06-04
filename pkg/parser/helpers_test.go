@@ -4,6 +4,8 @@ import (
 	"testing"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestParseVisibilityCommand(t *testing.T) {
@@ -54,25 +56,13 @@ func TestParseVisibilityCommand(t *testing.T) {
 				Type: tt.tokenType,
 			}
 			err := p.parseVisibilityCommand(tok)
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			if len(p.ast.Statements) != 1 {
-				t.Fatalf("expected 1 statement, got %d", len(p.ast.Statements))
-			}
+			require.NoError(t, err)
+			require.Len(t, p.ast.Statements, 1, "expected 1 statement, got %d", len(p.ast.Statements))
 
 			cmd, ok := p.ast.Statements[0].(ast.VisibilityCommand)
-			if !ok {
-				t.Fatalf("expected VisibilityCommand, got %T", p.ast.Statements[0])
-			}
-
-			if cmd.Kind != tt.expectedKind {
-				t.Errorf("expected kind %v, got %v", tt.expectedKind, cmd.Kind)
-			}
-			if cmd.Target != tt.expectedTarget {
-				t.Errorf("expected target %q, got %q", tt.expectedTarget, cmd.Target)
-			}
+			require.True(t, ok, "expected VisibilityCommand, got %T", p.ast.Statements[0])
+			require.Equal(t, tt.expectedKind, cmd.Kind, "expected kind %v, got %v", tt.expectedKind, cmd.Kind)
+			require.Equal(t, tt.expectedTarget, cmd.Target, "expected target %q, got %q", tt.expectedTarget, cmd.Target)
 		})
 	}
 }
@@ -156,15 +146,23 @@ func TestParseDiagDirection(t *testing.T) {
 
 func TestParseScale(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected ast.ScaleCommand
+		name        string
+		input       string
+		expected    ast.ScaleCommand
+		expectError bool
 	}{
 		{
 			name:  "scale factor",
 			input: "1.5",
 			expected: ast.ScaleCommand{
 				Scale: 1.5,
+			},
+		},
+		{
+			name:  "scale factor with slash",
+			input: "2/3",
+			expected: ast.ScaleCommand{
+				Scale: 2.0 / 3.0,
 			},
 		},
 		{
@@ -222,6 +220,30 @@ func TestParseScale(t *testing.T) {
 				Height: 300,
 			},
 		},
+		{
+			name:  "scale 200 x 300",
+			input: "200 x 300",
+			expected: ast.ScaleCommand{
+				Width:  200,
+				Height: 300,
+			},
+		},
+		// Incorrect input to test error handling
+		{
+			name:        "height and width must be positive integers",
+			input:       "0.5 height",
+			expectError: true,
+		},
+		{
+			name:        "malformed 'x' scale",
+			input:       "200x",
+			expectError: true,
+		},
+		{
+			name:        "malformed '/' scale",
+			input:       "2/0",
+			expectError: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -231,23 +253,74 @@ func TestParseScale(t *testing.T) {
 				ast:    &ast.Diagram{},
 			}
 			err := p.parseScale()
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
+			if tt.expectError {
+				require.Error(t, err)
+				return
+			} else {
+				require.NoError(t, err)
 			}
 
-			if len(p.ast.Statements) != 1 {
-				t.Fatalf("expected 1 statement, got %d", len(p.ast.Statements))
-			}
+			require.Len(t, p.ast.Statements, 1, "expected 1 statement, got %d", len(p.ast.Statements))
 
 			cmd, ok := p.ast.Statements[0].(ast.ScaleCommand)
-			if !ok {
-				t.Fatalf("expected ScaleCommand, got %T", p.ast.Statements[0])
-			}
-
-			if cmd != tt.expected {
-				t.Errorf("expected %+v, got %+v", tt.expected, cmd)
-			}
+			require.True(t, ok, "expected ScaleCommand, got %T", p.ast.Statements[0])
+			require.Equal(t, tt.expected, cmd)
 		})
 	}
 }
 
+func TestParseCSSLikeStyles(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		expected     string
+		expectsError bool
+	}{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Parser{
+				stream: tokenizer.NewTokenStream(tt.input),
+				ast:    &ast.Diagram{},
+				styles: make([]string, 0),
+			}
+			err := p.parseStyles(tokenizer.Token{})
+			if tt.expectsError {
+				require.Error(t, err)
+				return
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, tt.expected, p.styles[0])
+		})
+	}
+}
+
+func TestParseSkinparamStyles(t *testing.T) {
+	tests := []struct {
+		name         string
+		input        string
+		expected     ast.Skinparam
+		expectsError bool
+	}{}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := &Parser{
+				stream: tokenizer.NewTokenStream(tt.input),
+				ast:    &ast.Diagram{},
+				styles: make([]string, 0),
+			}
+			err := p.parseStyles(tokenizer.Token{})
+			if tt.expectsError {
+				require.Error(t, err)
+				return
+			} else {
+				require.NoError(t, err)
+			}
+
+			require.Equal(t, tt.expected, p.skinparam)
+		})
+	}
+}
