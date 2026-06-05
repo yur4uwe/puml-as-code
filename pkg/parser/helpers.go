@@ -46,66 +46,90 @@ func (p *Parser) parseTitle() error {
 	return nil
 }
 
-func (p *Parser) parseSkinparamBlock(tok tokenizer.Token) error {
-	// This function should be passed the keyword that names the
-	// target of the skinparam block
-	target := tok.Literal
+func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 	// Next should be an opening brace
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
-		return NewParserError("Expected opening brace after skinparam keyword", tok.Pos)
+		return NewParserError("Expected opening brace after skinparam target", p.stream.PeekTokenAt(0).Pos)
 	}
-	// We parse lines until we encounter a closing brace
+
 	for {
-		tok := p.stream.Emit()
-		if tok.Type != tokenizer.NEWLINE {
-			return NewParserError("Expected to have only one skinparam style per line", tok.Pos)
+		// Consume leading newlines
+		for {
+			if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+				break
+			}
 		}
-		tok = p.stream.Emit()
+
+		tok := p.stream.Emit()
 		if tok.Type == tokenizer.RBRACE {
 			break
 		}
-		styleName := tok.Literal
-		stereoName, _ := p.stream.TryReadStereotype() // We can igrnore error as the stereotype is optional
+		if tok.Type == tokenizer.EOF {
+			return NewParserError("Unexpected EOF in skinparam block", tok.Pos)
+		}
 
-		// Here we can encounter hex for colors, identifier for colors, or even values for some styles
-		value := p.stream.ReadUntilNewline()
-		if err := p.skinparam.Set(target, styleName, stereoName, value); err != nil {
-			return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
+		// Read target or param
+		name := tok.Literal
+		stereo, _ := p.stream.TryReadStereotype()
+
+		if p.stream.AssertType(tokenizer.LBRACE) {
+			// Recursive block
+			newKey := prefixKey
+			if newKey.SubTarget == "" {
+				newKey.SubTarget = name
+			} else {
+				return NewParserError("Skinparam nesting too deep", tok.Pos)
+			}
+			newKey.Stereotype = stereo
+			if err := p.parseSkinparamBlock(newKey); err != nil {
+				return err
+			}
+		} else {
+			// Inline value
+			value := p.stream.ReadUntilNewline()
+			newKey := prefixKey
+			if stereo != "" {
+				newKey.Stereotype = stereo
+			}
+			if err := p.skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
+				return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
+			}
 		}
 	}
 	return nil
 }
 
 func (p *Parser) parseStyles(tok tokenizer.Token) error {
-	if tok.Type != tokenizer.LANGLE {
+	if tok.Type != tokenizer.SKINPARAM {
 		// <style> token sequence for now simply read it as a string
 		// and ignore it
-		// I probebly should actually assert internal value of the IDENTIFIER token
-		seq := []tokenizer.Token{unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}
-		styles, err := p.stream.ReadBlock(seq...)
+		styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
 		if err != nil {
 			return NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
 		}
 		p.styles = append(p.styles, styles)
 		return nil
 	}
-	// Otherwise its a skinparam keyword
-	if tok.Type != tokenizer.SKINPARAM {
-		return NewParserError("Expected skinparam keyword", tok.Pos)
+
+	// Consume skinparam keyword (already done if tok.Type == SKINPARAM)
+
+	// Peek paramTok to see if it's a target or a block
+	paramTok := p.stream.Emit()
+	if paramTok.Type == tokenizer.NEWLINE || paramTok.Type == tokenizer.EOF {
+		return NewParserError("Expected target or parameter after skinparam", paramTok.Pos)
 	}
 
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if !ok {
-		// We must have encountered a keyword and can assume skinparam block like:
-		// skinparam class {}
-		return p.parseSkinparamBlock(tok)
+	name := paramTok.Literal
+	stereo, _ := p.stream.TryReadStereotype()
+
+	if p.stream.AssertType(tokenizer.LBRACE) {
+		// skinparam target { ... }
+		return p.parseSkinparamBlock(ast.SkinparamKey{MainTarget: name, Stereotype: stereo})
 	}
 
-	target := tok.Literal // of the form xxxParamX
-	// I dont really know whether inline skinparam can have a stereotype so i won't handle it
+	// skinparam combinedName value
 	value := p.stream.ReadUntilNewline()
-
-	return p.skinparam.SetAndDecode(target, "", value)
+	return p.skinparam.SetAndDecode(name, stereo, value)
 }
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) error {
