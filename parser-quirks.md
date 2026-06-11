@@ -51,7 +51,6 @@ Other related quirks:
 - Caption cannot contain equal sign after a word as it will be considered as a key=value pair and parsed accordingly
 
 ## Skinparams quirks
-- Parser expects any capitalization form of the target, param, and stereotype as:
-    - target is .ToLower()'ed and so is the param
-    - stereotype is simply read as it is
-- Though language spec disallows a space param and stereotype, parser allows it
+- Parser expects any capitalization form of the target, param, and stereotype, just like the spec
+- Though language spec disallows a space between param and stereotype, parser allows it
+- Parser allows line comments on the same line as a style definition, which are ignored by the spec

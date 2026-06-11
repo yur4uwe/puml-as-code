@@ -126,10 +126,10 @@ var (
 	bgBorder  = []string{"backgroundcolor", "bordercolor"}
 
 	// Composite Groups
-	stdNode       = append(fontProps, bgBorder...)
-	stdStereoNode = append(stdNode, "stereotype")
-	boxNode       = append(stdNode, "borderthickness")
-	stdBoxNode    = append(boxNode, "stereotype")
+	stdNode       = slices.Concat(fontProps, bgBorder)
+	stdStereoNode = slices.Concat(stdNode, []string{"stereotype"})
+	boxNode       = slices.Concat(stdNode, []string{"borderthickness"})
+	stdBoxNode    = slices.Concat(boxNode, []string{"stereotype"})
 
 	paramRegistry = map[string]SkinparamValueType{
 		"backgroundcolor":    SkinparamColor,
@@ -165,53 +165,53 @@ var (
 
 	subTargetRegistry = map[string][]string{
 		"stereotype":       fontProps,
-		"attribute":        append(fontProps, "iconsize"),
+		"attribute":        slices.Concat(fontProps, []string{"iconsize"}),
 		"header":           {"backgroundcolor"},
 		"footer":           fontProps,
 		"title":            fontProps,
-		"diamond":          append(fontProps, bgBorder...),
+		"diamond":          slices.Concat(fontProps, bgBorder),
 		"end":              {"color"},
 		"start":            {"color"},
 		"arrow":            {"thickness"},
 		"lollipop":         {"color"},
 		"iemandatory":      {"color"},
-		"private":          append(bgBorder, "color"),
-		"public":           append(bgBorder, "color"),
-		"protected":        append(bgBorder, "color"),
-		"package":          append(bgBorder, "color"),
+		"private":          slices.Concat(bgBorder, []string{"color"}),
+		"public":           slices.Concat(bgBorder, []string{"color"}),
+		"protected":        slices.Concat(bgBorder, []string{"color"}),
+		"package":          slices.Concat(bgBorder, []string{"color"}),
 		"box":              stdNode,
 		"delay":            fontProps,
 		"divider":          boxNode,
 		"group":            boxNode,
 		"groupheader":      fontProps,
-		"lifeline":         append(bgBorder, "borderthickness"),
-		"message":          {"allignment", "textalignment"},
+		"lifeline":         slices.Concat(bgBorder, []string{"borderthickness"}),
+		"message":          {"alignment", "textalignment"},
 		"newpageseparator": {"color"},
-		"reference":        append(boxNode, "alignment"),
+		"reference":        slices.Concat(boxNode, []string{"alignment"}),
 		"referenceheader":  {"backgroundcolor"},
 		"participant":      {"borderthickness"},
 	}
 
 	mainTargetRegistry = map[string][]string{
-		"activity":         append(stdNode, "barcolor", "borderthickness", "diamond", "end", "start"),
+		"activity":         slices.Concat(stdNode, []string{"barcolor", "borderthickness", "diamond", "end", "start"}),
 		"actor":            stdStereoNode,
 		"agent":            stdBoxNode,
-		"arrow":            append(fontProps, "color", "lollipop", "messagealignment", "thickness"),
+		"arrow":            slices.Concat(fontProps, []string{"color", "lollipop", "messagealignment", "thickness"}),
 		"artifact":         stdStereoNode,
 		"biddable":         bgBorder,
 		"boundary":         stdStereoNode,
 		"box":              {"padding"},
 		"caption":          fontProps,
 		"card":             stdBoxNode,
-		"circledcharacter": append(fontProps, "radius"),
-		"class":            append(stdBoxNode, "attribute", "header"),
+		"circledcharacter": slices.Concat(fontProps, []string{"radius"}),
+		"class":            slices.Concat(stdBoxNode, []string{"attribute", "header"}),
 		"cloud":            stdStereoNode,
 		"collections":      bgBorder,
-		"component":        append(stdBoxNode, "style"),
+		"component":        slices.Concat(stdBoxNode, []string{"style"}),
 		"control":          stdStereoNode,
 		"database":         stdStereoNode,
-		"default":          append(fontProps, "monospacedfontname", "textalignment"),
-		"designeddomain":   append(fontProps, "borderthickness", "stereotype"),
+		"default":          slices.Concat(fontProps, []string{"monospacedfontname", "textalignment"}),
+		"designeddomain":   slices.Concat(fontProps, []string{"borderthickness", "stereotype"}),
 		"diagram":          {"bordercolor", "borderthickness"},
 		"domain":           stdBoxNode,
 		"entity":           stdStereoNode,
@@ -226,12 +226,12 @@ var (
 		"legend":           boxNode,
 		"lexical":          bgBorder,
 		"machine":          stdBoxNode,
-		"node":             append(stdStereoNode, "sep"),
-		"note":             append(bgBorder, "borderthickness", "textalignment", "shadowing"),
-		"object":           append(stdBoxNode, "attribute"),
-		"package":          append(stdBoxNode, "style", "titlealignment"),
-		"page":             append(fontProps, "bordercolor", "margin", "externalcolor"),
-		"participant":      append(stdStereoNode, "padding"),
+		"node":             slices.Concat(stdStereoNode, []string{"sep"}),
+		"note":             slices.Concat(bgBorder, []string{"borderthickness", "textalignment", "shadowing"}),
+		"object":           slices.Concat(stdBoxNode, []string{"attribute"}),
+		"package":          slices.Concat(stdBoxNode, []string{"style", "titlealignment"}),
+		"page":             slices.Concat(fontProps, []string{"bordercolor", "margin", "externalcolor"}),
+		"participant":      slices.Concat(stdStereoNode, []string{"padding"}),
 		"partition":        boxNode,
 		"queue":            stdStereoNode,
 		"rank":             {"sep"},
@@ -239,12 +239,12 @@ var (
 		"requirement":      stdBoxNode,
 		"sequence":         {"actor", "arrow", "box", "divider", "group", "groupheader", "lifeline", "participant"},
 		"stack":            stdStereoNode,
-		"state":            append(stdNode, "attribute", "end", "start"),
+		"state":            slices.Concat(stdNode, []string{"attribute", "end", "start"}),
 		"stereotype":       {"a", "c", "e", "i", "n", "position"},
 		"storage":          stdStereoNode,
-		"swimlane":         append(boxNode, "stereotype", "title", "width", "wraptitlewidth"),
+		"swimlane":         slices.Concat(boxNode, []string{"stereotype", "title", "width", "wraptitlewidth"}),
 		"tab":              {"size"},
-		"title":            append(boxNode, "borderroundcorner"),
+		"title":            slices.Concat(boxNode, []string{"borderroundcorner"}),
 		"usecase":          stdBoxNode,
 		"wrap":             {"width"},
 	}
@@ -344,43 +344,40 @@ func (s Skinparam) Get(key SkinparamKey) string {
 	return ""
 }
 
-func (s Skinparam) SetAndDecode(combinedName, stereotype, value string) error {
-	return s.SetAndDecodeWithContext(SkinparamKey{Stereotype: stereotype}, combinedName, value)
-}
-
 func (s Skinparam) SetAndDecodeWithContext(context SkinparamKey, combinedName, value string) error {
 	name := strings.ToLower(combinedName)
-	key := context
 
-	// If context doesn't have a MainTarget, try to find it in combinedName
-	if key.MainTarget == "" {
+	// If context doesn't have a MainTarget, try to find it in name
+	if context.MainTarget == "" {
 		for t := range mainTargetRegistry {
-			if strings.HasPrefix(name, t) {
-				if len(t) > len(key.MainTarget) {
-					key.MainTarget = t
-				}
+			if !strings.HasPrefix(name, t) {
+				continue
 			}
+			if len(t) <= len(context.MainTarget) {
+				continue
+			}
+			context.MainTarget = t
 		}
-		if key.MainTarget != "" {
-			name = name[len(key.MainTarget):]
+		if context.MainTarget != "" {
+			name = name[len(context.MainTarget):]
 		}
 	}
 
 	// If context doesn't have a SubTarget, try to find it in name
-	if key.SubTarget == "" {
+	if context.SubTarget == "" {
 		for st := range subTargetRegistry {
 			if strings.HasPrefix(name, st) {
-				key.SubTarget = st
+				context.SubTarget = st
 				name = name[len(st):]
 				break
 			}
 		}
 	}
 
-	key.Param = name
-	if key.Param == "" && key.SubTarget == "" && key.MainTarget == "" {
+	context.Param = name
+	if context.Param == "" && context.SubTarget == "" && context.MainTarget == "" {
 		return fmt.Errorf("could not decode skinparam name: %s", combinedName)
 	}
 
-	return s.Set(key, value)
+	return s.Set(context, value)
 }

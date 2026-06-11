@@ -81,37 +81,24 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 		return ""
 	}
 
-	isRaw := false
-	for _, tok := range toks {
-		if tok.Type == COMMENT {
-			isRaw = true
-			break
-		}
-	}
-
-	start := toks[0].Pos.Offset
-	end := toks[len(toks)-1].Pos.Offset + uint(len(toks[len(toks)-1].Literal))
-	str := ts.lexer.input[start:end]
-	if isRaw {
-		return string(str)
-	}
-
 	var sb strings.Builder
-	inComment := false
-	for i, r := range str {
-		if r == '/' && i < len(str)-1 && str[i+1] == '\'' {
-			inComment = true
-			continue
-		}
-		if inComment && r == '\'' && i < len(str)-1 && str[i+1] == '/' {
-			inComment = false
-			continue
-		}
-		if inComment {
+	var prevTok *Token
+	for i := range toks {
+		tok := &toks[i]
+		if tok.Type == COMMENT {
 			continue
 		}
 
-		sb.WriteRune(r)
+		if prevTok != nil {
+			startNext := tok.Pos.Offset
+			endPrev := prevTok.Pos.Offset + uint(len(prevTok.Literal))
+			if startNext > endPrev {
+				sb.WriteString(string(ts.lexer.input[endPrev:startNext]))
+			}
+		}
+
+		sb.WriteString(tok.Literal)
+		prevTok = tok
 	}
 
 	return sb.String()
@@ -459,24 +446,63 @@ func (ts *TokenStream) ReadDiagramBounds() (ast.DiagramBound, error) {
 	return diag, nil
 }
 
-func (ts *TokenStream) readUntilNewline(emitter func() Token) string {
+func (ts *TokenStream) collectUntilNewline(emitter func() Token) []Token {
 	if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
-		return ""
+		return nil
 	}
-	tok := emitter()
-	titleStart := tok.Pos.Offset
-	for tok.Type != NEWLINE && tok.Type != EOF {
-		tok = emitter()
+	buf := []Token{}
+	for {
+		tok := emitter()
+		buf = append(buf, tok)
+		if tok.Type == NEWLINE || tok.Type == EOF {
+			break
+		}
 	}
-	return strings.TrimSpace(string(ts.lexer.input[titleStart:tok.Pos.Offset]))
+	return buf
 }
 
 func (ts *TokenStream) ReadUntilNewline() string {
-	return ts.readUntilNewline(ts.Emit)
+	toks := ts.collectUntilNewline(ts.EmitRaw)
+	if len(toks) == 0 {
+		return ""
+	}
+
+	var filtered []Token
+	for _, tok := range toks {
+		if tok.Type == COMMENT {
+			break
+		}
+		if tok.Type == NEWLINE || tok.Type == EOF {
+			continue
+		}
+		filtered = append(filtered, tok)
+	}
+
+	return strings.TrimSpace(ts.TokensToString(filtered))
 }
 
 func (ts *TokenStream) ReadRawUntilNewline() string {
-	return ts.readUntilNewline(ts.EmitRaw)
+	toks := ts.collectUntilNewline(ts.EmitRaw)
+	if len(toks) == 0 {
+		return ""
+	}
+
+	var filtered []Token
+	for _, tok := range toks {
+		if tok.Type == NEWLINE || tok.Type == EOF {
+			continue
+		}
+		filtered = append(filtered, tok)
+	}
+
+	if len(filtered) == 0 {
+		return ""
+	}
+
+	start := filtered[0].Pos.Offset
+	end := filtered[len(filtered)-1].Pos.Offset + uint(len(filtered[len(filtered)-1].Literal))
+	str := string(ts.lexer.input[start:end])
+	return strings.TrimSpace(str)
 }
 
 func (ts *TokenStream) ReadMultilineComment() (string, error) {

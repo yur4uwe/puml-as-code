@@ -324,9 +324,9 @@ func TestStreamReadBetween(t *testing.T) {
 	ts := NewTokenStream("START foo bar END")
 
 	startSeq := []Token{{Type: IDENTIFIER, Literal: "START"}}
-	endSeq := []Token{{Type: IDENTIFIER, Literal: "END"}}
+	endSeq := []Token{{Type: END_BLOCK, Literal: "END"}}
 
 	res, err := ts.readBetween(startSeq, endSeq, ts.EmitRaw)
 	require.NoError(t, err)
-	require.Equal(t, " foo bar ", res)
+	require.Equal(t, "foo bar", res)
 }

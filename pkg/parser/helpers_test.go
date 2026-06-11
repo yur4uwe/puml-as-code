@@ -17,27 +17,27 @@ func TestParseSkinparamStyles(t *testing.T) {
 	}{
 		{
 			name:  "Simple global skinparam",
-			input: "skinparam backgroundColor #Red",
+			input: "skinparam backgroundColor Red",
 			expected: ast.Skinparam{
-				"||backgroundcolor|": "#Red",
+				"..backgroundcolor.": "Red",
 			},
 		},
 		{
 			name:  "Target skinparam",
-			input: "skinparam classBackgroundColor #Blue",
+			input: "skinparam classBackgroundColor #FF0000",
 			expected: ast.Skinparam{
-				"class||backgroundcolor|": "#Blue",
+				"class..backgroundcolor.": "#FF0000",
 			},
 		},
 		{
 			name: "Skinparam block",
 			input: `skinparam class {
-				BackgroundColor #Green
-				HeaderFontSize 14
+				BackgroundColor Green
+				HeaderBackgroundColor Red
 			}`,
 			expected: ast.Skinparam{
-				"class||backgroundcolor|": "#Green",
-				"class|header|fontsize|":  "14",
+				"class..backgroundcolor.":       "Green",
+				"class.header.backgroundcolor.": "Red",
 			},
 		},
 		{
@@ -45,30 +45,30 @@ func TestParseSkinparamStyles(t *testing.T) {
 			input: `skinparam class {
 				Stereotype {
 					FontSize 12
-					FontColor #Red
+					FontColor Red
 				}
-				BorderColor #Black
+				BorderColor Black
 			}`,
 			expected: ast.Skinparam{
-				"class|stereotype|fontsize|":  "12",
-				"class|stereotype|fontcolor|": "#Red",
-				"class||bordercolor|":         "#Black",
+				"class.stereotype.fontsize.":  "12",
+				"class.stereotype.fontcolor.": "Red",
+				"class..bordercolor.":         "Black",
 			},
 		},
 		{
 			name:  "Skinparam with stereotype",
-			input: "skinparam classBackgroundColor<<Service>> #Yellow",
+			input: "skinparam classBackgroundColor<<Service>> Yellow",
 			expected: ast.Skinparam{
-				"class||backgroundcolor|service": "#Yellow",
+				"class..backgroundcolor.service": "Yellow",
 			},
 		},
 		{
 			name: "Skinparam block with stereotype",
 			input: `skinparam class<<Service>> {
-				BackgroundColor #Pink
+				BackgroundColor Pink
 			}`,
 			expected: ast.Skinparam{
-				"class||backgroundcolor|service": "#Pink",
+				"class..backgroundcolor.service": "Pink",
 			},
 		},
 		{
@@ -78,12 +78,12 @@ func TestParseSkinparamStyles(t *testing.T) {
 		},
 		{
 			name:         "Unknown target",
-			input:        "skinparam unknownTargetBackgroundColor #Red",
+			input:        "skinparam unknownTargetBackgroundColor Red",
 			expectsError: true,
 		},
 		{
 			name:         "Param not allowed for subtarget",
-			input:        "skinparam class { Stereotype { BackgroundColor #Red } }",
+			input:        "skinparam class { Stereotype { BackgroundColor Red } }",
 			expectsError: true,
 		},
 		{
@@ -91,12 +91,24 @@ func TestParseSkinparamStyles(t *testing.T) {
 			input: `skinparam class {
 				AttributeFontSize 10
 				Stereotype {
-					FontColor #Blue
+					FontColor Blue
 				}
 			}`,
 			expected: ast.Skinparam{
-				"class|attribute|fontsize|":  "10",
-				"class|stereotype|fontcolor|": "#Blue",
+				"class.attribute.fontsize.":   "10",
+				"class.stereotype.fontcolor.": "Blue",
+			},
+		},
+		{
+			name: "Special case from the spec",
+			input: `skinparam class {
+				BackgroundColor Pink
+				BorderColor Red /' this is a comment '/
+				BorderColor Green ' the line with this comment is ignored according to the spec
+			}`,
+			expected: ast.Skinparam{
+				"class..backgroundcolor.": "Pink",
+				"class..bordercolor.":     "Green",
 			},
 		},
 	}

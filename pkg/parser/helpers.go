@@ -80,20 +80,23 @@ func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 			} else {
 				return NewParserError("Skinparam nesting too deep", tok.Pos)
 			}
-			newKey.Stereotype = stereo
-			if err := p.parseSkinparamBlock(newKey); err != nil {
-				return err
-			}
-		} else {
-			// Inline value
-			value := p.stream.ReadUntilNewline()
-			newKey := prefixKey
 			if stereo != "" {
 				newKey.Stereotype = stereo
 			}
-			if err := p.skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
-				return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
+			if err := p.parseSkinparamBlock(newKey); err != nil {
+				return err
 			}
+			continue
+		}
+
+		// Inline value
+		value := p.stream.ReadUntilNewline()
+		newKey := prefixKey
+		if stereo != "" {
+			newKey.Stereotype = stereo
+		}
+		if err := p.skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
+			return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
 		}
 	}
 	return nil
@@ -129,7 +132,7 @@ func (p *Parser) parseStyles(tok tokenizer.Token) error {
 
 	// skinparam combinedName value
 	value := p.stream.ReadUntilNewline()
-	return p.skinparam.SetAndDecode(name, stereo, value)
+	return p.skinparam.SetAndDecodeWithContext(ast.SkinparamKey{Stereotype: stereo}, name, value)
 }
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) error {
