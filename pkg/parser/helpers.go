@@ -1,9 +1,11 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
@@ -27,22 +29,23 @@ func (p *Parser) parseCommand(tok tokenizer.Token) (any, error) {
 }
 
 func (p *Parser) parseTitle() error {
-	if !p.stream.AssertType(tokenizer.NEWLINE) {
+	var titleEndSequence string
+	isBlockTitle := p.stream.AssertType(tokenizer.NEWLINE)
+	if !isBlockTitle {
 		// We are in luck and ints single line title
-		p.ast.Title = p.stream.ReadRawUntilNewline()
-		return nil
+		titleEndSequence = "\n"
+	} else {
+		p.stream.MustConsumeType(tokenizer.NEWLINE)
+		titleEndSequence = "end title"
 	}
-	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-		return NewParserError("Expected newline after multiline title", p.stream.PeekTokenAt(0).Pos)
-	}
+	p.stream.SetRawMode(titleEndSequence)
 
-	// Otherwise we are inside a multiline title block
-	title, err := p.stream.ReadBlock(unamb(tokenizer.END_BLOCK), unamb(tokenizer.TITLE))
-	if err != nil {
-		return NewParserError("Expected title block to end", p.stream.PeekTokenAt(0).Pos)
-	}
+	titleStrTok := p.stream.MustConsumeType(tokenizer.STRING)
+	p.ast.Title = titleStrTok.Literal
 
-	p.ast.Title = title
+	if isBlockTitle && !p.stream.AssertSeqTypes(tokenizer.END_BLOCK, tokenizer.TITLE) {
+		return NewParserError("Expected title block to end with \"end title\"", p.stream.PeekTokenAt(0).Pos)
+	}
 	return nil
 }
 
@@ -136,30 +139,29 @@ func (p *Parser) parseStyles(tok tokenizer.Token) error {
 }
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) error {
-	buildExpSeq := func(from string) []tokenizer.Token {
-		var to string
-		switch from {
-		case "left":
-			to = "right"
-		case "top":
-			to = "bottom"
-		}
-		return []tokenizer.Token{
-			{
-				Type:    tokenizer.IDENTIFIER,
-				Literal: "to",
-			},
-			{
-				Type:    tokenizer.DIRECTION,
-				Literal: to,
-			},
-			{
-				Type:    tokenizer.IDENTIFIER,
-				Literal: "direction",
-			},
-		}
+	var to string
+	switch tok.Literal {
+	case "left":
+		to = "right"
+	case "top":
+		to = "bottom"
 	}
-	expectedSeq := buildExpSeq(tok.Literal)
+
+	expectedSeq := []tokenizer.Token{
+		{
+			Type:    tokenizer.IDENTIFIER,
+			Literal: "to",
+		},
+		{
+			Type:    tokenizer.DIRECTION,
+			Literal: to,
+		},
+		{
+			Type:    tokenizer.IDENTIFIER,
+			Literal: "direction",
+		},
+	}
+
 	for _, token := range expectedSeq {
 		if _, ok := p.stream.TryConsume(token); !ok {
 			return NewParserError("Unexpected diagram direction modifier", token.Pos)
@@ -305,4 +307,160 @@ func (p *Parser) parseScale() error {
 
 	p.ast.Statements = append(p.ast.Statements, cmd)
 	return nil
+}
+
+func (p *Parser) mapTokenToEntityKind(tok tokenizer.TokenType) ast.EntityKind {
+	if _, ok := p.stream.TryConsumeType(tokenizer.CLASS); tok == tokenizer.ABSTRACT && ok {
+		return ast.AbstractClassKind
+	}
+
+	switch tok {
+	case tokenizer.CLASS:
+		return ast.ClassKind
+	case tokenizer.ABSTRACT:
+		return ast.AbstractClassKind
+	case tokenizer.INTERFACE:
+		return ast.InterfaceKind
+	case tokenizer.ENUM:
+		return ast.EnumKind
+	case tokenizer.ENTITY:
+		return ast.EntityClassKind
+	case tokenizer.STRUCT:
+		return ast.StructKind
+	case tokenizer.ANNOTATION:
+		return ast.AnnotationKind
+	case tokenizer.PROTOCOL:
+		return ast.ProtocolKind
+	case tokenizer.CIRCLE:
+		return ast.CircleKind
+	case tokenizer.DIAMOND:
+		return ast.DiamondKind
+	case tokenizer.EXCEPTION:
+		return ast.ExceptionKind
+	case tokenizer.METACLASS:
+		return ast.MetaclassKind
+	case tokenizer.RECORD:
+		return ast.RecordKind
+	case tokenizer.DATACLASS:
+		return ast.DataclassKind
+	case tokenizer.STEREOTYPE:
+		return ast.StereotypeKind
+	default:
+		return ast.UnknownEntityKind
+	}
+}
+
+func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKind {
+	switch tok {
+	case tokenizer.PLUS:
+		return ast.Public
+	case tokenizer.HYPHEN:
+		return ast.Private
+	case tokenizer.HASH:
+		return ast.Protected
+	case tokenizer.TILDE:
+		return ast.Package
+	default:
+		return ast.UnknownVisibility
+	}
+}
+
+// Can be either a field or a method
+// but start with a field as either start the same
+// Returns the parsed field or method, must be asserted to be a field or method
+func (p *Parser) parseFieldOrMethod(field ast.Field) (ast.Member, error) {
+	panic("unimplemented")
+}
+
+func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
+	ent := &ast.Entity{
+		Kind: p.mapTokenToEntityKind(tok.Type),
+	}
+
+	ent.Identifier = p.stream.Emit().Literal
+	if _, hasAlias := p.stream.TryConsumeType(tokenizer.ALIAS); hasAlias {
+		if !p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
+			return nil, NewParserError("Expected entity alias after 'as'", p.stream.PeekTokenAt(0).Pos)
+		}
+		ent.Alias = p.stream.Emit().Literal
+	}
+
+	stereo, err := p.stream.TryReadStereotype()
+	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+		return nil, err
+	}
+	ent.Stereotype = stereo
+
+	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		collector := tokenizer.TokenCollector{}
+		detach := p.stream.Attach(&collector)
+		p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.LBRACE)
+		detach()
+		ent.Color = p.stream.TokensToString(collector.Tokens())
+	}
+
+	// It can be there or not, parser doesn't care
+	p.stream.TryConsumeType(tokenizer.NEWLINE)
+
+	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
+		// No body return entity as is
+		return ent, nil
+	}
+
+	// We are inside a body
+	for {
+		var member ast.Member
+		var err error
+		// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
+		member, err = p.stream.TryReadClassSeparator()
+		if err != nil && err == tokenizer.ErrStartMarkerNotFound {
+			// Ignore this error as it might be something else
+			err = nil
+		}
+
+		field := ast.Field{}
+		if mod, err := p.stream.TryReadModifier(); err == nil {
+			// Handle scope modifiers
+			field.Modifier = mod
+			member, err = p.parseFieldOrMethod(field)
+		}
+
+		tok := p.stream.Emit()
+		switch tok.Type {
+		case tokenizer.RBRACE:
+			return ent, nil
+		case tokenizer.NOTE:
+			member, err = p.parseNote(tok)
+		case tokenizer.HYPHEN, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
+			field.Visibility = p.mapTokenToVisibility(tok.Type)
+			member, err = p.parseFieldOrMethod(field)
+		case tokenizer.IDENTIFIER:
+			field.Name = tok.Literal
+			member, err = p.parseFieldOrMethod(field)
+		}
+
+		// There are too many possible tokens to check for here
+		// So i'll just use this function to find nested entities
+		if entKind := p.mapTokenToEntityKind(tok.Type); entKind != ast.UnknownEntityKind {
+			member, err = p.parseEntity(tok)
+		}
+
+		if err != nil {
+			return ent, err
+		}
+		if member != nil {
+			ent.Members = append(ent.Members, member)
+			continue
+		}
+
+		return nil, NewParserError("Unexpected token in entity body", p.stream.PeekTokenAt(0).Pos)
+	}
+}
+
+func (p *Parser) parseContainer(mod tokenizer.Token) error {
+	panic("unimplemented")
+}
+
+func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
+	panic("unimplemented")
 }

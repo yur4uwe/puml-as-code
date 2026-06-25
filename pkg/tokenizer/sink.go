@@ -10,3 +10,4 @@ type TokenCollector struct {
 
 func (c *TokenCollector) Receive(t Token) { c.tokens = append(c.tokens, t) }
 func (c *TokenCollector) Len() int        { return len(c.tokens) }
+func (c *TokenCollector) Tokens() []Token { return c.tokens }

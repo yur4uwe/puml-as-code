@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
 	"yur4uwe/pac/internal/helpers"
 )
 
@@ -29,6 +30,7 @@ type lexerState struct {
 	packageSeparator        []rune
 	isDefaultSeparator      bool
 	expectingSeparatorValue bool
+	rawModeDelimiter        []rune
 	previousTokenType       TokenType
 	line                    uint
 	col                     uint
@@ -97,6 +99,10 @@ func (l *Lexer) peekChar() rune {
 }
 
 func (l *Lexer) Emit() Token {
+	if len(l.rawModeDelimiter) > 0 {
+		return Token{Type: STRING, Literal: l.readRawUntilDelimiter(), Pos: l.getPos()}
+	}
+
 	l.findNextTokenStart()
 
 	if l.expectingSeparatorValue {
@@ -398,4 +404,59 @@ func (l *Lexer) readBlockComment() string {
 		l.readChar()
 	}
 	return sb.String()
+}
+
+func (l *Lexer) countFutureSpaces(count_from int) int {
+	cnt := 0
+	for {
+		nextCh := l.lookAheadChar(count_from + cnt)
+		if nextCh == ' ' || nextCh == '\t' {
+			cnt++
+		} else {
+			return cnt
+		}
+	}
+}
+
+func (l *Lexer) isRawModeDelimiterFollows() bool {
+	offset := 0
+	// Skip spaces on the new line to be resilient to indentation, e.g. "  end note"
+	offset += l.countFutureSpaces(offset)
+
+	// Match the delimiter case-insensitively
+	for i := 0; i < len(l.rawModeDelimiter); i++ {
+		nextCh := l.lookAheadChar(offset + i)
+		expected := rune(l.rawModeDelimiter[i])
+		if unicode.ToLower(nextCh) != expected {
+			return false
+		}
+	}
+
+	// Ensure it's followed by EOF or newline (so "end note-something" doesn't match)
+	// allow for spaces after the delimiter but no text
+	offset += len(l.rawModeDelimiter)
+	offset += l.countFutureSpaces(offset)
+	afterDelimiter := l.lookAheadChar(offset)
+	if afterDelimiter == 0 || afterDelimiter == '\n' {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (l *Lexer) readRawUntilDelimiter() string {
+	start := l.position
+	end := l.position
+
+	for !l.isEOF() {
+		if l.ch == '\n' &&
+			(l.isRawModeDelimiterFollows() ||
+				(len(l.rawModeDelimiter) == 1 && l.rawModeDelimiter[0] == '\n')) {
+			// Do not consume the delimiter, parser must do it by itself
+			return string(l.input[start:end])
+		}
+		end++
+	}
+
+	return string(l.input[start:end])
 }

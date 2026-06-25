@@ -69,17 +69,17 @@ func ToRelationType(relStr string) (RelationType, int) {
 	}
 }
 
-type Visibility int
+type VisibilityKind int
 
 const (
-	Public Visibility = iota
+	UnknownVisibility VisibilityKind = iota
+	Public
 	Private
 	Protected
 	Package
-	UnknownVisibility
 )
 
-func (v Visibility) String() string {
+func (v VisibilityKind) String() string {
 	switch v {
 	case Public:
 		return "public"
@@ -94,7 +94,7 @@ func (v Visibility) String() string {
 	}
 }
 
-func GetVisibility(name string) Visibility {
+func GetVisibility(name string) VisibilityKind {
 	if name == "" {
 		return UnknownVisibility
 	}

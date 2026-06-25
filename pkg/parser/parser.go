@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
@@ -90,11 +91,38 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		case tokenizer.SCALE:
 			err = p.parseScale()
 		case tokenizer.LANGLE, tokenizer.SKINPARAM:
+			if p.stream.AssertType(tokenizer.RANGLE) {
+				// Successfully matched "<>"
+			}
 			err = p.parseStyles(tok)
 		case tokenizer.EXCLAMATION:
 		case tokenizer.DIRECTION:
 			err = p.parseDiagDirection(tok)
+
+		// Class-like Entities
+		case tokenizer.CLASS,
+			tokenizer.INTERFACE,
+			tokenizer.STRUCT,
+			tokenizer.ABSTRACT,
+			tokenizer.ENUM,
+			tokenizer.ANNOTATION,
+			tokenizer.RECORD,
+			tokenizer.DATACLASS,
+			tokenizer.EXCEPTION,
+			tokenizer.PROTOCOL:
+			err = p.parseEntity(tok)
+
+		// Containers
+		case tokenizer.PACKAGE, tokenizer.TOGETHER:
+			err = p.parseContainer(tok)
+
+		// Special Keywords
+		case tokenizer.NOTE:
+			err = p.parseNote(tok)
+		// Handle short-form circle: ()
+		case tokenizer.LPAREN:
 		}
+
 		if err != nil {
 			return nil, err
 		}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"unicode"
+
 	"yur4uwe/pac/internal/helpers"
 )
 
@@ -37,6 +38,11 @@ const (
 	ACTION
 	SKINPARAM
 	TOGETHER
+	ENTITY
+	CIRCLE
+	DIAMOND
+	STEREOTYPE
+	METACLASS
 
 	// commands
 	HIDE

@@ -1,9 +1,11 @@
 package tokenizer
 
 import (
+	"errors"
 	"fmt"
 	"slices"
 	"strings"
+
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
@@ -104,6 +106,10 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 	return sb.String()
 }
 
+func (ts *TokenStream) SetRawMode(endSequence string) {
+	ts.lexer.rawModeDelimiter = []rune(endSequence)
+}
+
 func (ts *TokenStream) PeekTokenAt(idx int) Token {
 	if len(ts.buffer) <= idx {
 		for i := len(ts.buffer); i <= idx; i++ {
@@ -196,6 +202,8 @@ func (ts *TokenStream) ConsumeUntil(token ...Token) Token {
 	return ts.PeekTokenAt(0)
 }
 
+// ConsumeUntilType consumes tokens until it finds one of the given types
+// Does not consume the last token
 func (ts *TokenStream) ConsumeUntilType(token ...TokenType) Token {
 	for !ts.AssertAnyType(token...) && !ts.AssertType(EOF) {
 		ts.Emit()
@@ -203,11 +211,16 @@ func (ts *TokenStream) ConsumeUntilType(token ...TokenType) Token {
 	return ts.PeekTokenAt(0)
 }
 
+var (
+	ErrStartMarkerNotFound = errors.New("start marker not found")
+	ErrUnexpectedEOF       = errors.New("unexpected EOF")
+)
+
 // readBetween handles the common pattern of [start markers]...[end markers]
 func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, error) {
 	// 1. Check if start markers match
 	if !ts.AssertSeq(start) {
-		return "", fmt.Errorf("failed to assert start marker")
+		return "", ErrStartMarkerNotFound
 	}
 
 	// 2. Consume start markers
@@ -222,7 +235,7 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 
 	for {
 		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
-			return "", fmt.Errorf("unexpected EOF or newline")
+			return "", ErrUnexpectedEOF
 		}
 
 		if ts.AssertSeq(end) {
@@ -260,7 +273,7 @@ func (ts *TokenStream) TryReadGeneric() (string, error) {
 	return ts.readBetween(start, end, ts.Emit)
 }
 
-func (ts *TokenStream) TryReadClassSeparator() (string, error) {
+func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
 	var start, end []Token
 	switch ts.PeekTokenAt(0).Type {
 	case HYPHEN:
@@ -276,16 +289,23 @@ func (ts *TokenStream) TryReadClassSeparator() (string, error) {
 		start = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 		end = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 	default:
-		return "", fmt.Errorf("unexpected class separator")
+		return ast.ClassSeparator{}, fmt.Errorf("unexpected class separator")
 	}
 
 	// separator can have no description
 	// Here we find out if its true
 	if ts.AssertSeq(append(start, Token{Type: NEWLINE})) {
-		return "", nil
+		return ast.ClassSeparator{}, nil
 	}
 
-	return ts.readBetween(start, end, ts.Emit)
+	str, err := ts.readBetween(start, end, ts.Emit)
+	if err != nil {
+		return ast.ClassSeparator{}, err
+	}
+	return ast.ClassSeparator{
+		Label: str,
+		Type:  start[0].Literal,
+	}, nil
 }
 
 func (ts *TokenStream) TryReadTag() (string, error) {
