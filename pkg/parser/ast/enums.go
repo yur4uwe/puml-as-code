@@ -228,23 +228,22 @@ func (m Cardinality) String() string {
 type TypeRef struct {
 	Kind ValueType
 	Name string
-	Raw  string
 }
 
 func ParseTypeRef(typeStr string) TypeRef {
 	s := strings.TrimSpace(typeStr)
 	vt := ToValueType(s)
 	if vt == Custom {
-		return TypeRef{Kind: Custom, Name: s, Raw: s}
+		return TypeRef{Kind: Custom, Name: s}
 	}
 	if vt == UnknownType && s != "" {
-		return TypeRef{Kind: Custom, Name: s, Raw: s}
+		return TypeRef{Kind: Custom, Name: s}
 	}
-	return TypeRef{Kind: vt, Name: "", Raw: s}
+	return TypeRef{Kind: vt, Name: ""}
 }
 
 func CustomType(name string) TypeRef {
-	return TypeRef{Kind: Custom, Name: name, Raw: name}
+	return TypeRef{Kind: Custom, Name: name}
 }
 
 func (tr TypeRef) String() string {
@@ -267,4 +266,10 @@ func (tr TypeRef) String() string {
 	default:
 		return "any"
 	}
+}
+
+type Parameter struct {
+	Name string
+	Type TypeRef
+	Raw  string
 }

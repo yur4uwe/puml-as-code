@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -23,11 +24,13 @@ func NewParserError(message string, pos tokenizer.TokenPos) error {
 }
 
 type Parser struct {
-	symbol_table map[string]*ast.Entity
-	ast          *ast.Diagram
-	stream       *tokenizer.TokenStream
-	skinparam    ast.Skinparam
-	styles       []string // TODO: should be an actual struct and not collection of strings
+	symbol_table   map[string]*ast.Entity
+	ast            *ast.Diagram
+	stream         *tokenizer.TokenStream
+	skinparam      ast.Skinparam
+	styles         []string // TODO: should be an actual struct and not collection of strings
+	dialect        dialect.Dialect
+	genericDialect dialect.Dialect
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
@@ -110,7 +113,12 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			tokenizer.DATACLASS,
 			tokenizer.EXCEPTION,
 			tokenizer.PROTOCOL:
-			err = p.parseEntity(tok)
+			ent, err := p.parseEntity(tok)
+			if err != nil {
+				return nil, err
+			}
+			p.ast.Statements = append(p.ast.Statements, ent)
+			p.symbol_table[ent.Identifier] = ent
 
 		// Containers
 		case tokenizer.PACKAGE, tokenizer.TOGETHER:
@@ -118,7 +126,11 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 		// Special Keywords
 		case tokenizer.NOTE:
-			err = p.parseNote(tok)
+			note, err := p.parseNote(tok)
+			if err != nil {
+				return nil, err
+			}
+			p.ast.Statements = append(p.ast.Statements, note)
 		// Handle short-form circle: ()
 		case tokenizer.LPAREN:
 		}

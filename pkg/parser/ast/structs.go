@@ -1,7 +1,5 @@
 package ast
 
-import "yur4uwe/pac/pkg/tokenizer"
-
 type Statement interface {
 	StatementNode() any
 }
@@ -110,7 +108,7 @@ type Relationship struct {
 	MultiplicityFrom Cardinality
 	MultiplicityTo   Cardinality
 
-	Comment string
+	Label string
 }
 
 var _ Statement = Relationship{}
@@ -136,11 +134,15 @@ type Field struct {
 	// Its impossible to know what is the type of the field and what is its name
 	// I will do go's way and first fill the name and then the type
 	// Then during generation, use known types to find where the name actually is
+	Raw        string
 	Name       string
-	Type       string
+	Type       TypeRef
 	Visibility VisibilityKind
-	// Optional modifier
-	Modifier string
+	// Optional modifiers
+	Modifiers []string
+	// This shit is so fucked up...
+	// What do you mean only way to distinguish between field and method is
+	// by presence of parenthesis?
 }
 
 var _ Member = Field{}
@@ -150,9 +152,11 @@ func (f Field) MemberNode() any { return f }
 type Method struct {
 	// Name and type will be inferred by assuming that '()' will be right after
 	// the name
+	Raw        string
 	Name       string
-	ReturnType string
-	Modifier   string
+	ReturnType TypeRef
+	Parameters []Parameter
+	Modifiers  []string
 	Visibility VisibilityKind
 }
 
@@ -177,8 +181,15 @@ const (
 )
 
 type Note struct {
+	// note left of Class: note left of Class
+	// where:
+	// Text = note left of Class
+	// Direction = DirectionKind(Left)
+	// Target = Class
+	// Color = ""
 	Text      string
 	Direction DirectionKind
+	Target    string
 	Color     string
 }
 
