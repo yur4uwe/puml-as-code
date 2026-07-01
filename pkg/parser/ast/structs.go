@@ -154,7 +154,7 @@ type Method struct {
 	// the name
 	Raw        string
 	Name       string
-	ReturnType TypeRef
+	ReturnType []TypeRef // due to multiple return types languages, this is a slice
 	Parameters []Parameter
 	Modifiers  []string
 	Visibility VisibilityKind

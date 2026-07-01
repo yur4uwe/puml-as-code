@@ -1,3 +1,6 @@
+// Package dialect provides implementations and definitions for Dialect
+// interface. Dialects define how to parse fields and methods for a specific
+// language dialect.
 package dialect
 
 import (
@@ -15,8 +18,8 @@ var ErrMismatch = errors.New("tokens do not match dialect syntax")
 // Dialect defines how to parse fields and methods for a specific language dialect
 type Dialect interface {
 	Name() string
-	ParseField(toks []tokenizer.Token) (string, ast.TypeRef, error)
-	ParseMethod(toks []tokenizer.Token) (string, ast.TypeRef, []ast.Parameter, error)
+	ParseField(toks []tokenizer.Token) (ast.Parameter, error)
+	ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, []ast.Parameter, error)
 }
 
 type GenericDialect struct{}
@@ -27,9 +30,9 @@ func (g GenericDialect) Name() string {
 	return "generic"
 }
 
-func (g GenericDialect) ParseField(toks []tokenizer.Token) (string, ast.TypeRef, error) {
+func (g GenericDialect) ParseField(toks []tokenizer.Token) (ast.Parameter, error) {
 	if len(toks) == 0 {
-		return "", ast.TypeRef{}, nil
+		return ast.Parameter{}, nil
 	}
 
 	// Case 1: Look for a COLON separator (e.g., "flightNumber : Integer")
@@ -41,24 +44,30 @@ func (g GenericDialect) ParseField(toks []tokenizer.Token) (string, ast.TypeRef,
 		}
 	}
 
+	var field ast.Parameter
 	if colonIdx != -1 {
 		name := joinTokens(toks[:colonIdx])
 		typeStr := joinTokens(toks[colonIdx+1:])
-		return name, ast.ParseTypeRef(typeStr), nil
+		field = ast.Parameter{Name: name, Type: ast.ParseTypeRef(typeStr)}
+		return field, nil
 	}
 
 	// Case 2: No colon, but we have 2 tokens (e.g., "String data" or "data String")
 	if len(toks) == 2 {
-		return toks[0].Literal, ast.ParseTypeRef(toks[1].Literal), nil
+		field = ast.Parameter{Name: toks[0].Literal, Type: ast.ParseTypeRef(toks[1].Literal)}
+		return field, nil
 	}
 
 	// Case 3: Single token (e.g., "data") or multiple tokens without clear structure
-	return joinTokens(toks), ast.TypeRef{}, nil
+	return ast.Parameter{
+		Name: joinTokens(toks),
+		Type: ast.TypeRef{},
+	}, nil
 }
 
-func (g GenericDialect) ParseMethod(toks []tokenizer.Token) (string, ast.TypeRef, []ast.Parameter, error) {
+func (g GenericDialect) ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, []ast.Parameter, error) {
 	if len(toks) == 0 {
-		return "", ast.TypeRef{}, nil, nil
+		return "", nil, nil, nil
 	}
 
 	// 1. Locate the first LPAREN
@@ -68,7 +77,7 @@ func (g GenericDialect) ParseMethod(toks []tokenizer.Token) (string, ast.TypeRef
 
 	// If no LPAREN exists, treat it as a method with no params or return type
 	if lparenIdx == -1 {
-		return joinTokens(toks), ast.TypeRef{}, nil, nil
+		return joinTokens(toks), nil, nil, nil
 	}
 
 	name := joinTokens(toks[:lparenIdx])
@@ -80,7 +89,7 @@ func (g GenericDialect) ParseMethod(toks []tokenizer.Token) (string, ast.TypeRef
 
 	// If RPAREN is missing
 	if rparenIdx == -1 {
-		return name, ast.TypeRef{}, nil, nil
+		return name, nil, nil, nil
 	}
 
 	// 3. Extract parameter tokens inside the parens
@@ -99,7 +108,7 @@ func (g GenericDialect) ParseMethod(toks []tokenizer.Token) (string, ast.TypeRef
 		}
 	}
 
-	return name, returnType, params, nil
+	return name, []ast.TypeRef{returnType}, params, nil
 }
 
 // Helper to split generic parameters by commas and parse each

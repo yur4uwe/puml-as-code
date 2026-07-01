@@ -113,7 +113,7 @@ func GetVisibility(name string) VisibilityKind {
 	}
 }
 
-type ValueType int
+type ValueType byte
 
 const (
 	Void ValueType = iota

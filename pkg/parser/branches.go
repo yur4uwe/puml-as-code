@@ -246,18 +246,23 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	for {
 		var member ast.Member
 		var err error
+		var mod string
 		// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
 		member, err = p.stream.TryReadClassSeparator()
-		if err != nil && err == tokenizer.ErrStartMarkerNotFound {
-			// Ignore this error as it might be something else
-			err = nil
+		if err != nil && err != tokenizer.ErrStartMarkerNotFound {
+			// Ignore this error as it might be other syntactic constructs
+			// Only other error is 'Unexpected EOF' so we just bubble it up
+			return nil, err
 		}
 
 		field := ast.Field{}
-		if mod, err := p.stream.TryReadModifier(); err == nil {
+		if mod, err = p.stream.TryReadModifier(); err == nil {
 			// Handle scope modifiers
-			field.Modifiers = []string{mod}
+			field.Modifiers = append(field.Modifiers, mod)
 			member, err = p.parseFieldOrMethod(tok, field)
+		} else if err != tokenizer.ErrStartMarkerNotFound {
+			// Ignore the error because of the reasons above
+			return nil, err
 		}
 
 		tok := p.stream.Emit()
@@ -396,20 +401,25 @@ outer:
 		}
 		return meth, nil
 	} else {
-		field.Name, field.Type, err = p.dialect.ParseField(entry)
+		var fieldDef ast.Parameter
+		fieldDef, err = p.dialect.ParseField(entry)
 		if err == nil {
 			return field, nil
 		}
+		field.Name = fieldDef.Name
+		field.Type = fieldDef.Type
 
 		if !errors.Is(err, dialect.ErrMismatch) {
 			return nil, err
 		}
 
 		// Soft error: fallback to Generic Dialect
-		field.Name, field.Type, err = p.genericDialect.ParseField(entry)
+		fieldDef, err = p.genericDialect.ParseField(entry)
 		if err != nil {
 			return nil, err
 		}
+		field.Name = fieldDef.Name
+		field.Type = fieldDef.Type
 		return field, nil
 	}
 }
