@@ -24,11 +24,11 @@ func (g GoDialect) ParseField(toks []tokenizer.Token) (ast.Parameter, error) {
 	// expects this structure:
 	// <name> <asterisk|[N]|[]>?xN <type>
 	if len(toks) < 2 {
-		return ast.Parameter{}, fmt.Errorf("%w: expected at least two tokens", ErrMismatch)
+		return ast.Parameter{}, fmt.Errorf("%w: expected at least two tokens", ErrParsingDialect)
 	}
 
 	if toks[0].Type != tokenizer.IDENTIFIER {
-		return ast.Parameter{}, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrMismatch, toks[0].Type.String())
+		return ast.Parameter{}, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
 	field := ast.Parameter{Name: toks[0].Literal}
 
@@ -45,23 +45,23 @@ func (g GoDialect) ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, [
 	// expects this structure (no 'func' keyword, no receiver):
 	// <name> '(' <params>? ')' <returns>?
 	if len(toks) < 3 {
-		return "", nil, nil, fmt.Errorf("%w: expected at least 3 tokens for a method", ErrMismatch)
+		return "", nil, nil, fmt.Errorf("%w: expected at least 3 tokens for a method", ErrParsingDialect)
 	}
 
 	if toks[0].Type != tokenizer.IDENTIFIER {
-		return "", nil, nil, fmt.Errorf("%w: expected identifier for a method name, got %s", ErrMismatch, toks[0].Type.String())
+		return "", nil, nil, fmt.Errorf("%w: expected identifier for a method name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
 	methodName := toks[0].Literal
 	pos := 1
 
 	if toks[pos].Type != tokenizer.LPAREN {
-		return "", nil, nil, fmt.Errorf("%w: expected '(' after method name, got %s", ErrMismatch, toks[pos].Type.String())
+		return "", nil, nil, fmt.Errorf("%w: expected '(' after method name, got %s", ErrParsingDialect, toks[pos].Type.String())
 	}
 	pos++
 
 	paramToks, pos, err := readUntilMatching(toks, pos, tokenizer.LPAREN, tokenizer.RPAREN)
 	if err != nil {
-		return "", nil, nil, fmt.Errorf("%w: parsing parameter list: %w", ErrMismatch, err)
+		return "", nil, nil, fmt.Errorf("%w: parsing parameter list: %w", ErrParsingDialect, err)
 	}
 
 	params, err := g.parseParamList(paramToks)
@@ -82,7 +82,7 @@ func (g GoDialect) ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, [
 
 func (g GoDialect) parseType(toks []tokenizer.Token) (ast.TypeRef, error) {
 	if len(toks) == 0 {
-		return ast.TypeRef{}, fmt.Errorf("%w: expected a type, got end of tokens", ErrMismatch)
+		return ast.TypeRef{}, fmt.Errorf("%w: expected a type, got end of tokens", ErrParsingDialect)
 	}
 
 	var sb strings.Builder
@@ -99,7 +99,7 @@ outerLoop:
 			sb.WriteString(toks[pos].Literal)
 			pos++
 			if pos >= len(toks) {
-				return ast.TypeRef{}, fmt.Errorf("%w: unexpected end of tokens after '['", ErrMismatch)
+				return ast.TypeRef{}, fmt.Errorf("%w: unexpected end of tokens after '['", ErrParsingDialect)
 			}
 			switch toks[pos].Type {
 			case tokenizer.NUMBER:
@@ -107,10 +107,10 @@ outerLoop:
 				pos++
 			case tokenizer.RBRACKET:
 			default:
-				return ast.TypeRef{}, fmt.Errorf("%w: expected number or ']' for an arrayish type, got %s", ErrMismatch, toks[pos].Type.String())
+				return ast.TypeRef{}, fmt.Errorf("%w: expected number or ']' for an arrayish type, got %s", ErrParsingDialect, toks[pos].Type.String())
 			}
 			if pos >= len(toks) || toks[pos].Type != tokenizer.RBRACKET {
-				return ast.TypeRef{}, fmt.Errorf("%w: expected ']' to close array/slice type", ErrMismatch)
+				return ast.TypeRef{}, fmt.Errorf("%w: expected ']' to close array/slice type", ErrParsingDialect)
 			}
 			sb.WriteString(toks[pos].Literal)
 			pos++
@@ -118,18 +118,18 @@ outerLoop:
 		case tokenizer.IDENTIFIER:
 			break outerLoop
 		default:
-			return ast.TypeRef{}, fmt.Errorf("%w: expected asterisk, '[' or identifier for a type, got %s", ErrMismatch, toks[pos].Type.String())
+			return ast.TypeRef{}, fmt.Errorf("%w: expected asterisk, '[' or identifier for a type, got %s", ErrParsingDialect, toks[pos].Type.String())
 		}
 	}
 
 	if pos >= len(toks) || toks[pos].Type != tokenizer.IDENTIFIER {
-		return ast.TypeRef{}, fmt.Errorf("%w: expected identifier for a type", ErrMismatch)
+		return ast.TypeRef{}, fmt.Errorf("%w: expected identifier for a type", ErrParsingDialect)
 	}
 	sb.WriteString(toks[pos].Literal)
 	pos++
 
 	if pos != len(toks) {
-		return ast.TypeRef{}, fmt.Errorf("%w: unexpected trailing tokens in type", ErrMismatch)
+		return ast.TypeRef{}, fmt.Errorf("%w: unexpected trailing tokens in type", ErrParsingDialect)
 	}
 
 	return ast.TypeRef{Name: sb.String()}, nil
@@ -152,7 +152,7 @@ func readUntilMatching(toks []tokenizer.Token, pos int, open, close tokenizer.To
 		}
 		pos++
 	}
-	return nil, 0, fmt.Errorf("%w: unmatched '%s'", ErrMismatch, open.String())
+	return nil, 0, fmt.Errorf("%w: unmatched '%s'", ErrParsingDialect, open.String())
 }
 
 func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]ast.Parameter, error) {
@@ -212,10 +212,10 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]ast.TypeRef, error
 	if toks[0].Type == tokenizer.LPAREN {
 		inner, pos, err := readUntilMatching(toks, 1, tokenizer.LPAREN, tokenizer.RPAREN)
 		if err != nil {
-			return nil, fmt.Errorf("%w: parsing return list: %w", ErrMismatch, err)
+			return nil, fmt.Errorf("%w: parsing return list: %w", ErrParsingDialect, err)
 		}
 		if pos != len(toks) {
-			return nil, fmt.Errorf("%w: unexpected trailing tokens after return list", ErrMismatch)
+			return nil, fmt.Errorf("%w: unexpected trailing tokens after return list", ErrParsingDialect)
 		}
 
 		var returns []ast.TypeRef

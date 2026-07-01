@@ -24,13 +24,12 @@ func NewParserError(message string, pos tokenizer.TokenPos) error {
 }
 
 type Parser struct {
-	symbol_table   map[string]*ast.Entity
-	ast            *ast.Diagram
-	stream         *tokenizer.TokenStream
-	skinparam      ast.Skinparam
-	styles         []string // TODO: should be an actual struct and not collection of strings
-	dialect        dialect.Dialect
-	genericDialect dialect.Dialect
+	symbol_table map[string]*ast.Entity
+	ast          *ast.Diagram
+	stream       *tokenizer.TokenStream
+	skinparam    ast.Skinparam
+	styles       []string // TODO: should be an actual struct and not collection of strings
+	dialect      dialect.Dialect
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {

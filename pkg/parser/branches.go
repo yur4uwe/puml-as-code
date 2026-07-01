@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -384,43 +383,19 @@ outer:
 			meth.ReturnType,
 			meth.Parameters,
 			err = p.dialect.ParseMethod(entry)
-		if err == nil {
-			return meth, nil
-		}
-
-		if !errors.Is(err, dialect.ErrMismatch) {
-			return nil, err
-		}
-
-		meth.Name,
-			meth.ReturnType,
-			meth.Parameters,
-			err = p.genericDialect.ParseMethod(entry)
 		if err != nil {
 			return nil, err
 		}
-		return meth, nil
+		return meth, err
 	} else {
 		var fieldDef ast.Parameter
 		fieldDef, err = p.dialect.ParseField(entry)
-		if err == nil {
-			return field, nil
-		}
-		field.Name = fieldDef.Name
-		field.Type = fieldDef.Type
-
-		if !errors.Is(err, dialect.ErrMismatch) {
-			return nil, err
-		}
-
-		// Soft error: fallback to Generic Dialect
-		fieldDef, err = p.genericDialect.ParseField(entry)
 		if err != nil {
 			return nil, err
 		}
 		field.Name = fieldDef.Name
 		field.Type = fieldDef.Type
-		return field, nil
+		return field, err
 	}
 }
 
