@@ -206,17 +206,49 @@ func (p *Parser) parseScale() error {
 	return nil
 }
 
+func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
+	switch nameOrAlias.Type {
+	case tokenizer.STRING:
+		if ent.Alias != "" {
+			return NewParserError("Entity alias already set", nameOrAlias.Pos)
+		}
+		ent.Alias = nameOrAlias.Literal
+	case tokenizer.IDENTIFIER:
+		if ent.Identifier != "" {
+			return NewParserError("Entity name already set", nameOrAlias.Pos)
+		}
+		ent.Identifier = nameOrAlias.Literal
+	default:
+		return NewParserError("Expected token for entity alias after 'as'", nameOrAlias.Pos)
+	}
+	return nil
+}
+
+// tok is the kind of an entity (class, interface, struct, enum, etc.)
 func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	ent := &ast.Entity{
 		Kind: p.mapTokenToEntityKind(tok.Type),
 	}
 
-	ent.Identifier = p.stream.Emit().Literal
+	// Unexpectedly class and other entity definitions have very strict syntax:
+	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
+
+	if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
+		return nil, err
+	}
+
 	if _, hasAlias := p.stream.TryConsumeType(tokenizer.ALIAS); hasAlias {
-		if !p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
-			return nil, NewParserError("Expected entity alias after 'as'", p.stream.PeekTokenAt(0).Pos)
+		if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
+			return nil, err
 		}
-		ent.Alias = p.stream.Emit().Literal
+	}
+
+	if !p.stream.AssertSeq([]tokenizer.Token{{Type: tokenizer.LANGLE}, {Type: tokenizer.LANGLE}}) {
+		gen, err := p.stream.TryReadGeneric()
+		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+			return nil, err
+		}
+		ent.Generic = gen
 	}
 
 	stereo, err := p.stream.TryReadStereotype()
@@ -243,6 +275,12 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 
 	// We are inside a body
 	for {
+		for {
+			if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+				break
+			}
+		}
+
 		member, err := p.parseEntityMember()
 		if err != nil {
 			return ent, err
@@ -264,7 +302,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
 	if member, err = p.stream.TryReadClassSeparator(); err == nil {
 		return member, nil
-	} else if err != tokenizer.ErrStartMarkerNotFound {
+	} else if err == tokenizer.ErrUnexpectedEOF {
 		// Ignore this error as it might be other syntactic constructs
 		// Only other error is 'Unexpected EOF' so we just bubble it up
 		return nil, err
@@ -279,7 +317,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 			return nil, err
 		}
 		return member, nil
-	} else if err != tokenizer.ErrStartMarkerNotFound {
+	} else if err == tokenizer.ErrUnexpectedEOF {
 		// Ignore the particular error because of the reasons above
 		return nil, err
 	}

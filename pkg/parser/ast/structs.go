@@ -53,6 +53,7 @@ type Entity struct {
 	Alias      string
 	Kind       EntityKind
 	Stereotype string
+	Generic    string
 	Color      string
 	Members    []Member
 }
@@ -114,7 +115,7 @@ type ClassSeparator struct {
 	// Optional label text
 	Label string
 	// Separator type. One of "-", "=", ".", "_"
-	Type string
+	Type rune
 }
 
 var _ Member = ClassSeparator{}
@@ -186,13 +187,9 @@ type Note struct {
 	Color     string
 }
 
-var (
-	_ Statement = Note{}
-	_ Member    = Note{}
-)
+var _ Statement = Note{}
 
 func (n Note) StatementNode() any { return n }
-func (n Note) MemberNode() any    { return n }
 
 type DiagramBound struct {
 	IsStart bool

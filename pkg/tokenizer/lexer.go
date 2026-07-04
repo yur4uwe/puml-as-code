@@ -299,7 +299,8 @@ func (l *Lexer) readNumber() (string, error) {
 	// Check for encoded numbers (0x, 0b, 0o)
 	if l.ch == '0' {
 		peek := l.peekChar()
-		if peek == 'x' || peek == 'X' || peek == 'b' || peek == 'B' || peek == 'o' || peek == 'O' {
+		switch peek {
+		case 'x', 'X', 'b', 'B', 'o', 'O':
 			return l.readEncodedNumber()
 		}
 	}
@@ -363,8 +364,8 @@ state_validate:
 }
 
 func (l *Lexer) readString() string {
-	start := l.position
 	l.readChar() // consume opening "
+	start := l.position
 	for l.ch != '"' && !l.isEOF() {
 		if l.ch == '\\' && l.peekChar() != 0 {
 			l.readChar() // consume backslash
@@ -373,10 +374,9 @@ func (l *Lexer) readString() string {
 			l.readChar()
 		}
 	}
-	if l.ch == '"' {
-		l.readChar() // consume closing "
-	}
-	return string(l.input[start:l.position])
+	end := l.position
+	l.readChar() // consume closing "
+	return string(l.input[start:end])
 }
 
 func (l *Lexer) readLineComment() string {

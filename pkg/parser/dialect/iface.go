@@ -5,8 +5,6 @@ package dialect
 
 import (
 	"errors"
-	"slices"
-	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"

@@ -275,19 +275,24 @@ func (ts *TokenStream) TryReadGeneric() (string, error) {
 
 func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
 	var start, end []Token
+	var sepChar rune
 	switch ts.PeekTokenAt(0).Type {
 	case HYPHEN:
 		start = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
 		end = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
+		sepChar = '-'
 	case DOT:
 		start = []Token{{Type: DOT}, {Type: DOT}}
 		end = []Token{{Type: DOT}, {Type: DOT}}
+		sepChar = '.'
 	case EQUALS:
 		start = []Token{{Type: EQUALS}, {Type: EQUALS}}
 		end = []Token{{Type: EQUALS}, {Type: EQUALS}}
+		sepChar = '='
 	case UNDERSCORE:
 		start = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
 		end = []Token{{Type: UNDERSCORE}, {Type: UNDERSCORE}}
+		sepChar = '_'
 	default:
 		return ast.ClassSeparator{}, fmt.Errorf("unexpected class separator")
 	}
@@ -304,7 +309,7 @@ func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
 	}
 	return ast.ClassSeparator{
 		Label: str,
-		Type:  start[0].Literal,
+		Type:  sepChar,
 	}, nil
 }
 

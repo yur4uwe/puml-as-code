@@ -1,8 +1,9 @@
 package tokenizer
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestNewTokenStream(t *testing.T) {
@@ -123,13 +124,15 @@ func TestStreamTryReadClassSeparator(t *testing.T) {
 
 	sep, err := ts.TryReadClassSeparator()
 	require.NoError(t, err)
-	require.Equal(t, "separator", sep)
+	require.Equal(t, "separator", sep.Label)
+	require.Equal(t, '.', sep.Type)
 
 	ts.TryConsumeType(NEWLINE)
 
 	sep, err = ts.TryReadClassSeparator()
 	require.NoError(t, err)
-	require.Equal(t, "sep", sep)
+	require.Equal(t, "sep", sep.Label)
+	require.Equal(t, '=', sep.Type)
 }
 
 func TestStreamTryReadTag(t *testing.T) {
@@ -285,7 +288,6 @@ func TestReadDiagramBounds(t *testing.T) {
 			require.Equal(t, tc.expectedType, b.Type)
 		})
 	}
-
 }
 
 func TestStreamReadUntilNewline(t *testing.T) {
@@ -326,7 +328,7 @@ func TestStreamReadBetween(t *testing.T) {
 	startSeq := []Token{{Type: IDENTIFIER, Literal: "START"}}
 	endSeq := []Token{{Type: END_BLOCK, Literal: "END"}}
 
-	res, err := ts.readBetween(startSeq, endSeq, ts.EmitRaw)
+	res, err := ts.readBetween(startSeq, endSeq)
 	require.NoError(t, err)
 	require.Equal(t, "foo bar", res)
 }
