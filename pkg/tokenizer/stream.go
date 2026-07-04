@@ -217,7 +217,7 @@ var (
 )
 
 // readBetween handles the common pattern of [start markers]...[end markers]
-func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (string, error) {
+func (ts *TokenStream) readBetween(start, end []Token) (string, error) {
 	// 1. Check if start markers match
 	if !ts.AssertSeq(start) {
 		return "", ErrStartMarkerNotFound
@@ -225,7 +225,7 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 
 	// 2. Consume start markers
 	for range start {
-		emitter()
+		ts.Emit()
 	}
 
 	// 3. Read content until end markers
@@ -242,14 +242,14 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 			break
 		}
 
-		emitter()
+		ts.Emit()
 	}
 
 	res := ts.TokensToString(tc.tokens)
 
 	// Consume end markers
 	for range end {
-		emitter()
+		ts.Emit()
 	}
 
 	return res, nil
@@ -258,19 +258,19 @@ func (ts *TokenStream) readBetween(start, end []Token, emitter func() Token) (st
 func (ts *TokenStream) TryReadModifier() (string, error) {
 	start := []Token{{Type: LBRACE}}
 	end := []Token{{Type: RBRACE}}
-	return ts.readBetween(start, end, ts.Emit)
+	return ts.readBetween(start, end)
 }
 
 func (ts *TokenStream) TryReadStereotype() (string, error) {
 	start := []Token{{Type: LANGLE}, {Type: LANGLE}}
 	end := []Token{{Type: RANGLE}, {Type: RANGLE}}
-	return ts.readBetween(start, end, ts.Emit)
+	return ts.readBetween(start, end)
 }
 
 func (ts *TokenStream) TryReadGeneric() (string, error) {
 	start := []Token{{Type: LANGLE}}
 	end := []Token{{Type: RANGLE}}
-	return ts.readBetween(start, end, ts.Emit)
+	return ts.readBetween(start, end)
 }
 
 func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
@@ -298,7 +298,7 @@ func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
 		return ast.ClassSeparator{}, nil
 	}
 
-	str, err := ts.readBetween(start, end, ts.Emit)
+	str, err := ts.readBetween(start, end)
 	if err != nil {
 		return ast.ClassSeparator{}, err
 	}

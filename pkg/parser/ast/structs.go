@@ -57,16 +57,9 @@ type Entity struct {
 	Members    []Member
 }
 
-var (
-	_ Statement = Entity{}
-	_ Member    = Entity{}
-)
+var _ Statement = Entity{}
 
 func (e Entity) StatementNode() any {
-	return e
-}
-
-func (e Entity) MemberNode() any {
 	return e
 }
 

@@ -243,61 +243,68 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 
 	// We are inside a body
 	for {
-		var member ast.Member
-		var err error
-		var mod string
-		// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
-		member, err = p.stream.TryReadClassSeparator()
-		if err != nil && err != tokenizer.ErrStartMarkerNotFound {
-			// Ignore this error as it might be other syntactic constructs
-			// Only other error is 'Unexpected EOF' so we just bubble it up
-			return nil, err
-		}
-
-		field := ast.Field{}
-		if mod, err = p.stream.TryReadModifier(); err == nil {
-			// Handle scope modifiers
-			field.Modifiers = append(field.Modifiers, mod)
-			member, err = p.parseFieldOrMethod(tok, field)
-		} else if err != tokenizer.ErrStartMarkerNotFound {
-			// Ignore the error because of the reasons above
-			return nil, err
-		}
-
-		tok := p.stream.Emit()
-		switch tok.Type {
-		case tokenizer.RBRACE:
-			return ent, nil
-		case tokenizer.NOTE:
-			member, err = p.parseNote(tok)
-		case tokenizer.HYPHEN, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
-			field.Visibility = p.mapTokenToVisibility(tok.Type)
-			member, err = p.parseFieldOrMethod(tok, field)
-		case tokenizer.IDENTIFIER:
-			field.Name = tok.Literal
-			member, err = p.parseFieldOrMethod(tok, field)
-		}
-
-		// There are too many possible tokens to check for here
-		// So i'll just use this function to find nested entities
-		if entKind := p.mapTokenToEntityKind(tok.Type); entKind != ast.UnknownEntityKind {
-			member, err = p.parseEntity(tok)
-		}
-
+		member, err := p.parseEntityMember()
 		if err != nil {
 			return ent, err
 		}
-		if member != nil {
-			ent.Members = append(ent.Members, member)
-			continue
+		if member == nil {
+			break
 		}
 
+		ent.Members = append(ent.Members, member)
+	}
+
+	return ent, nil
+}
+
+func (p *Parser) parseEntityMember() (ast.Member, error) {
+	var member ast.Member
+	var err error
+
+	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
+	if member, err = p.stream.TryReadClassSeparator(); err == nil {
+		return member, nil
+	} else if err != tokenizer.ErrStartMarkerNotFound {
+		// Ignore this error as it might be other syntactic constructs
+		// Only other error is 'Unexpected EOF' so we just bubble it up
+		return nil, err
+	}
+
+	field := ast.Field{}
+	if mod, err := p.stream.TryReadModifier(); err == nil {
+		// Handle scope modifiers
+		field.Modifiers = append(field.Modifiers, mod)
+		member, err = p.parseFieldOrMethod(tokenizer.Token{Type: tokenizer.LBRACE}, field)
+		if err != nil {
+			return nil, err
+		}
+		return member, nil
+	} else if err != tokenizer.ErrStartMarkerNotFound {
+		// Ignore the particular error because of the reasons above
+		return nil, err
+	}
+
+	tok := p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.RBRACE:
+		return nil, nil
+	case tokenizer.HYPHEN, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
+		field.Visibility = p.mapTokenToVisibility(tok.Type)
+	case tokenizer.IDENTIFIER:
+		field.Name = tok.Literal
+	default:
 		return nil, NewParserError("Unexpected token in entity body", p.stream.PeekTokenAt(0).Pos)
 	}
+	member, err = p.parseFieldOrMethod(tok, field)
+	if err != nil {
+		return nil, err
+	}
+	return member, nil
 }
 
 // Can be either a field or a method
 // but start with a field as either start the same
+//
 // Returns the parsed field or method, must be asserted to be a field or method
 func (p *Parser) parseFieldOrMethod(entryTok tokenizer.Token, field ast.Field) (ast.Member, error) {
 	// Can enter this function with one of:
@@ -329,7 +336,6 @@ func (p *Parser) parseFieldOrMethod(entryTok tokenizer.Token, field ast.Field) (
 	entry := make([]tokenizer.Token, 0, 10)
 	if entryTok.Type == tokenizer.IDENTIFIER {
 		entry = append(entry, entryTok)
-		canEncounterVisibility = true
 	}
 
 outer:
