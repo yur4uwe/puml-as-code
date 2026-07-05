@@ -106,7 +106,17 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 	return sb.String()
 }
 
+// SetRawMode sets the end sequence for the raw mode for lexer.
+//
+// A raw mode is a special mode where the lexer will emit only a single token.
+// This token will contain everything until the end sequence, not including it.
+// This is useful for parsing multiline comments, labels until the end of the line, etc.
+//
+// Raw mode must not be unset after consuming the token.
 func (ts *TokenStream) SetRawMode(endSequence string) {
+	if len(endSequence) == 0 {
+		panic("empty end sequence for raw mode")
+	}
 	ts.lexer.rawModeDelimiter = []rune(endSequence)
 }
 
@@ -153,10 +163,7 @@ func (ts *TokenStream) Assert(token Token) bool {
 }
 
 func (ts *TokenStream) AssertType(token TokenType) bool {
-	if ts.PeekTokenAt(0).Type != token {
-		return false
-	}
-	return true
+	return ts.PeekTokenAt(0).Type == token
 }
 
 func (ts *TokenStream) AssertAny(tokens ...Token) bool {
@@ -277,9 +284,9 @@ func (ts *TokenStream) TryReadClassSeparator() (ast.ClassSeparator, error) {
 	var start, end []Token
 	var sepChar rune
 	switch ts.PeekTokenAt(0).Type {
-	case HYPHEN:
-		start = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
-		end = []Token{{Type: HYPHEN}, {Type: HYPHEN}}
+	case DASH:
+		start = []Token{{Type: DASH}, {Type: DASH}}
+		end = []Token{{Type: DASH}, {Type: DASH}}
 		sepChar = '-'
 	case DOT:
 		start = []Token{{Type: DOT}, {Type: DOT}}
@@ -445,10 +452,7 @@ func (ts *TokenStream) ReadDiagramBounds() (ast.DiagramBound, error) {
 		}
 
 		// Handle key=value pairs or more options if needed
-		for {
-			if !ts.AssertType(COMMA) {
-				break
-			}
+		for ts.AssertType(COMMA) {
 			ts.TryConsumeType(COMMA)
 			if err := readKvp(); err != nil {
 				return diag, err

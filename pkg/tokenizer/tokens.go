@@ -73,10 +73,10 @@ const (
 	DOT         // .
 	EQUALS      // =
 	PLUS        // +
-	HYPHEN      // -
+	DASH        // -
 	TILDE       // ~
 	HASH        // #
-	VBAR        // |
+	PIPE        // |
 	ASTERISK    // *
 	SLASH       // /
 	BACKSLASH   // \
@@ -124,10 +124,10 @@ var singleCharTokens = map[rune]TokenType{
 	'.':  DOT,
 	'=':  EQUALS,
 	'+':  PLUS,
-	'-':  HYPHEN,
+	'-':  DASH,
 	'~':  TILDE,
 	'#':  HASH,
-	'|':  VBAR,
+	'|':  PIPE,
 	'*':  ASTERISK,
 	'\\': BACKSLASH,
 	'^':  CARET,

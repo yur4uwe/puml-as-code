@@ -94,7 +94,11 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			err = p.parseScale()
 		case tokenizer.LANGLE, tokenizer.SKINPARAM:
 			if p.stream.AssertType(tokenizer.RANGLE) {
-				// Successfully matched "<>"
+				// Successfully matched "<>", shorthand for diamond
+				p.ast.Statements = append(p.ast.Statements, ast.Entity{
+					Kind: ast.DiamondKind,
+				})
+				continue
 			}
 			err = p.parseStyles(tok)
 		case tokenizer.EXCLAMATION:
@@ -132,6 +136,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			p.ast.Statements = append(p.ast.Statements, note)
 		// Handle short-form circle: ()
 		case tokenizer.LPAREN:
+		case tokenizer.IDENTIFIER, tokenizer.STRING:
+			// TODO: handle relationships
 		}
 
 		if err != nil {

@@ -230,7 +230,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 		Kind: p.mapTokenToEntityKind(tok.Type),
 	}
 
-	// Unexpectedly class and other entity definitions have very strict syntax:
+	// Unexpectedly, class and other entity definitions have very strict syntax:
 	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
 
 	if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
@@ -326,7 +326,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	switch tok.Type {
 	case tokenizer.RBRACE:
 		return nil, nil
-	case tokenizer.HYPHEN, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
+	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
 		field.Visibility = p.mapTokenToVisibility(tok.Type)
 	case tokenizer.IDENTIFIER:
 		field.Name = tok.Literal
@@ -393,7 +393,7 @@ outer:
 		switch tok.Type {
 		case tokenizer.EOF, tokenizer.NEWLINE:
 			break outer
-		case tokenizer.HASH, tokenizer.PLUS, tokenizer.HYPHEN, tokenizer.TILDE:
+		case tokenizer.HASH, tokenizer.PLUS, tokenizer.DASH, tokenizer.TILDE:
 			if canEncounterVisibility {
 				entry = append(entry, tok)
 				continue
@@ -443,7 +443,7 @@ outer:
 	}
 }
 
-func (p *Parser) parseContainer(mod tokenizer.Token) error {
+func (p *Parser) parseContainer(tok tokenizer.Token) error {
 	panic("unimplemented")
 }
 
@@ -526,4 +526,105 @@ func (p *Parser) parseTitle() error {
 		return NewParserError("Expected title block to end with \"end title\"", p.stream.PeekTokenAt(0).Pos)
 	}
 	return nil
+}
+
+func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
+	target := entityNameTok.Literal
+	if _, ok := p.stream.TryConsumeType(tokenizer.COLON); ok {
+		// can be field or method reference
+		_, ok := p.stream.TryConsumeType(tokenizer.COLON)
+		if !ok {
+			return "", NewParserError("Expected '::' to reference a class member", p.stream.PeekTokenAt(0).Pos)
+		}
+
+		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			return "", NewParserError("Expected identifier after '::'", p.stream.PeekTokenAt(0).Pos)
+		}
+		target = target + "::" + tok.Literal
+	}
+	return target, nil
+}
+
+func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
+	// Entry token is supposedly the first identifier
+	var err error
+	var rel ast.Relationship
+	rel.LHS, err = p.parseRelationshipTarget(firstTargetTok)
+	if err != nil {
+		return err
+	}
+
+	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
+		if err != nil {
+			return NewParserError(fmt.Sprintf("Invalid cardinality: %s", err.Error()), multTok.Pos)
+		}
+	}
+
+	p.parseRelTokens(rel)
+
+	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
+		if err != nil {
+			return NewParserError(fmt.Sprintf("Invalid cardinality: %s", err.Error()), multTok.Pos)
+		}
+	}
+
+	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
+		return NewParserError("Expected identifier or string after relationship", p.stream.PeekTokenAt(0).Pos)
+	}
+	rel.RHS, err = p.parseRelationshipTarget(p.stream.Emit())
+	if err != nil {
+		return err
+	}
+
+	endingToken := p.stream.Emit()
+	switch endingToken.Type {
+	case tokenizer.NEWLINE, tokenizer.EOF:
+		break
+	case tokenizer.COLON:
+		p.stream.SetRawMode("\n")
+		rel.Label = p.stream.MustConsumeType(tokenizer.STRING).Literal
+		if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+			return NewParserError("Expected newline after relationship label", endingToken.Pos)
+		}
+	default:
+		return NewParserError("Expected newline or colon after relationship", endingToken.Pos)
+	}
+
+	p.ast.Statements = append(p.ast.Statements, rel)
+	return nil
+}
+
+func (p *Parser) parseRelTokens(rel ast.Relationship) error {
+	firstIteration := true
+	for {
+		tok := p.stream.Emit()
+		switch tok.Type {
+		case tokenizer.EOF, tokenizer.NEWLINE:
+			return tokenizer.ErrUnexpectedEOF
+		case tokenizer.LBRACKET:
+			// TODO: handle attributes
+		case tokenizer.DOT, tokenizer.DASH:
+			// Body of relationship
+		case tokenizer.LANGLE, tokenizer.RBRACE:
+			if !firstIteration {
+				return NewParserError("Unexpected token in relationship definition", tok.Pos)
+			}
+			// position DEPENDENT start tokens
+		case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+			// position INDEPENDENT start and end tokens
+		case tokenizer.PIPE:
+			// should only be encountered on: --|>, case
+		case tokenizer.IDENTIFIER:
+			// special case for 'x' and 'o' in relationship
+			if firstIteration && tok.Literal != "x" && tok.Literal != "o" {
+				return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
+			}
+		}
+		if firstIteration {
+			firstIteration = false
+		}
+	}
 }

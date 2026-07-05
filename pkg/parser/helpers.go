@@ -75,7 +75,7 @@ func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKin
 	switch tok {
 	case tokenizer.PLUS:
 		return ast.Public
-	case tokenizer.HYPHEN:
+	case tokenizer.DASH:
 		return ast.Private
 	case tokenizer.HASH:
 		return ast.Protected

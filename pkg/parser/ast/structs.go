@@ -95,14 +95,17 @@ func (c Container) StatementNode() any {
 }
 
 type Relationship struct {
-	From string
-	To   string
+	LHS  string
+	RHS  string
 	Type RelationType
 
-	MultiplicityFrom Cardinality
-	MultiplicityTo   Cardinality
+	MultLHS Cardinality
+	MultRHS Cardinality
+
+	// Arrow itself
 
 	Label string
+	Attrs []string
 }
 
 var _ Statement = Relationship{}
