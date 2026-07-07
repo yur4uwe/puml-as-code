@@ -391,28 +391,376 @@ func TestParseEntityMember(t *testing.T) {
 	}
 }
 
-func TestParseRelationship(t *testing.T) {
+func TestParseArrowTokens(t *testing.T) {
 	tests := []struct {
-		name string // description of this test case
-		// Named input parameters for target function.
-		firstTargetTok tokenizer.Token
-		wantErr        bool
+		name        string
+		input       string
+		want        *ast.Relationship
+		expectErr   bool
+		errContains string
 	}{
-		// TODO: Add test cases.
+		{
+			name:  "simple solid right arrow",
+			input: "-->",
+			want: &ast.Relationship{
+				Body:   '-',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "simple solid right arrow short",
+			input: "->",
+			want: &ast.Relationship{
+				Body:   '-',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "simple dotted right arrow",
+			input: "..>",
+			want: &ast.Relationship{
+				Body:   '.',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "double-headed arrow solid",
+			input: "<-->",
+			want: &ast.Relationship{
+				LArrow: '<',
+				Body:   '-',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "double-headed arrow dotted",
+			input: "<..>",
+			want: &ast.Relationship{
+				LArrow: '<',
+				Body:   '.',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "left extension solid right arrow",
+			input: "<|-->",
+			want: &ast.Relationship{
+				LArrow: '|',
+				Body:   '-',
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "solid right extension arrow",
+			input: "--|>",
+			want: &ast.Relationship{
+				Body:   '-',
+				RArrow: '|',
+			},
+		},
+		{
+			name:  "double extension solid",
+			input: "<|--|>",
+			want: &ast.Relationship{
+				LArrow: '|',
+				Body:   '-',
+				RArrow: '|',
+			},
+		},
+		{
+			name:  "curly braces left/right",
+			input: "}--{",
+			want: &ast.Relationship{
+				LArrow: '}',
+				Body:   '-',
+				RArrow: '{',
+			},
+		},
+		{
+			name:  "curly braces dotted left/right",
+			input: "}..{",
+			want: &ast.Relationship{
+				LArrow: '}',
+				Body:   '.',
+				RArrow: '{',
+			},
+		},
+		{
+			name:  "lolipop right arrowhead",
+			input: "--()",
+			want: &ast.Relationship{
+				Body:   '-',
+				RArrow: '(',
+			},
+		},
+		{
+			name:        "less-than pipe greater-than diamond/extension",
+			input:       "<|>",
+			expectErr:   true,
+			errContains: "Unexpected token as the relationship body",
+			want: &ast.Relationship{
+				LArrow: '|',
+			},
+		},
+		{
+			name:  "custom 'x' left/right",
+			input: "x--x",
+			want: &ast.Relationship{
+				LArrow: 'x',
+				Body:   '-',
+				RArrow: 'x',
+			},
+		},
+		{
+			name:  "custom 'o' left/right",
+			input: "o--o",
+			want: &ast.Relationship{
+				LArrow: 'o',
+				Body:   '-',
+				RArrow: 'o',
+			},
+		},
+		{
+			name:  "asterisk left/right",
+			input: "*--*",
+			want: &ast.Relationship{
+				LArrow: '*',
+				Body:   '-',
+				RArrow: '*',
+			},
+		},
+		{
+			name:  "plus left/right",
+			input: "+--+",
+			want: &ast.Relationship{
+				LArrow: '+',
+				Body:   '-',
+				RArrow: '+',
+			},
+		},
+		{
+			name:  "caret left/right",
+			input: "^--^",
+			want: &ast.Relationship{
+				LArrow: '^',
+				Body:   '-',
+				RArrow: '^',
+			},
+		},
+		{
+			name:  "hash left/right",
+			input: "#--#",
+			want: &ast.Relationship{
+				LArrow: '#',
+				Body:   '-',
+				RArrow: '#',
+			},
+		},
+		{
+			name:  "left direction",
+			input: "-left->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Direction: ast.Left,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "right direction",
+			input: "-right->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Direction: ast.Right,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "up direction",
+			input: "-up->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Direction: ast.Top,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "down direction",
+			input: "-down->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Direction: ast.Bottom,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "single attribute",
+			input: "-[foo]->",
+			want: &ast.Relationship{
+				Body:   '-',
+				Attrs:  []string{"foo"},
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "multiple attributes",
+			input: "-[foo,bar]->",
+			want: &ast.Relationship{
+				Body:   '-',
+				Attrs:  []string{"foo", "bar"},
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "attributes and direction",
+			input: "-[foo]left->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Attrs:     []string{"foo"},
+				Direction: ast.Left,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "direction and attributes",
+			input: "-left[foo]->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Attrs:     []string{"foo"},
+				Direction: ast.Left,
+				RArrow:    '>',
+			},
+		},
+		{
+			name:  "multitoken attributes",
+			input: "-[#foo,%bar]->",
+			want: &ast.Relationship{
+				Body:   '-',
+				Attrs:  []string{"#foo", "%bar"},
+				RArrow: '>',
+			},
+		},
+		{
+			name:  "no arrowheads solid",
+			input: "--",
+			want: &ast.Relationship{
+				Body: '-',
+			},
+		},
+		{
+			name:  "no arrowheads dotted",
+			input: "..",
+			want: &ast.Relationship{
+				Body: '.',
+			},
+		},
+		{
+			name:        "empty input error",
+			input:       "",
+			expectErr:   true,
+			errContains: "Unexpected token at the start of relationship definition",
+		},
+		{
+			name:        "invalid starting token error",
+			input:       "@",
+			expectErr:   true,
+			errContains: "Unexpected token at the start of relationship definition",
+		},
+		{
+			name:        "missing trailing body rune error",
+			input:       "-up>",
+			expectErr:   true,
+			errContains: "Unexpected token in body relationship definition",
+		},
+		{
+			name:        "invalid top direction value error",
+			input:       "-top->",
+			expectErr:   true,
+			errContains: "Unexpected direction in relationship",
+		},
+		{
+			name:        "invalid bottom direction value error",
+			input:       "-bottom->",
+			expectErr:   true,
+			errContains: "Unexpected direction in relationship",
+		},
+		{
+			name:        "invalid identifier error",
+			input:       "-foo->",
+			expectErr:   true,
+			errContains: "Unexpected identifier in relationship definition",
+		},
+		{
+			name:        "unexpected separator inside direction error",
+			input:       "-left-[foo]->",
+			expectErr:   true,
+			errContains: "Cannot separate direction and attributes with a body token",
+		},
+		{
+			name:        "unclosed pipe extension error",
+			input:       "--|",
+			expectErr:   true,
+			errContains: "Expected '|>' after relationship",
+		},
+		{
+			name:        "lolipop right after direction error",
+			input:       "-left-()",
+			expectErr:   true,
+			errContains: "Lolipop interface cannot contain direction or attributes",
+		},
+		{
+			name:        "lolipop right after attributes error",
+			input:       "-[foo]-()",
+			expectErr:   true,
+			errContains: "Lolipop interface cannot contain direction or attributes",
+		},
+		{
+			name:        "mixed body types error",
+			input:       "-.-",
+			expectErr:   true,
+			errContains: "Different body type runes in relationship",
+		},
+		{
+			name:        "unclosed attributes at EOF error",
+			input:       "-[foo",
+			expectErr:   true,
+			errContains: "Unexpected break in relationship attribute container",
+		},
+		{
+			name:        "unclosed attributes at newline error",
+			input:       "-[foo\n",
+			expectErr:   true,
+			errContains: "Unexpected break in relationship attribute container",
+		},
+		{
+			name:        "missing attribute (double comma)",
+			input:       "-[foo,,bar]->",
+			expectErr:   true,
+			errContains: "Unexpected comma in relationship attribute container",
+			want: &ast.Relationship{
+				Body:  '-',
+				Attrs: []string{"foo"},
+			},
+		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// TODO: construct the receiver type.
-			var p Parser
-			gotErr := p.parseRelationship(tt.firstTargetTok)
-			if gotErr != nil {
-				if !tt.wantErr {
-					t.Errorf("parseRelationship() failed: %v", gotErr)
-				}
-				return
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream: tokenizer.NewTokenStream(tc.input),
 			}
-			if tt.wantErr {
-				t.Fatal("parseRelationship() succeeded unexpectedly")
+			var got ast.Relationship
+			err := p.parseArrowTokens(&got)
+			if tc.expectErr {
+				require.Error(t, err)
+				if tc.errContains != "" {
+					require.Contains(t, err.Error(), tc.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+			}
+
+			if tc.want != nil {
+				require.Equal(t, *tc.want, got)
 			}
 		})
 	}

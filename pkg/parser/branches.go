@@ -562,7 +562,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 		}
 	}
 
-	p.parseRelTokens(&rel)
+	p.parseArrowTokens(&rel)
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
@@ -597,102 +597,170 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 	return nil
 }
 
-func (p *Parser) parseRelTokens(rel *ast.Relationship) error {
-	firstIteration := true
-	for tok := p.stream.Emit(); ; tok = p.stream.Emit() {
-		switch tok.Type {
-		case tokenizer.EOF, tokenizer.NEWLINE:
-			return tokenizer.ErrUnexpectedEOF
-		case tokenizer.DOT, tokenizer.DASH:
-			if rel.Body == 0 {
-				// set the body type
-				if len(tok.Literal) != 1 {
-					return NewParserError("Unexpected body type rune in relationship", tok.Pos)
-				}
-				rel.Body = rune(tok.Literal[0])
-			} else if rel.Body != rune(tok.Literal[0]) {
-				return NewParserError("Different body type runes in relationship", tok.Pos)
-			}
+func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
+	var sawDirection, sawAttrs, isLolipop bool
+	tok := p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.LANGLE:
+		if pipeTok, ok := p.stream.TryConsumeType(tokenizer.PIPE); ok {
+			tok = pipeTok
+		}
+		fallthrough
+	case tokenizer.RBRACE:
+		rel.LArrow = rune(tok.Literal[0])
+	// lolipop interface
+	case tokenizer.LPAREN:
+		p.stream.MustConsumeType(tokenizer.RPAREN)
+		isLolipop = true
+		rel.LArrow = rune(tok.Literal[0])
+	// position INDEPENDENT start and end tokens
+	case tokenizer.IDENTIFIER:
+		// special case for 'x' and 'o' in relationship
+		if tok.Literal != "x" && tok.Literal != "o" {
+			return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
+		}
+		fallthrough
+	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+		rel.LArrow = rune(tok.Literal[0])
+	case tokenizer.DOT, tokenizer.DASH: // so that encountering them doesn't cause an error
+	default:
+		return NewParserError("Unexpected token at the start of relationship definition", tok.Pos)
+	}
 
-			// We check these cases in order to be able to assert this squence:
-			// -[attrs]->
-			//    or
-			// -dir->
-			//
-			// WIP: the -dir[attrs]-> and -[attrs]dir-> cases aren't supported yet
-			if tok, ok := p.stream.TryConsumeType(tokenizer.DIRECTION); ok {
-				var dir ast.DirectionKind
-				switch tok.Literal {
-				case "left", "l", "le":
-					dir = ast.Left
-				case "right", "r", "ri":
-					dir = ast.Right
-				case "up", "u":
-					dir = ast.Top
-				case "down", "d", "do":
-					dir = ast.Bottom
-				default:
-					return NewParserError("Unexpected direction in relationship", tok.Pos)
-				}
-				rel.Direction = dir
-			}
-			if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
-				// We have matched attribute container start
-				// after the body, now - parse the attributes
-				var attrSB strings.Builder
-				for tok = p.stream.Emit(); tok.Type != tokenizer.RBRACKET; tok = p.stream.Emit() {
-					switch tok.Type {
-					case tokenizer.EOF, tokenizer.NEWLINE:
-						return NewParserError("Unexpected break in relationship attribute container", tok.Pos)
-					case tokenizer.COMMA:
-						rel.Attrs = append(rel.Attrs, attrSB.String())
-						attrSB.Reset()
-						continue
+	if tok.Type != tokenizer.DOT && tok.Type != tokenizer.DASH {
+		tok = p.stream.Emit() // consume the asserted start token, if any
+	}
+
+	bodyTokType := tok.Type
+	var oppositeBodyTokType tokenizer.TokenType
+	switch bodyTokType {
+	case tokenizer.DOT:
+		oppositeBodyTokType = tokenizer.DASH
+	case tokenizer.DASH:
+		oppositeBodyTokType = tokenizer.DOT
+	default:
+		return NewParserError("Unexpected token as the relationship body", tok.Pos)
+	}
+	var ok bool
+	rel.Body = rune(tok.Literal[0])
+	for tok.Type != tokenizer.EOF && tok.Type != tokenizer.NEWLINE {
+		if tok, ok = p.stream.TryConsumeType(bodyTokType); ok {
+			continue
+		} else if tok, ok = p.stream.TryConsumeType(oppositeBodyTokType); ok {
+			// Simply convenient error message
+			return NewParserError("Different body type runes in relationship", tok.Pos)
+		}
+		if !p.stream.AssertAnyType(tokenizer.LBRACKET, tokenizer.DIRECTION) {
+			break
+		} else if sawAttrs || sawDirection {
+			return NewParserError("Cannot separate direction and attributes with a body token", tok.Pos)
+		}
+
+		if isLolipop {
+			return NewParserError("Lolipop interface cannot contain attributes or direction", tok.Pos)
+		}
+
+		// We check these cases in order to be able to assert this squence:
+		// -[attrs]->
+		//    or
+		// -dir->
+		//    or
+		// -[attrs]dir-> / -dir[attrs]->
+		for range 2 {
+			if !sawDirection {
+				if tok, ok := p.stream.TryConsumeType(tokenizer.DIRECTION); ok {
+					sawDirection = true
+					var dir ast.DirectionKind
+					switch tok.Literal {
+					case "left", "l", "le":
+						dir = ast.Left
+					case "right", "r", "ri":
+						dir = ast.Right
+					case "up", "u":
+						dir = ast.Top
+					case "down", "d", "do":
+						dir = ast.Bottom
 					default:
-						attrSB.WriteString(tok.Literal)
+						return NewParserError("Unexpected direction in relationship", tok.Pos)
+					}
+					rel.Direction = dir
+				}
+			}
+			if !sawAttrs {
+				if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
+					sawAttrs = true
+					// We have matched attribute container start
+					// after the body, now - parse the attributes
+					var attrSB strings.Builder
+					for tok = p.stream.Emit(); tok.Type != tokenizer.RBRACKET; tok = p.stream.Emit() {
+						switch tok.Type {
+						case tokenizer.EOF, tokenizer.NEWLINE:
+							return NewParserError("Unexpected break in relationship attribute container", tok.Pos)
+						case tokenizer.COMMA:
+							if attrSB.Len() == 0 {
+								return NewParserError("Unexpected comma in relationship attribute container", tok.Pos)
+							}
+							rel.Attrs = append(rel.Attrs, attrSB.String())
+							attrSB.Reset()
+							continue // actually useless, added for readability
+						default:
+							attrSB.WriteString(tok.Literal)
+						}
+					}
+					if attrSB.Len() > 0 {
+						rel.Attrs = append(rel.Attrs, attrSB.String())
 					}
 				}
 			}
-
-			tok = p.stream.Emit() // consume trailing arrow body rune
-			// rel.Body must be set at this point
-			if len(tok.Literal) != 1 || rel.Body != rune(tok.Literal[0]) {
-				return NewParserError("Different body type runes in relationship", tok.Pos)
-			}
-		case tokenizer.LANGLE, tokenizer.RBRACE:
-			if !firstIteration {
-				return NewParserError("Unexpected token in relationship definition", tok.Pos)
-			}
-			rel.LArrow = rune(tok.Literal[0])
-			// position DEPENDENT start tokens
-		case tokenizer.PIPE:
-			// should only be encountered on --|> case as the end of the relationship
-			if _, ok := p.stream.TryConsumeType(tokenizer.RANGLE); !ok {
-				return NewParserError("Expected '|>' after relationship", tok.Pos)
-			}
-			fallthrough
-		case tokenizer.RANGLE, tokenizer.LBRACE:
-			// will return as this is the end of the relationship
-			if len(tok.Literal) != 1 {
-				return NewParserError("Unexpected arrow rune in relationship", tok.Pos)
-			}
-			rel.RArrow = rune(tok.Literal[0])
-			return nil
-		case tokenizer.LPAREN:
-			// lolipop interface
-		case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
-			// position INDEPENDENT start and end tokens
-		case tokenizer.IDENTIFIER:
-			// special case for 'x' and 'o' in relationship
-			if firstIteration && tok.Literal != "x" && tok.Literal != "o" {
-				return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
-			}
-			if !firstIteration {
-				return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
-			}
 		}
-		if firstIteration {
-			firstIteration = false
+		// If none matched, we mustn't consume trailing arrow body rune
+		if !sawAttrs && !sawDirection {
+			continue
+		}
+
+		// consume trailing arrow body rune
+		if tok, ok = p.stream.TryConsumeType(bodyTokType); !ok {
+			return NewParserError("Unexpected token in body relationship definition", tok.Pos)
 		}
 	}
+
+	tok = p.stream.PeekTokenAt(0)
+	switch tok.Type {
+	case tokenizer.PIPE:
+		// should only be encountered on --|> case as the end of the relationship
+		p.stream.Emit()
+		if _, ok := p.stream.TryConsumeType(tokenizer.RANGLE); !ok {
+			return NewParserError("Expected '|>' after relationship", tok.Pos)
+		}
+		fallthrough
+	case tokenizer.RANGLE, tokenizer.LBRACE:
+		p.stream.Emit()
+		// will return as this is the end of the relationship
+		rel.RArrow = rune(tok.Literal[0])
+	// lolipop interface
+	case tokenizer.LPAREN:
+		if sawDirection || sawAttrs {
+			return NewParserError("Lolipop interface cannot contain direction or attributes", tok.Pos)
+		}
+		if isLolipop {
+			return NewParserError("Cannot have double headed lolipop relationship", tok.Pos)
+		}
+		p.stream.Emit()
+		p.stream.MustConsumeType(tokenizer.RPAREN)
+		rel.RArrow = rune(tok.Literal[0])
+	// position INDEPENDENT start and end tokens
+	case tokenizer.IDENTIFIER:
+		// special case for 'x' and 'o' in relationship
+		if tok.Literal != "x" && tok.Literal != "o" {
+			return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
+		}
+		fallthrough
+	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+		p.stream.Emit()
+		rel.RArrow = rune(tok.Literal[0])
+	}
+	if rel.Body == 0 {
+		return NewParserError("Missing body in the relationship", tok.Pos)
+	}
+	return nil
 }
