@@ -562,7 +562,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 		}
 	}
 
-	p.parseRelTokens(rel)
+	p.parseRelTokens(&rel)
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
@@ -597,29 +597,97 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 	return nil
 }
 
-func (p *Parser) parseRelTokens(rel ast.Relationship) error {
+func (p *Parser) parseRelTokens(rel *ast.Relationship) error {
 	firstIteration := true
-	for {
-		tok := p.stream.Emit()
+	for tok := p.stream.Emit(); ; tok = p.stream.Emit() {
 		switch tok.Type {
 		case tokenizer.EOF, tokenizer.NEWLINE:
 			return tokenizer.ErrUnexpectedEOF
-		case tokenizer.LBRACKET:
-			// TODO: handle attributes
 		case tokenizer.DOT, tokenizer.DASH:
-			// Body of relationship
+			if rel.Body == 0 {
+				// set the body type
+				if len(tok.Literal) != 1 {
+					return NewParserError("Unexpected body type rune in relationship", tok.Pos)
+				}
+				rel.Body = rune(tok.Literal[0])
+			} else if rel.Body != rune(tok.Literal[0]) {
+				return NewParserError("Different body type runes in relationship", tok.Pos)
+			}
+
+			// We check these cases in order to be able to assert this squence:
+			// -[attrs]->
+			//    or
+			// -dir->
+			//
+			// WIP: the -dir[attrs]-> and -[attrs]dir-> cases aren't supported yet
+			if tok, ok := p.stream.TryConsumeType(tokenizer.DIRECTION); ok {
+				var dir ast.DirectionKind
+				switch tok.Literal {
+				case "left", "l", "le":
+					dir = ast.Left
+				case "right", "r", "ri":
+					dir = ast.Right
+				case "up", "u":
+					dir = ast.Top
+				case "down", "d", "do":
+					dir = ast.Bottom
+				default:
+					return NewParserError("Unexpected direction in relationship", tok.Pos)
+				}
+				rel.Direction = dir
+			}
+			if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
+				// We have matched attribute container start
+				// after the body, now - parse the attributes
+				var attrSB strings.Builder
+				for tok = p.stream.Emit(); tok.Type != tokenizer.RBRACKET; tok = p.stream.Emit() {
+					switch tok.Type {
+					case tokenizer.EOF, tokenizer.NEWLINE:
+						return NewParserError("Unexpected break in relationship attribute container", tok.Pos)
+					case tokenizer.COMMA:
+						rel.Attrs = append(rel.Attrs, attrSB.String())
+						attrSB.Reset()
+						continue
+					default:
+						attrSB.WriteString(tok.Literal)
+					}
+				}
+			}
+
+			tok = p.stream.Emit() // consume trailing arrow body rune
+			// rel.Body must be set at this point
+			if len(tok.Literal) != 1 || rel.Body != rune(tok.Literal[0]) {
+				return NewParserError("Different body type runes in relationship", tok.Pos)
+			}
 		case tokenizer.LANGLE, tokenizer.RBRACE:
 			if !firstIteration {
 				return NewParserError("Unexpected token in relationship definition", tok.Pos)
 			}
+			rel.LArrow = rune(tok.Literal[0])
 			// position DEPENDENT start tokens
+		case tokenizer.PIPE:
+			// should only be encountered on --|> case as the end of the relationship
+			if _, ok := p.stream.TryConsumeType(tokenizer.RANGLE); !ok {
+				return NewParserError("Expected '|>' after relationship", tok.Pos)
+			}
+			fallthrough
+		case tokenizer.RANGLE, tokenizer.LBRACE:
+			// will return as this is the end of the relationship
+			if len(tok.Literal) != 1 {
+				return NewParserError("Unexpected arrow rune in relationship", tok.Pos)
+			}
+			rel.RArrow = rune(tok.Literal[0])
+			return nil
+		case tokenizer.LPAREN:
+			// lolipop interface
 		case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
 			// position INDEPENDENT start and end tokens
-		case tokenizer.PIPE:
-			// should only be encountered on: --|>, case
 		case tokenizer.IDENTIFIER:
 			// special case for 'x' and 'o' in relationship
 			if firstIteration && tok.Literal != "x" && tok.Literal != "o" {
+				return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
+			}
+			if !firstIteration {
 				return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
 			}
 		}

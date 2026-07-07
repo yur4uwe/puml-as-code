@@ -390,3 +390,30 @@ func TestParseEntityMember(t *testing.T) {
 		})
 	}
 }
+
+func TestParseRelationship(t *testing.T) {
+	tests := []struct {
+		name string // description of this test case
+		// Named input parameters for target function.
+		firstTargetTok tokenizer.Token
+		wantErr        bool
+	}{
+		// TODO: Add test cases.
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// TODO: construct the receiver type.
+			var p Parser
+			gotErr := p.parseRelationship(tt.firstTargetTok)
+			if gotErr != nil {
+				if !tt.wantErr {
+					t.Errorf("parseRelationship() failed: %v", gotErr)
+				}
+				return
+			}
+			if tt.wantErr {
+				t.Fatal("parseRelationship() succeeded unexpectedly")
+			}
+		})
+	}
+}

@@ -95,14 +95,20 @@ func (c Container) StatementNode() any {
 }
 
 type Relationship struct {
-	LHS  string
-	RHS  string
-	Type RelationType
+	LHS       string
+	RHS       string
+	Type      RelationType
+	Direction DirectionKind
 
 	MultLHS Cardinality
 	MultRHS Cardinality
 
 	// Arrow itself
+	Body           rune // '-', '.'
+	LArrow, RArrow rune // '<'/'>', etc.
+	// Special case for left/righ arrow rune of relationship:
+	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
+	// which would have end = '>'
 
 	Label string
 	Attrs []string
@@ -167,6 +173,13 @@ type Diagram struct {
 	Statements []Statement
 }
 
+// DirectionKind is a multi-purpose enum for representing literal directions
+//
+// Possible values:
+//   - Left
+//   - Right
+//   - Top
+//   - Bottom
 type DirectionKind int
 
 const (
