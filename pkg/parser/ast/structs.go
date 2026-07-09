@@ -171,6 +171,8 @@ type Diagram struct {
 	Name       string
 	Title      string
 	Statements []Statement
+	Skinparam  Skinparam
+	Styles     []string // TODO: should be an actual struct and not collection of strings
 }
 
 // DirectionKind is a multi-purpose enum for representing literal directions

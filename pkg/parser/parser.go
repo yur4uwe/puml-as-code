@@ -33,17 +33,13 @@ func WrapParserError(err error, pos tokenizer.TokenPos) error {
 }
 
 type Parser struct {
-	symbolTable map[string]*ast.Entity
-	ast         *ast.Diagram
-	stream      *tokenizer.TokenStream
-	skinparam   ast.Skinparam
-	styles      []string // TODO: should be an actual struct and not collection of strings
-	dialect     dialect.Dialect
+	ast     *ast.Diagram
+	stream  *tokenizer.TokenStream
+	dialect dialect.Dialect
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	p.ast = &ast.Diagram{}
-	p.symbolTable = make(map[string]*ast.Entity)
 
 	p.stream = tokenizer.NewTokenStream(input)
 
@@ -94,61 +90,81 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle Identifiers
 
 		var err error
-		switch tok.Type {
-		case tokenizer.TITLE:
-			err = p.parseTitle()
-		case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
-			err = p.parseVisibilityCommand(tok)
-		case tokenizer.SCALE:
-			err = p.parseScale()
-		case tokenizer.LANGLE, tokenizer.SKINPARAM:
-			if p.stream.AssertType(tokenizer.RANGLE) {
-				// Successfully matched "<>", shorthand for diamond
-				p.ast.Statements = append(p.ast.Statements, ast.Entity{
-					Kind: ast.DiamondKind,
-				})
-				continue
-			}
-			err = p.parseStyles(tok)
-		case tokenizer.EXCLAMATION:
-		case tokenizer.DIRECTION:
-			err = p.parseDiagDirection(tok)
-
-		// Class-like Entities
-		case tokenizer.CLASS,
-			tokenizer.INTERFACE,
-			tokenizer.STRUCT,
-			tokenizer.ABSTRACT,
-			tokenizer.ENUM,
-			tokenizer.ANNOTATION,
-			tokenizer.RECORD,
-			tokenizer.DATACLASS,
-			tokenizer.EXCEPTION,
-			tokenizer.PROTOCOL:
-			ent, err := p.parseEntity(tok)
-			if err != nil {
-				return nil, err
-			}
-			p.ast.Statements = append(p.ast.Statements, ent)
-			p.symbolTable[ent.Identifier] = ent
-
-		// Containers
-		case tokenizer.PACKAGE, tokenizer.TOGETHER:
-			err = p.parseContainer(tok)
-
-		// Special Keywords
-		case tokenizer.NOTE:
-			err = p.parseNote(tok)
-		// Handle short-form circle: ()
-		case tokenizer.LPAREN:
-		case tokenizer.IDENTIFIER, tokenizer.STRING:
-			// TODO: handle relationships
-		}
-
+		stmt, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
+			continue
+		}
+
+		stmt, err = p.parseContainerStatement(tok)
+		if err != nil {
+			return nil, err
+		}
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
+			continue
+		}
+
 	}
 
 	return p.ast, nil
+}
+
+func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
+	switch tok.Type {
+	// Class-like Entities
+	case tokenizer.CLASS,
+		tokenizer.INTERFACE,
+		tokenizer.STRUCT,
+		tokenizer.ABSTRACT,
+		tokenizer.ENUM,
+		tokenizer.ANNOTATION,
+		tokenizer.RECORD,
+		tokenizer.DATACLASS,
+		tokenizer.EXCEPTION,
+		tokenizer.PROTOCOL:
+		return p.parseEntity(tok)
+	// Containers
+	case tokenizer.PACKAGE, tokenizer.TOGETHER:
+		return p.parseContainer(tok)
+	// Special Keywords
+	case tokenizer.NOTE:
+		return p.parseNote(tok)
+	// Handle short-form circle: ()
+	case tokenizer.LPAREN:
+	case tokenizer.IDENTIFIER:
+		// TODO: handle relationships
+		return p.parseRelationship(tok)
+	default:
+		return nil, nil
+	}
+	panic("unreachable")
+}
+
+func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
+	switch tok.Type {
+	case tokenizer.TITLE:
+		return nil, p.parseTitle()
+	case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
+		return p.parseVisibilityCommand(tok)
+	case tokenizer.SCALE:
+		return p.parseScale()
+	case tokenizer.LANGLE, tokenizer.SKINPARAM:
+		if p.stream.AssertType(tokenizer.RANGLE) {
+			// Successfully matched "<>", shorthand for diamond
+			return ast.Entity{
+				Kind: ast.DiamondKind,
+			}, nil
+		}
+		return nil, p.parseStyles(tok)
+	case tokenizer.EXCLAMATION:
+	case tokenizer.DIRECTION:
+		return p.parseDiagDirection(tok)
+	default:
+		return nil, nil
+	}
+	panic("unreachable")
 }

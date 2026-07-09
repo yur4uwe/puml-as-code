@@ -11,7 +11,7 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) error {
+func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityCommand, error) {
 	cmd := ast.VisibilityCommand{
 		Kind: ast.Unknown,
 	}
@@ -26,11 +26,10 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) error {
 		cmd.Kind = ast.Restore
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
-	p.ast.Statements = append(p.ast.Statements, cmd)
-	return nil
+	return cmd, nil
 }
 
-func (p *Parser) parseDiagDirection(tok tokenizer.Token) error {
+func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, error) {
 	var to string
 	switch tok.Literal {
 	case "left":
@@ -56,16 +55,16 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) error {
 
 	for _, token := range expectedSeq {
 		if _, ok := p.stream.TryConsume(token); !ok {
-			return NewParserError("Unexpected diagram direction modifier", token.Pos)
+			return ast.DirectionCommand{}, NewParserError("Unexpected diagram direction modifier", token.Pos)
 		}
 	}
 	switch tok.Literal {
 	case "left":
-		p.ast.Statements = append(p.ast.Statements, ast.DirectionCommand{Direction: ast.LeftToRightDirection})
+		return ast.DirectionCommand{Direction: ast.LeftToRightDirection}, nil
 	case "top":
-		p.ast.Statements = append(p.ast.Statements, ast.DirectionCommand{Direction: ast.TopToBottomDirection})
+		return ast.DirectionCommand{Direction: ast.TopToBottomDirection}, nil
 	}
-	return nil
+	return ast.DirectionCommand{}, nil
 }
 
 func (p *Parser) parseStyles(tok tokenizer.Token) error {
@@ -76,7 +75,7 @@ func (p *Parser) parseStyles(tok tokenizer.Token) error {
 		if err != nil {
 			return NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
 		}
-		p.styles = append(p.styles, styles)
+		p.ast.Styles = append(p.ast.Styles, styles)
 		return nil
 	}
 
@@ -98,10 +97,10 @@ func (p *Parser) parseStyles(tok tokenizer.Token) error {
 
 	// skinparam combinedName value
 	value := p.stream.ReadUntilNewline()
-	return p.skinparam.SetAndDecodeWithContext(ast.SkinparamKey{Stereotype: stereo}, name, value)
+	return p.ast.Skinparam.SetAndDecodeWithContext(ast.SkinparamKey{Stereotype: stereo}, name, value)
 }
 
-func (p *Parser) parseScale() error {
+func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 	cmd := ast.ScaleCommand{}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
 		cmd.IsMax = true
@@ -111,10 +110,10 @@ func (p *Parser) parseScale() error {
 	if !ok {
 		// Try to handle 200x300 which is tokenized as an IDENTIFIER
 		if tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER); !ok {
-			return NewParserError("Expected number after scale", p.stream.PeekTokenAt(0).Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected number after scale", p.stream.PeekTokenAt(0).Pos)
 		}
 		if !strings.Contains(tok.Literal, "x") {
-			return NewParserError("Expected number after scale", tok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected number after scale", tok.Pos)
 		}
 		parts := strings.Split(tok.Literal, "x")
 		if len(parts) == 2 {
@@ -124,14 +123,14 @@ func (p *Parser) parseScale() error {
 				cmd.Width = w
 				cmd.Height = h
 				p.ast.Statements = append(p.ast.Statements, cmd)
-				return nil
+				return ast.ScaleCommand{}, nil
 			}
 		}
 	}
 
 	val, err := strconv.ParseFloat(tok.Literal, 64)
 	if err != nil {
-		return NewParserError(fmt.Sprintf("Invalid number: %s", err.Error()), tok.Pos)
+		return ast.ScaleCommand{}, NewParserError(fmt.Sprintf("Invalid number: %s", err.Error()), tok.Pos)
 	}
 
 	tok = p.stream.Emit()
@@ -141,70 +140,69 @@ func (p *Parser) parseScale() error {
 		case "width":
 			cmd.Width, ok = toInteger(val)
 			if !ok {
-				return NewParserError("Expected width to be an integer", tok.Pos)
+				return ast.ScaleCommand{}, NewParserError("Expected width to be an integer", tok.Pos)
 			}
 		case "height":
 			cmd.Height, ok = toInteger(val)
 			if !ok {
-				return NewParserError("Expected height to be an integer", tok.Pos)
+				return ast.ScaleCommand{}, NewParserError("Expected height to be an integer", tok.Pos)
 			}
 		case "x":
 			cmd.Width, ok = toInteger(val)
 			if !ok {
-				return NewParserError("Expected width to be an integer", tok.Pos)
+				return ast.ScaleCommand{}, NewParserError("Expected width to be an integer", tok.Pos)
 			}
 			heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 			if !ok {
-				return NewParserError("Expected height after 'x'", p.stream.PeekTokenAt(0).Pos)
+				return ast.ScaleCommand{}, NewParserError("Expected height after 'x'", p.stream.PeekTokenAt(0).Pos)
 			}
 			h, err := strconv.Atoi(heightTok.Literal)
 			if err != nil {
-				return NewParserError("Invalid height", heightTok.Pos)
+				return ast.ScaleCommand{}, NewParserError("Invalid height", heightTok.Pos)
 			}
 			cmd.Height = h
 		default:
-			return NewParserError(fmt.Sprintf("Unexpected identifier: %s", tok.Literal), tok.Pos)
+			return ast.ScaleCommand{}, NewParserError(fmt.Sprintf("Unexpected identifier: %s", tok.Literal), tok.Pos)
 		}
 	case tokenizer.ASTERISK:
 		cmd.Width, ok = toInteger(val)
 		if !ok {
-			return NewParserError("Expected width to be an integer", tok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected width to be an integer", tok.Pos)
 		}
 		heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 		if !ok {
-			return NewParserError("Expected height after '*'", p.stream.PeekTokenAt(0).Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected height after '*'", p.stream.PeekTokenAt(0).Pos)
 		}
 		h, err := strconv.Atoi(heightTok.Literal)
 		if err != nil {
-			return NewParserError("Invalid height", heightTok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Invalid height", heightTok.Pos)
 		}
 		cmd.Height = h
 	case tokenizer.SLASH:
 		numer, ok := toInteger(val)
 		if !ok {
-			return NewParserError("Expected numerator to be an integer", tok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected numerator to be an integer", tok.Pos)
 		}
 		denomTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 		if !ok {
-			return NewParserError("Expected denominator after '/'", p.stream.PeekTokenAt(0).Pos)
+			return ast.ScaleCommand{}, NewParserError("Expected denominator after '/'", p.stream.PeekTokenAt(0).Pos)
 		}
 		denom, err := strconv.Atoi(denomTok.Literal)
 		if err != nil {
-			return NewParserError("Invalid denominator", denomTok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Invalid denominator", denomTok.Pos)
 		}
 		if denom == 0 {
-			return NewParserError("Denominator cannot be zero", denomTok.Pos)
+			return ast.ScaleCommand{}, NewParserError("Denominator cannot be zero", denomTok.Pos)
 		}
 		cmd.Scale = float64(numer) / float64(denom)
 	case tokenizer.NEWLINE, tokenizer.EOF:
 		// EOF handling is a special case for a test case
 		cmd.Scale = val
 	default:
-		return NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok.Pos)
+		return ast.ScaleCommand{}, NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok.Pos)
 	}
 
-	p.ast.Statements = append(p.ast.Statements, cmd)
-	return nil
+	return cmd, nil
 }
 
 func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
@@ -444,11 +442,47 @@ outer:
 	}
 }
 
-func (p *Parser) parseContainer(tok tokenizer.Token) error {
-	panic("unimplemented")
+func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
+	var container ast.Container
+
+	// Handle container name, alias, stereotype, color
+	if tok.Type != tokenizer.TOGETHER {
+		if stringTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+			container.Alias = stringTok.Literal
+		} else if identTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
+			container.Name = identTok.Literal
+		}
+		if aliasTok, ok := p.stream.TryConsumeType(tokenizer.ALIAS); ok {
+			if stringTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+			} else if identTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
+			}
+		}
+	}
+
+	for {
+		if p.stream.AssertType(tokenizer.RBRACE) {
+			break
+		}
+
+		tok := p.stream.Emit()
+		if tok.Type == tokenizer.EOF {
+			return container, tokenizer.ErrUnexpectedEOF
+		}
+
+		// Only parse statements allowed in containers
+		stmt, err := p.parseContainerStatement(tok)
+		if err != nil {
+			return container, err
+		}
+		if stmt != nil {
+			return container, NewParserError("Unexpected statement in container body", tok.Pos)
+		}
+		container.Statements = append(container.Statements, stmt)
+	}
+	return container, nil
 }
 
-func (p *Parser) parseNote(tok tokenizer.Token) error {
+func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
 	// tok is a keyword 'note'
 	var note ast.Note
 	var err error
@@ -466,10 +500,9 @@ func (p *Parser) parseNote(tok tokenizer.Token) error {
 		err = NewParserError("Expected direction, string, note position or alias after 'note'", tok.Pos)
 	}
 	if err != nil {
-		return err
+		return note, err
 	}
-	p.ast.Statements = append(p.ast.Statements, note)
-	return nil
+	return note, nil
 }
 
 func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
@@ -639,7 +672,7 @@ func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 		if stereo != "" {
 			newKey.Stereotype = stereo
 		}
-		if err := p.skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
+		if err := p.ast.Skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
 			return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
 		}
 	}
@@ -685,19 +718,19 @@ func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string,
 	return target, nil
 }
 
-func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
+func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relationship, error) {
 	// Entry token is supposedly the first identifier
 	var err error
 	var rel ast.Relationship
 	rel.LHS, err = p.parseRelationshipTarget(firstTargetTok)
 	if err != nil {
-		return err
+		return rel, err
 	}
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return WrapParserError(err, multTok.Pos)
+			return rel, WrapParserError(err, multTok.Pos)
 		}
 	}
 
@@ -706,16 +739,16 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return WrapParserError(err, multTok.Pos)
+			return rel, WrapParserError(err, multTok.Pos)
 		}
 	}
 
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
-		return NewParserError("Expected identifier or string after relationship", p.stream.PeekTokenAt(0).Pos)
+		return rel, NewParserError("Expected identifier or string after relationship", p.stream.PeekTokenAt(0).Pos)
 	}
 	rel.RHS, err = p.parseRelationshipTarget(p.stream.Emit())
 	if err != nil {
-		return err
+		return rel, err
 	}
 
 	endingToken := p.stream.Emit()
@@ -726,14 +759,13 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 		p.stream.SetRawMode("\n")
 		rel.Label = p.stream.MustConsumeType(tokenizer.STRING).Literal
 		if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-			return NewParserError("Expected newline after relationship label", endingToken.Pos)
+			return rel, NewParserError("Expected newline after relationship label", endingToken.Pos)
 		}
 	default:
-		return NewParserError("Expected newline or colon after relationship", endingToken.Pos)
+		return rel, NewParserError("Expected newline or colon after relationship", endingToken.Pos)
 	}
 
-	p.ast.Statements = append(p.ast.Statements, rel)
-	return nil
+	return rel, nil
 }
 
 func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
