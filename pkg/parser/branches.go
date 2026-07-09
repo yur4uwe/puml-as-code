@@ -458,12 +458,12 @@ func (p *Parser) parseNote(tok tokenizer.Token) error {
 		note, err = p.parseReltiveNote(tok)
 	case tokenizer.STRING:
 		note, err = p.parseInlineAliasNote(tok)
-	case tokenizer.IDENTIFIER:
+	case tokenizer.NOTE_POSITION:
 		note, err = p.parseLinkNote(tok)
 	case tokenizer.ALIAS:
 		note, err = p.parseMultilineAliasNote()
 	default:
-		err = NewParserError("Expected direction, string or alias after 'note'", tok.Pos)
+		err = NewParserError("Expected direction, string, note position or alias after 'note'", tok.Pos)
 	}
 	if err != nil {
 		return err
@@ -475,19 +475,18 @@ func (p *Parser) parseNote(tok tokenizer.Token) error {
 func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	note.Direction = p.mapTokenToDirection(dirTok)
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if ok {
-		if tok.Literal != "of" && tok.Literal != "on" {
-			return note, NewParserError("Unexpected identifier after direction", tok.Pos)
-		}
+	if next, ok := p.stream.TryConsumeType(tokenizer.NOTE_POSITION); ok {
 		targetTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
 			return note, NewParserError("Expected identifier for a note target", targetTok.Pos)
 		}
-		if targetTok.Literal != "link" && tok.Literal == "on" {
+		if strings.ToLower(targetTok.Literal) != "link" && next.Literal == "on" {
 			return note, NewParserError("Unexpected identifier for a note link target", targetTok.Pos)
 		}
 		note.Target = targetTok.Literal
+	} else if next.Type == tokenizer.IDENTIFIER {
+		tok := p.stream.Emit()
+		return note, NewParserError("Unexpected identifier after direction", tok.Pos)
 	}
 	p.tryParseColor()
 	txt, err := p.parseNoteBody()
@@ -520,7 +519,7 @@ func (p *Parser) parseMultilineAliasNote() (ast.Note, error) {
 		return note, NewParserError("Expected identifier after alias keyword", tok.Pos)
 	}
 	p.tryParseColor()
-	if p.stream.AssertType(tokenizer.NEWLINE) {
+	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		return note, NewParserError("Expected newline after alias keyword", tok.Pos)
 	}
 	txt, err := p.parseNoteBody()

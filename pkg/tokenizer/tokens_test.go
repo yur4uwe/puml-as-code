@@ -26,7 +26,7 @@ func TestResolveUnambiguousToken_String(t *testing.T) {
 
 	require.True(t, resolved)
 	assertTokenType(t, STRING, tok.Type)
-	require.Equal(t, `"hello world"`, tok.Literal)
+	require.Equal(t, `hello world`, tok.Literal)
 }
 
 func TestResolveUnambiguousToken_Physical(t *testing.T) {

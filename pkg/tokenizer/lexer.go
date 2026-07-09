@@ -229,7 +229,7 @@ func lookupKeyword(ident string) TokenType {
 		return ALIAS
 	case "LEFT", "RIGHT", "UP", "DOWN", "TOP", "BOTTOM":
 		return DIRECTION
-	case "OF", "AT":
+	case "OF", "AT", "ON":
 		return NOTE_POSITION
 	}
 
@@ -419,7 +419,7 @@ func (l *Lexer) countFutureSpaces(count_from int) int {
 }
 
 func (l *Lexer) isRawModeDelimiterFollows() bool {
-	offset := 0
+	offset := 1
 	// Skip spaces on the new line to be resilient to indentation, e.g. "  end note"
 	offset += l.countFutureSpaces(offset)
 
@@ -446,17 +446,16 @@ func (l *Lexer) isRawModeDelimiterFollows() bool {
 
 func (l *Lexer) readRawUntilDelimiter() string {
 	start := l.position
-	end := l.position
 
 	for !l.isEOF() {
 		if l.ch == '\n' &&
 			(l.isRawModeDelimiterFollows() ||
 				(len(l.rawModeDelimiter) == 1 && l.rawModeDelimiter[0] == '\n')) {
 			// Do not consume the delimiter, parser must do it by itself
-			return string(l.input[start:end])
+			break
 		}
-		end++
+		l.readChar()
 	}
 
-	return string(l.input[start:end])
+	return string(l.input[start:l.position])
 }
