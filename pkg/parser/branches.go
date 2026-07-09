@@ -1,3 +1,4 @@
+// Package parser implements a parser for PlantUML files
 package parser
 
 import (
@@ -219,7 +220,7 @@ func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
 		}
 		ent.Identifier = nameOrAlias.Literal
 	default:
-		return NewParserError("Expected token for entity alias after 'as'", nameOrAlias.Pos)
+		return NewParserError("Expected token for entity identifier or alias", nameOrAlias.Pos)
 	}
 	return nil
 }
@@ -447,8 +448,147 @@ func (p *Parser) parseContainer(tok tokenizer.Token) error {
 	panic("unimplemented")
 }
 
-func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
-	panic("unimplemented")
+func (p *Parser) parseNote(tok tokenizer.Token) error {
+	// tok is a keyword 'note'
+	var note ast.Note
+	var err error
+	tok = p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.DIRECTION:
+		note, err = p.parseReltiveNote(tok)
+	case tokenizer.STRING:
+		note, err = p.parseInlineAliasNote(tok)
+	case tokenizer.IDENTIFIER:
+		note, err = p.parseLinkNote(tok)
+	case tokenizer.ALIAS:
+		note, err = p.parseMultilineAliasNote()
+	default:
+		err = NewParserError("Expected direction, string or alias after 'note'", tok.Pos)
+	}
+	if err != nil {
+		return err
+	}
+	p.ast.Statements = append(p.ast.Statements, note)
+	return nil
+}
+
+func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
+	var note ast.Note
+	note.Direction = p.mapTokenToDirection(dirTok)
+	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+	if ok {
+		if tok.Literal != "of" && tok.Literal != "on" {
+			return note, NewParserError("Unexpected identifier after direction", tok.Pos)
+		}
+		targetTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			return note, NewParserError("Expected identifier for a note target", targetTok.Pos)
+		}
+		if targetTok.Literal != "link" && tok.Literal == "on" {
+			return note, NewParserError("Unexpected identifier for a note link target", targetTok.Pos)
+		}
+		note.Target = targetTok.Literal
+	}
+	p.tryParseColor()
+	txt, err := p.parseNoteBody()
+	if err != nil {
+		return note, err
+	}
+	note.Text = txt
+	return note, nil
+}
+
+func (p *Parser) parseInlineAliasNote(stringTok tokenizer.Token) (ast.Note, error) {
+	var note ast.Note
+	note.Text = stringTok.Literal
+	if aliasTok, ok := p.stream.TryConsumeType(tokenizer.ALIAS); !ok {
+		return note, NewParserError("Expected alias keyword after note text", aliasTok.Pos)
+	}
+	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+	if !ok {
+		return note, NewParserError("Expected identifier after alias keyword", tok.Pos)
+	}
+	note.Alias = tok.Literal
+	p.tryParseColor()
+	return note, nil
+}
+
+func (p *Parser) parseMultilineAliasNote() (ast.Note, error) {
+	var note ast.Note
+	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+	if !ok {
+		return note, NewParserError("Expected identifier after alias keyword", tok.Pos)
+	}
+	p.tryParseColor()
+	if p.stream.AssertType(tokenizer.NEWLINE) {
+		return note, NewParserError("Expected newline after alias keyword", tok.Pos)
+	}
+	txt, err := p.parseNoteBody()
+	if err != nil {
+		return note, err
+	}
+	note.Text = txt
+	return note, nil
+}
+
+func (p *Parser) parseLinkNote(onTok tokenizer.Token) (ast.Note, error) {
+	var note ast.Note
+	if onTok.Literal != "on" {
+		return note, NewParserError("Unexpected identifier after 'note'", onTok.Pos)
+	}
+	if _, ok := p.stream.TryConsume(amb(tokenizer.IDENTIFIER, "link")); !ok {
+		return note, NewParserError("Expected 'link' after 'note on'", onTok.Pos)
+	}
+	txt, err := p.parseNoteBody()
+	if err != nil {
+		return note, err
+	}
+	note.Text = txt
+	return note, nil
+}
+
+func (p *Parser) tryParseColor() string {
+	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		collector := tokenizer.TokenCollector{}
+		detach := p.stream.Attach(&collector)
+		p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
+		detach()
+		return p.stream.TokensToString(collector.Tokens())
+	}
+	return ""
+}
+
+func (p *Parser) parseNoteBody() (string, error) {
+	tok := p.stream.Emit()
+
+	var noteEndSequence string
+	switch tok.Type {
+	case tokenizer.COLON:
+		noteEndSequence = "\n"
+	case tokenizer.NEWLINE:
+		noteEndSequence = "end note"
+	default:
+		return "", NewParserError("Expected ':' or newline after note definition", tok.Pos)
+	}
+
+	p.stream.SetRawMode(noteEndSequence)
+	bodyTok := p.stream.MustConsumeType(tokenizer.STRING)
+	return bodyTok.Literal, nil
+}
+
+func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
+	switch tok.Literal {
+	case "left":
+		return ast.Left
+	case "right":
+		return ast.Right
+	case "top":
+		return ast.Top
+	case "bottom":
+		return ast.Bottom
+	default:
+		return ast.UnknownDirectionKind
+	}
 }
 
 func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
@@ -558,7 +698,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return NewParserError(fmt.Sprintf("Invalid cardinality: %s", err.Error()), multTok.Pos)
+			return WrapParserError(err, multTok.Pos)
 		}
 	}
 
@@ -567,7 +707,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) error {
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return NewParserError(fmt.Sprintf("Invalid cardinality: %s", err.Error()), multTok.Pos)
+			return WrapParserError(err, multTok.Pos)
 		}
 	}
 

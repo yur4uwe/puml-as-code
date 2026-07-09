@@ -188,6 +188,7 @@ func (ts *TokenStream) MustConsume(token Token) Token {
 	return ts.Emit()
 }
 
+// MustConsumeType is ONLY for internal use as it panics
 func (ts *TokenStream) MustConsumeType(token TokenType) Token {
 	if !ts.AssertType(token) {
 		panic(fmt.Sprintf("expected %s, got %s", token, ts.PeekTokenAt(0).Type))

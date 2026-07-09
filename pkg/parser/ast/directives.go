@@ -61,9 +61,9 @@ type DirectionCommand struct {
 
 var _ Statement = DirectionCommand{}
 
-func (d GenericCommand) StatementNode() any    { return d }
-func (d IncludeCommand) StatementNode() any    { return d }
-func (d ScaleCommand) StatementNode() any      { return d }
-func (d VisibilityCommand) StatementNode() any { return d }
-func (d SetCommand) StatementNode() any        { return d }
-func (d DirectionCommand) StatementNode() any  { return d }
+func (d GenericCommand) StatementNode() Statement    { return d }
+func (d IncludeCommand) StatementNode() Statement    { return d }
+func (d ScaleCommand) StatementNode() Statement      { return d }
+func (d VisibilityCommand) StatementNode() Statement { return d }
+func (d SetCommand) StatementNode() Statement        { return d }
+func (d DirectionCommand) StatementNode() Statement  { return d }

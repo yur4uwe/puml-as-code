@@ -1,11 +1,11 @@
 package ast
 
 type Statement interface {
-	StatementNode() any
+	StatementNode() Statement
 }
 
 type Member interface {
-	MemberNode() any
+	MemberNode() Member
 }
 
 type EntityKind int
@@ -60,7 +60,7 @@ type Entity struct {
 
 var _ Statement = Entity{}
 
-func (e Entity) StatementNode() any {
+func (e Entity) StatementNode() Statement {
 	return e
 }
 
@@ -90,7 +90,7 @@ type Container struct {
 
 var _ Statement = Container{}
 
-func (c Container) StatementNode() any {
+func (c Container) StatementNode() Statement {
 	return c
 }
 
@@ -116,7 +116,7 @@ type Relationship struct {
 
 var _ Statement = Relationship{}
 
-func (r Relationship) StatementNode() any {
+func (r Relationship) StatementNode() Statement {
 	return r
 }
 
@@ -129,7 +129,7 @@ type ClassSeparator struct {
 
 var _ Member = ClassSeparator{}
 
-func (cs ClassSeparator) MemberNode() any {
+func (cs ClassSeparator) MemberNode() Member {
 	return cs
 }
 
@@ -150,7 +150,7 @@ type Field struct {
 
 var _ Member = Field{}
 
-func (f Field) MemberNode() any { return f }
+func (f Field) MemberNode() Member { return f }
 
 type Method struct {
 	// Name and type will be inferred by assuming that '()' will be right after
@@ -165,7 +165,7 @@ type Method struct {
 
 var _ Member = Method{}
 
-func (m Method) MemberNode() any { return m }
+func (m Method) MemberNode() Member { return m }
 
 type Diagram struct {
 	Name       string
@@ -190,6 +190,21 @@ const (
 	Bottom
 )
 
+func (d DirectionKind) String() string {
+	switch d {
+	case Left:
+		return "left"
+	case Right:
+		return "right"
+	case Top:
+		return "top"
+	case Bottom:
+		return "bottom"
+	default:
+		return "unknown"
+	}
+}
+
 type Note struct {
 	// note left of Class: note left of Class
 	// where:
@@ -201,11 +216,12 @@ type Note struct {
 	Direction DirectionKind
 	Target    string
 	Color     string
+	Alias     string
 }
 
 var _ Statement = Note{}
 
-func (n Note) StatementNode() any { return n }
+func (n Note) StatementNode() Statement { return n }
 
 type DiagramBound struct {
 	IsStart bool
@@ -217,6 +233,6 @@ type DiagramBound struct {
 
 var _ Statement = DiagramBound{}
 
-func (d DiagramBound) StatementNode() any {
+func (d DiagramBound) StatementNode() Statement {
 	return d
 }

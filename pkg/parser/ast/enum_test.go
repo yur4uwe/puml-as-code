@@ -66,8 +66,8 @@ func TestParseMultiplicity(t *testing.T) {
 		{`"0..*"`, Cardinality{Raw: "0..*", Min: 0, Max: -1}, false},
 		{`0..*`, Cardinality{Raw: "0..*", Min: 0, Max: -1}, false},
 		{`"1..4"`, Cardinality{Raw: "1..4", Min: 1, Max: 4}, false},
-		{"", UnknownMultiplicity, false},
-		{"abc", UnknownMultiplicity, true},
+		{"", UnknownCardinality, false},
+		{"abc", UnknownCardinality, true},
 	}
 
 	for _, c := range cases {
@@ -96,5 +96,5 @@ func TestMultiplicityString(t *testing.T) {
 	m, _ = ParseCardinality(`"1..4"`)
 	require.Equal(t, "1..4", m.String())
 
-	require.Equal(t, "", UnknownMultiplicity.String())
+	require.Equal(t, "", UnknownCardinality.String())
 }

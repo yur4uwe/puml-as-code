@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -9,32 +10,40 @@ import (
 )
 
 type parserError struct {
-	Message string
-	Pos     tokenizer.TokenPos
+	Err error
+	Pos tokenizer.TokenPos
 }
 
 var _ error = parserError{}
 
 func (e parserError) Error() string {
-	return fmt.Sprintf("parser: %s at %d:%d", e.Message, e.Pos.Line, e.Pos.Col)
+	return fmt.Sprintf("parser: %v at %d:%d", e.Err, e.Pos.Line, e.Pos.Col)
+}
+
+func (e parserError) Unwrap() error {
+	return e.Err
 }
 
 func NewParserError(message string, pos tokenizer.TokenPos) error {
-	return parserError{Message: message, Pos: pos}
+	return parserError{Err: errors.New(message), Pos: pos}
+}
+
+func WrapParserError(err error, pos tokenizer.TokenPos) error {
+	return parserError{Err: err, Pos: pos}
 }
 
 type Parser struct {
-	symbol_table map[string]*ast.Entity
-	ast          *ast.Diagram
-	stream       *tokenizer.TokenStream
-	skinparam    ast.Skinparam
-	styles       []string // TODO: should be an actual struct and not collection of strings
-	dialect      dialect.Dialect
+	symbolTable map[string]*ast.Entity
+	ast         *ast.Diagram
+	stream      *tokenizer.TokenStream
+	skinparam   ast.Skinparam
+	styles      []string // TODO: should be an actual struct and not collection of strings
+	dialect     dialect.Dialect
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	p.ast = &ast.Diagram{}
-	p.symbol_table = make(map[string]*ast.Entity)
+	p.symbolTable = make(map[string]*ast.Entity)
 
 	p.stream = tokenizer.NewTokenStream(input)
 
@@ -121,7 +130,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				return nil, err
 			}
 			p.ast.Statements = append(p.ast.Statements, ent)
-			p.symbol_table[ent.Identifier] = ent
+			p.symbolTable[ent.Identifier] = ent
 
 		// Containers
 		case tokenizer.PACKAGE, tokenizer.TOGETHER:
@@ -129,11 +138,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 		// Special Keywords
 		case tokenizer.NOTE:
-			note, err := p.parseNote(tok)
-			if err != nil {
-				return nil, err
-			}
-			p.ast.Statements = append(p.ast.Statements, note)
+			err = p.parseNote(tok)
 		// Handle short-form circle: ()
 		case tokenizer.LPAREN:
 		case tokenizer.IDENTIFIER, tokenizer.STRING:
