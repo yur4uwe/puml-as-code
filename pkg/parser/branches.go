@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -15,14 +16,14 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityComm
 	cmd := ast.VisibilityCommand{
 		Kind: ast.Unknown,
 	}
-	switch tok.Type {
-	case tokenizer.HIDE:
+	switch keyword.Classify(tok.Literal) {
+	case keyword.Hide:
 		cmd.Kind = ast.Hide
-	case tokenizer.SHOW:
+	case keyword.Show:
 		cmd.Kind = ast.Show
-	case tokenizer.REMOVE:
+	case keyword.Remove:
 		cmd.Kind = ast.Remove
-	case tokenizer.RESTORE:
+	case keyword.Restore:
 		cmd.Kind = ast.Restore
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
@@ -44,7 +45,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 			Literal: "to",
 		},
 		{
-			Type:    tokenizer.DIRECTION,
+			Type:    tokenizer.IDENTIFIER,
 			Literal: to,
 		},
 		{
@@ -213,7 +214,7 @@ func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
 func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	ent := &ast.Entity{
-		Kind: p.mapTokenToEntityKind(tok.Type),
+		Kind: p.mapTokenToEntityKind(tok),
 	}
 
 	// Unexpectedly, class and other entity definitions have very strict syntax:
@@ -223,7 +224,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 		return nil, err
 	}
 
-	if _, hasAlias := p.stream.TryConsumeType(tokenizer.ALIAS); hasAlias {
+	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
 		if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
 			return nil, err
 		}
@@ -439,7 +440,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	// - if Name and alias are of the same type, alias is on the left
 	// and Name is on the right of 'as' keyword
 
-	if tok.Type != tokenizer.TOGETHER {
+	if keyword.Classify(tok.Literal) != keyword.Together {
 		var err error
 		container.Alias, container.Identifier, err = p.parseContainerIdentAndAlias()
 		if err != nil {
@@ -471,7 +472,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		}
 
 		// Only parse statements allowed in containers
-		stmt, err := p.parseContainerStatement(tok)
+		stmt, err := p.parseContainerStatementByKW(tok)
 		if err != nil {
 			return container, err
 		}
@@ -496,7 +497,7 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 	} else {
 		return "", "", NewParserError("Expected container name or alias", p.stream.PeekTokenAt(0).Pos)
 	}
-	if _, ok := p.stream.TryConsumeType(tokenizer.ALIAS); !ok {
+	if _, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return "", lhs.Literal, nil
 	}
 	var rhs tokenizer.Token
@@ -523,14 +524,15 @@ func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	var err error
 	tok = p.stream.Emit()
-	switch tok.Type {
-	case tokenizer.DIRECTION:
-		note, err = p.parseReltiveNote(tok)
-	case tokenizer.STRING:
+	if tok.Type == tokenizer.STRING {
 		note, err = p.parseInlineAliasNote(tok)
-	case tokenizer.NOTE_POSITION:
+	}
+	switch keyword.Classify(tok.Literal) {
+	case keyword.Direction:
+		note, err = p.parseReltiveNote(tok)
+	case keyword.Position:
 		note, err = p.parseLinkNote(tok)
-	case tokenizer.ALIAS:
+	case keyword.Alias:
 		note, err = p.parseMultilineAliasNote()
 	default:
 		err = NewParserError("Expected direction, string, note position or alias after 'note'", tok.Pos)
@@ -544,7 +546,7 @@ func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
 func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	note.Direction = p.mapTokenToDirection(dirTok)
-	if next, ok := p.stream.TryConsumeType(tokenizer.NOTE_POSITION); ok {
+	if next, ok := p.stream.TryConsumeKW(keyword.Position); ok {
 		targetTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
 			return note, NewParserError("Expected identifier for a note target", targetTok.Pos)
@@ -569,7 +571,7 @@ func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 func (p *Parser) parseInlineAliasNote(stringTok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	note.Text = stringTok.Literal
-	if aliasTok, ok := p.stream.TryConsumeType(tokenizer.ALIAS); !ok {
+	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return note, NewParserError("Expected alias keyword after note text", aliasTok.Pos)
 	}
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
@@ -730,7 +732,7 @@ func (p *Parser) parseTitle() error {
 	titleStrTok := p.stream.MustConsumeType(tokenizer.STRING)
 	p.ast.Title = titleStrTok.Literal
 
-	if isBlockTitle && !p.stream.AssertSeqTypes(tokenizer.END_BLOCK, tokenizer.TITLE) {
+	if isBlockTitle && !p.stream.AssertKWSeq(keyword.End, keyword.Title) {
 		return NewParserError("Expected title block to end with \"end title\"", p.stream.PeekTokenAt(0).Pos)
 	}
 	return nil
@@ -857,7 +859,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			// Simply convenient error message
 			return NewParserError("Different body type runes in relationship", tok.Pos)
 		}
-		if !p.stream.AssertAnyType(tokenizer.LBRACKET, tokenizer.DIRECTION) {
+		if !p.stream.AssertType(tokenizer.LBRACKET) || !p.stream.AssertKW(keyword.Direction) {
 			break
 		} else if sawAttrs || sawDirection {
 			return NewParserError("Cannot separate direction and attributes with a body token", tok.Pos)
@@ -875,7 +877,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		// -[attrs]dir-> / -dir[attrs]->
 		for range 2 {
 			if !sawDirection {
-				if tok, ok := p.stream.TryConsumeType(tokenizer.DIRECTION); ok {
+				if tok, ok := p.stream.TryConsumeKW(keyword.Direction); ok {
 					sawDirection = true
 					var dir ast.DirectionKind
 					switch tok.Literal {

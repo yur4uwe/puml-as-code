@@ -5,6 +5,7 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
@@ -14,32 +15,32 @@ func TestParseEntity(t *testing.T) {
 	tests := []struct {
 		name      string
 		input     string
-		tokType   tokenizer.TokenType
+		kwType    keyword.KeywordKind
 		want      *ast.Entity
 		expectErr bool
 	}{
 		{
-			name:    "simple class",
-			input:   "class MyClass",
-			tokType: tokenizer.CLASS,
+			name:   "simple class",
+			input:  "class MyClass",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
 			},
 		},
 		{
-			name:    "abstract class",
-			input:   "abstract class MyAbstractClass",
-			tokType: tokenizer.ABSTRACT,
+			name:   "abstract class",
+			input:  "abstract class MyAbstractClass",
+			kwType: keyword.AbstractClass,
 			want: &ast.Entity{
 				Identifier: "MyAbstractClass",
 				Kind:       ast.AbstractClassKind,
 			},
 		},
 		{
-			name:    "class with alias",
-			input:   "class MyClass as \"MC\"",
-			tokType: tokenizer.CLASS,
+			name:   "class with alias",
+			input:  "class MyClass as \"MC\"",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
@@ -49,14 +50,14 @@ func TestParseEntity(t *testing.T) {
 		{
 			name:      "class with invalid alias (not a string)",
 			input:     "class MyClass as MC",
-			tokType:   tokenizer.CLASS,
+			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
 		},
 		{
-			name:    "class with stereotype",
-			input:   "class MyClass <<Service>>",
-			tokType: tokenizer.CLASS,
+			name:   "class with stereotype",
+			input:  "class MyClass <<Service>>",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
@@ -64,9 +65,9 @@ func TestParseEntity(t *testing.T) {
 			},
 		},
 		{
-			name:    "class with color",
-			input:   "class MyClass #FF0000",
-			tokType: tokenizer.CLASS,
+			name:   "class with color",
+			input:  "class MyClass #FF0000",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
@@ -74,18 +75,18 @@ func TestParseEntity(t *testing.T) {
 			},
 		},
 		{
-			name:    "class with empty body",
-			input:   "class MyClass {\n}",
-			tokType: tokenizer.CLASS,
+			name:   "class with empty body",
+			input:  "class MyClass {\n}",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
 			},
 		},
 		{
-			name:    "class def with all modifiers",
-			input:   "class MyClass as \"MC\" <T> <<Database>> #FF0000",
-			tokType: tokenizer.CLASS,
+			name:   "class def with all modifiers",
+			input:  "class MyClass as \"MC\" <T> <<Database>> #FF0000",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
@@ -96,9 +97,9 @@ func TestParseEntity(t *testing.T) {
 			},
 		},
 		{
-			name:    "class with field member",
-			input:   "class MyClass {\n  +field int\n}",
-			tokType: tokenizer.CLASS,
+			name:   "class with field member",
+			input:  "class MyClass {\n  +field int\n}",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
@@ -114,35 +115,35 @@ func TestParseEntity(t *testing.T) {
 		{
 			name:      "invalid alias",
 			input:     "class MyClass as",
-			tokType:   tokenizer.CLASS,
+			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
 		},
 		{
 			name:      "unclosed stereotype",
 			input:     "class MyClass <<Stereo",
-			tokType:   tokenizer.CLASS,
+			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
 		},
 		{
 			name:      "unclosed body",
 			input:     "class MyClass {",
-			tokType:   tokenizer.CLASS,
+			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
 		},
 		{
 			name:      "invalid member inside body",
 			input:     "class MyClass {\n  invalidField\n}",
-			tokType:   tokenizer.CLASS,
+			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
 		},
 		{
-			name:    "class with generic",
-			input:   "class List<T>",
-			tokType: tokenizer.CLASS,
+			name:   "class with generic",
+			input:  "class List<T>",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "List",
 				Kind:       ast.ClassKind,
@@ -150,9 +151,9 @@ func TestParseEntity(t *testing.T) {
 			},
 		},
 		{
-			name:    "class with multiple generics",
-			input:   "class Map<K, V>",
-			tokType: tokenizer.CLASS,
+			name:   "class with multiple generics",
+			input:  "class Map<K, V>",
+			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "Map",
 				Kind:       ast.ClassKind,
@@ -168,7 +169,7 @@ func TestParseEntity(t *testing.T) {
 				dialect: dialect.NewGoDialect(),
 			}
 			tok := p.stream.Emit()
-			require.Equal(t, tc.tokType, tok.Type)
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
 			got, err := p.parseEntity(tok)
 			if tc.expectErr {
@@ -953,7 +954,7 @@ func TestParseNote(t *testing.T) {
 				ast:    &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			require.Equal(t, tokenizer.NOTE, tok.Type, "First token must be 'note' for test input: %q", tc.input)
+			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal), "First token must be 'note' for test input: %q", tc.input)
 
 			note, err := p.parseNote(tok)
 			if tc.expectErr {
@@ -973,7 +974,7 @@ func TestParseContainer(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
-		tokType     tokenizer.TokenType
+		kwType      keyword.KeywordKind
 		want        *ast.Container
 		expectErr   bool
 		errContains string
@@ -981,26 +982,26 @@ func TestParseContainer(t *testing.T) {
 		{
 			name:        "together empty error",
 			input:       "together",
-			tokType:     tokenizer.TOGETHER,
+			kwType:      keyword.Together,
 			expectErr:   true,
 			errContains: "Expected container body to end",
 		},
 		{
-			name:    "together empty newline",
-			input:   "together\n",
-			tokType: tokenizer.TOGETHER,
-			want:    &ast.Container{},
+			name:   "together empty newline",
+			input:  "together\n",
+			kwType: keyword.Together,
+			want:   &ast.Container{},
 		},
 		{
-			name:    "together empty body",
-			input:   "together {}",
-			tokType: tokenizer.TOGETHER,
-			want:    &ast.Container{},
+			name:   "together empty body",
+			input:  "together {}",
+			kwType: keyword.Together,
+			want:   &ast.Container{},
 		},
 		{
-			name:    "together with single class",
-			input:   "together { class A }",
-			tokType: tokenizer.TOGETHER,
+			name:   "together with single class",
+			input:  "together { class A }",
+			kwType: keyword.Together,
 			want: &ast.Container{
 				Statements: []ast.Statement{
 					&ast.Entity{
@@ -1011,53 +1012,53 @@ func TestParseContainer(t *testing.T) {
 			},
 		},
 		{
-			name:    "package simple identifier",
-			input:   "package mypkg\n",
-			tokType: tokenizer.PACKAGE,
+			name:   "package simple identifier",
+			input:  "package mypkg\n",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
 			},
 		},
 		{
-			name:    "package string identifier and alias",
-			input:   `package "My Package" as mypkg` + "\n",
-			tokType: tokenizer.PACKAGE,
-			want: &ast.Container{
-				Identifier: "mypkg",
-				Alias:      "My Package",
-			},
-		},
-		{
-			name:    "package identifier and string alias",
-			input:   `package mypkg as "My Package"` + "\n",
-			tokType: tokenizer.PACKAGE,
+			name:   "package string identifier and alias",
+			input:  `package "My Package" as mypkg` + "\n",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
 			},
 		},
 		{
-			name:    "package identical identifier and alias",
-			input:   "package mypkg as otherpkg\n",
-			tokType: tokenizer.PACKAGE,
+			name:   "package identifier and string alias",
+			input:  `package mypkg as "My Package"` + "\n",
+			kwType: keyword.Package,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Alias:      "My Package",
+			},
+		},
+		{
+			name:   "package identical identifier and alias",
+			input:  "package mypkg as otherpkg\n",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "otherpkg",
 				Alias:      "mypkg",
 			},
 		},
 		{
-			name:    "package with stereotype",
-			input:   "package mypkg <<Service>>\n",
-			tokType: tokenizer.PACKAGE,
+			name:   "package with stereotype",
+			input:  "package mypkg <<Service>>\n",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
 			},
 		},
 		{
-			name:    "package with stereotype and color",
-			input:   "package mypkg <<Service>> #green\n",
-			tokType: tokenizer.PACKAGE,
+			name:   "package with stereotype and color",
+			input:  "package mypkg <<Service>> #green\n",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
@@ -1065,9 +1066,9 @@ func TestParseContainer(t *testing.T) {
 			},
 		},
 		{
-			name:    "package body with relationship and nested package",
-			input:   "package mypkg { class A together { class B } A -> B\n}",
-			tokType: tokenizer.PACKAGE,
+			name:   "package body with relationship and nested package",
+			input:  "package mypkg { class A together { class B } A -> B\n}",
+			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Statements: []ast.Statement{
@@ -1095,56 +1096,56 @@ func TestParseContainer(t *testing.T) {
 		{
 			name:        "package missing identifier",
 			input:       "package as otherpkg\n",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected container name or alias",
 		},
 		{
 			name:        "package incomplete alias",
 			input:       "package mypkg as\n",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected container name or alias",
 		},
 		{
 			name:        "package unclosed stereotype",
 			input:       "package mypkg <<Service\n",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "unexpected EOF",
 		},
 		{
 			name:        "package unclosed body",
 			input:       "package mypkg { class A",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "unexpected EOF",
 		},
 		{
 			name:        "package unexpected token in body",
 			input:       "package mypkg { @invalid }",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected a statement in a container body",
 		},
 		{
 			name:        "package body newline error",
 			input:       "package mypkg {\n}",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected a statement in a container body",
 		},
 		{
 			name:        "package with same line body and color without colon/newline",
 			input:       "package mypkg #red { class A }",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected container body to end",
 		},
 		{
 			name:        "package body class error",
 			input:       "package mypkg { class MyClass as }",
-			tokType:     tokenizer.PACKAGE,
+			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected token for entity identifier or alias",
 		},
@@ -1158,7 +1159,7 @@ func TestParseContainer(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			require.Equal(t, tc.tokType, tok.Type)
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
 			got, err := p.parseContainer(tok)
 			if tc.expectErr {
@@ -1173,4 +1174,3 @@ func TestParseContainer(t *testing.T) {
 		})
 	}
 }
-

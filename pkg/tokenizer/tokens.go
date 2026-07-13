@@ -22,43 +22,6 @@ const (
 	STRING
 	NUMBER
 
-	// keywords
-	CLASS
-	ABSTRACT
-	STRUCT
-	INTERFACE
-	ENUM
-	PACKAGE
-	ANNOTATION
-	NOTE
-	RECORD
-	DATACLASS
-	EXCEPTION
-	PROTOCOL
-	ACTION
-	SKINPARAM
-	TOGETHER
-	ENTITY
-	CIRCLE
-	DIAMOND
-	STEREOTYPE
-	METACLASS
-
-	// commands
-	HIDE
-	SHOW
-	REMOVE
-	RESTORE
-	SET_CMD
-	SCALE
-	ALIAS
-	TITLE
-
-	// Note tokens
-	DIRECTION
-	NOTE_POSITION
-	END_BLOCK
-
 	LBRACE      // {
 	RBRACE      // }
 	LPAREN      // (
@@ -169,8 +132,7 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 	if helpers.IsIdentifierRune(l.ch) || l.ch == '\\' {
 		start := l.getPos()
 		lit := l.readIdentifier()
-		tt := lookupKeyword(lit)
-		return Token{Type: tt, Literal: lit, Pos: start}
+		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}
 	}
 
 	if unicode.IsDigit(l.ch) {

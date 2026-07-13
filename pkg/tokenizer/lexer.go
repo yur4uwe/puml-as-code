@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"yur4uwe/pac/internal/helpers"
+	"yur4uwe/pac/pkg/parser/keyword"
 )
 
 var (
@@ -31,7 +32,7 @@ type lexerState struct {
 	isDefaultSeparator      bool
 	expectingSeparatorValue bool
 	rawModeDelimiter        []rune
-	previousTokenType       TokenType
+	previousKeyword         keyword.KeywordKind
 	line                    uint
 	col                     uint
 }
@@ -54,7 +55,7 @@ func NewLexer(input string) *Lexer {
 		lexerState: lexerState{
 			packageSeparator:   []rune{'.'},
 			isDefaultSeparator: true,
-			previousTokenType:  ILLEGAL,
+			previousKeyword:    keyword.None,
 		},
 	}
 	l.readChar()
@@ -142,10 +143,12 @@ func (l *Lexer) Emit() Token {
 	}
 
 	// Dynamic state update for "set separator"
-	if l.previousTokenType == SET_CMD && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
+	if l.previousKeyword == keyword.Set && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
 		l.expectingSeparatorValue = true
 	}
-	l.previousTokenType = tok.Type
+	if tok.Type == IDENTIFIER {
+		l.previousKeyword = keyword.Classify(tok.Literal)
+	}
 
 	return tok
 }
@@ -215,29 +218,6 @@ func (l *Lexer) readIdentifier() string {
 		}
 	}
 	return string(result)
-}
-
-func lookupKeyword(ident string) TokenType {
-	upper := strings.ToUpper(ident)
-	// Special cases where keyword string isn't exactly the same as the enum name
-	switch upper {
-	case "SET":
-		return SET_CMD
-	case "END":
-		return END_BLOCK
-	case "AS":
-		return ALIAS
-	case "LEFT", "RIGHT", "UP", "DOWN", "TOP", "BOTTOM":
-		return DIRECTION
-	case "OF", "AT", "ON":
-		return NOTE_POSITION
-	}
-
-	tok, err := TokenTypeString(upper)
-	if err != nil {
-		return IDENTIFIER
-	}
-	return tok
 }
 
 func (l *Lexer) readEncodedNumber() (string, error) {

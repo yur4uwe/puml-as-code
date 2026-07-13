@@ -2,6 +2,7 @@ package parser
 
 import (
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -13,15 +14,6 @@ func amb(tok tokenizer.TokenType, literal string) tokenizer.Token {
 	return tokenizer.Token{Type: tok, Literal: literal}
 }
 
-func (p *Parser) parseCommand(tok tokenizer.Token) (any, error) {
-	switch tok.Type {
-	case tokenizer.SET_CMD:
-	case tokenizer.SCALE:
-	case tokenizer.EXCLAMATION:
-	}
-	return nil, nil
-}
-
 func toInteger(f float64) (int, bool) {
 	i := int(f)
 	if float64(i) == f {
@@ -30,41 +22,42 @@ func toInteger(f float64) (int, bool) {
 	return 0, false
 }
 
-func (p *Parser) mapTokenToEntityKind(tok tokenizer.TokenType) ast.EntityKind {
-	if _, ok := p.stream.TryConsumeType(tokenizer.CLASS); tok == tokenizer.ABSTRACT && ok {
+func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
+	kw := keyword.Classify(tok.Literal)
+	if _, ok := p.stream.TryConsumeKW(keyword.Class); kw == keyword.AbstractClass && ok {
 		return ast.AbstractClassKind
 	}
 
-	switch tok {
-	case tokenizer.CLASS:
+	switch kw {
+	case keyword.Class:
 		return ast.ClassKind
-	case tokenizer.ABSTRACT:
+	case keyword.AbstractClass:
 		return ast.AbstractClassKind
-	case tokenizer.INTERFACE:
+	case keyword.Interface:
 		return ast.InterfaceKind
-	case tokenizer.ENUM:
+	case keyword.Enum:
 		return ast.EnumKind
-	case tokenizer.ENTITY:
+	case keyword.Entity:
 		return ast.EntityClassKind
-	case tokenizer.STRUCT:
+	case keyword.Struct:
 		return ast.StructKind
-	case tokenizer.ANNOTATION:
+	case keyword.Annotation:
 		return ast.AnnotationKind
-	case tokenizer.PROTOCOL:
+	case keyword.Protocol:
 		return ast.ProtocolKind
-	case tokenizer.CIRCLE:
+	case keyword.Circle:
 		return ast.CircleKind
-	case tokenizer.DIAMOND:
+	case keyword.Diamond:
 		return ast.DiamondKind
-	case tokenizer.EXCEPTION:
+	case keyword.Exception:
 		return ast.ExceptionKind
-	case tokenizer.METACLASS:
+	case keyword.Metaclass:
 		return ast.MetaclassKind
-	case tokenizer.RECORD:
+	case keyword.Record:
 		return ast.RecordKind
-	case tokenizer.DATACLASS:
+	case keyword.Dataclass:
 		return ast.DataclassKind
-	case tokenizer.STEREOTYPE:
+	case keyword.Stereotype:
 		return ast.StereotypeKind
 	default:
 		return ast.UnknownEntityKind

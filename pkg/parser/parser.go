@@ -6,6 +6,7 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -90,7 +91,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle Identifiers
 
 		var err error
-		stmt, err := p.parseDiagramOnlyStatement(tok)
+		stmt, err := p.parseDiagramOnlyStatementByKW(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -99,7 +100,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			continue
 		}
 
-		stmt, err = p.parseContainerStatement(tok)
+		stmt, err = p.parseContainerStatementByKW(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -113,71 +114,66 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	return p.ast, nil
 }
 
-func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
-	switch tok.Type {
-	// Class-like Entities
-	case tokenizer.CLASS,
-		tokenizer.INTERFACE,
-		tokenizer.STRUCT,
-		tokenizer.ABSTRACT,
-		tokenizer.ENUM,
-		tokenizer.ANNOTATION,
-		tokenizer.RECORD,
-		tokenizer.DATACLASS,
-		tokenizer.EXCEPTION,
-		tokenizer.PROTOCOL:
+func (p *Parser) parseContainerStatementByKW(tok tokenizer.Token) (ast.Statement, error) {
+	switch keyword.Classify(tok.Literal) {
+	case keyword.Class,
+		keyword.Interface,
+		keyword.Struct,
+		keyword.AbstractClass,
+		keyword.Enum,
+		keyword.Annotation,
+		keyword.Record,
+		keyword.Dataclass,
+		keyword.Exception,
+		keyword.Protocol:
+		// Class-like Entities
 		return p.parseEntity(tok)
 	// Containers
-	case tokenizer.PACKAGE, tokenizer.TOGETHER:
+	case keyword.Package,
+		keyword.Together,
+		keyword.Folder,
+		keyword.Frame,
+		keyword.Rectangle,
+		keyword.Cloud,
+		keyword.Database,
+		keyword.Node:
 		return p.parseContainer(tok)
 	// Special Keywords
-	case tokenizer.NOTE:
+	case keyword.Note:
 		return p.parseNote(tok)
-	// Handle short-form circle: ()
-	case tokenizer.LPAREN:
-	case tokenizer.IDENTIFIER:
-		switch tok.Literal {
-		case "folder", "frame", "rectangle", "database", "cloud", "node":
-			return p.parseContainer(tok)
-		}
-		// TODO: handle relationships
-		return p.parseRelationship(tok)
 	default:
 		return nil, nil
 	}
-	panic("unreachable")
 }
 
-func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
-	switch tok.Type {
-	case tokenizer.TITLE:
+func (p *Parser) parseDiagramOnlyStatementByKW(tok tokenizer.Token) (ast.Statement, error) {
+	switch keyword.Classify(tok.Literal) {
+	case keyword.Title:
 		return nil, p.parseTitle()
-	case tokenizer.HIDE, tokenizer.SHOW, tokenizer.REMOVE, tokenizer.RESTORE:
+	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
 		return p.parseVisibilityCommand(tok)
-	case tokenizer.SCALE:
+	case keyword.Scale:
 		return p.parseScale()
-	case tokenizer.LANGLE:
-		if p.stream.AssertType(tokenizer.RANGLE) {
-			// Successfully matched "<>", shorthand for diamond
-			return ast.Entity{
-				Kind: ast.DiamondKind,
-			}, nil
-		}
-		// <style> token sequence for now simply read it as a string
-		// and ignore it
-		styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
-		if err != nil {
-			return nil, NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
-		}
-		p.ast.Styles = append(p.ast.Styles, styles)
-		return nil, nil
-	case tokenizer.SKINPARAM:
+	// case tokenizer.LANGLE:
+	// 	if p.stream.AssertType(tokenizer.RANGLE) {
+	// 		// Successfully matched "<>", shorthand for diamond
+	// 		return ast.Entity{
+	// 			Kind: ast.DiamondKind,
+	// 		}, nil
+	// 	}
+	// 	// <style> token sequence for now simply read it as a string
+	// 	// and ignore it
+	// 	styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
+	// 	if err != nil {
+	// 		return nil, NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
+	// 	}
+	// 	p.ast.Styles = append(p.ast.Styles, styles)
+	// 	return nil, nil
+	case keyword.Skinparam:
 		return nil, p.parseSkinparam()
-	case tokenizer.EXCLAMATION:
-	case tokenizer.DIRECTION:
+	case keyword.Direction:
 		return p.parseDiagDirection(tok)
 	default:
 		return nil, nil
 	}
-	panic("unreachable")
 }

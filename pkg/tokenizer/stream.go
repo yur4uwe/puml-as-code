@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/keyword"
 )
 
 var possibleBounds = []string{
@@ -36,6 +37,13 @@ type TokenStream struct {
 	sinks         []TokenSink
 }
 
+func NewTokenStream(input string) *TokenStream {
+	return &TokenStream{
+		lexer: NewLexer(input),
+		sinks: make([]TokenSink, 0, 2),
+	}
+}
+
 func (ts *TokenStream) Attach(sink TokenSink) func() {
 	ts.sinks = append(ts.sinks, sink)
 	return func() {
@@ -45,13 +53,6 @@ func (ts *TokenStream) Attach(sink TokenSink) func() {
 				return
 			}
 		}
-	}
-}
-
-func NewTokenStream(input string) *TokenStream {
-	return &TokenStream{
-		lexer: NewLexer(input),
-		sinks: make([]TokenSink, 0, 2),
 	}
 }
 
@@ -72,6 +73,16 @@ func (ts *TokenStream) AssertSeqTypes(seq ...TokenType) bool {
 	for i, t := range seq {
 		next := ts.PeekTokenAt(i)
 		if next.Type != t {
+			return false
+		}
+	}
+	return true
+}
+
+func (ts *TokenStream) AssertKWSeq(seq ...keyword.KeywordKind) bool {
+	for i, t := range seq {
+		next := ts.PeekTokenAt(i)
+		if keyword.Classify(next.Literal) != t {
 			return false
 		}
 	}
@@ -174,13 +185,15 @@ func (ts *TokenStream) AssertAnyType(tokens ...TokenType) bool {
 	return slices.ContainsFunc(tokens, ts.AssertType)
 }
 
-func (ts *TokenStream) TryConsume(token Token) (Token, bool) {
-	if ts.Assert(token) {
-		return ts.Emit(), true
-	}
-	return Token{}, false
+func (ts *TokenStream) AssertKW(kw keyword.KeywordKind) bool {
+	return keyword.Classify(ts.PeekTokenAt(0).Literal) == kw
 }
 
+func (ts *TokenStream) AssertAnyKW(kws ...keyword.KeywordKind) bool {
+	return slices.ContainsFunc(kws, ts.AssertKW)
+}
+
+// MustConsume is ONLY for internal use as it panics
 func (ts *TokenStream) MustConsume(token Token) Token {
 	if !ts.Assert(token) {
 		panic(fmt.Sprintf("expected %s, got %s", token.Type, ts.PeekTokenAt(0).Type))
@@ -196,8 +209,22 @@ func (ts *TokenStream) MustConsumeType(token TokenType) Token {
 	return ts.Emit()
 }
 
+func (ts *TokenStream) TryConsume(token Token) (Token, bool) {
+	if ts.Assert(token) {
+		return ts.Emit(), true
+	}
+	return Token{}, false
+}
+
 func (ts *TokenStream) TryConsumeType(token TokenType) (Token, bool) {
 	if ts.AssertType(token) {
+		return ts.Emit(), true
+	}
+	return Token{}, false
+}
+
+func (ts *TokenStream) TryConsumeKW(kw keyword.KeywordKind) (Token, bool) {
+	if ts.AssertKW(kw) {
 		return ts.Emit(), true
 	}
 	return Token{}, false
@@ -533,10 +560,6 @@ func (ts *TokenStream) ReadRawUntilNewline() string {
 	end := filtered[len(filtered)-1].Pos.Offset + uint(len(filtered[len(filtered)-1].Literal))
 	str := string(ts.lexer.input[start:end])
 	return strings.TrimSpace(str)
-}
-
-func (ts *TokenStream) ReadMultilineComment() (string, error) {
-	return "", fmt.Errorf("multiline comment not found")
 }
 
 // ReadBlock assumes that end tokens are first in the line

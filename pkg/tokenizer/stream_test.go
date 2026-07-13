@@ -314,13 +314,6 @@ func TestStreamReadBlock(t *testing.T) {
 	require.Contains(t, block, "This is a block")
 }
 
-func TestStreamReadMultilineComment(t *testing.T) {
-	ts := NewTokenStream("something")
-	c, err := ts.ReadMultilineComment()
-	require.Error(t, err)
-	require.Empty(t, c)
-}
-
 func TestStreamReadBetween(t *testing.T) {
 	// Note: Currently fails due to internal implementation error (missing spaces)
 	ts := NewTokenStream("START foo bar END")
