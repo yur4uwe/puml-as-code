@@ -67,20 +67,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 	return ast.DirectionCommand{}, nil
 }
 
-func (p *Parser) parseStyles(tok tokenizer.Token) error {
-	if tok.Type != tokenizer.SKINPARAM {
-		// <style> token sequence for now simply read it as a string
-		// and ignore it
-		styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
-		if err != nil {
-			return NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
-		}
-		p.ast.Styles = append(p.ast.Styles, styles)
-		return nil
-	}
-
-	// Consume skinparam keyword (already done if tok.Type == SKINPARAM)
-
+func (p *Parser) parseSkinparam() error {
 	// Peek paramTok to see if it's a target or a block
 	paramTok := p.stream.Emit()
 	if paramTok.Type == tokenizer.NEWLINE || paramTok.Type == tokenizer.EOF {
@@ -446,25 +433,39 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	var container ast.Container
 
 	// Handle container name, alias, stereotype, color
+	// Name rules:
+	// - Name and alias must be a string or Identifier
+	// - Name and alias CAN be of the same type
+	// - if Name and alias are of the same type, alias is on the left
+	// and Name is on the right of 'as' keyword
+
 	if tok.Type != tokenizer.TOGETHER {
-		if stringTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
-			container.Alias = stringTok.Literal
-		} else if identTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
-			container.Name = identTok.Literal
+		var err error
+		container.Alias, container.Identifier, err = p.parseContainerIdentAndAlias()
+		if err != nil {
+			return container, err
 		}
-		if aliasTok, ok := p.stream.TryConsumeType(tokenizer.ALIAS); ok {
-			if stringTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
-			} else if identTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
-			}
+		container.Stereotype, err = p.stream.TryReadStereotype()
+		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+			return container, err
 		}
+
+		container.Color = p.tryParseColor()
 	}
 
-	for {
-		if p.stream.AssertType(tokenizer.RBRACE) {
-			break
+	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
+		if _, ok = p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+			return container, NewParserError("Expected container body to end", p.stream.PeekTokenAt(0).Pos)
 		}
+		// if there is no body we can return, though the uml diagram drawer
+		// spits an error if the container is empty.
+		// As i understand, error is related to the fact that empty containers
+		// are related to other uml diagram types, thus producing a mixed diagram
+		// which is an error
+		return container, nil
+	}
 
-		tok := p.stream.Emit()
+	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
 		if tok.Type == tokenizer.EOF {
 			return container, tokenizer.ErrUnexpectedEOF
 		}
@@ -474,12 +475,47 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		if err != nil {
 			return container, err
 		}
-		if stmt != nil {
-			return container, NewParserError("Unexpected statement in container body", tok.Pos)
+		if stmt == nil {
+			return container, NewParserError("Expected a statement in a container body", tok.Pos)
 		}
 		container.Statements = append(container.Statements, stmt)
 	}
 	return container, nil
+}
+
+// parseContainerIdentAndAlias parses the container name and alias
+//
+// Returns
+// - Alias
+// - Identifier
+// - error
+func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
+	var lhs tokenizer.Token
+	if p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
+		lhs = p.stream.Emit()
+	} else {
+		return "", "", NewParserError("Expected container name or alias", p.stream.PeekTokenAt(0).Pos)
+	}
+	if _, ok := p.stream.TryConsumeType(tokenizer.ALIAS); !ok {
+		return "", lhs.Literal, nil
+	}
+	var rhs tokenizer.Token
+	if p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
+		rhs = p.stream.Emit()
+	} else {
+		return "", "", NewParserError("Expected container name or alias", p.stream.PeekTokenAt(0).Pos)
+	}
+	if lhs.Type == rhs.Type {
+		return lhs.Literal, rhs.Literal, nil
+	}
+	switch lhs.Type {
+	case tokenizer.STRING:
+		return lhs.Literal, rhs.Literal, nil
+	case tokenizer.IDENTIFIER:
+		return rhs.Literal, lhs.Literal, nil
+	default:
+		panic("unreachable")
+	}
 }
 
 func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
@@ -580,14 +616,14 @@ func (p *Parser) parseLinkNote(onTok tokenizer.Token) (ast.Note, error) {
 }
 
 func (p *Parser) tryParseColor() string {
-	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		collector := tokenizer.TokenCollector{}
-		detach := p.stream.Attach(&collector)
-		p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
-		detach()
-		return p.stream.TokensToString(collector.Tokens())
+	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); !ok {
+		return ""
 	}
-	return ""
+	collector := tokenizer.TokenCollector{}
+	detach := p.stream.Attach(&collector)
+	p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
+	detach()
+	return p.stream.TokensToString(collector.Tokens())
 }
 
 func (p *Parser) parseNoteBody() (string, error) {

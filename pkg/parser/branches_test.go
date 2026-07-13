@@ -955,7 +955,7 @@ func TestParseNote(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, tokenizer.NOTE, tok.Type, "First token must be 'note' for test input: %q", tc.input)
 
-			err := p.parseNote(tok)
+			note, err := p.parseNote(tok)
 			if tc.expectErr {
 				require.Error(t, err)
 				if tc.errContains != "" {
@@ -963,11 +963,214 @@ func TestParseNote(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				require.Len(t, p.ast.Statements, 1)
-				gotNote, ok := p.ast.Statements[0].(ast.Note)
-				require.True(t, ok)
-				require.Equal(t, *tc.want, gotNote)
+				require.Equal(t, *tc.want, note)
 			}
 		})
 	}
 }
+
+func TestParseContainer(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		tokType     tokenizer.TokenType
+		want        *ast.Container
+		expectErr   bool
+		errContains string
+	}{
+		{
+			name:        "together empty error",
+			input:       "together",
+			tokType:     tokenizer.TOGETHER,
+			expectErr:   true,
+			errContains: "Expected container body to end",
+		},
+		{
+			name:    "together empty newline",
+			input:   "together\n",
+			tokType: tokenizer.TOGETHER,
+			want:    &ast.Container{},
+		},
+		{
+			name:    "together empty body",
+			input:   "together {}",
+			tokType: tokenizer.TOGETHER,
+			want:    &ast.Container{},
+		},
+		{
+			name:    "together with single class",
+			input:   "together { class A }",
+			tokType: tokenizer.TOGETHER,
+			want: &ast.Container{
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:    "package simple identifier",
+			input:   "package mypkg\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+			},
+		},
+		{
+			name:    "package string identifier and alias",
+			input:   `package "My Package" as mypkg` + "\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Alias:      "My Package",
+			},
+		},
+		{
+			name:    "package identifier and string alias",
+			input:   `package mypkg as "My Package"` + "\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Alias:      "My Package",
+			},
+		},
+		{
+			name:    "package identical identifier and alias",
+			input:   "package mypkg as otherpkg\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "otherpkg",
+				Alias:      "mypkg",
+			},
+		},
+		{
+			name:    "package with stereotype",
+			input:   "package mypkg <<Service>>\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Stereotype: "Service",
+			},
+		},
+		{
+			name:    "package with stereotype and color",
+			input:   "package mypkg <<Service>> #green\n",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Stereotype: "Service",
+				Color:      "green",
+			},
+		},
+		{
+			name:    "package body with relationship and nested package",
+			input:   "package mypkg { class A together { class B } A -> B\n}",
+			tokType: tokenizer.PACKAGE,
+			want: &ast.Container{
+				Identifier: "mypkg",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+					ast.Container{
+						Statements: []ast.Statement{
+							&ast.Entity{
+								Identifier: "B",
+								Kind:       ast.ClassKind,
+							},
+						},
+					},
+					ast.Relationship{
+						LHS:    "A",
+						RHS:    "B",
+						Body:   '-',
+						RArrow: '>',
+					},
+				},
+			},
+		},
+		{
+			name:        "package missing identifier",
+			input:       "package as otherpkg\n",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected container name or alias",
+		},
+		{
+			name:        "package incomplete alias",
+			input:       "package mypkg as\n",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected container name or alias",
+		},
+		{
+			name:        "package unclosed stereotype",
+			input:       "package mypkg <<Service\n",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "unexpected EOF",
+		},
+		{
+			name:        "package unclosed body",
+			input:       "package mypkg { class A",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "unexpected EOF",
+		},
+		{
+			name:        "package unexpected token in body",
+			input:       "package mypkg { @invalid }",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected a statement in a container body",
+		},
+		{
+			name:        "package body newline error",
+			input:       "package mypkg {\n}",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected a statement in a container body",
+		},
+		{
+			name:        "package with same line body and color without colon/newline",
+			input:       "package mypkg #red { class A }",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected container body to end",
+		},
+		{
+			name:        "package body class error",
+			input:       "package mypkg { class MyClass as }",
+			tokType:     tokenizer.PACKAGE,
+			expectErr:   true,
+			errContains: "Expected token for entity identifier or alias",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.tokType, tok.Type)
+
+			got, err := p.parseContainer(tok)
+			if tc.expectErr {
+				require.Error(t, err)
+				if tc.errContains != "" {
+					require.Contains(t, err.Error(), tc.errContains)
+				}
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, *tc.want, got)
+			}
+		})
+	}
+}
+

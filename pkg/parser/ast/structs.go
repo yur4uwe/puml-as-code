@@ -80,7 +80,7 @@ const (
 )
 
 type Container struct {
-	Name       string
+	Identifier string
 	Alias      string
 	Kind       ContainerKind
 	Stereotype string

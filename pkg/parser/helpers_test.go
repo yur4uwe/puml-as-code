@@ -2,6 +2,7 @@ package parser
 
 import (
 	"testing"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 
@@ -116,9 +117,10 @@ func TestParseSkinparamStyles(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			p := &Parser{
-				stream:    tokenizer.NewTokenStream("@startuml\n" + tt.input + "\n@enduml"),
-				ast:       &ast.Diagram{},
-				skinparam: make(ast.Skinparam),
+				stream: tokenizer.NewTokenStream("@startuml\n" + tt.input + "\n@enduml"),
+				ast: &ast.Diagram{
+					Skinparam: make(ast.Skinparam),
+				},
 			}
 			// Skip @startuml
 			_, _ = p.stream.ReadDiagramBounds()
@@ -130,7 +132,7 @@ func TestParseSkinparamStyles(t *testing.T) {
 					break
 				}
 			}
-			err := p.parseStyles(tok)
+			err := p.parseSkinparam()
 
 			if tt.expectsError {
 				require.Error(t, err)
@@ -139,7 +141,7 @@ func TestParseSkinparamStyles(t *testing.T) {
 				require.NoError(t, err)
 			}
 
-			require.Equal(t, tt.expected, p.skinparam)
+			require.Equal(t, tt.expected, p.ast.Skinparam)
 		})
 	}
 }

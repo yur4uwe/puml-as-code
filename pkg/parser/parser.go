@@ -136,6 +136,10 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	// Handle short-form circle: ()
 	case tokenizer.LPAREN:
 	case tokenizer.IDENTIFIER:
+		switch tok.Literal {
+		case "folder", "frame", "rectangle", "database", "cloud", "node":
+			return p.parseContainer(tok)
+		}
 		// TODO: handle relationships
 		return p.parseRelationship(tok)
 	default:
@@ -152,14 +156,23 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.parseVisibilityCommand(tok)
 	case tokenizer.SCALE:
 		return p.parseScale()
-	case tokenizer.LANGLE, tokenizer.SKINPARAM:
+	case tokenizer.LANGLE:
 		if p.stream.AssertType(tokenizer.RANGLE) {
 			// Successfully matched "<>", shorthand for diamond
 			return ast.Entity{
 				Kind: ast.DiamondKind,
 			}, nil
 		}
-		return nil, p.parseStyles(tok)
+		// <style> token sequence for now simply read it as a string
+		// and ignore it
+		styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
+		if err != nil {
+			return nil, NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
+		}
+		p.ast.Styles = append(p.ast.Styles, styles)
+		return nil, nil
+	case tokenizer.SKINPARAM:
+		return nil, p.parseSkinparam()
 	case tokenizer.EXCLAMATION:
 	case tokenizer.DIRECTION:
 		return p.parseDiagDirection(tok)
