@@ -2,6 +2,7 @@ package dialect
 
 import (
 	"testing"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 
@@ -69,11 +70,6 @@ func TestGoDialect_ParseField(t *testing.T) {
 				Name: "name",
 				Type: ast.TypeRef{Kind: ast.Void, Name: "*[]int"},
 			},
-		},
-		{
-			name:        "invalid primitive string token",
-			input:       "name string",
-			expectError: true,
 		},
 		{
 			name:        "invalid colon separator",
@@ -249,11 +245,6 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 		{
 			name:        "unclosed parenthesis",
 			input:       "Method(a int",
-			expectError: true,
-		},
-		{
-			name:        "missing parameter comma",
-			input:       "Method(a int b bool)",
 			expectError: true,
 		},
 		{

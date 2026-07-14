@@ -225,9 +225,9 @@ func (m Cardinality) String() string {
 	return fmt.Sprintf("%d..%d", m.Min, m.Max)
 }
 
-type TypeRef struct {
-	Kind ValueType
-	Name string
+type TypeRef interface {
+	Lang() string
+	fmt.Stringer
 }
 
 func ParseTypeRef(typeStr string) TypeRef {

@@ -2,11 +2,66 @@ package dialect
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
+
+type RefType int
+
+const (
+	Pointer RefType = iota
+	Slice
+	Array
+	Named
+)
+
+type GoTypeRef struct {
+	Typ       RefType
+	ArraySize int
+	Name      string
+	Base      *GoTypeRef
+}
+
+// String implements [ast.TypeRef].
+
+var _ ast.TypeRef = (*GoTypeRef)(nil)
+
+// Lang implements [ast.TypeRef].
+func (g *GoTypeRef) Lang() string {
+	return "go"
+}
+
+// TypeName implements [ast.TypeRef].
+func (g *GoTypeRef) String() string {
+	var sb strings.Builder
+	var hasName bool
+	for curr := g; curr != nil; curr = curr.Base {
+		switch curr.Typ {
+		case Slice:
+			sb.WriteString("[]")
+		case Pointer:
+			sb.WriteString("*")
+		case Array:
+			sb.WriteRune('[')
+			if curr.ArraySize <= 0 {
+				sb.WriteRune('?')
+			} else {
+				sb.WriteString(strconv.Itoa(curr.ArraySize))
+			}
+			sb.WriteRune(']')
+		case Named:
+			if hasName {
+				sb.WriteRune('.')
+			}
+			hasName = true
+			sb.WriteString(curr.Name)
+		}
+	}
+	return sb.String()
+}
 
 func NewGoDialect() Dialect {
 	return GoDialect{}
@@ -22,7 +77,7 @@ func (g GoDialect) Name() string {
 
 func (g GoDialect) ParseField(toks []tokenizer.Token) (ast.Parameter, error) {
 	// expects this structure:
-	// <name> <asterisk|[N]|[]>?xN <type>
+	// <name> <type>
 	if len(toks) < 2 {
 		return ast.Parameter{}, fmt.Errorf("%w: expected at least two tokens", ErrParsingDialect)
 	}
@@ -86,50 +141,9 @@ func (g GoDialect) parseType(toks []tokenizer.Token) (ast.TypeRef, error) {
 	}
 
 	var sb strings.Builder
-	pos := 0
 
-outerLoop:
-	for pos < len(toks) {
-		switch toks[pos].Type {
-		case tokenizer.ASTERISK:
-			sb.WriteString(toks[pos].Literal)
-			pos++
-
-		case tokenizer.LBRACKET:
-			sb.WriteString(toks[pos].Literal)
-			pos++
-			if pos >= len(toks) {
-				return ast.TypeRef{}, fmt.Errorf("%w: unexpected end of tokens after '['", ErrParsingDialect)
-			}
-			switch toks[pos].Type {
-			case tokenizer.NUMBER:
-				sb.WriteString(toks[pos].Literal)
-				pos++
-			case tokenizer.RBRACKET:
-			default:
-				return ast.TypeRef{}, fmt.Errorf("%w: expected number or ']' for an arrayish type, got %s", ErrParsingDialect, toks[pos].Type.String())
-			}
-			if pos >= len(toks) || toks[pos].Type != tokenizer.RBRACKET {
-				return ast.TypeRef{}, fmt.Errorf("%w: expected ']' to close array/slice type", ErrParsingDialect)
-			}
-			sb.WriteString(toks[pos].Literal)
-			pos++
-
-		case tokenizer.IDENTIFIER:
-			break outerLoop
-		default:
-			return ast.TypeRef{}, fmt.Errorf("%w: expected asterisk, '[' or identifier for a type, got %s", ErrParsingDialect, toks[pos].Type.String())
-		}
-	}
-
-	if pos >= len(toks) || toks[pos].Type != tokenizer.IDENTIFIER {
-		return ast.TypeRef{}, fmt.Errorf("%w: expected identifier for a type", ErrParsingDialect)
-	}
-	sb.WriteString(toks[pos].Literal)
-	pos++
-
-	if pos != len(toks) {
-		return ast.TypeRef{}, fmt.Errorf("%w: unexpected trailing tokens in type", ErrParsingDialect)
+	for pos := range toks {
+		sb.WriteString(toks[pos].Literal)
 	}
 
 	return ast.TypeRef{Name: sb.String()}, nil
@@ -229,7 +243,6 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]ast.TypeRef, error
 		return returns, nil
 	}
 
-	// bare single return type, e.g. "error" or "*int"
 	t, err := g.parseType(toks)
 	if err != nil {
 		return nil, err
