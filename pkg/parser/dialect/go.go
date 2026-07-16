@@ -3,150 +3,158 @@ package dialect
 import (
 	"fmt"
 	"strconv"
-	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-type RefType int
-
-const (
-	Pointer RefType = iota
-	Slice
-	Array
-	Named
-)
-
-type GoTypeRef struct {
-	Typ       RefType
-	ArraySize int
-	Name      string
-	Base      *GoTypeRef
-}
-
-// String implements [ast.TypeRef].
-
-var _ ast.TypeRef = (*GoTypeRef)(nil)
-
-// Lang implements [ast.TypeRef].
-func (g *GoTypeRef) Lang() string {
-	return "go"
-}
-
-// TypeName implements [ast.TypeRef].
-func (g *GoTypeRef) String() string {
-	var sb strings.Builder
-	var hasName bool
-	for curr := g; curr != nil; curr = curr.Base {
-		switch curr.Typ {
-		case Slice:
-			sb.WriteString("[]")
-		case Pointer:
-			sb.WriteString("*")
-		case Array:
-			sb.WriteRune('[')
-			if curr.ArraySize <= 0 {
-				sb.WriteRune('?')
-			} else {
-				sb.WriteString(strconv.Itoa(curr.ArraySize))
-			}
-			sb.WriteRune(']')
-		case Named:
-			if hasName {
-				sb.WriteRune('.')
-			}
-			hasName = true
-			sb.WriteString(curr.Name)
-		}
-	}
-	return sb.String()
-}
-
-func NewGoDialect() Dialect {
-	return GoDialect{}
-}
-
-type GoDialect struct{}
-
-var _ Dialect = GoDialect{}
-
-func (g GoDialect) Name() string {
-	return "go"
-}
-
-func (g GoDialect) ParseField(toks []tokenizer.Token) (ast.Parameter, error) {
+func (g GoDialect) parseField(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (*GoField, error) {
 	// expects this structure:
 	// <name> <type>
 	if len(toks) < 2 {
-		return ast.Parameter{}, fmt.Errorf("%w: expected at least two tokens", ErrParsingDialect)
+		return nil, fmt.Errorf("%w: expected at least two tokens", ErrParsingDialect)
 	}
 
 	if toks[0].Type != tokenizer.IDENTIFIER {
-		return ast.Parameter{}, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrParsingDialect, toks[0].Type.String())
+		return nil, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
-	field := ast.Parameter{Name: toks[0].Literal}
+	field := &GoField{
+		Name:       toks[0].Literal,
+		Visibility: visibility,
+		Modifiers:  modifiers,
+	}
 
 	var err error
 	field.Type, err = g.parseType(toks[1:])
 	if err != nil {
-		return ast.Parameter{}, err
+		return nil, err
 	}
 
 	return field, nil
 }
 
-func (g GoDialect) ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, []ast.Parameter, error) {
+func (g GoDialect) parseMethod(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (*GoMethod, error) {
 	// expects this structure (no 'func' keyword, no receiver):
 	// <name> '(' <params>? ')' <returns>?
 	if len(toks) < 3 {
-		return "", nil, nil, fmt.Errorf("%w: expected at least 3 tokens for a method", ErrParsingDialect)
+		return nil, fmt.Errorf("%w: expected at least 3 tokens for a method", ErrParsingDialect)
 	}
 
 	if toks[0].Type != tokenizer.IDENTIFIER {
-		return "", nil, nil, fmt.Errorf("%w: expected identifier for a method name, got %s", ErrParsingDialect, toks[0].Type.String())
+		return nil, fmt.Errorf("%w: expected identifier for a method name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
 	methodName := toks[0].Literal
 	pos := 1
 
 	if toks[pos].Type != tokenizer.LPAREN {
-		return "", nil, nil, fmt.Errorf("%w: expected '(' after method name, got %s", ErrParsingDialect, toks[pos].Type.String())
+		return nil, fmt.Errorf("%w: expected '(' after method name, got %s", ErrParsingDialect, toks[pos].Type.String())
 	}
 	pos++
 
 	paramToks, pos, err := readUntilMatching(toks, pos, tokenizer.LPAREN, tokenizer.RPAREN)
 	if err != nil {
-		return "", nil, nil, fmt.Errorf("%w: parsing parameter list: %w", ErrParsingDialect, err)
+		return nil, fmt.Errorf("%w: parsing parameter list: %w", ErrParsingDialect, err)
 	}
 
 	params, err := g.parseParamList(paramToks)
 	if err != nil {
-		return "", nil, nil, err
+		return nil, err
 	}
 
-	var returns []ast.TypeRef
+	var returns []GoTypeRef
 	if pos < len(toks) {
 		returns, err = g.parseReturnList(toks[pos:])
 		if err != nil {
-			return "", nil, nil, err
+			return nil, err
 		}
 	}
 
-	return methodName, returns, params, nil
+	return &GoMethod{
+		Name:       methodName,
+		ReturnType: returns,
+		Parameters: params,
+		Modifiers:  modifiers,
+		Visibility: visibility,
+	}, nil
 }
 
-func (g GoDialect) parseType(toks []tokenizer.Token) (ast.TypeRef, error) {
-	if len(toks) == 0 {
-		return ast.TypeRef{}, fmt.Errorf("%w: expected a type, got end of tokens", ErrParsingDialect)
+func (g GoDialect) parseType(toks []tokenizer.Token) (GoTypeRef, error) {
+	ref, consumed, err := g.parseTypeFrom(toks, 0)
+	if err != nil {
+		return GoTypeRef{}, err
+	}
+	if consumed != len(toks) {
+		return GoTypeRef{}, fmt.Errorf("%w: unexpected trailing tokens in type",
+			ErrParsingDialect)
+	}
+	return ref, nil
+}
+
+func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, int,
+	error,
+) {
+	if pos >= len(toks) {
+		return GoTypeRef{}, pos, fmt.Errorf("%w: expected type, got end of tokens",
+			ErrParsingDialect)
 	}
 
-	var sb strings.Builder
+	switch toks[pos].Type {
+	case tokenizer.ASTERISK: // *T
+		base, newPos, err := g.parseTypeFrom(toks, pos+1)
+		if err != nil {
+			return GoTypeRef{}, 0, err
+		}
+		return GoTypeRef{Typ: Pointer, Base: &base}, newPos, nil
 
-	for pos := range toks {
-		sb.WriteString(toks[pos].Literal)
+	case tokenizer.LBRACKET: // []T or [N]T
+		pos++
+		if pos >= len(toks) {
+			return GoTypeRef{}, 0, fmt.Errorf("%w: unexpected end after '['",
+				ErrParsingDialect)
+		}
+		if toks[pos].Type == tokenizer.RBRACKET {
+			// []T — slice
+			base, newPos, err := g.parseTypeFrom(toks, pos+1)
+			if err != nil {
+				return GoTypeRef{}, 0, err
+			}
+			return GoTypeRef{Typ: Slice, Base: &base}, newPos, nil
+		}
+		if toks[pos].Type == tokenizer.NUMBER {
+			size, _ := strconv.Atoi(toks[pos].Literal)
+			pos++
+			if pos >= len(toks) || toks[pos].Type != tokenizer.RBRACKET {
+				return GoTypeRef{}, 0, fmt.Errorf("%w: expected ']' after array size",
+					ErrParsingDialect)
+			}
+			base, newPos, err := g.parseTypeFrom(toks, pos+1)
+			if err != nil {
+				return GoTypeRef{}, 0, err
+			}
+			return GoTypeRef{Typ: Array, ArraySize: size, Base: &base}, newPos, nil
+		}
+		return GoTypeRef{}, 0, fmt.Errorf("%w: expected ']' or number after '['",
+			ErrParsingDialect)
+
+	case tokenizer.IDENTIFIER: // named type, possibly qualified (pkg.Type)
+		ref := GoTypeRef{Typ: Named, Name: toks[pos].Literal}
+		pos++
+		if pos < len(toks) && toks[pos].Type == tokenizer.DOT {
+			pos++ // skip dot
+			if pos >= len(toks) || toks[pos].Type != tokenizer.IDENTIFIER {
+				return GoTypeRef{}, 0, fmt.Errorf("%w: expected identifier after '.'",
+					ErrParsingDialect)
+			}
+			qualified := GoTypeRef{Typ: Named, Name: toks[pos].Literal}
+			ref.Base = &qualified
+			pos++
+		}
+		return ref, pos, nil
+
+	default:
+		return GoTypeRef{}, 0, fmt.Errorf("%w: unexpected token '%s' in type",
+			ErrParsingDialect, toks[pos].Literal)
 	}
-
-	return ast.TypeRef{Name: sb.String()}, nil
 }
 
 // readUntilMatching returns the tokens strictly between the opener already
@@ -169,22 +177,22 @@ func readUntilMatching(toks []tokenizer.Token, pos int, open, close tokenizer.To
 	return nil, 0, fmt.Errorf("%w: unmatched '%s'", ErrParsingDialect, open.String())
 }
 
-func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]ast.Parameter, error) {
+func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error) {
 	if len(toks) == 0 {
 		return nil, nil
 	}
 
-	var params []ast.Parameter
+	var params []GoParameter
 	var sameTypeAmount int
 	for _, chunk := range splitTopLevelCommas(toks) {
 		if len(chunk) == 1 {
 			// single token, presumably a name for a Parameter
 			// with same type as the next one
-			params = append(params, ast.Parameter{Name: chunk[0].Literal, Type: ast.TypeRef{}})
+			params = append(params, GoParameter{Name: chunk[0].Literal, Type: GoTypeRef{}})
 			sameTypeAmount++
 			continue
 		}
-		field, err := g.ParseField(chunk)
+		field, err := g.parseField(chunk, ast.UnknownVisibility, nil)
 		if err != nil {
 			return nil, fmt.Errorf("parsing parameter: %w", err)
 		}
@@ -192,7 +200,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]ast.Parameter, erro
 			// update the type of the previous parameters
 			params[len(params)-1-i].Type = field.Type
 		}
-		params = append(params, field)
+		params = append(params, GoParameter{Name: field.Name, Type: field.Type})
 	}
 	return params, nil
 }
@@ -218,7 +226,7 @@ func splitTopLevelCommas(toks []tokenizer.Token) [][]tokenizer.Token {
 	return chunks
 }
 
-func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]ast.TypeRef, error) {
+func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoTypeRef, error) {
 	if len(toks) == 0 {
 		return nil, nil
 	}
@@ -232,7 +240,7 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]ast.TypeRef, error
 			return nil, fmt.Errorf("%w: unexpected trailing tokens after return list", ErrParsingDialect)
 		}
 
-		var returns []ast.TypeRef
+		var returns []GoTypeRef
 		for _, chunk := range splitTopLevelCommas(inner) {
 			t, err := g.parseType(chunk)
 			if err != nil {
@@ -247,5 +255,5 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]ast.TypeRef, error
 	if err != nil {
 		return nil, err
 	}
-	return []ast.TypeRef{t}, nil
+	return []GoTypeRef{t}, nil
 }

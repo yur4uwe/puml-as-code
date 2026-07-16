@@ -25,6 +25,6 @@ var ErrParsingDialect = errors.New("tokens do not match dialect syntax")
 // Dialect defines how to parse fields and methods for a specific language dialect
 type Dialect interface {
 	Name() string
-	ParseField(toks []tokenizer.Token) (ast.Parameter, error)
-	ParseMethod(toks []tokenizer.Token) (string, []ast.TypeRef, []ast.Parameter, error)
+	ParseField(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (ast.Field, error)
+	ParseMethod(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (ast.Method, error)
 }

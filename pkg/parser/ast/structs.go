@@ -133,39 +133,45 @@ func (cs ClassSeparator) MemberNode() Member {
 	return cs
 }
 
-type Field struct {
-	// Its impossible to know what is the type of the field and what is its name
-	// I will do go's way and first fill the name and then the type
-	// Then during generation, use known types to find where the name actually is
-	Raw        string
-	Name       string
-	Type       TypeRef
-	Visibility VisibilityKind
-	// Optional modifiers
-	Modifiers []string
-	// This shit is so fucked up...
-	// What do you mean only way to distinguish between field and method is
-	// by presence of parenthesis?
+// type Field struct {
+// 	// Its impossible to know what is the type of the field and what is its name
+// 	// I will do go's way and first fill the name and then the type
+// 	// Then during generation, use known types to find where the name actually is
+// 	Raw        string
+// 	Name       string
+// 	Type       TypeRef
+// 	Visibility VisibilityKind
+// 	// Optional modifiers
+// 	Modifiers []string
+// 	// This shit is so fucked up...
+// 	// What do you mean only way to distinguish between field and method is
+// 	// by presence of parenthesis?
+// }
+
+type Field interface {
+	Member
+	FieldName() string
+	FieldModifiers() []string
+	FieldVisibility() VisibilityKind
 }
 
-var _ Member = Field{}
+// type Method struct {
+// 	// Name and type will be inferred by assuming that '()' will be right after
+// 	// the name
+// 	Raw        string
+// 	Name       string
+// 	ReturnType []TypeRef // due to multiple return types languages, this is a slice
+// 	Parameters []Parameter
+// 	Modifiers  []string
+// 	Visibility VisibilityKind
+// }
 
-func (f Field) MemberNode() Member { return f }
-
-type Method struct {
-	// Name and type will be inferred by assuming that '()' will be right after
-	// the name
-	Raw        string
-	Name       string
-	ReturnType []TypeRef // due to multiple return types languages, this is a slice
-	Parameters []Parameter
-	Modifiers  []string
-	Visibility VisibilityKind
+type Method interface {
+	Member
+	MethodName() string
+	MethodModifiers() []string
+	MethodVisibility() VisibilityKind
 }
-
-var _ Member = Method{}
-
-func (m Method) MemberNode() Member { return m }
 
 type Diagram struct {
 	Name       string

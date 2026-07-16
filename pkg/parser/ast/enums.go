@@ -94,25 +94,6 @@ func (v VisibilityKind) String() string {
 	}
 }
 
-func GetVisibility(name string) VisibilityKind {
-	if name == "" {
-		return UnknownVisibility
-	}
-	visStr := string(name[0])
-	switch visStr {
-	case "+":
-		return Public
-	case "-":
-		return Private
-	case "#":
-		return Protected
-	case "~":
-		return Package
-	default:
-		return UnknownVisibility
-	}
-}
-
 type ValueType byte
 
 const (
@@ -223,53 +204,4 @@ func (m Cardinality) String() string {
 		return strconv.Itoa(m.Min)
 	}
 	return fmt.Sprintf("%d..%d", m.Min, m.Max)
-}
-
-type TypeRef interface {
-	Lang() string
-	fmt.Stringer
-}
-
-func ParseTypeRef(typeStr string) TypeRef {
-	s := strings.TrimSpace(typeStr)
-	vt := ToValueType(s)
-	if vt == Custom {
-		return TypeRef{Kind: Custom, Name: s}
-	}
-	if vt == UnknownType && s != "" {
-		return TypeRef{Kind: Custom, Name: s}
-	}
-	return TypeRef{Kind: vt, Name: ""}
-}
-
-func CustomType(name string) TypeRef {
-	return TypeRef{Kind: Custom, Name: name}
-}
-
-func (tr TypeRef) String() string {
-	switch tr.Kind {
-	case Int:
-		return "int"
-	case String:
-		return "string"
-	case Float:
-		return "float"
-	case Bool:
-		return "bool"
-	case Void:
-		return "void"
-	case Custom:
-		if tr.Name == "" {
-			return "any"
-		}
-		return tr.Name
-	default:
-		return "any"
-	}
-}
-
-type Parameter struct {
-	Name string
-	Type TypeRef
-	Raw  string
 }

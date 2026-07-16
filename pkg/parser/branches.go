@@ -289,22 +289,19 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
 	if member, err = p.stream.TryReadClassSeparator(); err == nil {
 		return member, nil
-	} else if err == tokenizer.ErrUnexpectedEOF {
-		// Ignore this error as it might be other syntactic constructs
-		// Only other error is 'Unexpected EOF' so we just bubble it up
+	} else if err != tokenizer.ErrStartMarkerNotFound {
 		return nil, err
 	}
 
-	field := ast.Field{}
+	vis := ast.UnknownVisibility
 	if mod, err := p.stream.TryReadModifier(); err == nil {
 		// Handle scope modifiers
-		field.Modifiers = append(field.Modifiers, mod)
-		member, err = p.parseFieldOrMethod(tokenizer.Token{Type: tokenizer.LBRACE}, field)
+		member, err = p.parseFieldOrMethod(&mod, vis, unamb(tokenizer.LBRACE))
 		if err != nil {
 			return nil, err
 		}
 		return member, nil
-	} else if err == tokenizer.ErrUnexpectedEOF {
+	} else if err != tokenizer.ErrStartMarkerNotFound {
 		// Ignore the particular error because of the reasons above
 		return nil, err
 	}
@@ -312,26 +309,23 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	tok := p.stream.Emit()
 	switch tok.Type {
 	case tokenizer.RBRACE:
+		// It shouldn't arrive here, but just in case
 		return nil, nil
 	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
-		field.Visibility = p.mapTokenToVisibility(tok.Type)
+		vis = p.mapTokenToVisibility(tok.Type)
 	case tokenizer.IDENTIFIER:
-		field.Name = tok.Literal
+		// simply to not error out
 	default:
 		return nil, NewParserError("Unexpected token in entity body", p.stream.PeekTokenAt(0).Pos)
 	}
-	member, err = p.parseFieldOrMethod(tok, field)
-	if err != nil {
-		return nil, err
-	}
-	return member, nil
+	return p.parseFieldOrMethod(nil, vis, tok)
 }
 
 // Can be either a field or a method
 // but start with a field as either start the same
 //
 // Returns the parsed field or method, must be asserted to be a field or method
-func (p *Parser) parseFieldOrMethod(entryTok tokenizer.Token, field ast.Field) (ast.Member, error) {
+func (p *Parser) parseFieldOrMethod(mod *string, vis ast.VisibilityKind, entryTok tokenizer.Token) (ast.Member, error) {
 	// Can enter this function with one of:
 	// - Name
 	// - Visibility
@@ -344,17 +338,19 @@ func (p *Parser) parseFieldOrMethod(entryTok tokenizer.Token, field ast.Field) (
 	mustBeField := false
 	mustBeMethod := false
 	containsLParen := false
+	var mods []string
 
-	if len(field.Modifiers) > 0 {
-		switch field.Modifiers[0] {
+	if mod != nil {
+		switch *mod {
 		case "method":
 			mustBeMethod = true
 		case "field":
 			mustBeField = true
 		}
+		mods = append(mods, *mod)
 	}
 
-	if p.mapTokenToVisibility(entryTok.Type) != ast.UnknownVisibility {
+	if vis != ast.UnknownVisibility {
 		canEncounterVisibility = false
 	}
 
@@ -373,19 +369,24 @@ outer:
 			case "field":
 				mustBeField = true
 			}
+			mods = append(mods, mod)
 			continue
+		} else if err != tokenizer.ErrStartMarkerNotFound {
+			return nil, err
 		}
 
 		tok := p.stream.Emit()
 		switch tok.Type {
-		case tokenizer.EOF, tokenizer.NEWLINE:
+		case tokenizer.EOF:
+			return nil, tokenizer.ErrUnexpectedEOF
+		case tokenizer.NEWLINE:
 			break outer
 		case tokenizer.HASH, tokenizer.PLUS, tokenizer.DASH, tokenizer.TILDE:
 			if canEncounterVisibility {
 				entry = append(entry, tok)
 				continue
 			}
-			field.Visibility = p.mapTokenToVisibility(tok.Type)
+			vis = p.mapTokenToVisibility(tok.Type)
 		case tokenizer.LPAREN:
 			containsLParen = true
 			fallthrough
@@ -403,30 +404,10 @@ outer:
 
 	isMethod := mustBeMethod || (!mustBeField && containsLParen)
 
-	var err error
 	if isMethod {
-		meth := ast.Method{
-			Visibility: field.Visibility,
-			Modifiers:  field.Modifiers,
-		}
-
-		meth.Name,
-			meth.ReturnType,
-			meth.Parameters,
-			err = p.dialect.ParseMethod(entry)
-		if err != nil {
-			return nil, err
-		}
-		return meth, err
+		return p.dialect.ParseMethod(entry, vis, mods)
 	} else {
-		var fieldDef ast.Parameter
-		fieldDef, err = p.dialect.ParseField(entry)
-		if err != nil {
-			return nil, err
-		}
-		field.Name = fieldDef.Name
-		field.Type = fieldDef.Type
-		return field, err
+		return p.dialect.ParseField(entry, vis, mods)
 	}
 }
 
