@@ -7,22 +7,35 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
+// RefType describes the kind of a GoTypeRef node in the recursive type chain.
 type RefType int
 
 const (
 	Pointer RefType = iota
 	Slice
 	Array
-	Named
+	Named // Terminal node — the base type name (e.g. "int", "MyStruct")
 )
 
+// GoTypeRef is a recursive linked-list representation of a Go type.
+// Each node is either a modifier (Pointer, Slice, Array) wrapping a Base type,
+// or a terminal Named node. For example, *[]User is represented as:
+//
+//	Pointer → Slice → Named("User")
+//
+// Qualified names (e.g. pkg.Type) are chained Named nodes:
+//
+//	Named("pkg") → Named("Type")
 type GoTypeRef struct {
 	Typ       RefType
-	ArraySize int
-	Name      string
+	ArraySize int    // Only meaningful when Typ == Array
+	Name      string // Only meaningful when Typ == Named
 	Base      *GoTypeRef
 }
 
+// String reconstructs the Go type syntax from the recursive chain.
+// The hasName flag tracks whether a Named node was already emitted,
+// so that chained Named nodes (qualified names) are joined with '.'.
 func (g *GoTypeRef) String() string {
 	var sb strings.Builder
 	var hasName bool
@@ -51,39 +64,49 @@ func (g *GoTypeRef) String() string {
 	return sb.String()
 }
 
-func (g *GoTypeRef) PointerTo(base *GoTypeRef) *GoTypeRef {
-	g.Typ = Pointer
-	g.Base = base
-	return g
+func PointerTo(base *GoTypeRef) *GoTypeRef {
+	return &GoTypeRef{
+		Typ:  Pointer,
+		Base: base,
+	}
 }
 
-func (g *GoTypeRef) SliceOf(base *GoTypeRef) *GoTypeRef {
-	g.Typ = Slice
-	g.Base = base
-	return g
+func SliceOf(base *GoTypeRef) *GoTypeRef {
+	return &GoTypeRef{
+		Typ:  Slice,
+		Base: base,
+	}
 }
 
-func (g *GoTypeRef) ArrayOf(size int, base *GoTypeRef) *GoTypeRef {
-	g.Typ = Array
-	g.ArraySize = size
-	g.Base = base
-	return g
+func ArrayOf(size int, base *GoTypeRef) *GoTypeRef {
+	return &GoTypeRef{
+		Typ:       Array,
+		ArraySize: size,
+		Base:      base,
+	}
 }
 
-func (g *GoTypeRef) Named(name string) *GoTypeRef {
-	g.Typ = Named
-	g.Name = name
-	return g
+func NamedRef(name string) *GoTypeRef {
+	return &GoTypeRef{
+		Typ:  Named,
+		Name: name,
+	}
 }
 
+// GoParameter represents a name+type pair used for both method parameters
+// and return values. Name is empty for unnamed parameters/returns.
+// Type is nil for untyped parameters (e.g. in Go's "a, b int" shorthand,
+// "a" is initially untyped until backfilled).
 type GoParameter struct {
 	Name string
-	Type GoTypeRef
+	Type *GoTypeRef
 }
 
+// GoField is the Go-specific implementation of [ast.Field].
+// Consumers should type-assert from ast.Field to access Type.
 type GoField struct {
 	Name       string
-	Type       GoTypeRef
+	Type       *GoTypeRef
 	Visibility ast.VisibilityKind
 	Modifiers  []string
 }
@@ -113,9 +136,13 @@ var (
 	_ ast.Member = (*GoField)(nil)
 )
 
+// GoMethod is the Go-specific implementation of [ast.Method].
+// ReturnType uses GoParameter to support both named (e error) and
+// unnamed (error) return values. Consumers should type-assert from
+// ast.Method to access Parameters and ReturnType.
 type GoMethod struct {
 	Name       string
-	ReturnType []GoTypeRef
+	ReturnType []GoParameter // Named returns have Name set, unnamed have Name empty
 	Parameters []GoParameter
 	Modifiers  []string
 	Visibility ast.VisibilityKind

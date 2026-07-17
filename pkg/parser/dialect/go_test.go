@@ -28,47 +28,61 @@ func TestGoDialect_ParseField(t *testing.T) {
 	tests := []struct {
 		name          string
 		input         string
-		expectedParam ast.Parameter
+		expectedParam GoParameter
 		expectError   bool
 	}{
 		{
 			name:  "basic primitive type",
 			input: "name int",
-			expectedParam: ast.Parameter{
+			expectedParam: GoParameter{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "int"},
+				Type: NamedRef("int"),
 			},
 		},
 		{
 			name:  "pointer type",
 			input: "name *MyType",
-			expectedParam: ast.Parameter{
+			expectedParam: GoParameter{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "*MyType"},
+				// Type: GoTypeRef{
+				// 	Typ: Pointer,
+				// 	Base: &GoTypeRef{
+				// 		Typ:  Named,
+				// 		Name: "MyType",
+				// 	},
+				// },
+				Type: PointerTo(NamedRef("MyType")),
 			},
 		},
 		{
 			name:  "slice type",
 			input: "name []int",
-			expectedParam: ast.Parameter{
+			expectedParam: GoParameter{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "[]int"},
+				// Type: GoTypeRef{
+				// 	Typ: Slice,
+				// 	Base: &GoTypeRef{
+				// 		Typ:  Named,
+				// 		Name: "int",
+				// 	},
+				// },
+				Type: SliceOf(NamedRef("int")),
 			},
 		},
 		{
 			name:  "slice of pointers",
 			input: "name []*MyType",
-			expectedParam: ast.Parameter{
+			expectedParam: GoParameter{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "[]*MyType"},
+				Type: SliceOf(PointerTo(NamedRef("MyType"))),
 			},
 		},
 		{
 			name:  "pointer to slice",
 			input: "name *[]int",
-			expectedParam: ast.Parameter{
+			expectedParam: GoParameter{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "*[]int"},
+				Type: PointerTo(SliceOf(NamedRef("int"))),
 			},
 		},
 		{
@@ -101,13 +115,17 @@ func TestGoDialect_ParseField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			param, err := g.ParseField(toks)
+			field, err := g.ParseField(toks, ast.UnknownVisibility, nil)
 			if tt.expectError {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.expectedParam, param)
+				return
 			}
+			require.NoError(t, err)
+
+			goField, ok := field.(*GoField)
+			require.True(t, ok, "Returned field is not of type GoField")
+			require.Equal(t, tt.expectedParam.Type, goField.Type)
+			require.Equal(t, tt.expectedParam.Name, goField.Name)
 		})
 	}
 }
@@ -119,8 +137,8 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 		name           string
 		input          string
 		expectedName   string
-		expectedRets   []ast.TypeRef
-		expectedParams []ast.Parameter
+		expectedRets   []GoParameter
+		expectedParams []GoParameter
 		expectError    bool
 	}{
 		{
@@ -134,8 +152,8 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			name:         "no params single return",
 			input:        "Method() int",
 			expectedName: "Method",
-			expectedRets: []ast.TypeRef{
-				{Kind: ast.Void, Name: "int"},
+			expectedRets: []GoParameter{
+				{Name: "", Type: NamedRef("int")},
 			},
 			expectedParams: nil,
 		},
@@ -144,8 +162,8 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(a int)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: NamedRef("int")},
 			},
 		},
 		{
@@ -153,9 +171,9 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(a int, b bool)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
-				{Name: "b", Type: ast.TypeRef{Kind: ast.Void, Name: "bool"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: NamedRef("int")},
+				{Name: "b", Type: NamedRef("bool")},
 			},
 		},
 		{
@@ -163,33 +181,33 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(a, b int)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
-				{Name: "b", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: NamedRef("int")},
+				{Name: "b", Type: NamedRef("int")},
 			},
 		},
 		{
 			name:         "single param multiple returns",
 			input:        "Method(a int) (int, error)",
 			expectedName: "Method",
-			expectedRets: []ast.TypeRef{
-				{Kind: ast.Void, Name: "int"},
-				{Kind: ast.Void, Name: "error"},
+			expectedRets: []GoParameter{
+				{Type: NamedRef("int")},
+				{Type: NamedRef("error")},
 			},
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: NamedRef("int")},
 			},
 		},
 		{
 			name:         "pointer param and slice of pointers return",
 			input:        "Method(a *MyType) ([]*int, error)",
 			expectedName: "Method",
-			expectedRets: []ast.TypeRef{
-				{Kind: ast.Void, Name: "[]*int"},
-				{Kind: ast.Void, Name: "error"},
+			expectedRets: []GoParameter{
+				{Type: SliceOf(PointerTo(NamedRef("int")))},
+				{Type: NamedRef("error")},
 			},
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "*MyType"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: PointerTo(NamedRef("MyType"))},
 			},
 		},
 		{
@@ -197,10 +215,10 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(a int, b, c bool)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
-				{Name: "b", Type: ast.TypeRef{Kind: ast.Void, Name: "bool"}},
-				{Name: "c", Type: ast.TypeRef{Kind: ast.Void, Name: "bool"}},
+			expectedParams: []GoParameter{
+				{Name: "a", Type: NamedRef("int")},
+				{Name: "b", Type: NamedRef("bool")},
+				{Name: "c", Type: NamedRef("bool")},
 			},
 		},
 		{
@@ -208,8 +226,8 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(int)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "int", Type: ast.TypeRef{Kind: ast.Void, Name: ""}},
+			expectedParams: []GoParameter{
+				{Name: "int", Type: nil},
 			},
 		},
 		{
@@ -217,18 +235,38 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			input:        "Method(int, bool)",
 			expectedName: "Method",
 			expectedRets: nil,
-			expectedParams: []ast.Parameter{
-				{Name: "int", Type: ast.TypeRef{Kind: ast.Void, Name: ""}},
-				{Name: "bool", Type: ast.TypeRef{Kind: ast.Void, Name: ""}},
+			expectedParams: []GoParameter{
+				{Name: "int", Type: nil},
+				{Name: "bool", Type: nil},
 			},
 		},
 		{
 			name:         "multiple returns in parentheses",
 			input:        "Method() (int, bool)",
 			expectedName: "Method",
-			expectedRets: []ast.TypeRef{
-				{Kind: ast.Void, Name: "int"},
-				{Kind: ast.Void, Name: "bool"},
+			expectedRets: []GoParameter{
+				{Type: NamedRef("int")},
+				{Type: NamedRef("bool")},
+			},
+			expectedParams: nil,
+		},
+		{
+			name:         "multiple returns in parentheses (with named return)",
+			input:        "Method() (result int, e error)",
+			expectedName: "Method",
+			expectedRets: []GoParameter{
+				{Name: "result", Type: NamedRef("int")},
+				{Name: "e", Type: NamedRef("error")},
+			},
+			expectedParams: nil,
+		},
+		{
+			name:         "multiple returns in parentheses (with named return)",
+			input:        "Method() (result *int, e error)",
+			expectedName: "Method",
+			expectedRets: []GoParameter{
+				{Name: "result", Type: PointerTo(NamedRef("int"))},
+				{Name: "e", Type: NamedRef("error")},
 			},
 			expectedParams: nil,
 		},
@@ -273,6 +311,11 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			expectError: true,
 		},
 		{
+			name:        "at least one parameterized return is missing",
+			input:       "Method() (res int, error, ok bool)",
+			expectError: true,
+		},
+		{
 			name:        "unclosed return parenthesis",
 			input:       "Method() (int",
 			expectError: true,
@@ -282,15 +325,18 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			name, rets, params, err := g.ParseMethod(toks)
+			method, err := g.ParseMethod(toks, ast.UnknownVisibility, nil)
 			if tt.expectError {
 				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, tt.expectedName, name)
-				require.Equal(t, tt.expectedRets, rets)
-				require.Equal(t, tt.expectedParams, params)
+				return
 			}
+			require.NoError(t, err)
+			require.Equal(t, tt.expectedName, method.MethodName())
+
+			goMethod, ok := method.(*GoMethod)
+			require.Truef(t, ok, "Returned method is not of type GoMethod")
+			require.Equal(t, tt.expectedRets, goMethod.ReturnType)
+			require.Equal(t, tt.expectedParams, goMethod.Parameters)
 		})
 	}
 }

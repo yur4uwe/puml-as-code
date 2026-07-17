@@ -61,7 +61,7 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, visibility ast.Visibility
 		return nil, err
 	}
 
-	var returns []GoTypeRef
+	var returns []GoParameter
 	if pos < len(toks) {
 		returns, err = g.parseReturnList(toks[pos:])
 		if err != nil {
@@ -78,16 +78,16 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, visibility ast.Visibility
 	}, nil
 }
 
-func (g GoDialect) parseType(toks []tokenizer.Token) (GoTypeRef, error) {
+func (g GoDialect) parseType(toks []tokenizer.Token) (*GoTypeRef, error) {
 	ref, consumed, err := g.parseTypeFrom(toks, 0)
 	if err != nil {
-		return GoTypeRef{}, err
+		return nil, err
 	}
 	if consumed != len(toks) {
-		return GoTypeRef{}, fmt.Errorf("%w: unexpected trailing tokens in type",
+		return nil, fmt.Errorf("%w: unexpected trailing tokens in type",
 			ErrParsingDialect)
 	}
-	return ref, nil
+	return &ref, nil
 }
 
 func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, int,
@@ -188,7 +188,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error)
 		if len(chunk) == 1 {
 			// single token, presumably a name for a Parameter
 			// with same type as the next one
-			params = append(params, GoParameter{Name: chunk[0].Literal, Type: GoTypeRef{}})
+			params = append(params, GoParameter{Name: chunk[0].Literal, Type: nil})
 			sameTypeAmount++
 			continue
 		}
@@ -200,6 +200,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error)
 			// update the type of the previous parameters
 			params[len(params)-1-i].Type = field.Type
 		}
+		sameTypeAmount = 0
 		params = append(params, GoParameter{Name: field.Name, Type: field.Type})
 	}
 	return params, nil
@@ -226,34 +227,60 @@ func splitTopLevelCommas(toks []tokenizer.Token) [][]tokenizer.Token {
 	return chunks
 }
 
-func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoTypeRef, error) {
+func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoParameter, error) {
 	if len(toks) == 0 {
 		return nil, nil
 	}
 
-	if toks[0].Type == tokenizer.LPAREN {
-		inner, pos, err := readUntilMatching(toks, 1, tokenizer.LPAREN, tokenizer.RPAREN)
+	if toks[0].Type != tokenizer.LPAREN {
+		t, err := g.parseType(toks)
 		if err != nil {
-			return nil, fmt.Errorf("%w: parsing return list: %w", ErrParsingDialect, err)
+			return nil, err
 		}
-		if pos != len(toks) {
-			return nil, fmt.Errorf("%w: unexpected trailing tokens after return list", ErrParsingDialect)
-		}
+		return []GoParameter{{Type: t}}, nil
+	}
 
-		var returns []GoTypeRef
-		for _, chunk := range splitTopLevelCommas(inner) {
+	inner, pos, err := readUntilMatching(toks, 1, tokenizer.LPAREN, tokenizer.RPAREN)
+	if err != nil {
+		return nil, fmt.Errorf("%w: parsing return list: %w", ErrParsingDialect, err)
+	}
+	if pos != len(toks) {
+		return nil, fmt.Errorf("%w: unexpected trailing tokens after return list", ErrParsingDialect)
+	}
+
+	chunks := splitTopLevelCommas(inner)
+
+	// Detect named vs unnamed returns.
+	// We only need to check the first chunk because Go syntax rules mandate that
+	// either ALL return values are named or ALL are unnamed.
+	var isNamed bool
+	if len(chunks[0]) >= 2 && chunks[0][0].Type == tokenizer.IDENTIFIER {
+		switch chunks[0][1].Type {
+		case tokenizer.IDENTIFIER, tokenizer.LBRACKET, tokenizer.ASTERISK:
+			isNamed = true
+		default:
+			isNamed = false
+		}
+	}
+
+	var returns []GoParameter
+	for _, chunk := range chunks {
+		if isNamed {
+			// Parse as name + type (reuse parseField logic)
+			field, err := g.parseField(chunk, ast.UnknownVisibility, nil)
+			if err != nil {
+				return nil, err
+			}
+			returns = append(returns, GoParameter{Name: field.Name, Type: field.Type})
+		} else {
+			// Parse as just a type
 			t, err := g.parseType(chunk)
 			if err != nil {
 				return nil, err
 			}
-			returns = append(returns, t)
+			returns = append(returns, GoParameter{Type: t})
 		}
-		return returns, nil
 	}
 
-	t, err := g.parseType(toks)
-	if err != nil {
-		return nil, err
-	}
-	return []GoTypeRef{t}, nil
+	return returns, nil
 }
