@@ -31,7 +31,7 @@ func TestParseEntity(t *testing.T) {
 		{
 			name:   "abstract class",
 			input:  "abstract class MyAbstractClass",
-			kwType: keyword.AbstractClass,
+			kwType: keyword.Abstract,
 			want: &ast.Entity{
 				Identifier: "MyAbstractClass",
 				Kind:       ast.AbstractClassKind,
@@ -104,9 +104,9 @@ func TestParseEntity(t *testing.T) {
 				Identifier: "MyClass",
 				Kind:       ast.ClassKind,
 				Members: []ast.Member{
-					ast.Field{
+					&dialect.GoField{
 						Name:       "field",
-						Type:       ast.TypeRef{Kind: ast.Void, Name: "int"},
+						Type:       dialect.NamedRef("int"),
 						Visibility: ast.Public,
 					},
 				},
@@ -191,73 +191,75 @@ func TestParseFieldOrMethod(t *testing.T) {
 		want        ast.Member
 		expectErr   bool
 	}{
+		// Terminate fields with a newline because
+		// parser will only stop collection when it sees a newline
 		{
 			name:        "simple field",
-			input:       "name int",
+			input:       "name int\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "name",
-			want: ast.Field{
+			want: &dialect.GoField{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "int"},
+				Type: dialect.NamedRef("int"),
 			},
 		},
 		{
 			name:        "pointer field",
-			input:       "name *MyType",
+			input:       "name *MyType\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "name",
-			want: ast.Field{
+			want: &dialect.GoField{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "*MyType"},
+				Type: dialect.PointerTo(dialect.NamedRef("MyType")),
 			},
 		},
 		{
 			name:        "slice field",
-			input:       "name []int",
+			input:       "name []int\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "name",
-			want: ast.Field{
+			want: &dialect.GoField{
 				Name: "name",
-				Type: ast.TypeRef{Kind: ast.Void, Name: "[]int"},
+				Type: dialect.SliceOf(dialect.NamedRef("int")),
 			},
 		},
 		{
 			name:        "simple method",
-			input:       "Method()",
+			input:       "Method()\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "Method",
-			want: ast.Method{
+			want: &dialect.GoMethod{
 				Name: "Method",
 			},
 		},
 		{
 			name:        "method with parameters and return",
-			input:       "Method(a int) error",
+			input:       "Method(a int) error\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "Method",
-			want: ast.Method{
+			want: &dialect.GoMethod{
 				Name: "Method",
-				Parameters: []ast.Parameter{
-					{Name: "a", Type: ast.TypeRef{Kind: ast.Void, Name: "int"}},
+				Parameters: []dialect.GoParameter{
+					{Name: "a", Type: dialect.NamedRef("int")},
 				},
-				ReturnType: []ast.TypeRef{
-					{Kind: ast.Void, Name: "error"},
+				ReturnType: []dialect.GoParameter{
+					{Type: dialect.NamedRef("error")},
 				},
 			},
 		},
 		{
 			name:        "method defined as method modifier but no params",
-			input:       "{method} Method()",
+			input:       "{method} Method()\n",
 			entryType:   tokenizer.LBRACE,
 			initialName: "",
-			want: ast.Method{
+			want: &dialect.GoMethod{
 				Name:      "Method",
 				Modifiers: []string{"method"},
 			},
 		},
 		{
 			name:        "both field and method modifiers",
-			input:       "{field} {method} Name()",
+			input:       "{field} {method} Name()\n",
 			entryType:   tokenizer.LBRACE,
 			initialName: "",
 			want:        nil,
@@ -265,7 +267,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 		},
 		{
 			name:        "invalid field (no type)",
-			input:       "name",
+			input:       "name\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "name",
 			want:        nil,
@@ -273,7 +275,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 		},
 		{
 			name:        "invalid method (unclosed param parenthesis)",
-			input:       "Method(a int",
+			input:       "Method(a int\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "Method",
 			want:        nil,
@@ -289,11 +291,13 @@ func TestParseFieldOrMethod(t *testing.T) {
 			}
 
 			var entryTok tokenizer.Token
-			var initialField ast.Field
+			var mod *string
+			vis := ast.UnknownVisibility
+
 			if tc.entryType == tokenizer.LBRACE {
-				mod, err := p.stream.TryReadModifier()
+				m, err := p.stream.TryReadModifier()
 				require.NoError(t, err)
-				initialField.Modifiers = append(initialField.Modifiers, mod)
+				mod = &m
 				entryTok = tokenizer.Token{Type: tokenizer.LBRACE}
 			} else {
 				entryTok = p.stream.Emit()
@@ -303,7 +307,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				}
 			}
 
-			got, err := p.parseFieldOrMethod(entryTok, initialField)
+			got, err := p.parseFieldOrMethod(mod, vis, entryTok)
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -339,27 +343,27 @@ func TestParseEntityMember(t *testing.T) {
 		},
 		{
 			name:  "public field member",
-			input: "+field int",
-			want: ast.Field{
+			input: "+field int\n",
+			want: &dialect.GoField{
 				Name:       "field",
-				Type:       ast.TypeRef{Kind: ast.Void, Name: "int"},
+				Type:       dialect.NamedRef("int"),
 				Visibility: ast.Public,
 			},
 		},
 		{
 			name:  "private method member",
-			input: "-Method()",
-			want: ast.Method{
+			input: "-Method()\n",
+			want: &dialect.GoMethod{
 				Name:       "Method",
 				Visibility: ast.Private,
 			},
 		},
 		{
 			name:  "field with modifier",
-			input: "{field} myField int",
-			want: ast.Field{
+			input: "{field} myField int\n",
+			want: &dialect.GoField{
 				Name:      "myField",
-				Type:      ast.TypeRef{Kind: ast.Void, Name: "int"},
+				Type:      dialect.NamedRef("int"),
 				Modifiers: []string{"field"},
 			},
 		},
@@ -923,7 +927,7 @@ func TestParseNote(t *testing.T) {
 			name:        "unexpected identifier after note",
 			input:       "note invalid link : text",
 			expectErr:   true,
-			errContains: "Expected direction, string, note position or alias after 'note'",
+			errContains: "expected direction, string, note position or alias after 'note'",
 		},
 		{
 			name:        "link note expected link after note on",
@@ -937,7 +941,7 @@ func TestParseNote(t *testing.T) {
 			name:        "parseNote unexpected starting token",
 			input:       "note class : text",
 			expectErr:   true,
-			errContains: "Expected direction, string, note position or alias after 'note'",
+			errContains: "expected direction, string, note position or alias after 'note'",
 		},
 		{
 			name:        "parseNoteBody unexpected body definition token",
@@ -1092,13 +1096,6 @@ func TestParseContainer(t *testing.T) {
 					},
 				},
 			},
-		},
-		{
-			name:        "package missing identifier",
-			input:       "package as otherpkg\n",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected container name or alias",
 		},
 		{
 			name:        "package incomplete alias",

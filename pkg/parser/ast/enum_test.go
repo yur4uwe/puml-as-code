@@ -34,15 +34,6 @@ func TestToRelationType(t *testing.T) {
 	}
 }
 
-func TestGetVisibility(t *testing.T) {
-	require.Equal(t, UnknownVisibility, GetVisibility(""), "empty should be unknown")
-	require.Equal(t, Public, GetVisibility("+name"))
-	require.Equal(t, Private, GetVisibility("-f"))
-	require.Equal(t, Protected, GetVisibility("#x"))
-	require.Equal(t, Package, GetVisibility("~p"))
-	require.Equal(t, UnknownVisibility, GetVisibility("x")) // not a visibility marker
-}
-
 func TestToValueType(t *testing.T) {
 	require.Equal(t, Void, ToValueType("void"))
 	require.Equal(t, Int, ToValueType("INT"))

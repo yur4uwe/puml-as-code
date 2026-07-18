@@ -24,14 +24,14 @@ func toInteger(f float64) (int, bool) {
 
 func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
 	kw := keyword.Classify(tok.Literal)
-	if _, ok := p.stream.TryConsumeKW(keyword.Class); kw == keyword.AbstractClass && ok {
+	if _, ok := p.stream.TryConsumeKW(keyword.Class); kw == keyword.Abstract && ok {
 		return ast.AbstractClassKind
 	}
 
 	switch kw {
 	case keyword.Class:
 		return ast.ClassKind
-	case keyword.AbstractClass:
+	case keyword.Abstract:
 		return ast.AbstractClassKind
 	case keyword.Interface:
 		return ast.InterfaceKind
@@ -76,5 +76,26 @@ func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKin
 		return ast.Package
 	default:
 		return ast.UnknownVisibility
+	}
+}
+
+func (p *Parser) mapKeywordToContainerKind(kw keyword.KeywordKind) ast.ContainerKind {
+	switch kw {
+	case keyword.Package:
+		return ast.PackageKind
+	case keyword.Folder:
+		return ast.FolderKind
+	case keyword.Frame:
+		return ast.FrameKind
+	case keyword.Rectangle:
+		return ast.RectangleKind
+	case keyword.Cloud:
+		return ast.CloudKind
+	case keyword.Database:
+		return ast.DatabaseKind
+	case keyword.Node:
+		return ast.NodeKind
+	default:
+		return ast.UnknownContainerKind
 	}
 }

@@ -45,7 +45,7 @@ Complex type layouts containing modifiers, multiple values, or namespace paths:
   ```
   *[]User  =>  Pointer -> Slice -> Named("User")
   ```
-* **Consecutive Identifiers Heuristic:** In parameter and return lists, if two consecutive `IDENTIFIER` tokens are encountered in a comma-separated chunk (e.g., `res *Result`), the dialect parser interprets the first as the name and the second as the type. Because Level 1-3 types (including dot-separated qualified names) never produce consecutive identifiers, this heuristic is watertight for this scope.
+* **Consecutive Identifiers Heuristic:** In parameter and return lists, if `IDENTIFIER` token precedes other token in a comma-separated chunk (e.g., `res *Result`), the dialect parser interprets the first as the name and the second as the type. Because Level 1-3 types (including dot-separated qualified names) never produce consecutive identifiers, this heuristic is tight enough for this scope.
 * **Return Parameter Lists:** Go's return list uses `[]GoParameter` (instead of raw type refs) to natively support both named and unnamed returns.
 
 ---

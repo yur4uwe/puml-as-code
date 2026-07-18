@@ -289,7 +289,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
 	if member, err = p.stream.TryReadClassSeparator(); err == nil {
 		return member, nil
-	} else if err != tokenizer.ErrStartMarkerNotFound {
+	} else if err == tokenizer.ErrUnexpectedEOF {
 		return nil, err
 	}
 
@@ -412,7 +412,10 @@ outer:
 }
 
 func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
-	var container ast.Container
+	containerClass := keyword.Classify(tok.Literal)
+	container := ast.Container{
+		Kind: p.mapKeywordToContainerKind(containerClass),
+	}
 
 	// Handle container name, alias, stereotype, color
 	// Name rules:
@@ -421,7 +424,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	// - if Name and alias are of the same type, alias is on the left
 	// and Name is on the right of 'as' keyword
 
-	if keyword.Classify(tok.Literal) != keyword.Together {
+	if containerClass != keyword.Together {
 		var err error
 		container.Alias, container.Identifier, err = p.parseContainerIdentAndAlias()
 		if err != nil {
@@ -453,7 +456,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		}
 
 		// Only parse statements allowed in containers
-		stmt, err := p.parseContainerStatementByKW(tok)
+		stmt, err := p.parseContainerStatement(tok)
 		if err != nil {
 			return container, err
 		}
@@ -502,41 +505,36 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 
 func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
 	// tok is a keyword 'note'
-	var note ast.Note
-	var err error
 	tok = p.stream.Emit()
 	if tok.Type == tokenizer.STRING {
-		note, err = p.parseInlineAliasNote(tok)
+		return p.parseInlineAliasNote(tok)
 	}
-	switch keyword.Classify(tok.Literal) {
+	class := keyword.Classify(tok.Literal)
+	switch class {
 	case keyword.Direction:
-		note, err = p.parseReltiveNote(tok)
+		return p.parseReltiveNote(tok)
 	case keyword.Position:
-		note, err = p.parseLinkNote(tok)
+		return p.parseLinkNote(tok)
 	case keyword.Alias:
-		note, err = p.parseMultilineAliasNote()
+		return p.parseMultilineAliasNote()
 	default:
-		err = NewParserError("Expected direction, string, note position or alias after 'note'", tok.Pos)
+		return ast.Note{}, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok.Pos)
 	}
-	if err != nil {
-		return note, err
-	}
-	return note, nil
 }
 
 func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	note.Direction = p.mapTokenToDirection(dirTok)
-	if next, ok := p.stream.TryConsumeKW(keyword.Position); ok {
+	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
 		targetTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
 			return note, NewParserError("Expected identifier for a note target", targetTok.Pos)
 		}
-		if strings.ToLower(targetTok.Literal) != "link" && next.Literal == "on" {
+		if strings.ToLower(targetTok.Literal) != "link" && relativeTok.Literal == "on" {
 			return note, NewParserError("Unexpected identifier for a note link target", targetTok.Pos)
 		}
 		note.Target = targetTok.Literal
-	} else if next.Type == tokenizer.IDENTIFIER {
+	} else if relativeTok.Type == tokenizer.IDENTIFIER {
 		tok := p.stream.Emit()
 		return note, NewParserError("Unexpected identifier after direction", tok.Pos)
 	}
@@ -840,7 +838,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			// Simply convenient error message
 			return NewParserError("Different body type runes in relationship", tok.Pos)
 		}
-		if !p.stream.AssertType(tokenizer.LBRACKET) || !p.stream.AssertKW(keyword.Direction) {
+		if !p.stream.AssertType(tokenizer.LBRACKET) && !p.stream.AssertKW(keyword.Direction) {
 			break
 		} else if sawAttrs || sawDirection {
 			return NewParserError("Cannot separate direction and attributes with a body token", tok.Pos)

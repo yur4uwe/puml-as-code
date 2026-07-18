@@ -10,7 +10,7 @@ const (
 
 	// Entity keywords
 	Class
-	AbstractClass
+	Abstract
 	Struct
 	Interface
 	Enum
@@ -58,6 +58,14 @@ const (
 )
 
 func Classify(ident string) KeywordKind {
+	switch ident {
+	case "as":
+		return Alias
+	case "left", "right", "top", "bottom", "up", "down":
+		return Direction
+	case "of", "on":
+		return Position
+	}
 	val, err := KeywordKindString(ident)
 	if err != nil {
 		return None

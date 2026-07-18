@@ -90,8 +90,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
-		var err error
-		stmt, err := p.parseDiagramOnlyStatementByKW(tok)
+		stmt, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +99,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			continue
 		}
 
-		stmt, err = p.parseContainerStatementByKW(tok)
+		stmt, err = p.parseContainerStatement(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -114,12 +113,14 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	return p.ast, nil
 }
 
-func (p *Parser) parseContainerStatementByKW(tok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
+	// here we should check symbol table if the identifier appears as a class or smth else
+	// earler in the file and return nil, nil if it does
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Class,
 		keyword.Interface,
 		keyword.Struct,
-		keyword.AbstractClass,
+		keyword.Abstract,
 		keyword.Enum,
 		keyword.Annotation,
 		keyword.Record,
@@ -141,12 +142,17 @@ func (p *Parser) parseContainerStatementByKW(tok tokenizer.Token) (ast.Statement
 	// Special Keywords
 	case keyword.Note:
 		return p.parseNote(tok)
+	}
+
+	switch tok.Type {
+	case tokenizer.IDENTIFIER:
+		return p.parseRelationship(tok)
 	default:
 		return nil, nil
 	}
 }
 
-func (p *Parser) parseDiagramOnlyStatementByKW(tok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Title:
 		return nil, p.parseTitle()
