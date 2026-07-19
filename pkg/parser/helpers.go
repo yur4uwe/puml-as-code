@@ -95,6 +95,10 @@ func (p *Parser) mapKeywordToContainerKind(kw keyword.KeywordKind) ast.Container
 		return ast.DatabaseKind
 	case keyword.Node:
 		return ast.NodeKind
+	case keyword.Namespace:
+		return ast.NamespaceKind
+	case keyword.Together:
+		return ast.TogetherKind
 	default:
 		return ast.UnknownContainerKind
 	}

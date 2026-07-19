@@ -137,6 +137,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Rectangle,
 		keyword.Cloud,
 		keyword.Database,
+		keyword.Namespace,
 		keyword.Node:
 		return p.parseContainer(tok)
 	// Special Keywords

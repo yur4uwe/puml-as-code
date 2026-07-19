@@ -450,9 +450,16 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		return container, nil
 	}
 
+	container.Color = p.tryParseColor()
+
 	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
 		if tok.Type == tokenizer.EOF {
 			return container, tokenizer.ErrUnexpectedEOF
+		} else if tok.Type == tokenizer.NEWLINE {
+			// Skip NEWLINE tokens inside parseContainer() so empty lines within
+			// container blocks { ... } do not trigger an erroneous "Expected a statement in a
+			// container body" error.
+			continue
 		}
 
 		// Only parse statements allowed in containers
@@ -468,6 +475,41 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	return container, nil
 }
 
+func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error) {
+	if tok.Type == tokenizer.STRING {
+		return tok, nil
+	}
+	// if identifier, can be followed by PACKAGE_SEPARATOR or other characters
+	// we should expect that
+	if tok.Type != tokenizer.IDENTIFIER {
+		return tokenizer.Token{}, NewParserError("Expected identifier for container name", tok.Pos)
+	}
+
+	var sb strings.Builder
+	sb.WriteString(tok.Literal)
+	lastTok := tok
+	for tok = p.stream.PeekTokenAt(0); tok.Type != tokenizer.EOF; tok = p.stream.PeekTokenAt(0) {
+		// early exit if we see an alias keyword and not hit the
+		// the double identifier case
+		if keyword.Classify(tok.Literal) == keyword.Alias {
+			return amb(tokenizer.IDENTIFIER, sb.String()), nil
+		}
+		if lastTok.Type == tokenizer.IDENTIFIER && tok.Type == tokenizer.IDENTIFIER {
+			return tokenizer.Token{}, NewParserError("Expected container name to be a single identifier", tok.Pos)
+		}
+		switch tok.Type {
+		case tokenizer.LBRACE, tokenizer.LANGLE, tokenizer.HASH, tokenizer.NEWLINE:
+			return amb(tokenizer.IDENTIFIER, sb.String()), nil
+		default:
+			sb.WriteString(tok.Literal)
+			p.stream.Emit()
+			lastTok = tok
+		}
+	}
+
+	return tokenizer.Token{}, tokenizer.ErrUnexpectedEOF
+}
+
 // parseContainerIdentAndAlias parses the container name and alias
 //
 // Returns
@@ -475,20 +517,16 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 // - Identifier
 // - error
 func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
-	var lhs tokenizer.Token
-	if p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
-		lhs = p.stream.Emit()
-	} else {
-		return "", "", NewParserError("Expected container name or alias", p.stream.PeekTokenAt(0).Pos)
+	lhs, err := p.parseContinerIdent(p.stream.Emit())
+	if err != nil {
+		return "", "", err
 	}
 	if _, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return "", lhs.Literal, nil
 	}
-	var rhs tokenizer.Token
-	if p.stream.AssertAnyType(tokenizer.STRING, tokenizer.IDENTIFIER) {
-		rhs = p.stream.Emit()
-	} else {
-		return "", "", NewParserError("Expected container name or alias", p.stream.PeekTokenAt(0).Pos)
+	rhs, err := p.parseContinerIdent(p.stream.Emit())
+	if err != nil {
+		return "", "", err
 	}
 	if lhs.Type == rhs.Type {
 		return lhs.Literal, rhs.Literal, nil

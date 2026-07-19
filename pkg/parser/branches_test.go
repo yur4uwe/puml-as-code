@@ -994,19 +994,24 @@ func TestParseContainer(t *testing.T) {
 			name:   "together empty newline",
 			input:  "together\n",
 			kwType: keyword.Together,
-			want:   &ast.Container{},
+			want: &ast.Container{
+				Kind: ast.TogetherKind,
+			},
 		},
 		{
 			name:   "together empty body",
 			input:  "together {}",
 			kwType: keyword.Together,
-			want:   &ast.Container{},
+			want: &ast.Container{
+				Kind: ast.TogetherKind,
+			},
 		},
 		{
 			name:   "together with single class",
 			input:  "together { class A }",
 			kwType: keyword.Together,
 			want: &ast.Container{
+				Kind: ast.TogetherKind,
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
@@ -1021,6 +1026,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1030,6 +1036,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1039,6 +1046,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1048,6 +1056,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "otherpkg",
 				Alias:      "mypkg",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1057,6 +1066,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1067,6 +1077,7 @@ func TestParseContainer(t *testing.T) {
 				Identifier: "mypkg",
 				Stereotype: "Service",
 				Color:      "green",
+				Kind:       ast.PackageKind,
 			},
 		},
 		{
@@ -1075,12 +1086,14 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
+				Kind:       ast.PackageKind,
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
 						Kind:       ast.ClassKind,
 					},
 					ast.Container{
+						Kind: ast.TogetherKind,
 						Statements: []ast.Statement{
 							&ast.Entity{
 								Identifier: "B",
@@ -1098,11 +1111,41 @@ func TestParseContainer(t *testing.T) {
 			},
 		},
 		{
+			name:   "package with the keyword as a name in relationship",
+			input:  "package p { class folder {} folder --> p }",
+			kwType: keyword.Package,
+			want: &ast.Container{
+				Identifier: "p",
+				Kind:       ast.PackageKind,
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "folder",
+						Kind:       ast.ClassKind,
+					},
+					ast.Relationship{
+						LHS:    "folder",
+						RHS:    "p",
+						Body:   '-',
+						RArrow: '>',
+					},
+				},
+			},
+		},
+		{
+			name:   "expect to correctly parse nested containers",
+			input:  "package p.p {}",
+			kwType: keyword.Package,
+			want: &ast.Container{
+				Identifier: "p.p",
+				Kind:       ast.PackageKind,
+			},
+		},
+		{
 			name:        "package incomplete alias",
 			input:       "package mypkg as\n",
 			kwType:      keyword.Package,
 			expectErr:   true,
-			errContains: "Expected container name or alias",
+			errContains: "Expected identifier for container name",
 		},
 		{
 			name:        "package unclosed stereotype",
@@ -1126,13 +1169,6 @@ func TestParseContainer(t *testing.T) {
 			errContains: "Expected a statement in a container body",
 		},
 		{
-			name:        "package body newline error",
-			input:       "package mypkg {\n}",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected a statement in a container body",
-		},
-		{
 			name:        "package with same line body and color without colon/newline",
 			input:       "package mypkg #red { class A }",
 			kwType:      keyword.Package,
@@ -1145,6 +1181,132 @@ func TestParseContainer(t *testing.T) {
 			kwType:      keyword.Package,
 			expectErr:   true,
 			errContains: "Expected token for entity identifier or alias",
+		},
+		// --- Container keyword coverage ---
+		{
+			name:   "folder with body",
+			input:  "folder myfolder { class A }",
+			kwType: keyword.Folder,
+			want: &ast.Container{
+				Kind:       ast.FolderKind,
+				Identifier: "myfolder",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "frame with body",
+			input:  "frame myframe { class A }",
+			kwType: keyword.Frame,
+			want: &ast.Container{
+				Kind:       ast.FrameKind,
+				Identifier: "myframe",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "rectangle with body",
+			input:  "rectangle myrect { class A }",
+			kwType: keyword.Rectangle,
+			want: &ast.Container{
+				Kind:       ast.RectangleKind,
+				Identifier: "myrect",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "cloud with body",
+			input:  "cloud mycloud { class A }",
+			kwType: keyword.Cloud,
+			want: &ast.Container{
+				Kind:       ast.CloudKind,
+				Identifier: "mycloud",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "database with body",
+			input:  "database mydb { class A }",
+			kwType: keyword.Database,
+			want: &ast.Container{
+				Kind:       ast.DatabaseKind,
+				Identifier: "mydb",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "node with body",
+			input:  "node mynode { class A }",
+			kwType: keyword.Node,
+			want: &ast.Container{
+				Kind:       ast.NodeKind,
+				Identifier: "mynode",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "namespace with body",
+			input:  "namespace myns { class A }",
+			kwType: keyword.Namespace,
+			want: &ast.Container{
+				Kind:       ast.NamespaceKind,
+				Identifier: "myns",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.ClassKind,
+					},
+				},
+			},
+		},
+		{
+			name:   "folder empty body",
+			input:  "folder myfolder {}",
+			kwType: keyword.Folder,
+			want: &ast.Container{
+				Kind:       ast.FolderKind,
+				Identifier: "myfolder",
+			},
+		},
+		{
+			name:   "namespace with alias and stereotype",
+			input:  `namespace myns as "My Namespace" <<API>>` + "\n",
+			kwType: keyword.Namespace,
+			want: &ast.Container{
+				Kind:       ast.NamespaceKind,
+				Identifier: "myns",
+				Alias:      "My Namespace",
+				Stereotype: "API",
+			},
 		},
 	}
 
