@@ -806,11 +806,15 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 		return rel, err
 	}
 
-	endingToken := p.stream.Emit()
+	endingToken := p.stream.PeekTokenAt(0)
 	switch endingToken.Type {
 	case tokenizer.NEWLINE, tokenizer.EOF:
+		p.stream.Emit()
+	case tokenizer.RBRACE:
+		// Do not consume RBRACE so enclosing container block loop sees it
 		break
 	case tokenizer.COLON:
+		p.stream.Emit()
 		p.stream.SetRawMode("\n")
 		rel.Label = p.stream.MustConsumeType(tokenizer.STRING).Literal
 		if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
@@ -989,4 +993,160 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		return NewParserError("Missing body in the relationship", tok.Pos)
 	}
 	return nil
+}
+
+func (p *Parser) HasArrowOnLine() bool {
+	for i := 0; ; i++ {
+		tok := p.stream.PeekTokenAt(i)
+		if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.EOF ||
+			tok.Type == tokenizer.SEMICOLON || tok.Type == tokenizer.LBRACE ||
+			tok.Type == tokenizer.RBRACE {
+			break
+		}
+		if tok.Type == tokenizer.STRING {
+			continue
+		}
+		if _, ok := p.scanArrowTokensFrom(i); ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
+	idx := startIdx
+	var sawDirection, sawAttrs, isLolipop bool
+
+	tok := p.stream.PeekTokenAt(idx)
+	idx++
+
+	switch tok.Type {
+	case tokenizer.LANGLE:
+		if p.stream.PeekTokenAt(idx).Type == tokenizer.PIPE {
+			idx++
+		}
+	case tokenizer.RBRACE:
+		// valid left arrow head
+	case tokenizer.LPAREN:
+		if p.stream.PeekTokenAt(idx).Type != tokenizer.RPAREN {
+			return 0, false
+		}
+		idx++
+		isLolipop = true
+	case tokenizer.IDENTIFIER:
+		if tok.Literal != "x" && tok.Literal != "o" {
+			return 0, false
+		}
+	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+		// valid left arrow head
+	case tokenizer.DOT, tokenizer.DASH:
+		idx--
+	default:
+		return 0, false
+	}
+
+	tok = p.stream.PeekTokenAt(idx)
+	idx++
+
+	bodyTokType := tok.Type
+	var oppositeBodyTokType tokenizer.TokenType
+	switch bodyTokType {
+	case tokenizer.DOT:
+		oppositeBodyTokType = tokenizer.DASH
+	case tokenizer.DASH:
+		oppositeBodyTokType = tokenizer.DOT
+	default:
+		return 0, false
+	}
+
+	hasBody := false
+	for {
+		nextTok := p.stream.PeekTokenAt(idx)
+		if nextTok.Type == tokenizer.EOF || nextTok.Type == tokenizer.NEWLINE {
+			break
+		}
+		if nextTok.Type == bodyTokType {
+			hasBody = true
+			idx++
+			continue
+		} else if nextTok.Type == oppositeBodyTokType {
+			return 0, false
+		}
+
+		if nextTok.Type != tokenizer.LBRACKET && keyword.Classify(nextTok.Literal) != keyword.Direction {
+			break
+		} else if sawAttrs || sawDirection {
+			return 0, false
+		}
+
+		if isLolipop {
+			return 0, false
+		}
+
+		for range 2 {
+			curr := p.stream.PeekTokenAt(idx)
+			if !sawDirection && keyword.Classify(curr.Literal) == keyword.Direction {
+				sawDirection = true
+				idx++
+			}
+			curr = p.stream.PeekTokenAt(idx)
+			if !sawAttrs && curr.Type == tokenizer.LBRACKET {
+				sawAttrs = true
+				idx++ // consume [
+				for {
+					attrTok := p.stream.PeekTokenAt(idx)
+					idx++
+					if attrTok.Type == tokenizer.RBRACKET {
+						break
+					}
+					if attrTok.Type == tokenizer.EOF || attrTok.Type == tokenizer.NEWLINE {
+						return 0, false
+					}
+				}
+			}
+		}
+
+		if !sawAttrs && !sawDirection {
+			continue
+		}
+
+		if p.stream.PeekTokenAt(idx).Type != bodyTokType {
+			return 0, false
+		}
+		idx++
+	}
+
+	rTok := p.stream.PeekTokenAt(idx)
+	switch rTok.Type {
+	case tokenizer.PIPE:
+		idx++
+		if p.stream.PeekTokenAt(idx).Type != tokenizer.RANGLE {
+			return 0, false
+		}
+		idx++
+	case tokenizer.RANGLE, tokenizer.LBRACE:
+		idx++
+	case tokenizer.LPAREN:
+		if sawDirection || sawAttrs || isLolipop {
+			return 0, false
+		}
+		idx++
+		if p.stream.PeekTokenAt(idx).Type != tokenizer.RPAREN {
+			return 0, false
+		}
+		idx++
+	case tokenizer.IDENTIFIER:
+		if rTok.Literal != "x" && rTok.Literal != "o" {
+			return 0, false
+		}
+		idx++
+	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+		idx++
+	}
+
+	if !hasBody && bodyTokType != tokenizer.DOT && bodyTokType != tokenizer.DASH {
+		return 0, false
+	}
+
+	return idx - startIdx, true
 }

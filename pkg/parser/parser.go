@@ -114,8 +114,10 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 }
 
 func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
-	// here we should check symbol table if the identifier appears as a class or smth else
-	// earler in the file and return nil, nil if it does
+	if p.HasArrowOnLine() {
+		return p.parseRelationship(tok)
+	}
+
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Class,
 		keyword.Interface,
@@ -154,6 +156,10 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 }
 
 func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
+	if p.HasArrowOnLine() {
+		return p.parseRelationship(tok)
+	}
+
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Title:
 		return nil, p.parseTitle()
