@@ -162,6 +162,6 @@ func truncate(s string, n int) string {
 }
 
 func (l *Lexer) DebugState() {
-	fmt.Printf("DEBUG: pos=%d, ch=%q, sep=%q, isDefault=%v, expecting=%v\n",
-		l.position, l.ch, string(l.packageSeparator), l.isDefaultSeparator, l.expectingSeparatorValue)
+	fmt.Printf("DEBUG: pos=%d, ch=%q\n",
+		l.position, l.ch)
 }

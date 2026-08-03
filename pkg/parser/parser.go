@@ -186,6 +186,8 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return nil, p.parseSkinparam()
 	case keyword.Direction:
 		return p.parseDiagDirection(tok)
+	case keyword.Set:
+		return nil, p.parseSetDirective()
 	default:
 		return nil, nil
 	}

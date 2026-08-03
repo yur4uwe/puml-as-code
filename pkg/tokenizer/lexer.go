@@ -7,7 +7,6 @@ import (
 	"unicode"
 
 	"yur4uwe/pac/internal/helpers"
-	"yur4uwe/pac/pkg/parser/keyword"
 )
 
 var (
@@ -20,24 +19,17 @@ var (
 )
 
 type Lexer struct {
-	input []rune
-	lexerState
+	input    []rune
+	position int
+	readPos  int
+	ch       rune
+	line     uint
+	col      uint
 }
 
-type lexerState struct {
-	position                int
-	readPos                 int
-	ch                      rune
-	packageSeparator        []rune
-	isDefaultSeparator      bool
-	expectingSeparatorValue bool
-	rawModeDelimiter        []rune
-	previousKeyword         keyword.KeywordKind
-	line                    uint
-	col                     uint
-}
+type lexerState struct{}
 
-func (l lexerState) getPos() TokenPos {
+func (l *Lexer) getPos() TokenPos {
 	return TokenPos{
 		Line:   l.line,
 		Col:    l.col,
@@ -45,18 +37,13 @@ func (l lexerState) getPos() TokenPos {
 	}
 }
 
-func (l lexerState) String() string {
+func (l *Lexer) String() string {
 	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.getPos().String(), l.readPos, l.ch)
 }
 
 func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: []rune(input),
-		lexerState: lexerState{
-			packageSeparator:   []rune{'.'},
-			isDefaultSeparator: true,
-			previousKeyword:    keyword.None,
-		},
 	}
 	l.readChar()
 	return l
@@ -100,57 +87,50 @@ func (l *Lexer) peekChar() rune {
 }
 
 func (l *Lexer) Emit() Token {
-	if len(l.rawModeDelimiter) > 0 {
-		return Token{Type: STRING, Literal: l.readRawUntilDelimiter(), Pos: l.getPos()}
-	}
-
 	l.findNextTokenStart()
 
-	if l.expectingSeparatorValue {
-		l.expectingSeparatorValue = false
-		l.isDefaultSeparator = false // Explicitly mark as non-default
-		start := l.getPos()
-		val := l.readUntilWhitespaceOrNewline()
-		if val == "none" {
-			l.packageSeparator = nil
-		} else {
-			l.packageSeparator = []rune(val)
-		}
-		return Token{Type: IDENTIFIER, Literal: val, Pos: start}
-	}
+	// if l.expectingSeparatorValue {
+	// 	l.expectingSeparatorValue = false
+	// 	l.isDefaultSeparator = false // Explicitly mark as non-default
+	// 	start := l.getPos()
+	// 	val := l.readUntilWhitespaceOrNewline()
+	// 	if val == "none" {
+	// 		l.packageSeparator = nil
+	// 	} else {
+	// 		l.packageSeparator = []rune(val)
+	// 	}
+	// 	return Token{Type: IDENTIFIER, Literal: val, Pos: start}
+	// }
 
-	if len(l.packageSeparator) > 0 && l.isPackageSeparator() {
-		// Prioritize PACKAGE_SEPARATOR if:
-		// 1. It's multi-character (like the default "::" in some tests, or custom ones)
-		// 2. It's explicitly set (not default)
-		// 3. It's NOT the default single-character dot (which should be DOT token)
+	// if len(l.packageSeparator) > 0 && l.isPackageSeparator() {
+	// 	// Prioritize PACKAGE_SEPARATOR if:
+	// 	// 1. It's multi-character (like the default "::" in some tests, or custom ones)
+	// 	// 2. It's explicitly set (not default)
+	// 	// 3. It's NOT the default single-character dot (which should be DOT token)
+	//
+	// 	isMultiChar := len(l.packageSeparator) > 1
+	// 	isExplicit := !l.isDefaultSeparator
+	// 	isDefaultDot := len(l.packageSeparator) == 1 && l.packageSeparator[0] == '.'
+	//
+	// 	if isMultiChar || isExplicit || !isDefaultDot {
+	// 		start := l.getPos()
+	// 		return Token{Type: PACKAGE_SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
+	// 	}
+	// }
 
-		isMultiChar := len(l.packageSeparator) > 1
-		isExplicit := !l.isDefaultSeparator
-		isDefaultDot := len(l.packageSeparator) == 1 && l.packageSeparator[0] == '.'
-
-		if isMultiChar || isExplicit || !isDefaultDot {
-			start := l.getPos()
-			return Token{Type: PACKAGE_SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
-		}
-	}
-
-	var tok Token
-	var resolved bool
-
-	if tok, resolved = ResolveUnambiguousToken(l); !resolved {
-		tok = ResolveAmbiguousToken(l)
+	if tok, resolved := ResolveUnambiguousToken(l); resolved {
+		return tok
+	} else {
+		return ResolveAmbiguousToken(l)
 	}
 
 	// Dynamic state update for "set separator"
-	if l.previousKeyword == keyword.Set && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
-		l.expectingSeparatorValue = true
-	}
-	if tok.Type == IDENTIFIER {
-		l.previousKeyword = keyword.Classify(tok.Literal)
-	}
-
-	return tok
+	// if l.previousKeyword == keyword.Set && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
+	// 	l.expectingSeparatorValue = true
+	// }
+	// if tok.Type == IDENTIFIER {
+	// 	l.previousKeyword = keyword.Classify(tok.Literal)
+	// }
 }
 
 func (l *Lexer) findNextTokenStart() {
@@ -159,17 +139,17 @@ func (l *Lexer) findNextTokenStart() {
 	}
 }
 
-func (l *Lexer) isPackageSeparator() bool {
-	if len(l.packageSeparator) == 0 {
-		return false
-	}
-	for i, r := range l.packageSeparator {
-		if l.lookAheadChar(i) != r {
-			return false
-		}
-	}
-	return true
-}
+// func (l *Lexer) isPackageSeparator() bool {
+// 	if len(l.packageSeparator) == 0 {
+// 		return false
+// 	}
+// 	for i, r := range l.packageSeparator {
+// 		if l.lookAheadChar(i) != r {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }
 
 func (l *Lexer) lookAheadChar(n int) rune {
 	pos := l.position + n
@@ -179,13 +159,13 @@ func (l *Lexer) lookAheadChar(n int) rune {
 	return l.input[pos]
 }
 
-func (l *Lexer) consumePackageSeparator() string {
-	start := l.position
-	for range l.packageSeparator {
-		l.readChar()
-	}
-	return string(l.input[start:l.position])
-}
+// func (l *Lexer) consumePackageSeparator() string {
+// 	start := l.position
+// 	for range l.packageSeparator {
+// 		l.readChar()
+// 	}
+// 	return string(l.input[start:l.position])
+// }
 
 func (l *Lexer) readUntilWhitespaceOrNewline() string {
 	start := l.position
@@ -398,44 +378,44 @@ func (l *Lexer) countFutureSpaces(count_from int) int {
 	}
 }
 
-func (l *Lexer) isRawModeDelimiterFollows() bool {
-	offset := 1
-	// Skip spaces on the new line to be resilient to indentation, e.g. "  end note"
-	offset += l.countFutureSpaces(offset)
+// func (l *Lexer) isRawModeDelimiterFollows() bool {
+// 	offset := 1
+// 	// Skip spaces on the new line to be resilient to indentation, e.g. "  end note"
+// 	offset += l.countFutureSpaces(offset)
+//
+// 	// Match the delimiter case-insensitively
+// 	for i := 0; i < len(l.rawModeDelimiter); i++ {
+// 		nextCh := l.lookAheadChar(offset + i)
+// 		expected := rune(l.rawModeDelimiter[i])
+// 		if unicode.ToLower(nextCh) != expected {
+// 			return false
+// 		}
+// 	}
+//
+// 	// Ensure it's followed by EOF or newline (so "end note-something" doesn't match)
+// 	// allow for spaces after the delimiter but no text
+// 	offset += len(l.rawModeDelimiter)
+// 	offset += l.countFutureSpaces(offset)
+// 	afterDelimiter := l.lookAheadChar(offset)
+// 	if afterDelimiter == 0 || afterDelimiter == '\n' {
+// 		return true
+// 	} else {
+// 		return false
+// 	}
+// }
 
-	// Match the delimiter case-insensitively
-	for i := 0; i < len(l.rawModeDelimiter); i++ {
-		nextCh := l.lookAheadChar(offset + i)
-		expected := rune(l.rawModeDelimiter[i])
-		if unicode.ToLower(nextCh) != expected {
-			return false
-		}
-	}
-
-	// Ensure it's followed by EOF or newline (so "end note-something" doesn't match)
-	// allow for spaces after the delimiter but no text
-	offset += len(l.rawModeDelimiter)
-	offset += l.countFutureSpaces(offset)
-	afterDelimiter := l.lookAheadChar(offset)
-	if afterDelimiter == 0 || afterDelimiter == '\n' {
-		return true
-	} else {
-		return false
-	}
-}
-
-func (l *Lexer) readRawUntilDelimiter() string {
-	start := l.position
-
-	for !l.isEOF() {
-		if l.ch == '\n' &&
-			(l.isRawModeDelimiterFollows() ||
-				(len(l.rawModeDelimiter) == 1 && l.rawModeDelimiter[0] == '\n')) {
-			// Do not consume the delimiter, parser must do it by itself
-			break
-		}
-		l.readChar()
-	}
-
-	return string(l.input[start:l.position])
-}
+// func (l *Lexer) readRawUntilDelimiter() string {
+// 	start := l.position
+//
+// 	for !l.isEOF() {
+// 		if l.ch == '\n' &&
+// 			(l.isRawModeDelimiterFollows() ||
+// 				(len(l.rawModeDelimiter) == 1 && l.rawModeDelimiter[0] == '\n')) {
+// 			// Do not consume the delimiter, parser must do it by itself
+// 			break
+// 		}
+// 		l.readChar()
+// 	}
+//
+// 	return string(l.input[start:l.position])
+// }

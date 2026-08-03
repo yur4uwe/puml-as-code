@@ -475,12 +475,30 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	return container, nil
 }
 
+func (p *Parser) parseSetDirective() error {
+	tok := p.stream.PeekTokenAt(0)
+	if tok.Literal != "separator" {
+		return NewParserError("Expected 'separator' after 'set'", tok.Pos)
+	}
+	p.stream.Emit() // consume "separator"
+
+	var sb strings.Builder
+	for tok = p.stream.Emit(); tok.Type != tokenizer.NEWLINE && tok.Type != tokenizer.EOF; tok = p.stream.Emit() {
+		sb.WriteString(tok.Literal)
+	}
+	sepVal := sb.String()
+	if sepVal == "none" {
+		p.stream.SetPackageSeparator("")
+	} else {
+		p.stream.SetPackageSeparator(sepVal)
+	}
+	return nil
+}
+
 func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error) {
 	if tok.Type == tokenizer.STRING {
 		return tok, nil
 	}
-	// if identifier, can be followed by PACKAGE_SEPARATOR or other characters
-	// we should expect that
 	if tok.Type != tokenizer.IDENTIFIER {
 		return tokenizer.Token{}, NewParserError("Expected identifier for container name", tok.Pos)
 	}
@@ -493,6 +511,11 @@ func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error
 		// the double identifier case
 		if keyword.Classify(tok.Literal) == keyword.Alias {
 			return amb(tokenizer.IDENTIFIER, sb.String()), nil
+		}
+		if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
+			sb.WriteString(sep)
+			lastTok = tokenizer.Token{Type: tokenizer.DOT, Literal: sep}
+			continue
 		}
 		if lastTok.Type == tokenizer.IDENTIFIER && tok.Type == tokenizer.IDENTIFIER {
 			return tokenizer.Token{}, NewParserError("Expected container name to be a single identifier", tok.Pos)

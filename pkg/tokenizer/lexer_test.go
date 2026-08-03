@@ -71,44 +71,44 @@ func TestReadLineComment(t *testing.T) {
 	require.Equal(t, "comment here", line)
 }
 
-func TestSetSeparator(t *testing.T) {
-	lex := NewLexer("set separator ::\nclass A::B")
-
-	// set
-	tok := lex.Emit()
-	require.Equal(t, SET_CMD, tok.Type)
-
-	// separator
-	tok = lex.Emit()
-	require.Equal(t, IDENTIFIER, tok.Type)
-	require.Equal(t, "separator", tok.Literal)
-
-	// ::
-	tok = lex.Emit()
-	require.Equal(t, IDENTIFIER, tok.Type)
-	require.Equal(t, "::", tok.Literal)
-	require.Equal(t, []rune("::"), lex.packageSeparator)
-
-	// NEWLINE
-	tok = lex.Emit()
-	require.Equal(t, NEWLINE, tok.Type)
-
-	// class
-	tok = lex.Emit()
-	require.Equal(t, CLASS, tok.Type)
-
-	// A
-	tok = lex.Emit()
-	require.Equal(t, IDENTIFIER, tok.Type)
-	require.Equal(t, "A", tok.Literal)
-
-	// :: (as separator)
-	tok = lex.Emit()
-	require.Equal(t, PACKAGE_SEPARATOR, tok.Type)
-	require.Equal(t, "::", tok.Literal)
-
-	// B
-	tok = lex.Emit()
-	require.Equal(t, IDENTIFIER, tok.Type)
-	require.Equal(t, "B", tok.Literal)
-}
+// func TestSetSeparator(t *testing.T) {
+// 	lex := NewLexer("set separator ::\nclass A::B")
+//
+// 	// set
+// 	tok := lex.Emit()
+// 	require.Equal(t, SET_CMD, tok.Type)
+//
+// 	// separator
+// 	tok = lex.Emit()
+// 	require.Equal(t, IDENTIFIER, tok.Type)
+// 	require.Equal(t, "separator", tok.Literal)
+//
+// 	// ::
+// 	tok = lex.Emit()
+// 	require.Equal(t, IDENTIFIER, tok.Type)
+// 	require.Equal(t, "::", tok.Literal)
+// 	require.Equal(t, []rune("::"), lex.packageSeparator)
+//
+// 	// NEWLINE
+// 	tok = lex.Emit()
+// 	require.Equal(t, NEWLINE, tok.Type)
+//
+// 	// class
+// 	tok = lex.Emit()
+// 	require.Equal(t, CLASS, tok.Type)
+//
+// 	// A
+// 	tok = lex.Emit()
+// 	require.Equal(t, IDENTIFIER, tok.Type)
+// 	require.Equal(t, "A", tok.Literal)
+//
+// 	// :: (as separator)
+// 	tok = lex.Emit()
+// 	require.Equal(t, PACKAGE_SEPARATOR, tok.Type)
+// 	require.Equal(t, "::", tok.Literal)
+//
+// 	// B
+// 	tok = lex.Emit()
+// 	require.Equal(t, IDENTIFIER, tok.Type)
+// 	require.Equal(t, "B", tok.Literal)
+// }

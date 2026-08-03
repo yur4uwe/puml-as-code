@@ -75,15 +75,6 @@ func TestResolveUnambiguousToken_Physical(t *testing.T) {
 	}
 }
 
-func TestResolveUnambiguousToken_Separator(t *testing.T) {
-	l := NewLexer("::")
-	l.packageSeparator = []rune("::")
-	tok := l.Emit()
-
-	assertTokenType(t, PACKAGE_SEPARATOR, tok.Type)
-	require.Equal(t, "::", tok.Literal)
-}
-
 func TestResolveUnambiguousToken_Comment(t *testing.T) {
 	l := NewLexer("' this is a comment")
 	tok, resolved := ResolveUnambiguousToken(l)
@@ -102,7 +93,7 @@ func TestResolveUnambiguousToken_Unresolved(t *testing.T) {
 func TestResolveAmbiguousToken_Identifier(t *testing.T) {
 	l := NewLexer("class")
 	tok := ResolveAmbiguousToken(l)
-	assertTokenType(t, CLASS, tok.Type)
+	assertTokenType(t, IDENTIFIER, tok.Type)
 	require.Equal(t, "class", tok.Literal)
 
 	l = NewLexer("foo_bar")

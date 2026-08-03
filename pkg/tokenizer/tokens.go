@@ -51,7 +51,6 @@ const (
 	UNDERSCORE  // _
 
 	COMMENT
-	PACKAGE_SEPARATOR // :: by default, configurable
 )
 
 type TokenPos struct {

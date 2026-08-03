@@ -31,17 +31,104 @@ func unexpectedTokenError(expected Token, found Token) error {
 }
 
 type TokenStream struct {
-	lexer         *Lexer
-	leadingTrivia []Token
-	buffer        []Token
-	sinks         []TokenSink
+	lexer             *Lexer
+	leadingTrivia     []Token
+	buffer            []Token
+	sinks             []TokenSink
+	rawModeTerminator []rune
+	packageSeparator  string
 }
 
 func NewTokenStream(input string) *TokenStream {
 	return &TokenStream{
-		lexer: NewLexer(input),
-		sinks: make([]TokenSink, 0, 2),
+		lexer:            NewLexer(input),
+		packageSeparator: ".",
+		sinks:            make([]TokenSink, 0, 2),
 	}
+}
+
+func (ts *TokenStream) SetPackageSeparator(sep string) {
+	ts.packageSeparator = sep
+}
+
+func (ts *TokenStream) PackageSeparator() string {
+	return ts.packageSeparator
+}
+
+func (ts *TokenStream) matchPackageSeparatorAt(startIdx int) (int, bool) {
+	if ts.packageSeparator == "" {
+		return 0, false
+	}
+	var sb strings.Builder
+	count := 0
+	var prevTok Token
+	hasPrev := false
+	for {
+		tok := ts.PeekTokenAt(startIdx + count)
+		if tok.Type == EOF || tok.Type == NEWLINE {
+			break
+		}
+		if hasPrev {
+			if tok.Pos.Offset != prevTok.Pos.Offset+uint(len([]rune(prevTok.Literal))) {
+				break
+			}
+		}
+		sb.WriteString(tok.Literal)
+		count++
+		prevTok = tok
+		hasPrev = true
+		if sb.String() == ts.packageSeparator {
+			return count, true
+		}
+		if len(sb.String()) >= len(ts.packageSeparator) {
+			break
+		}
+	}
+	return 0, false
+}
+
+func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
+	count, ok := ts.matchPackageSeparatorAt(0)
+	if !ok {
+		return "", false
+	}
+	for range count {
+		ts.Emit()
+	}
+	return ts.packageSeparator, true
+}
+
+func (ts *TokenStream) PeekTokenAt(idx int) Token {
+	for len(ts.buffer) <= idx {
+		tok := ts.lexer.Emit()
+		ts.buffer = append(ts.buffer, tok)
+		if tok.Type == EOF {
+			break
+		}
+	}
+	if idx < len(ts.buffer) {
+		return ts.buffer[idx]
+	}
+	return ts.buffer[len(ts.buffer)-1]
+}
+
+func (ts *TokenStream) Emit() Token {
+	tok := ts.EmitRaw()
+	if len(ts.leadingTrivia) > 0 && tok.Type != COMMENT {
+		tok.LeadingTrivia = ts.leadingTrivia
+	}
+	return tok
+}
+
+func (ts *TokenStream) EmitRaw() Token {
+	tok := ts.PeekTokenAt(0)
+	if len(ts.buffer) > 0 {
+		ts.buffer = ts.buffer[1:]
+	}
+	for _, sink := range ts.sinks {
+		sink.Receive(tok)
+	}
+	return tok
 }
 
 func (ts *TokenStream) Attach(sink TokenSink) func() {
@@ -128,36 +215,7 @@ func (ts *TokenStream) SetRawMode(endSequence string) {
 	if len(endSequence) == 0 {
 		panic("empty end sequence for raw mode")
 	}
-	ts.lexer.rawModeDelimiter = []rune(endSequence)
-}
-
-func (ts *TokenStream) PeekTokenAt(idx int) Token {
-	if len(ts.buffer) <= idx {
-		for i := len(ts.buffer); i <= idx; i++ {
-			tok := ts.lexer.Emit()
-			ts.buffer = append(ts.buffer, tok)
-		}
-	}
-	return ts.buffer[idx]
-}
-
-func (ts *TokenStream) Emit() Token {
-	tok := ts.EmitRaw()
-	if len(ts.leadingTrivia) > 0 && tok.Type != COMMENT {
-		tok.LeadingTrivia = ts.leadingTrivia
-	}
-	return tok
-}
-
-func (ts *TokenStream) EmitRaw() Token {
-	tok := ts.PeekTokenAt(0)
-	if len(ts.buffer) > 0 {
-		ts.buffer = ts.buffer[1:]
-	}
-	for _, sink := range ts.sinks {
-		sink.Receive(tok)
-	}
-	return tok
+	ts.rawModeTerminator = []rune(endSequence)
 }
 
 // Assert checks if the next token matches the given token (Type and Literal if literal is set).
