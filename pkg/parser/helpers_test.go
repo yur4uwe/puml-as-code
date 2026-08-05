@@ -123,7 +123,7 @@ func TestParseSkinparamStyles(t *testing.T) {
 				},
 			}
 			// Skip @startuml
-			_, _ = p.stream.ReadDiagramBounds()
+			_, _ = p.readDiagramBounds()
 
 			var tok tokenizer.Token
 			for {

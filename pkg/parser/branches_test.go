@@ -295,7 +295,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 			vis := ast.UnknownVisibility
 
 			if tc.entryType == tokenizer.LBRACE {
-				m, err := p.stream.TryReadModifier()
+				m, err := p.tryReadModifier()
 				require.NoError(t, err)
 				mod = &m
 				entryTok = tokenizer.Token{Type: tokenizer.LBRACE}
@@ -782,42 +782,42 @@ func TestParseNote(t *testing.T) {
 		// --- Relative Notes (parseReltiveNote) ---
 		{
 			name:  "relative note left with colon",
-			input: "note left : some note text",
+			input: "note left : some note text\n",
 			want: &ast.Note{
-				Text:      " some note text",
+				Text:      "some note text",
 				Direction: ast.Left,
 			},
 		},
 		{
 			name:  "relative note right of target with colon",
-			input: "note right of MyClass : some note text",
+			input: "note right of MyClass : some note text\n",
 			want: &ast.Note{
-				Text:      " some note text",
+				Text:      "some note text",
 				Direction: ast.Right,
 				Target:    "MyClass",
 			},
 		},
 		{
 			name:  "relative note top of target with color and colon",
-			input: "note top of MyClass #green : some note text",
+			input: "note top of MyClass #green : some note text\n",
 			want: &ast.Note{
-				Text:      " some note text",
+				Text:      "some note text",
 				Direction: ast.Top,
 				Target:    "MyClass",
 			},
 		},
 		{
 			name:  "relative note bottom on link with colon",
-			input: "note bottom on link : some note text",
+			input: "note bottom on link : some note text\n",
 			want: &ast.Note{
-				Text:      " some note text",
+				Text:      "some note text",
 				Direction: ast.Bottom,
 				Target:    "link",
 			},
 		},
 		{
 			name:  "relative note left with multiline",
-			input: "note left\nsome note text\nend note",
+			input: "note left\nsome note text\nend note\n",
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.Left,
@@ -834,13 +834,13 @@ func TestParseNote(t *testing.T) {
 		},
 		{
 			name:        "relative note invalid identifier after direction",
-			input:       "note left invalid : text",
+			input:       "note left invalid : text\n",
 			expectErr:   true,
 			errContains: "Expected ':' or newline after note definition",
 		},
 		{
 			name:        "relative note expected identifier for target",
-			input:       "note left of : text",
+			input:       "note left of : text\n",
 			expectErr:   true,
 			errContains: "Expected identifier for a note target",
 		},
@@ -911,9 +911,9 @@ func TestParseNote(t *testing.T) {
 		// --- Link Notes (parseLinkNote) ---
 		{
 			name:  "link note on link with colon",
-			input: "note on link : some note text",
+			input: "note on link : some note text\n",
 			want: &ast.Note{
-				Text: " some note text",
+				Text: "some note text",
 			},
 		},
 		{

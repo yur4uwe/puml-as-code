@@ -76,7 +76,7 @@ func (p *Parser) parseSkinparam() error {
 	}
 
 	name := paramTok.Literal
-	stereo, _ := p.stream.TryReadStereotype()
+	stereo, _ := p.tryReadStereotype()
 
 	if p.stream.AssertType(tokenizer.LBRACE) {
 		// skinparam target { ... }
@@ -231,25 +231,22 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	}
 
 	if !p.stream.AssertSeq([]tokenizer.Token{{Type: tokenizer.LANGLE}, {Type: tokenizer.LANGLE}}) {
-		gen, err := p.stream.TryReadGeneric()
+		gen, err := p.tryReadGeneric()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 			return nil, err
 		}
 		ent.Generic = gen
 	}
 
-	stereo, err := p.stream.TryReadStereotype()
+	stereo, err := p.tryReadStereotype()
 	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 		return nil, err
 	}
 	ent.Stereotype = stereo
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		collector := tokenizer.TokenCollector{}
-		detach := p.stream.Attach(&collector)
-		p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.LBRACE)
-		detach()
-		ent.Color = p.stream.TokensToString(collector.Tokens())
+		tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.LBRACE)
+		ent.Color = p.stream.TokensToString(tokens)
 	}
 
 	// It can be there or not, parser doesn't care
@@ -287,14 +284,12 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	var err error
 
 	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
-	if member, err = p.stream.TryReadClassSeparator(); err == nil {
+	if member, err = p.tryReadClassSeparator(); err == nil {
 		return member, nil
-	} else if err == tokenizer.ErrUnexpectedEOF {
-		return nil, err
 	}
 
 	vis := ast.UnknownVisibility
-	if mod, err := p.stream.TryReadModifier(); err == nil {
+	if mod, err := p.tryReadModifier(); err == nil {
 		// Handle scope modifiers
 		member, err = p.parseFieldOrMethod(&mod, vis, unamb(tokenizer.LBRACE))
 		if err != nil {
@@ -361,7 +356,7 @@ func (p *Parser) parseFieldOrMethod(mod *string, vis ast.VisibilityKind, entryTo
 
 outer:
 	for {
-		mod, err := p.stream.TryReadModifier()
+		mod, err := p.tryReadModifier()
 		if err == nil {
 			switch mod {
 			case "method":
@@ -430,7 +425,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		if err != nil {
 			return container, err
 		}
-		container.Stereotype, err = p.stream.TryReadStereotype()
+		container.Stereotype, err = p.tryReadStereotype()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 			return container, err
 		}
@@ -488,9 +483,9 @@ func (p *Parser) parseSetDirective() error {
 	}
 	sepVal := sb.String()
 	if sepVal == "none" {
-		p.stream.SetPackageSeparator("")
+		p.stream.PackageSeparator = ""
 	} else {
-		p.stream.SetPackageSeparator(sepVal)
+		p.stream.PackageSeparator = sepVal
 	}
 	return nil
 }
@@ -514,7 +509,7 @@ func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error
 		}
 		if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
 			sb.WriteString(sep)
-			lastTok = tokenizer.Token{Type: tokenizer.DOT, Literal: sep}
+			lastTok = tokenizer.Token{Type: tokenizer.DOT}
 			continue
 		}
 		if lastTok.Type == tokenizer.IDENTIFIER && tok.Type == tokenizer.IDENTIFIER {
@@ -661,29 +656,24 @@ func (p *Parser) tryParseColor() string {
 	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); !ok {
 		return ""
 	}
-	collector := tokenizer.TokenCollector{}
-	detach := p.stream.Attach(&collector)
-	p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
-	detach()
-	return p.stream.TokensToString(collector.Tokens())
+	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
+	return p.stream.TokensToString(tokens)
 }
 
 func (p *Parser) parseNoteBody() (string, error) {
 	tok := p.stream.Emit()
 
-	var noteEndSequence string
+	noteEndSequence := []tokenizer.Token{unamb(tokenizer.NEWLINE)}
 	switch tok.Type {
 	case tokenizer.COLON:
-		noteEndSequence = "\n"
+		// to not error out
 	case tokenizer.NEWLINE:
-		noteEndSequence = "end note"
+		noteEndSequence = append(noteEndSequence, amb(tokenizer.IDENTIFIER, "end"), amb(tokenizer.IDENTIFIER, "note"))
 	default:
 		return "", NewParserError("Expected ':' or newline after note definition", tok.Pos)
 	}
 
-	p.stream.SetRawMode(noteEndSequence)
-	bodyTok := p.stream.MustConsumeType(tokenizer.STRING)
-	return bodyTok.Literal, nil
+	return p.stream.ConsumeTextBlock(noteEndSequence)
 }
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
@@ -725,7 +715,7 @@ func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 
 		// Read target or param
 		name := tok.Literal
-		stereo, _ := p.stream.TryReadStereotype()
+		stereo, _ := p.tryReadStereotype()
 
 		if p.stream.AssertType(tokenizer.LBRACE) {
 			// Recursive block
@@ -758,24 +748,15 @@ func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 }
 
 func (p *Parser) parseTitle() error {
-	var titleEndSequence string
-	isBlockTitle := p.stream.AssertType(tokenizer.NEWLINE)
-	if !isBlockTitle {
-		// We are in luck and ints single line title
-		titleEndSequence = "\n"
-	} else {
-		p.stream.MustConsumeType(tokenizer.NEWLINE)
-		titleEndSequence = "end title"
+	titleEndSequence := []tokenizer.Token{unamb(tokenizer.NEWLINE)}
+	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+		titleEndSequence = append(titleEndSequence,
+			amb(tokenizer.IDENTIFIER, "end"), amb(tokenizer.IDENTIFIER, "title"))
 	}
-	p.stream.SetRawMode(titleEndSequence)
 
-	titleStrTok := p.stream.MustConsumeType(tokenizer.STRING)
-	p.ast.Title = titleStrTok.Literal
-
-	if isBlockTitle && !p.stream.AssertKWSeq(keyword.End, keyword.Title) {
-		return NewParserError("Expected title block to end with \"end title\"", p.stream.PeekTokenAt(0).Pos)
-	}
-	return nil
+	var err error
+	p.ast.Title, err = p.stream.ConsumeTextBlock(titleEndSequence)
+	return err
 }
 
 func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
@@ -838,8 +819,10 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 		break
 	case tokenizer.COLON:
 		p.stream.Emit()
-		p.stream.SetRawMode("\n")
-		rel.Label = p.stream.MustConsumeType(tokenizer.STRING).Literal
+		rel.Label, err = p.stream.ConsumeTextBlock([]tokenizer.Token{unamb(tokenizer.NEWLINE)})
+		if err != nil {
+			return rel, err
+		}
 		if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
 			return rel, NewParserError("Expected newline after relationship label", endingToken.Pos)
 		}
@@ -1025,8 +1008,7 @@ func (p *Parser) HasArrowOnLine() bool {
 			tok.Type == tokenizer.SEMICOLON || tok.Type == tokenizer.LBRACE ||
 			tok.Type == tokenizer.RBRACE {
 			break
-		}
-		if tok.Type == tokenizer.STRING {
+		} else if tok.Type == tokenizer.STRING {
 			continue
 		}
 		if _, ok := p.scanArrowTokensFrom(i); ok {

@@ -44,7 +44,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	p.stream = tokenizer.NewTokenStream(input)
 
-	startBound, err := p.stream.ReadDiagramBounds()
+	startBound, err := p.readDiagramBounds()
 	if err != nil {
 		return nil, err
 	} else if !startBound.IsStart {
@@ -56,8 +56,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
-		if p.stream.IsDiagramBound() {
-			endBound, err := p.stream.ReadDiagramBounds()
+		if p.isDiagramBound() {
+			endBound, err := p.readDiagramBounds()
 			if err != nil {
 				return nil, err
 			}

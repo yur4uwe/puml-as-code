@@ -6,11 +6,11 @@ This document lists the architectural refactoring tasks, API enhancements, and d
 
 ## 🛠️ Tokenizer & TokenStream Refactoring
 
-- [ ] **Move separator change detection from lexer to token stream**: Shift package separator (`::`) customization/detection logic out of `Lexer` into `TokenStream`.
-- [ ] **Move comment parsing to token stream**: Relocate line and block comment reading logic into `TokenStream` so that `Lexer` remains lightweight and focused strictly on raw token emission.
-- [ ] **Re-evaluate `TokenCollector` necessity**: Audit the `TokenCollector` utility alongside the `ConsumeUntil` family of methods to determine if stream peeking/slicing can replace them cleanly.
-- [ ] **Enhance & Audit Stream API**: Perform a holistic review of `TokenStream` methods to eliminate awkward patterns, redundant functions, or poor UX/API ergonomics.
-- [ ] **Create `tokenization-quirks.md`**: Document all edge cases, lexer quirks, raw modes, and tokenization subtleties in a dedicated markdown document.
+- [x] (with alterations to the plan) **Move separator change detection from lexer to token stream**: Shift package separator (`::`) customization/detection logic out of `Lexer` into `TokenStream`.
+- [x] (Dropped) **Move comment parsing to token stream**: Retained in lexer (`ResolveUnambiguousToken`) because comment scanning is stateless, unambiguous (0-1 lookahead), and requires no stream state.
+- [x] **Re-evaluate `TokenCollector` necessity**: Refactored `ConsumeUntil`/`ConsumeUntilType` to return consumed `[]Token` slice directly without consuming terminator. Retained `TokenCollector` and `TokenSink` as unused declarations for future extension.
+- [x] **Enhance & Audit Stream API**: Completed 4-step audit (purged 4 dead methods, standardized parameter names, exported `ReadBetween`, moved PUML domain logic to `pkg/parser/domain_helpers.go`, detaching `ast` package imports from `pkg/tokenizer`).
+- [x] (Dropped) **Create `tokenization-quirks.md`**: Dropped as tokenizer behavior has no distinct parser-divergent quirks requiring standalone documentation.
 
 ---
 

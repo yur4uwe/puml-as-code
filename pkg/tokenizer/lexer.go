@@ -89,48 +89,11 @@ func (l *Lexer) peekChar() rune {
 func (l *Lexer) Emit() Token {
 	l.findNextTokenStart()
 
-	// if l.expectingSeparatorValue {
-	// 	l.expectingSeparatorValue = false
-	// 	l.isDefaultSeparator = false // Explicitly mark as non-default
-	// 	start := l.getPos()
-	// 	val := l.readUntilWhitespaceOrNewline()
-	// 	if val == "none" {
-	// 		l.packageSeparator = nil
-	// 	} else {
-	// 		l.packageSeparator = []rune(val)
-	// 	}
-	// 	return Token{Type: IDENTIFIER, Literal: val, Pos: start}
-	// }
-
-	// if len(l.packageSeparator) > 0 && l.isPackageSeparator() {
-	// 	// Prioritize PACKAGE_SEPARATOR if:
-	// 	// 1. It's multi-character (like the default "::" in some tests, or custom ones)
-	// 	// 2. It's explicitly set (not default)
-	// 	// 3. It's NOT the default single-character dot (which should be DOT token)
-	//
-	// 	isMultiChar := len(l.packageSeparator) > 1
-	// 	isExplicit := !l.isDefaultSeparator
-	// 	isDefaultDot := len(l.packageSeparator) == 1 && l.packageSeparator[0] == '.'
-	//
-	// 	if isMultiChar || isExplicit || !isDefaultDot {
-	// 		start := l.getPos()
-	// 		return Token{Type: PACKAGE_SEPARATOR, Literal: l.consumePackageSeparator(), Pos: start}
-	// 	}
-	// }
-
 	if tok, resolved := ResolveUnambiguousToken(l); resolved {
 		return tok
 	} else {
 		return ResolveAmbiguousToken(l)
 	}
-
-	// Dynamic state update for "set separator"
-	// if l.previousKeyword == keyword.Set && tok.Type == IDENTIFIER && strings.ToLower(tok.Literal) == "separator" {
-	// 	l.expectingSeparatorValue = true
-	// }
-	// if tok.Type == IDENTIFIER {
-	// 	l.previousKeyword = keyword.Classify(tok.Literal)
-	// }
 }
 
 func (l *Lexer) findNextTokenStart() {
