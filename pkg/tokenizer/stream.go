@@ -104,9 +104,14 @@ func (ts *TokenStream) PeekTokenAt(idx int) Token {
 }
 
 func (ts *TokenStream) Emit() Token {
+	for ts.PeekTokenAt(0).Type == COMMENT {
+		commentTok := ts.EmitRaw()
+		ts.leadingTrivia = append(ts.leadingTrivia, commentTok)
+	}
 	tok := ts.EmitRaw()
-	if len(ts.leadingTrivia) > 0 && tok.Type != COMMENT {
+	if len(ts.leadingTrivia) > 0 && tok.Type != NEWLINE {
 		tok.LeadingTrivia = ts.leadingTrivia
+		ts.leadingTrivia = nil
 	}
 	return tok
 }

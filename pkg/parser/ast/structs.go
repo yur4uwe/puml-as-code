@@ -1,5 +1,7 @@
 package ast
 
+import "yur4uwe/pac/pkg/tokenizer"
+
 type Statement interface {
 	StatementNode() Statement
 }
@@ -49,13 +51,15 @@ func (k EntityKind) AllowsBody() bool {
 }
 
 type Entity struct {
-	Identifier string
-	Alias      string
-	Kind       EntityKind
-	Stereotype string
-	Generic    string
-	Color      string
-	Members    []Member
+	Identifier     string
+	Alias          string
+	Kind           EntityKind
+	Stereotype     string
+	Generic        string
+	Color          string
+	Members        []Member
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 var _ Statement = Entity{}
@@ -80,12 +84,14 @@ const (
 )
 
 type Container struct {
-	Identifier string
-	Alias      string
-	Kind       ContainerKind
-	Stereotype string
-	Color      string
-	Statements []Statement
+	Identifier     string
+	Alias          string
+	Kind           ContainerKind
+	Stereotype     string
+	Color          string
+	Statements     []Statement
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 var _ Statement = Container{}
@@ -110,8 +116,10 @@ type Relationship struct {
 	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
 	// which would have end = '>'
 
-	Label string
-	Attrs []string
+	Label          string
+	Attrs          []string
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 var _ Statement = Relationship{}
@@ -174,11 +182,13 @@ type Method interface {
 }
 
 type Diagram struct {
-	Name       string
-	Title      string
-	Statements []Statement
-	Skinparam  Skinparam
-	Styles     []string // TODO: should be an actual struct and not collection of strings
+	Name           string
+	Title          string
+	Statements     []Statement
+	Skinparam      Skinparam
+	Styles         []string // TODO: should be an actual struct and not collection of strings
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 // DirectionKind is a multi-purpose enum for representing literal directions
@@ -220,11 +230,13 @@ type Note struct {
 	// Direction = DirectionKind(Left)
 	// Target = Class
 	// Color = ""
-	Text      string
-	Direction DirectionKind
-	Target    string
-	Color     string
-	Alias     string
+	Text           string
+	Direction      DirectionKind
+	Target         string
+	Color          string
+	Alias          string
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 var _ Statement = Note{}
@@ -232,11 +244,13 @@ var _ Statement = Note{}
 func (n Note) StatementNode() Statement { return n }
 
 type DiagramBound struct {
-	IsStart bool
-	Type    string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
-	ID      string // for identifying the diagram in files there there are more than one
-	Name    string // in essence file name for the rendered diagram
-	Opts    map[string]string
+	IsStart        bool
+	Type           string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
+	ID             string // for identifying the diagram in files there there are more than one
+	Name           string // in essence file name for the rendered diagram
+	Opts           map[string]string
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
 }
 
 var _ Statement = DiagramBound{}

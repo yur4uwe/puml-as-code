@@ -86,8 +86,9 @@ func (p *Parser) isDiagramBound() bool {
 }
 
 func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
-	if tok, consumed := p.stream.TryConsumeType(tokenizer.AT); !consumed {
-		return ast.DiagramBound{}, fmt.Errorf("expected @ at diagram bounds start, got %s", tok.Type)
+	atTok, consumed := p.stream.TryConsumeType(tokenizer.AT)
+	if !consumed {
+		return ast.DiagramBound{}, fmt.Errorf("expected @ at diagram bounds start, got %s", atTok.Type)
 	}
 
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
@@ -101,7 +102,8 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	diag := ast.DiagramBound{
-		Opts: make(map[string]string),
+		Opts:          make(map[string]string),
+		LeadingTrivia: atTok.LeadingTrivia,
 	}
 
 	if typ, found := strings.CutPrefix(tok.Literal, "start"); found {

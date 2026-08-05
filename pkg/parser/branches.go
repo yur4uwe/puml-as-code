@@ -214,7 +214,8 @@ func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
 func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	ent := &ast.Entity{
-		Kind: p.mapTokenToEntityKind(tok),
+		Kind:          p.mapTokenToEntityKind(tok),
+		LeadingTrivia: tok.LeadingTrivia,
 	}
 
 	// Unexpectedly, class and other entity definitions have very strict syntax:
@@ -409,7 +410,8 @@ outer:
 func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	containerClass := keyword.Classify(tok.Literal)
 	container := ast.Container{
-		Kind: p.mapKeywordToContainerKind(containerClass),
+		Kind:          p.mapKeywordToContainerKind(containerClass),
+		LeadingTrivia: tok.LeadingTrivia,
 	}
 
 	// Handle container name, alias, stereotype, color
@@ -560,22 +562,30 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 }
 
 func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
+	noteTok := tok
 	// tok is a keyword 'note'
 	tok = p.stream.Emit()
+	var note ast.Note
+	var err error
 	if tok.Type == tokenizer.STRING {
-		return p.parseInlineAliasNote(tok)
+		note, err = p.parseInlineAliasNote(tok)
+	} else {
+		class := keyword.Classify(tok.Literal)
+		switch class {
+		case keyword.Direction:
+			note, err = p.parseReltiveNote(tok)
+		case keyword.Position:
+			note, err = p.parseLinkNote(tok)
+		case keyword.Alias:
+			note, err = p.parseMultilineAliasNote()
+		default:
+			return ast.Note{}, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok.Pos)
+		}
 	}
-	class := keyword.Classify(tok.Literal)
-	switch class {
-	case keyword.Direction:
-		return p.parseReltiveNote(tok)
-	case keyword.Position:
-		return p.parseLinkNote(tok)
-	case keyword.Alias:
-		return p.parseMultilineAliasNote()
-	default:
-		return ast.Note{}, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok.Pos)
+	if err == nil {
+		note.LeadingTrivia = noteTok.LeadingTrivia
 	}
+	return note, err
 }
 
 func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
@@ -781,6 +791,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	// Entry token is supposedly the first identifier
 	var err error
 	var rel ast.Relationship
+	rel.LeadingTrivia = firstTargetTok.LeadingTrivia
 	rel.LHS, err = p.parseRelationshipTarget(firstTargetTok)
 	if err != nil {
 		return rel, err

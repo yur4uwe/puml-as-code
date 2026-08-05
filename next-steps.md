@@ -16,7 +16,7 @@ This document lists the architectural refactoring tasks, API enhancements, and d
 
 ## 💬 Comment & AST Handling
 
-- [ ] **Definitively decide comment handling strategy**: Design and implement a consistent policy for comment preservation, trivia attachment, or comment statement nodes across the parser.
+- [x] **Definitively decide comment handling strategy**: Implemented Trivia Attachment strategy (`LeadingTrivia` & `TrailingTrivia` on AST statement nodes). Updated `TokenStream.Emit()` to preserve leading comment trivia across newlines.
 - [ ] **Decide `skinparam` AST representation**:
   - Determine whether `skinparam` rules should be explicitly preserved in AST order:
     ```go
