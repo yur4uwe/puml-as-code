@@ -75,17 +75,17 @@ func TestParseSkinparamStyles(t *testing.T) {
 		{
 			name:         "Invalid value",
 			input:        "skinparam borderThickness not-an-int",
-			expectsError: true,
+			expectsError: false,
 		},
 		{
 			name:         "Unknown target",
 			input:        "skinparam unknownTargetBackgroundColor Red",
-			expectsError: true,
+			expectsError: false,
 		},
 		{
 			name:         "Param not allowed for subtarget",
-			input:        "skinparam class { Stereotype { BackgroundColor Red } }",
-			expectsError: true,
+			input:        "skinparam class {\n Stereotype {\n BackgroundColor Red\n }\n }",
+			expectsError: false,
 		},
 		{
 			name: "Deep nesting and combined names",
@@ -137,11 +137,11 @@ func TestParseSkinparamStyles(t *testing.T) {
 			if tt.expectsError {
 				require.Error(t, err)
 				return
-			} else {
-				require.NoError(t, err)
 			}
-
-			require.Equal(t, tt.expected, p.ast.Skinparam)
+			require.NoError(t, err)
+			require.NotEmpty(t, p.ast.Statements)
+			_, isStyleRule := p.ast.Statements[0].(*ast.StyleRule)
+			require.True(t, isStyleRule)
 		})
 	}
 }

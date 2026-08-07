@@ -4,6 +4,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -68,6 +69,11 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 	return ast.DirectionCommand{}, nil
 }
 
+// parseSkinparam parses flat skinparam commands or nested skinparam blocks.
+// NOTE: This function appends generated ast.StyleRule statements directly to p.ast.Statements
+// instead of returning them, because a single skinparam block can expand into multiple StyleRule
+// statements (one per selector hierarchy), whereas the main parser branch dispatch loop expects
+// single-statement returns.
 func (p *Parser) parseSkinparam() error {
 	// Peek paramTok to see if it's a target or a block
 	paramTok := p.stream.Emit()
@@ -78,14 +84,35 @@ func (p *Parser) parseSkinparam() error {
 	name := paramTok.Literal
 	stereo, _ := p.tryReadStereotype()
 
+	var stmts []ast.Statement
 	if p.stream.AssertType(tokenizer.LBRACE) {
-		// skinparam target { ... }
-		return p.parseSkinparamBlock(ast.SkinparamKey{MainTarget: name, Stereotype: stereo})
+		selectors := []string{name}
+		if stereo != "" {
+			selectors = append(selectors, stereo)
+		}
+		rules, err := p.parseSkinparamBlock(selectors)
+		if err != nil {
+			return err
+		}
+		for _, r := range rules {
+			stmts = append(stmts, r)
+		}
+	} else {
+		// skinparam combinedName value
+		value := p.stream.ReadUntilNewline()
+		rule := &ast.StyleRule{
+			Properties:  make(map[string]string),
+			IsSkinparam: true,
+		}
+		if stereo != "" {
+			rule.Selectors = append(rule.Selectors, stereo)
+		}
+		rule.Properties[name] = value
+		stmts = append(stmts, rule)
 	}
 
-	// skinparam combinedName value
-	value := p.stream.ReadUntilNewline()
-	return p.ast.Skinparam.SetAndDecodeWithContext(ast.SkinparamKey{Stereotype: stereo}, name, value)
+	p.ast.Statements = append(p.ast.Statements, stmts...)
+	return nil
 }
 
 func (p *Parser) parseScale() (ast.ScaleCommand, error) {
@@ -701,26 +728,25 @@ func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	}
 }
 
-func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
-	// Next should be an opening brace
+func (p *Parser) parseSkinparamBlock(selectors []string) ([]*ast.StyleRule, error) {
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
-		return NewParserError("Expected opening brace after skinparam target", p.stream.PeekTokenAt(0).Pos)
+		return nil, NewParserError("Expected opening brace after skinparam target", p.stream.PeekTokenAt(0).Pos)
 	}
 
-	for {
-		// Consume leading newlines
-		for {
-			if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-				break
-			}
+	currentRule := &ast.StyleRule{
+		Selectors:   slices.Clone(selectors),
+		Properties:  make(map[string]string),
+		IsSkinparam: true,
+	}
+	var rules []*ast.StyleRule
+
+	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
+		if tok.Type == tokenizer.NEWLINE {
+			continue
 		}
 
-		tok := p.stream.Emit()
-		if tok.Type == tokenizer.RBRACE {
-			break
-		}
 		if tok.Type == tokenizer.EOF {
-			return NewParserError("Unexpected EOF in skinparam block", tok.Pos)
+			return nil, NewParserError("Unexpected EOF in skinparam block", tok.Pos)
 		}
 
 		// Read target or param
@@ -728,33 +754,119 @@ func (p *Parser) parseSkinparamBlock(prefixKey ast.SkinparamKey) error {
 		stereo, _ := p.tryReadStereotype()
 
 		if p.stream.AssertType(tokenizer.LBRACE) {
-			// Recursive block
-			newKey := prefixKey
-			if newKey.SubTarget == "" {
-				newKey.SubTarget = name
-			} else {
-				return NewParserError("Skinparam nesting too deep", tok.Pos)
-			}
+			// Recursive sub-block with accumulated selectors
+			subSelectors := append(slices.Clone(selectors), name)
 			if stereo != "" {
-				newKey.Stereotype = stereo
+				subSelectors = append(subSelectors, stereo)
 			}
-			if err := p.parseSkinparamBlock(newKey); err != nil {
-				return err
+			subRules, err := p.parseSkinparamBlock(subSelectors)
+			if err != nil {
+				return nil, err
 			}
+			rules = append(rules, subRules...)
+		} else {
+			// Inline value
+			value := p.stream.ReadUntilNewline()
+			if stereo != "" {
+				// Inline stereotype modifier for a property in block
+				currentRule.Properties[name+"."+stereo] = value
+			} else {
+				currentRule.Properties[name] = value
+			}
+		}
+	}
+
+	if len(currentRule.Properties) > 0 {
+		rules = append([]*ast.StyleRule{currentRule}, rules...)
+	}
+	return rules, nil
+}
+
+func (p *Parser) isStyleTagEnd() bool {
+	return p.stream.AssertSeq([]tokenizer.Token{
+		{Type: tokenizer.LANGLE},
+		{Type: tokenizer.SLASH},
+		{Type: tokenizer.IDENTIFIER, Literal: "style"},
+		{Type: tokenizer.RANGLE},
+	})
+}
+
+func (p *Parser) parseStyleBlock(startTok tokenizer.Token) error {
+	p.stream.Emit() // consume 'style'
+	p.stream.Emit() // consume '>'
+
+	rules, err := p.parseStyleRules([]string{})
+	if err != nil {
+		return err
+	}
+
+	if !p.isStyleTagEnd() {
+		return NewParserError("Expected </style> closing tag", p.stream.PeekTokenAt(0).Pos)
+	}
+
+	// Consume '</style>'
+	for range 4 {
+		p.stream.Emit()
+	}
+
+	for _, r := range rules {
+		r.LeadingTrivia = startTok.LeadingTrivia
+		p.ast.Statements = append(p.ast.Statements, r)
+	}
+	return nil
+}
+
+func (p *Parser) parseStyleRules(selectors []string) ([]*ast.StyleRule, error) {
+	currentRule := &ast.StyleRule{
+		Selectors:   slices.Clone(selectors),
+		Properties:  make(map[string]string),
+		IsSkinparam: false,
+	}
+	var rules []*ast.StyleRule
+
+	for !p.isStyleTagEnd() && !p.stream.AssertType(tokenizer.RBRACE) && !p.stream.AssertType(tokenizer.EOF) {
+
+		tok := p.stream.Emit()
+		if tok.Type == tokenizer.NEWLINE {
 			continue
 		}
 
-		// Inline value
-		value := p.stream.ReadUntilNewline()
-		newKey := prefixKey
-		if stereo != "" {
-			newKey.Stereotype = stereo
-		}
-		if err := p.ast.Skinparam.SetAndDecodeWithContext(newKey, name, value); err != nil {
-			return NewParserError(fmt.Sprintf("Failed to set skinparam value: %s", err.Error()), tok.Pos)
+		name := tok.Literal
+		stereo, _ := p.tryReadStereotype()
+
+		if p.stream.AssertType(tokenizer.LBRACE) {
+			p.stream.Emit() // consume '{'
+			subSelectors := append(slices.Clone(selectors), name)
+			if stereo != "" {
+				subSelectors = append(subSelectors, stereo)
+			}
+			subRules, err := p.parseStyleRules(subSelectors)
+			if err != nil {
+				return nil, err
+			}
+			rules = append(rules, subRules...)
+			if p.stream.AssertType(tokenizer.RBRACE) {
+				p.stream.Emit() // consume '}'
+			}
+		} else if p.stream.AssertType(tokenizer.COLON) {
+			p.stream.Emit() // consume ':'
+			valTokens := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE, tokenizer.EOF)
+			if p.stream.AssertType(tokenizer.SEMICOLON) {
+				p.stream.Emit() // consume ';'
+			}
+			val := strings.TrimSpace(p.stream.TokensToString(valTokens))
+			if stereo != "" {
+				currentRule.Properties[name+"."+stereo] = val
+			} else {
+				currentRule.Properties[name] = val
+			}
 		}
 	}
-	return nil
+
+	if len(currentRule.Properties) > 0 {
+		rules = append([]*ast.StyleRule{currentRule}, rules...)
+	}
+	return rules, nil
 }
 
 func (p *Parser) parseTitle() error {

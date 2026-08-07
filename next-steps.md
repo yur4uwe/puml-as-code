@@ -17,15 +17,7 @@ This document lists the architectural refactoring tasks, API enhancements, and d
 ## 💬 Comment & AST Handling
 
 - [x] **Definitively decide comment handling strategy**: Implemented Trivia Attachment strategy (`LeadingTrivia` & `TrailingTrivia` on AST statement nodes). Updated `TokenStream.Emit()` to preserve leading comment trivia across newlines.
-- [ ] **Decide `skinparam` AST representation**:
-  - Determine whether `skinparam` rules should be explicitly preserved in AST order:
-    ```go
-    ast.SkinparamRule{
-        Ident: "backgroundcolor",
-        Val:   "#00ff00",
-    }
-    ```
-  - Or whether they should only be aggregated into an unordered lookup registry/map.
+- [x] **Decide `skinparam` & `<style>` AST representation**: Confirmed Unified Style AST plan. Both `skinparam` statements and CSS `<style>` blocks will parse into `ast.StyleRule` statement nodes (`Selectors []string`, `Properties map[string]string`) in AST order, leaving style cascading to a downstream resolver pass.
 
 ---
 

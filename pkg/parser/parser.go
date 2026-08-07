@@ -156,6 +156,10 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 }
 
 func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
+	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
+		return nil, p.parseStyleBlock(tok)
+	}
+
 	if p.HasArrowOnLine() {
 		return p.parseRelationship(tok)
 	}
@@ -167,28 +171,13 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.parseVisibilityCommand(tok)
 	case keyword.Scale:
 		return p.parseScale()
-	// case tokenizer.LANGLE:
-	// 	if p.stream.AssertType(tokenizer.RANGLE) {
-	// 		// Successfully matched "<>", shorthand for diamond
-	// 		return ast.Entity{
-	// 			Kind: ast.DiamondKind,
-	// 		}, nil
-	// 	}
-	// 	// <style> token sequence for now simply read it as a string
-	// 	// and ignore it
-	// 	styles, err := p.stream.ReadBlock(unamb(tokenizer.LANGLE), unamb(tokenizer.SLASH), amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE))
-	// 	if err != nil {
-	// 		return nil, NewParserError("Expected style block to end", p.stream.PeekTokenAt(0).Pos)
-	// 	}
-	// 	p.ast.Styles = append(p.ast.Styles, styles)
-	// 	return nil, nil
 	case keyword.Skinparam:
 		return nil, p.parseSkinparam()
 	case keyword.Direction:
 		return p.parseDiagDirection(tok)
 	case keyword.Set:
 		return nil, p.parseSetDirective()
-	default:
-		return nil, nil
 	}
+
+	return nil, nil
 }

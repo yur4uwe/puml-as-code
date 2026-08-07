@@ -5,7 +5,24 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"yur4uwe/pac/pkg/tokenizer"
 )
+
+type StyleRule struct {
+	Selectors      []string
+	Properties     map[string]string
+	IsSkinparam    bool // Origin provenance (true for skinparam, false for <style> block)
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
+}
+
+// StatementNode implements [Statement].
+func (s *StyleRule) StatementNode() Statement {
+	return s
+}
+
+var _ Statement = (*StyleRule)(nil)
 
 type SkinparamValueType int
 
@@ -45,11 +62,15 @@ func isValidColor(color string) bool {
 	if strings.HasPrefix(color, "#") {
 		hex := color[1:]
 
-		if len(hex) != 3 && len(hex) != 6 && len(hex) != 8 {
+		switch len(hex) {
+		case 3, 6, 8:
+			break
+		default:
 			return false
 		}
+
 		for _, r := range hex {
-			if ((r < '0' || r > '9') && (r < 'a' || r > 'f')) {
+			if (r < '0' || r > '9') && (r < 'a' || r > 'f') {
 				return false
 			}
 		}
