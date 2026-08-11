@@ -9,13 +9,6 @@ import (
 	"yur4uwe/pac/pkg/parser/keyword"
 )
 
-var possibleBounds = []string{
-	"uml",
-	"gantt",
-	"mindmap",
-	"def",
-}
-
 type UnexpectedTokenError struct {
 	Expected Token
 	Found    Token

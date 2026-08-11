@@ -9,13 +9,13 @@ import (
 type RelationType int
 
 const (
-	Association RelationType = iota
-	Aggregation
-	Composition
-	Inheritance
-	Dependency
-	Realization
-	UnknownRelation
+	UnknownRelation RelationType = iota
+	Association                  // <-
+	Aggregation                  // o-
+	Composition                  // *-
+	Inheritance                  // <|-
+	Dependency                   // <..
+	Realization                  // <|..
 )
 
 func (rt RelationType) String() string {

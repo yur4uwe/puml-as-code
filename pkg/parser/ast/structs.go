@@ -103,9 +103,10 @@ func (c Container) StatementNode() Statement {
 type Relationship struct {
 	LHS       string
 	RHS       string
-	Type      RelationType
 	Direction DirectionKind
 
+	TypeLHS RelationType
+	TypeRHS RelationType
 	MultLHS Cardinality
 	MultRHS Cardinality
 
@@ -185,8 +186,6 @@ type Diagram struct {
 	Name           string
 	Title          string
 	Statements     []Statement
-	Skinparam      Skinparam
-	Styles         []string // TODO: should be an actual struct and not collection of strings
 	LeadingTrivia  []tokenizer.Token
 	TrailingTrivia []tokenizer.Token
 }

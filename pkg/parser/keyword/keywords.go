@@ -50,6 +50,13 @@ const (
 	Set
 	Scale
 
+	// Layout
+	Header
+	Footer
+	Legend
+	Caption
+	Newpage
+
 	// Misc
 	End
 	Direction

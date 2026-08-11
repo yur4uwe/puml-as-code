@@ -111,7 +111,8 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		keyword.Record,
 		keyword.Dataclass,
 		keyword.Exception,
-		keyword.Protocol:
+		keyword.Protocol,
+		keyword.Entity:
 		// Class-like Entities
 		ent, err := p.parseEntity(tok)
 		if err != nil {
@@ -133,6 +134,8 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 			return nil, err
 		}
 		return []ast.Statement{cont}, nil
+	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
+		return nil, errors.New("unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
 		note, err := p.parseNote(tok)
@@ -188,6 +191,12 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 		stmnt, err = p.parseDiagDirection(tok)
 	case keyword.Set:
 		stmnt, err = p.parseSetDirective()
+	case keyword.Header,
+		keyword.Footer,
+		keyword.Legend,
+		keyword.Caption,
+		keyword.Newpage:
+		return nil, errors.New("unimplemented layout directive handling")
 	}
 	if err != nil {
 		return nil, err

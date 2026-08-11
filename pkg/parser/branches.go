@@ -276,10 +276,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	}
 	ent.Stereotype = stereo
 
-	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.LBRACE)
-		ent.Color = p.stream.TokensToString(tokens)
-	}
+	ent.Color = p.tryParseColor()
 
 	// It can be there or not, parser doesn't care
 	p.stream.TryConsumeType(tokenizer.NEWLINE)
@@ -478,8 +475,6 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		return container, nil
 	}
 
-	container.Color = p.tryParseColor()
-
 	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
 		if tok.Type == tokenizer.EOF {
 			return container, tokenizer.ErrUnexpectedEOF
@@ -634,8 +629,7 @@ func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 			return note, NewParserError("Unexpected identifier for a note link target", targetTok.Pos)
 		}
 		note.Target = targetTok.Literal
-	} else if relativeTok.Type == tokenizer.IDENTIFIER {
-		tok := p.stream.Emit()
+	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
 		return note, NewParserError("Unexpected identifier after direction", tok.Pos)
 	}
 	p.tryParseColor()
@@ -889,12 +883,9 @@ func (p *Parser) parseTitle() (ast.Statement, error) {
 
 func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
 	target := entityNameTok.Literal
-	if _, ok := p.stream.TryConsumeType(tokenizer.COLON); ok {
-		// can be field or method reference
-		_, ok := p.stream.TryConsumeType(tokenizer.COLON)
-		if !ok {
-			return "", NewParserError("Expected '::' to reference a class member", p.stream.PeekTokenAt(0).Pos)
-		}
+	if p.stream.PeekTokenAt(0).Type == tokenizer.COLON && p.stream.PeekTokenAt(1).Type == tokenizer.COLON {
+		p.stream.Emit() // consume first :
+		p.stream.Emit() // consume second :
 
 		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
@@ -1001,8 +992,24 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	switch bodyTokType {
 	case tokenizer.DOT:
 		oppositeBodyTokType = tokenizer.DASH
+		switch rel.LArrow {
+		case '<':
+			rel.TypeLHS = ast.Dependency
+		case '|':
+			rel.TypeLHS = ast.Realization
+		}
 	case tokenizer.DASH:
 		oppositeBodyTokType = tokenizer.DOT
+		switch rel.LArrow {
+		case '<':
+			rel.TypeLHS = ast.Association
+		case 'o':
+			rel.TypeLHS = ast.Aggregation
+		case '*':
+			rel.TypeLHS = ast.Composition
+		case '|':
+			rel.TypeLHS = ast.Inheritance
+		}
 	default:
 		return NewParserError("Unexpected token as the relationship body", tok.Pos)
 	}
@@ -1097,8 +1104,22 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		if _, ok := p.stream.TryConsumeType(tokenizer.RANGLE); !ok {
 			return NewParserError("Expected '|>' after relationship", tok.Pos)
 		}
+		switch rel.Body {
+		case '-':
+			rel.TypeRHS = ast.Inheritance
+		case '.':
+			rel.TypeRHS = ast.Realization
+		}
+		rel.RArrow = rune(tok.Literal[0])
+	case tokenizer.RANGLE:
+		switch rel.Body {
+		case '-':
+			rel.TypeRHS = ast.Association
+		case '.':
+			rel.TypeRHS = ast.Dependency
+		}
 		fallthrough
-	case tokenizer.RANGLE, tokenizer.LBRACE:
+	case tokenizer.LBRACE:
 		p.stream.Emit()
 		// will return as this is the end of the relationship
 		rel.RArrow = rune(tok.Literal[0])
@@ -1114,15 +1135,28 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		p.stream.MustConsumeType(tokenizer.RPAREN)
 		rel.RArrow = rune(tok.Literal[0])
 	// position INDEPENDENT start and end tokens
-	case tokenizer.IDENTIFIER:
+	case tokenizer.IDENTIFIER, tokenizer.ASTERISK:
 		// special case for 'x' and 'o' in relationship
-		if tok.Literal != "x" && tok.Literal != "o" {
+		switch tok.Literal {
+		case "*":
+			rel.TypeRHS = ast.Composition
+		case "x":
+		case "o":
+			if rel.Body == '-' {
+				rel.TypeRHS = ast.Aggregation
+			}
+		default:
 			return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
 		}
 		fallthrough
-	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
+	case tokenizer.HASH, tokenizer.PLUS, tokenizer.CARET:
 		p.stream.Emit()
 		rel.RArrow = rune(tok.Literal[0])
+	default:
+		if rel.TypeLHS == ast.UnknownRelation && rel.Body == '-' {
+			rel.TypeLHS = ast.Association
+			rel.TypeRHS = ast.Association
+		}
 	}
 	if rel.Body == 0 {
 		return NewParserError("Missing body in the relationship", tok.Pos)

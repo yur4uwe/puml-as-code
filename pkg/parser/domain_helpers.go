@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -106,10 +107,23 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		LeadingTrivia: atTok.LeadingTrivia,
 	}
 
+	possibleBounds := []string{
+		"uml",
+		"gantt",
+		"mindmap",
+		"def",
+	}
+
 	if typ, found := strings.CutPrefix(tok.Literal, "start"); found {
+		if !slices.Contains(possibleBounds, typ) {
+			return diag, fmt.Errorf("invalid starting marker for diagram, expected one of %s, got %s", possibleBounds, typ)
+		}
 		diag.IsStart = true
 		diag.Type = typ
 	} else if typ, found := strings.CutPrefix(tok.Literal, "end"); found {
+		if !slices.Contains(possibleBounds, typ) {
+			return diag, fmt.Errorf("invalid starting marker for diagram, expected one of %s, got %s", possibleBounds, typ)
+		}
 		diag.IsStart = false
 		diag.Type = typ
 		return diag, nil

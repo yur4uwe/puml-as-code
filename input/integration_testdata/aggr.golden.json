@@ -1,0 +1,96 @@
+{
+  "Name": "Aggregation",
+  "Title": "",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "ID": "",
+      "Name": "Aggregation",
+      "Opts": {},
+      "LeadingTrivia": null,
+      "TrailingTrivia": null
+    },
+    {
+      "Identifier": "Team",
+      "Alias": "",
+      "Kind": 1,
+      "Stereotype": "",
+      "Generic": "",
+      "Color": "",
+      "Members": [
+        {
+          "Name": "name",
+          "Type": {
+            "Typ": 3,
+            "ArraySize": 0,
+            "Name": "string",
+            "Base": null
+          },
+          "Visibility": 1,
+          "Modifiers": null
+        }
+      ],
+      "LeadingTrivia": null,
+      "TrailingTrivia": null
+    },
+    {
+      "Identifier": "Player",
+      "Alias": "",
+      "Kind": 1,
+      "Stereotype": "",
+      "Generic": "",
+      "Color": "",
+      "Members": [
+        {
+          "Name": "number",
+          "Type": {
+            "Typ": 3,
+            "ArraySize": 0,
+            "Name": "int",
+            "Base": null
+          },
+          "Visibility": 1,
+          "Modifiers": null
+        }
+      ],
+      "LeadingTrivia": null,
+      "TrailingTrivia": null
+    },
+    {
+      "LHS": "Team",
+      "RHS": "Player",
+      "Direction": 0,
+      "TypeLHS": 2,
+      "TypeRHS": 0,
+      "MultLHS": {
+        "Raw": "1",
+        "Min": 1,
+        "Max": 1
+      },
+      "MultRHS": {
+        "Raw": "0..*",
+        "Min": 0,
+        "Max": -1
+      },
+      "Body": 45,
+      "LArrow": 111,
+      "RArrow": 0,
+      "Label": "has players",
+      "Attrs": null,
+      "LeadingTrivia": null,
+      "TrailingTrivia": null
+    },
+    {
+      "IsStart": false,
+      "Type": "uml",
+      "ID": "",
+      "Name": "",
+      "Opts": {},
+      "LeadingTrivia": null,
+      "TrailingTrivia": null
+    }
+  ],
+  "LeadingTrivia": null,
+  "TrailingTrivia": null
+}
