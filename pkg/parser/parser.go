@@ -2,36 +2,12 @@ package parser
 
 import (
 	"errors"
-	"fmt"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
-
-type parserError struct {
-	Err error
-	Pos tokenizer.TokenPos
-}
-
-var _ error = parserError{}
-
-func (e parserError) Error() string {
-	return fmt.Sprintf("parser: %v at %d:%d", e.Err, e.Pos.Line, e.Pos.Col)
-}
-
-func (e parserError) Unwrap() error {
-	return e.Err
-}
-
-func NewParserError(message string, pos tokenizer.TokenPos) error {
-	return parserError{Err: errors.New(message), Pos: pos}
-}
-
-func WrapParserError(err error, pos tokenizer.TokenPos) error {
-	return parserError{Err: err, Pos: pos}
-}
 
 type Parser struct {
 	ast     *ast.Diagram
@@ -40,8 +16,11 @@ type Parser struct {
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
-	p.ast = &ast.Diagram{}
+	if p.dialect == nil {
+		return nil, errors.New("dialect not initialized")
+	}
 
+	p.ast = &ast.Diagram{}
 	p.stream = tokenizer.NewTokenStream(input)
 
 	startBound, err := p.readDiagramBounds()
@@ -90,21 +69,21 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
-		stmt, err := p.parseDiagramOnlyStatement(tok)
+		stmts, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if stmt != nil {
-			p.ast.Statements = append(p.ast.Statements, stmt)
+		if len(stmts) > 0 {
+			p.ast.Statements = append(p.ast.Statements, stmts...)
 			continue
 		}
 
-		stmt, err = p.parseContainerStatement(tok)
+		stmts, err = p.parseContainerStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if stmt != nil {
-			p.ast.Statements = append(p.ast.Statements, stmt)
+		if len(stmts) > 0 {
+			p.ast.Statements = append(p.ast.Statements, stmts...)
 			continue
 		}
 
@@ -113,9 +92,13 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	return p.ast, nil
 }
 
-func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, error) {
 	if p.HasArrowOnLine() {
-		return p.parseRelationship(tok)
+		rel, err := p.parseRelationship(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{rel}, nil
 	}
 
 	switch keyword.Classify(tok.Literal) {
@@ -130,7 +113,11 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Exception,
 		keyword.Protocol:
 		// Class-like Entities
-		return p.parseEntity(tok)
+		ent, err := p.parseEntity(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{ent}, nil
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -141,42 +128,72 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		return p.parseContainer(tok)
+		cont, err := p.parseContainer(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{cont}, nil
 	// Special Keywords
 	case keyword.Note:
-		return p.parseNote(tok)
+		note, err := p.parseNote(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{note}, nil
 	}
 
 	switch tok.Type {
 	case tokenizer.IDENTIFIER:
-		return p.parseRelationship(tok)
+		rel, err := p.parseRelationship(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{rel}, nil
 	default:
 		return nil, nil
 	}
 }
 
-func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement, error) {
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
-		return nil, p.parseStyleBlock(tok)
+		return p.parseStyleBlock(tok)
+	}
+	if tok.Type == tokenizer.EXCLAMATION {
+		return nil, errors.New("unimplemented preprocessor directive handling")
 	}
 
 	if p.HasArrowOnLine() {
-		return p.parseRelationship(tok)
+		stmnt, err := p.parseRelationship(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{stmnt}, nil
 	}
 
+	var stmnt ast.Statement
+	var err error
 	switch keyword.Classify(tok.Literal) {
-	case keyword.Title:
-		return nil, p.parseTitle()
-	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
-		return p.parseVisibilityCommand(tok)
-	case keyword.Scale:
-		return p.parseScale()
+	// Multi-statement branches
 	case keyword.Skinparam:
-		return nil, p.parseSkinparam()
+		return p.parseSkinparam()
+
+	// Single-statement branches
+	case keyword.Title:
+		stmnt, err = p.parseTitle()
+	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
+		stmnt, err = p.parseVisibilityCommand(tok)
+	case keyword.Scale:
+		stmnt, err = p.parseScale()
 	case keyword.Direction:
-		return p.parseDiagDirection(tok)
+		stmnt, err = p.parseDiagDirection(tok)
 	case keyword.Set:
-		return nil, p.parseSetDirective()
+		stmnt, err = p.parseSetDirective()
+	}
+	if err != nil {
+		return nil, err
+	}
+	if stmnt != nil {
+		return []ast.Statement{stmnt}, nil
 	}
 
 	return nil, nil

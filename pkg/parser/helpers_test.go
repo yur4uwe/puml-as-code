@@ -132,15 +132,15 @@ func TestParseSkinparamStyles(t *testing.T) {
 					break
 				}
 			}
-			err := p.parseSkinparam()
+			stmts, err := p.parseSkinparam()
 
 			if tt.expectsError {
 				require.Error(t, err)
 				return
 			}
 			require.NoError(t, err)
-			require.NotEmpty(t, p.ast.Statements)
-			_, isStyleRule := p.ast.Statements[0].(*ast.StyleRule)
+			require.NotEmpty(t, stmts)
+			_, isStyleRule := stmts[0].(*ast.StyleRule)
 			require.True(t, isStyleRule)
 		})
 	}

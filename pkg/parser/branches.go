@@ -74,11 +74,11 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 // instead of returning them, because a single skinparam block can expand into multiple StyleRule
 // statements (one per selector hierarchy), whereas the main parser branch dispatch loop expects
 // single-statement returns.
-func (p *Parser) parseSkinparam() error {
+func (p *Parser) parseSkinparam() ([]ast.Statement, error) {
 	// Peek paramTok to see if it's a target or a block
 	paramTok := p.stream.Emit()
 	if paramTok.Type == tokenizer.NEWLINE || paramTok.Type == tokenizer.EOF {
-		return NewParserError("Expected target or parameter after skinparam", paramTok.Pos)
+		return nil, NewParserError("Expected target or parameter after skinparam", paramTok.Pos)
 	}
 
 	name := paramTok.Literal
@@ -92,7 +92,7 @@ func (p *Parser) parseSkinparam() error {
 		}
 		rules, err := p.parseSkinparamBlock(selectors)
 		if err != nil {
-			return err
+			return nil, err
 		}
 		for _, r := range rules {
 			stmts = append(stmts, r)
@@ -111,8 +111,7 @@ func (p *Parser) parseSkinparam() error {
 		stmts = append(stmts, rule)
 	}
 
-	p.ast.Statements = append(p.ast.Statements, stmts...)
-	return nil
+	return stmts, nil
 }
 
 func (p *Parser) parseScale() (ast.ScaleCommand, error) {
@@ -256,6 +255,11 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 		if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
 			return nil, err
 		}
+	}
+
+	if ent.Identifier == "" {
+		// If no identifier is set, use the alias
+		ent.Identifier = ent.Alias
 	}
 
 	if !p.stream.AssertSeq([]tokenizer.Token{{Type: tokenizer.LANGLE}, {Type: tokenizer.LANGLE}}) {
@@ -487,36 +491,39 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		}
 
 		// Only parse statements allowed in containers
-		stmt, err := p.parseContainerStatement(tok)
+		stmts, err := p.parseContainerStatement(tok)
 		if err != nil {
 			return container, err
 		}
-		if stmt == nil {
+		if len(stmts) == 0 {
 			return container, NewParserError("Expected a statement in a container body", tok.Pos)
 		}
-		container.Statements = append(container.Statements, stmt)
+		container.Statements = append(container.Statements, stmts...)
 	}
 	return container, nil
 }
 
-func (p *Parser) parseSetDirective() error {
+func (p *Parser) parseSetDirective() (ast.Statement, error) {
 	tok := p.stream.PeekTokenAt(0)
-	if tok.Literal != "separator" {
-		return NewParserError("Expected 'separator' after 'set'", tok.Pos)
-	}
-	p.stream.Emit() // consume "separator"
+	keyTok := p.stream.Emit() // consume "separator"
 
 	var sb strings.Builder
 	for tok = p.stream.Emit(); tok.Type != tokenizer.NEWLINE && tok.Type != tokenizer.EOF; tok = p.stream.Emit() {
 		sb.WriteString(tok.Literal)
 	}
 	sepVal := sb.String()
-	if sepVal == "none" {
-		p.stream.PackageSeparator = ""
-	} else {
-		p.stream.PackageSeparator = sepVal
+	if keyTok.Literal == "separator" {
+		if sepVal == "none" {
+			p.stream.PackageSeparator = ""
+		} else {
+			p.stream.PackageSeparator = sepVal
+		}
 	}
-	return nil
+
+	return ast.SetCommand{
+		Key:   keyTok.Literal,
+		Value: sepVal,
+	}, nil
 }
 
 func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error) {
@@ -791,17 +798,17 @@ func (p *Parser) isStyleTagEnd() bool {
 	})
 }
 
-func (p *Parser) parseStyleBlock(startTok tokenizer.Token) error {
+func (p *Parser) parseStyleBlock(startTok tokenizer.Token) ([]ast.Statement, error) {
 	p.stream.Emit() // consume 'style'
 	p.stream.Emit() // consume '>'
 
 	rules, err := p.parseStyleRules([]string{})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if !p.isStyleTagEnd() {
-		return NewParserError("Expected </style> closing tag", p.stream.PeekTokenAt(0).Pos)
+		return nil, NewParserError("Expected </style> closing tag", p.stream.PeekTokenAt(0).Pos)
 	}
 
 	// Consume '</style>'
@@ -810,19 +817,18 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) error {
 	}
 
 	for _, r := range rules {
-		r.LeadingTrivia = startTok.LeadingTrivia
-		p.ast.Statements = append(p.ast.Statements, r)
+		r.(*ast.StyleRule).LeadingTrivia = startTok.LeadingTrivia
 	}
-	return nil
+	return rules, nil
 }
 
-func (p *Parser) parseStyleRules(selectors []string) ([]*ast.StyleRule, error) {
+func (p *Parser) parseStyleRules(selectors []string) ([]ast.Statement, error) {
 	currentRule := &ast.StyleRule{
 		Selectors:   slices.Clone(selectors),
 		Properties:  make(map[string]string),
 		IsSkinparam: false,
 	}
-	var rules []*ast.StyleRule
+	var rules []ast.Statement
 
 	for !p.isStyleTagEnd() && !p.stream.AssertType(tokenizer.RBRACE) && !p.stream.AssertType(tokenizer.EOF) {
 
@@ -864,12 +870,12 @@ func (p *Parser) parseStyleRules(selectors []string) ([]*ast.StyleRule, error) {
 	}
 
 	if len(currentRule.Properties) > 0 {
-		rules = append([]*ast.StyleRule{currentRule}, rules...)
+		rules = append([]ast.Statement{currentRule}, rules...)
 	}
 	return rules, nil
 }
 
-func (p *Parser) parseTitle() error {
+func (p *Parser) parseTitle() (ast.Statement, error) {
 	titleEndSequence := []tokenizer.Token{unamb(tokenizer.NEWLINE)}
 	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
 		titleEndSequence = append(titleEndSequence,
@@ -878,7 +884,7 @@ func (p *Parser) parseTitle() error {
 
 	var err error
 	p.ast.Title, err = p.stream.ConsumeTextBlock(titleEndSequence)
-	return err
+	return ast.TitleDef{Text: p.ast.Title}, err
 }
 
 func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
@@ -1193,11 +1199,12 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 		if nextTok.Type == tokenizer.EOF || nextTok.Type == tokenizer.NEWLINE {
 			break
 		}
-		if nextTok.Type == bodyTokType {
+		switch nextTok.Type {
+		case bodyTokType:
 			hasBody = true
 			idx++
 			continue
-		} else if nextTok.Type == oppositeBodyTokType {
+		case oppositeBodyTokType:
 			return 0, false
 		}
 
