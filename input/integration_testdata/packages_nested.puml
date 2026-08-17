@@ -1,0 +1,26 @@
+@startuml PackagesNested
+
+package "Core Domain" as core {
+  class User {
+    +id string
+    +name string
+  }
+}
+
+namespace infra {
+  class Database {
+    +connection string
+  }
+}
+
+folder "Storage" {
+  node Server {
+    class Disk {
+      +capacity int
+    }
+  }
+}
+
+User --> Database : connects
+
+@enduml

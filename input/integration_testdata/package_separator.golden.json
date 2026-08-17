@@ -1,0 +1,98 @@
+{
+  "Name": "PackageSeparator",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "PackageSeparator"
+    },
+    {
+      "Key": "separator",
+      "Value": "."
+    },
+    {
+      "Identifier": "net.http.Client",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "timeout",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "net.http.Server",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "port",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "LHS": "net.http.Client",
+      "RHS": "net.http.Server",
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "connects"
+    },
+    {
+      "Key": "separator",
+      "Value": "::"
+    },
+    {
+      "Identifier": "auth::oauth::Provider",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "token",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "auth::oauth::Client",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "id",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "LHS": "auth::oauth::Client",
+      "RHS": "auth::oauth::Provider",
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "authenticates"
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

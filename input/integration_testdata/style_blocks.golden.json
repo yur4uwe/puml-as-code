@@ -1,0 +1,43 @@
+{
+  "Name": "StyleBlocks",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "StyleBlocks"
+    },
+    {
+      "Selectors": [
+        "class"
+      ],
+      "Properties": {
+        "BackgroundColor": "#FF0000",
+        "FontColor": "#333333",
+        "FontSize": "12"
+      },
+      "IsSkinparam": false
+    },
+    {
+      "Identifier": "Component",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "Execute",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "bool"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

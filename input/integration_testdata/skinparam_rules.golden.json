@@ -1,0 +1,55 @@
+{
+  "Name": "SkinparamRules",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "SkinparamRules"
+    },
+    {
+      "Properties": {
+        "backgroundColor": "#FFFFFF"
+      },
+      "IsSkinparam": true
+    },
+    {
+      "Properties": {
+        "classBackgroundColor": "#FF0000"
+      },
+      "IsSkinparam": true
+    },
+    {
+      "Selectors": [
+        "class"
+      ],
+      "Properties": {
+        "BackgroundColor": "Green",
+        "BorderColor": "Black",
+        "HeaderBackgroundColor": "Red"
+      },
+      "IsSkinparam": true
+    },
+    {
+      "Identifier": "Service",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "Run",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "error"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

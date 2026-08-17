@@ -1,0 +1,37 @@
+{
+  "Name": "diagram.png",
+  "Title": "System Architecture Overview",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "ID": "main_diagram",
+      "Name": "diagram.png"
+    },
+    {
+      "Text": "System Architecture Overview"
+    },
+    {
+      "Identifier": "Controller",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "Index",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "void"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

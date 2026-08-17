@@ -1,0 +1,80 @@
+{
+  "Name": "CommentsTrivia",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "CommentsTrivia"
+    },
+    {
+      "Identifier": "User",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "id",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        }
+      ],
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached to User",
+          "Pos": {
+            "Line": 2,
+            "Col": 1,
+            "Offset": 26
+          },
+          "LeadingTrivia": null
+        }
+      ]
+    },
+    {
+      "Identifier": "Service",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "Process",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "error"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ],
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": " Block comment before Service ",
+          "Pos": {
+            "Line": 7,
+            "Col": 1,
+            "Offset": 104
+          },
+          "LeadingTrivia": null
+        }
+      ]
+    },
+    {
+      "LHS": "User",
+      "RHS": "Service",
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "invokes"
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+@startuml SkinparamRules
+
+skinparam backgroundColor #FFFFFF
+skinparam classBackgroundColor #FF0000
+
+skinparam class {
+  BackgroundColor Green
+  HeaderBackgroundColor Red
+  BorderColor Black
+}
+
+class Service {
+  +Run() error
+}
+@enduml

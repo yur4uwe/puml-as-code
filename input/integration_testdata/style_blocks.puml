@@ -1,0 +1,14 @@
+@startuml StyleBlocks
+
+<style>
+class {
+  FontColor: #333333
+  FontSize 12;
+  BackgroundColor #FF0000
+}
+</style>
+
+class Component {
+  +Execute() bool
+}
+@enduml

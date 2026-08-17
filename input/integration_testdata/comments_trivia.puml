@@ -1,0 +1,15 @@
+@startuml CommentsTrivia
+
+' This is a single line comment attached to User
+class User {
+  +id string
+}
+
+/' Block comment before Service '/
+class Service {
+  +Process() error
+}
+
+User -> Service : invokes
+
+@enduml

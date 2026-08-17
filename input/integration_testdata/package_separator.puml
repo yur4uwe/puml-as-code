@@ -1,0 +1,27 @@
+@startuml PackageSeparator
+
+set separator .
+
+class net.http.Client {
+  +timeout int
+}
+
+class net.http.Server {
+  +port int
+}
+
+net.http.Client --> net.http.Server : connects
+
+set separator ::
+
+class auth::oauth::Provider {
+  +token string
+}
+
+class auth::oauth::Client {
+  +id string
+}
+
+auth::oauth::Client --> auth::oauth::Provider : authenticates
+
+@enduml

@@ -219,7 +219,7 @@ func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 	return cmd, nil
 }
 
-func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
+func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
 	switch nameOrAlias.Type {
 	case tokenizer.STRING:
 		if ent.Alias != "" {
@@ -230,7 +230,21 @@ func setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
 		if ent.Identifier != "" {
 			return NewParserError("Entity name already set", nameOrAlias.Pos)
 		}
-		ent.Identifier = nameOrAlias.Literal
+		var sb strings.Builder
+		sb.WriteString(nameOrAlias.Literal)
+		for {
+			if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
+				sb.WriteString(sep)
+				tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+				if !ok {
+					return NewParserError("Expected identifier after package separator in entity name", p.stream.PeekTokenAt(0).Pos)
+				}
+				sb.WriteString(tok.Literal)
+				continue
+			}
+			break
+		}
+		ent.Identifier = sb.String()
 	default:
 		return NewParserError("Expected token for entity identifier or alias", nameOrAlias.Pos)
 	}
@@ -247,12 +261,12 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	// Unexpectedly, class and other entity definitions have very strict syntax:
 	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
 
-	if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
+	if err := p.setAliasAndName(ent, p.stream.Emit()); err != nil {
 		return nil, err
 	}
 
 	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
-		if err := setAliasAndName(ent, p.stream.Emit()); err != nil {
+		if err := p.setAliasAndName(ent, p.stream.Emit()); err != nil {
 			return nil, err
 		}
 	}
@@ -848,8 +862,8 @@ func (p *Parser) parseStyleRules(selectors []string) ([]ast.Statement, error) {
 			if p.stream.AssertType(tokenizer.RBRACE) {
 				p.stream.Emit() // consume '}'
 			}
-		} else if p.stream.AssertType(tokenizer.COLON) {
-			p.stream.Emit() // consume ':'
+		} else {
+			p.stream.TryConsumeType(tokenizer.COLON) // consume optional ':'
 			valTokens := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE, tokenizer.EOF)
 			if p.stream.AssertType(tokenizer.SEMICOLON) {
 				p.stream.Emit() // consume ';'
@@ -870,19 +884,40 @@ func (p *Parser) parseStyleRules(selectors []string) ([]ast.Statement, error) {
 }
 
 func (p *Parser) parseTitle() (ast.Statement, error) {
-	titleEndSequence := []tokenizer.Token{unamb(tokenizer.NEWLINE)}
-	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-		titleEndSequence = append(titleEndSequence,
-			amb(tokenizer.IDENTIFIER, "end"), amb(tokenizer.IDENTIFIER, "title"))
+	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); ok {
+		// Multi-line title block ending with 'end title'
+		titleEndSequence := []tokenizer.Token{
+			unamb(tokenizer.NEWLINE),
+			amb(tokenizer.IDENTIFIER, "end"),
+			amb(tokenizer.IDENTIFIER, "title"),
+		}
+		var err error
+		p.ast.Title, err = p.stream.ConsumeTextBlock(titleEndSequence)
+		return ast.TitleDef{Text: p.ast.Title}, err
 	}
 
-	var err error
-	p.ast.Title, err = p.stream.ConsumeTextBlock(titleEndSequence)
-	return ast.TitleDef{Text: p.ast.Title}, err
+	// Single-line title
+	p.ast.Title = p.stream.ReadUntilNewline()
+	return ast.TitleDef{Text: p.ast.Title}, nil
 }
 
 func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
-	target := entityNameTok.Literal
+	var sb strings.Builder
+	sb.WriteString(entityNameTok.Literal)
+
+	for {
+		if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
+			sb.WriteString(sep)
+			tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+			if !ok {
+				return "", NewParserError("Expected identifier after package separator in relationship target", p.stream.PeekTokenAt(0).Pos)
+			}
+			sb.WriteString(tok.Literal)
+			continue
+		}
+		break
+	}
+
 	if p.stream.PeekTokenAt(0).Type == tokenizer.COLON && p.stream.PeekTokenAt(1).Type == tokenizer.COLON {
 		p.stream.Emit() // consume first :
 		p.stream.Emit() // consume second :
@@ -891,9 +926,10 @@ func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string,
 		if !ok {
 			return "", NewParserError("Expected identifier after '::'", p.stream.PeekTokenAt(0).Pos)
 		}
-		target = target + "::" + tok.Literal
+		sb.WriteString("::")
+		sb.WriteString(tok.Literal)
 	}
-	return target, nil
+	return sb.String(), nil
 }
 
 func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relationship, error) {
@@ -1286,6 +1322,7 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 	}
 
 	rTok := p.stream.PeekTokenAt(idx)
+	hasRightArrowhead := false
 	switch rTok.Type {
 	case tokenizer.PIPE:
 		idx++
@@ -1293,8 +1330,10 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 			return 0, false
 		}
 		idx++
+		hasRightArrowhead = true
 	case tokenizer.RANGLE, tokenizer.LBRACE:
 		idx++
+		hasRightArrowhead = true
 	case tokenizer.LPAREN:
 		if sawDirection || sawAttrs || isLolipop {
 			return 0, false
@@ -1304,16 +1343,19 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 			return 0, false
 		}
 		idx++
+		hasRightArrowhead = true
 	case tokenizer.IDENTIFIER:
 		if rTok.Literal != "x" && rTok.Literal != "o" {
 			return 0, false
 		}
 		idx++
+		hasRightArrowhead = true
 	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
 		idx++
+		hasRightArrowhead = true
 	}
 
-	if !hasBody && bodyTokType != tokenizer.DOT && bodyTokType != tokenizer.DASH {
+	if !hasBody && !hasRightArrowhead && !isLolipop {
 		return 0, false
 	}
 

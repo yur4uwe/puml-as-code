@@ -1,0 +1,7 @@
+@startuml(id=main_diagram) diagram.png
+title System Architecture Overview
+
+class Controller {
+  +Index() void
+}
+@enduml

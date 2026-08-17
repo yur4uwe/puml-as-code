@@ -1,0 +1,99 @@
+{
+  "Name": "PackagesNested",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "PackagesNested"
+    },
+    {
+      "Identifier": "core",
+      "Alias": "Core Domain",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "User",
+          "Kind": "class",
+          "Members": [
+            {
+              "Name": "id",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              },
+              "Visibility": "public"
+            },
+            {
+              "Name": "name",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              },
+              "Visibility": "public"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "infra",
+      "Kind": "namespace",
+      "Statements": [
+        {
+          "Identifier": "Database",
+          "Kind": "class",
+          "Members": [
+            {
+              "Name": "connection",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              },
+              "Visibility": "public"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "Storage",
+      "Kind": "folder",
+      "Statements": [
+        {
+          "Identifier": "Server",
+          "Kind": "node",
+          "Statements": [
+            {
+              "Identifier": "Disk",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "capacity",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "LHS": "User",
+      "RHS": "Database",
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "connects"
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}
