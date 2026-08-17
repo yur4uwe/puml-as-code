@@ -102,9 +102,15 @@ func (c Container) StatementNode() Statement {
 	return c
 }
 
+type TargetRef struct {
+	PackagePath []string `json:",omitempty"`
+	Entity      string   `json:",omitempty"`
+	Member      string   `json:",omitempty"`
+}
+
 type Relationship struct {
-	LHS       string        `json:",omitempty"`
-	RHS       string        `json:",omitempty"`
+	LHS       TargetRef
+	RHS       TargetRef
 	Direction DirectionKind `json:",omitempty"`
 
 	TypeLHS RelationType `json:",omitempty"`
@@ -176,9 +182,9 @@ const (
 )
 
 type Note struct {
-	Text           string            `json:",omitempty"`
-	Direction      DirectionKind     `json:",omitempty"`
-	Target         string            `json:",omitempty"`
+	Text           string        `json:",omitempty"`
+	Direction      DirectionKind `json:",omitempty"`
+	Target         TargetRef
 	Color          string            `json:",omitempty"`
 	Alias          string            `json:",omitempty"`
 	LeadingTrivia  []tokenizer.Token `json:",omitempty"`

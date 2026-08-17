@@ -63,8 +63,12 @@
       ]
     },
     {
-      "LHS": "User",
-      "RHS": "Service",
+      "LHS": {
+        "Entity": "User"
+      },
+      "RHS": {
+        "Entity": "Service"
+      },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,

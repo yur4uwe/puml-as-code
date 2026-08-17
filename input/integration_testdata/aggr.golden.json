@@ -35,8 +35,12 @@
       ]
     },
     {
-      "LHS": "Team",
-      "RHS": "Player",
+      "LHS": {
+        "Entity": "Team"
+      },
+      "RHS": {
+        "Entity": "Player"
+      },
       "TypeLHS": "aggregation",
       "MultLHS": {
         "Raw": "1",

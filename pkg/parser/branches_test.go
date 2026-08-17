@@ -842,7 +842,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionRight,
-				Target:    "MyClass",
+				Target:    ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -851,7 +851,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionTop,
-				Target:    "MyClass",
+				Target:    ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -860,7 +860,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionBottom,
-				Target:    "link",
+				Target:    ast.TargetRef{Entity: "link"},
 			},
 		},
 		{
@@ -877,7 +877,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionLeft,
-				Target:    "MyClass",
+				Target:    ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -890,7 +890,7 @@ func TestParseNote(t *testing.T) {
 			name:        "relative note expected identifier for target",
 			input:       "note left of : text\n",
 			expectErr:   true,
-			errContains: "Expected identifier for a note target",
+			errContains: "Expected ':' or newline after note definition",
 		},
 		{
 			name:        "relative note unexpected identifier for link target",
@@ -1150,8 +1150,8 @@ func TestParseContainer(t *testing.T) {
 						},
 					},
 					ast.Relationship{
-						LHS:     "A",
-						RHS:     "B",
+						LHS:     ast.TargetRef{Entity: "A"},
+						RHS:     ast.TargetRef{Entity: "B"},
 						Body:    '-',
 						RArrow:  '>',
 						TypeRHS: ast.RelationAssociation,
@@ -1172,8 +1172,8 @@ func TestParseContainer(t *testing.T) {
 						Kind:       ast.EntityClass,
 					},
 					ast.Relationship{
-						LHS:     "folder",
-						RHS:     "p",
+						LHS:     ast.TargetRef{Entity: "folder"},
+						RHS:     ast.TargetRef{Entity: "p"},
 						Body:    '-',
 						RArrow:  '>',
 						TypeRHS: ast.RelationAssociation,
@@ -1186,8 +1186,14 @@ func TestParseContainer(t *testing.T) {
 			input:  "package p.p {}",
 			kwType: keyword.Package,
 			want: &ast.Container{
-				Identifier: "p.p",
+				Identifier: "p",
 				Kind:       ast.ContainerPackage,
+				Statements: []ast.Statement{
+					ast.Container{
+						Identifier: "p",
+						Kind:       ast.ContainerPackage,
+					},
+				},
 			},
 		},
 		{
@@ -1380,6 +1386,59 @@ func TestParseContainer(t *testing.T) {
 				require.NoError(t, err)
 				require.Equal(t, *tc.want, got)
 			}
+		})
+	}
+}
+
+func TestParseTargetRef(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  ast.TargetRef
+	}{
+		{
+			name:  "simple entity",
+			input: "Client",
+			want:  ast.TargetRef{Entity: "Client"},
+		},
+		{
+			name:  "package path and entity",
+			input: "net.http.Client",
+			want:  ast.TargetRef{PackagePath: []string{"net", "http"}, Entity: "Client"},
+		},
+		{
+			name:  "entity and simple member",
+			input: "Client::Do",
+			want:  ast.TargetRef{Entity: "Client", Member: "Do"},
+		},
+		{
+			name:  "entity and method parens",
+			input: "Client::Do()",
+			want:  ast.TargetRef{Entity: "Client", Member: "Do()"},
+		},
+		{
+			name:  "entity and method with parameters",
+			input: `Client::"Do(req Request)"`,
+			want:  ast.TargetRef{Entity: "Client", Member: "Do(req Request)"},
+		},
+		{
+			name:  "package path entity and method in quotes",
+			input: `net.http.Client::"Do(Context)"`,
+			want:  ast.TargetRef{PackagePath: []string{"net", "http"}, Entity: "Client", Member: "Do(Context)"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			firstTok := p.stream.Emit()
+			got, err := p.parseTargetRef(firstTok)
+			require.NoError(t, err)
+			require.Equal(t, tc.want, got)
 		})
 	}
 }

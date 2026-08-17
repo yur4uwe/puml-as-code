@@ -1,0 +1,220 @@
+{
+  "Name": "TargetRefs",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "TargetRefs"
+    },
+    {
+      "Key": "separator",
+      "Value": "."
+    },
+    {
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Client",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "timeout",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public"
+                },
+                {
+                  "Name": "Do",
+                  "ReturnType": [
+                    {
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "error"
+                      }
+                    }
+                  ],
+                  "Visibility": "public"
+                },
+                {
+                  "Name": "Execute",
+                  "ReturnType": [
+                    {
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "bool"
+                      }
+                    }
+                  ],
+                  "Parameters": [
+                    {
+                      "Name": "req",
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "string"
+                      }
+                    }
+                  ],
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Server",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "port",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public"
+                },
+                {
+                  "Name": "Serve",
+                  "ReturnType": [
+                    {
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "error"
+                      }
+                    }
+                  ],
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "LHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client"
+      },
+      "RHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Server"
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "connects"
+    },
+    {
+      "LHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client",
+        "Member": "timeout"
+      },
+      "RHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Server",
+        "Member": "port"
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "maps"
+    },
+    {
+      "LHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client",
+        "Member": "Do"
+      },
+      "RHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Server",
+        "Member": "Serve"
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "invokes"
+    },
+    {
+      "Text": "Note on package entity",
+      "Direction": "right",
+      "Target": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client"
+      }
+    },
+    {
+      "Text": "Note on method parens",
+      "Direction": "left",
+      "Target": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client",
+        "Member": "Do()"
+      }
+    },
+    {
+      "Text": "Note on quoted signature",
+      "Direction": "top",
+      "Target": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client",
+        "Member": "Execute(req string)"
+      }
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

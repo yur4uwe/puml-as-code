@@ -1,0 +1,24 @@
+@startuml TargetRefs
+
+set separator .
+
+class net.http.Client {
+  +timeout int
+  +Do() error
+  +Execute(req string) bool
+}
+
+class net.http.Server {
+  +port int
+  +Serve() error
+}
+
+net.http.Client -> net.http.Server : connects
+net.http.Client::timeout -> net.http.Server::port : maps
+net.http.Client::Do -> net.http.Server::Serve : invokes
+
+note right of net.http.Client : Note on package entity
+note left of net.http.Client::Do() : Note on method parens
+note top of net.http.Client::"Execute(req string)" : Note on quoted signature
+
+@enduml

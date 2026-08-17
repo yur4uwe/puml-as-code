@@ -82,8 +82,12 @@
       ]
     },
     {
-      "LHS": "User",
-      "RHS": "Database",
+      "LHS": {
+        "Entity": "User"
+      },
+      "RHS": {
+        "Entity": "Database"
+      },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,

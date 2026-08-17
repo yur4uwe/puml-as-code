@@ -63,8 +63,20 @@
       ]
     },
     {
-      "LHS": "net.http.Client",
-      "RHS": "net.http.Server",
+      "LHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Client"
+      },
+      "RHS": {
+        "PackagePath": [
+          "net",
+          "http"
+        ],
+        "Entity": "Server"
+      },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
@@ -129,8 +141,20 @@
       ]
     },
     {
-      "LHS": "auth::oauth::Client",
-      "RHS": "auth::oauth::Provider",
+      "LHS": {
+        "PackagePath": [
+          "auth",
+          "oauth"
+        ],
+        "Entity": "Client"
+      },
+      "RHS": {
+        "PackagePath": [
+          "auth",
+          "oauth"
+        ],
+        "Entity": "Provider"
+      },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,

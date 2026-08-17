@@ -501,12 +501,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		if _, ok = p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
 			return container, NewParserError("Expected container body to end", p.stream.PeekTokenAt(0).Pos)
 		}
-		// if there is no body we can return, though the uml diagram drawer
-		// spits an error if the container is empty.
-		// As i understand, error is related to the fact that empty containers
-		// are related to other uml diagram types, thus producing a mixed diagram
-		// which is an error
-		return container, nil
+		return p.wrapImplicitPackageContainers(container), nil
 	}
 
 	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
@@ -529,7 +524,34 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		}
 		container.Statements = append(container.Statements, stmts...)
 	}
-	return container, nil
+	return p.wrapImplicitPackageContainers(container), nil
+}
+
+func (p *Parser) wrapImplicitPackageContainers(c ast.Container) ast.Container {
+	if p.stream.PackageSeparator == "" || !strings.Contains(c.Identifier, p.stream.PackageSeparator) {
+		return c
+	}
+	segments := strings.Split(c.Identifier, p.stream.PackageSeparator)
+	if len(segments) <= 1 {
+		return c
+	}
+
+	current := ast.Container{
+		Kind:       c.Kind,
+		Identifier: segments[len(segments)-1],
+		Alias:      c.Alias,
+		Stereotype: c.Stereotype,
+		Color:      c.Color,
+		Statements: c.Statements,
+	}
+	for _, pkg := range slices.Backward(segments[:len(segments)-1]) {
+		current = ast.Container{
+			Kind:       c.Kind,
+			Identifier: pkg,
+			Statements: []ast.Statement{current},
+		}
+	}
+	return current
 }
 
 func (p *Parser) parseSetDirective() (ast.Statement, error) {
@@ -619,9 +641,8 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 		return lhs.Literal, rhs.Literal, nil
 	case tokenizer.IDENTIFIER:
 		return rhs.Literal, lhs.Literal, nil
-	default:
-		panic("unreachable")
 	}
+	return "", "", NewParserError("Invalid container alias and identifier combination", lhs.Pos)
 }
 
 func (p *Parser) parseNote(tok tokenizer.Token) (ast.Note, error) {
@@ -655,14 +676,14 @@ func (p *Parser) parseReltiveNote(dirTok tokenizer.Token) (ast.Note, error) {
 	var note ast.Note
 	note.Direction = p.mapTokenToDirection(dirTok)
 	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
-		targetTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-		if !ok {
-			return note, NewParserError("Expected identifier for a note target", targetTok.Pos)
+		target, err := p.parseTargetRef(p.stream.Emit()) // consume target
+		if err != nil {
+			return note, err
 		}
-		if strings.ToLower(targetTok.Literal) != "link" && relativeTok.Literal == "on" {
-			return note, NewParserError("Unexpected identifier for a note link target", targetTok.Pos)
+		if strings.ToLower(target.Entity) != "link" && relativeTok.Literal == "on" {
+			return note, NewParserError("Unexpected identifier for a note link target", relativeTok.Pos)
 		}
-		note.Target = targetTok.Literal
+		note.Target = target
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
 		return note, NewParserError("Unexpected identifier after direction", tok.Pos)
 	}
@@ -921,35 +942,57 @@ func (p *Parser) parseTitle() (ast.Statement, error) {
 	return ast.TitleDef{Text: p.ast.Title}, nil
 }
 
-func (p *Parser) parseRelationshipTarget(entityNameTok tokenizer.Token) (string, error) {
-	var sb strings.Builder
-	sb.WriteString(entityNameTok.Literal)
+func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error) {
+	var ref ast.TargetRef
+	segments := []string{firstTok.Literal}
 
 	for {
-		if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
-			sb.WriteString(sep)
-			tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-			if !ok {
-				return "", NewParserError("Expected identifier after package separator in relationship target", p.stream.PeekTokenAt(0).Pos)
+		if _, ok := p.stream.TryConsumePackageSeparator(); ok {
+			tok := p.stream.Emit()
+			if tok.Type != tokenizer.IDENTIFIER && tok.Type != tokenizer.STRING {
+				return ref, NewParserError("Expected identifier or string after package separator in target ref", tok.Pos)
 			}
-			sb.WriteString(tok.Literal)
+			segments = append(segments, tok.Literal)
 			continue
 		}
 		break
+	}
+
+	if len(segments) > 0 {
+		ref.Entity = segments[len(segments)-1]
+		if len(segments) > 1 {
+			ref.PackagePath = segments[:len(segments)-1]
+		}
 	}
 
 	if p.stream.PeekTokenAt(0).Type == tokenizer.COLON && p.stream.PeekTokenAt(1).Type == tokenizer.COLON {
 		p.stream.Emit() // consume first :
 		p.stream.Emit() // consume second :
 
-		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-		if !ok {
-			return "", NewParserError("Expected identifier after '::'", p.stream.PeekTokenAt(0).Pos)
+		tok := p.stream.Emit()
+		switch tok.Type {
+		case tokenizer.STRING:
+			ref.Member = tok.Literal
+		case tokenizer.IDENTIFIER:
+			var sb strings.Builder
+			sb.WriteString(tok.Literal)
+			if p.stream.AssertType(tokenizer.LPAREN) {
+				p.stream.Emit() // consume (
+				sb.WriteString("(")
+				paramToks := p.stream.ConsumeUntilType(tokenizer.RPAREN, tokenizer.NEWLINE, tokenizer.EOF)
+				sb.WriteString(p.stream.TokensToString(paramToks))
+				if _, ok := p.stream.TryConsumeType(tokenizer.RPAREN); !ok {
+					return ref, NewParserError("Expected ')' closing method signature in target ref", p.stream.PeekTokenAt(0).Pos)
+				}
+				sb.WriteString(")")
+			}
+			ref.Member = sb.String()
+		default:
+			return ref, NewParserError("Expected member identifier or string after '::'", tok.Pos)
 		}
-		sb.WriteString("::")
-		sb.WriteString(tok.Literal)
 	}
-	return sb.String(), nil
+
+	return ref, nil
 }
 
 func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relationship, error) {
@@ -957,7 +1000,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	var err error
 	var rel ast.Relationship
 	rel.LeadingTrivia = firstTargetTok.LeadingTrivia
-	rel.LHS, err = p.parseRelationshipTarget(firstTargetTok)
+	rel.LHS, err = p.parseTargetRef(firstTargetTok)
 	if err != nil {
 		return rel, err
 	}
@@ -981,7 +1024,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
 		return rel, NewParserError("Expected identifier or string after relationship", p.stream.PeekTokenAt(0).Pos)
 	}
-	rel.RHS, err = p.parseRelationshipTarget(p.stream.Emit())
+	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
 	if err != nil {
 		return rel, err
 	}
@@ -998,9 +1041,6 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 		rel.Label, err = p.stream.ConsumeTextBlock([]tokenizer.Token{unamb(tokenizer.NEWLINE)})
 		if err != nil {
 			return rel, err
-		}
-		if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-			return rel, NewParserError("Expected newline after relationship label", endingToken.Pos)
 		}
 	default:
 		return rel, NewParserError("Expected newline or colon after relationship", endingToken.Pos)
