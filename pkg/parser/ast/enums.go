@@ -1,155 +1,96 @@
 package ast
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
+//go:generate enumer -type=RelationType -transform=lower -trimprefix=Relation -json
 type RelationType int
 
 const (
-	UnknownRelation RelationType = iota
-	Association                  // <-
-	Aggregation                  // o-
-	Composition                  // *-
-	Inheritance                  // <|-
-	Dependency                   // <..
-	Realization                  // <|..
+	RelationUnknown     RelationType = iota
+	RelationAssociation              // <-
+	RelationAggregation              // o-
+	RelationComposition              // *-
+	RelationInheritance              // <|-
+	RelationDependency               // <..
+	RelationRealization              // <|..
 )
 
-func (rt RelationType) String() string {
-	switch rt {
-	case Association:
-		return "Association"
-	case Aggregation:
-		return "Aggregation"
-	case Composition:
-		return "Composition"
-	case Inheritance:
-		return "Inheritance"
-	case Dependency:
-		return "Dependency"
-	case Realization:
-		return "Realization"
-	default:
-		return "Unknown Relation"
-	}
-}
-
-func ToRelationType(relStr string) (RelationType, int) {
-	relStr = strings.TrimSpace(relStr)
-	switch relStr {
-	case "--":
-		return Association, 0
-	case "<--":
-		return Association, -1
-	case "-->":
-		return Association, 1
-	case "o--":
-		return Aggregation, -1
-	case "--o":
-		return Aggregation, 1
-	case "*--":
-		return Composition, -1
-	case "--*":
-		return Composition, 1
-	case "<|--":
-		return Inheritance, -1
-	case "--|>":
-		return Inheritance, 1
-	case "<..":
-		return Realization, -1
-	case "..>":
-		return Realization, 1
-	case "<..>":
-		return Dependency, 0
-	default:
-		return UnknownRelation, 0
-	}
-}
-
+//go:generate enumer -type=VisibilityKind -transform=lower -trimprefix=Visibility -json
 type VisibilityKind int
 
 const (
-	UnknownVisibility VisibilityKind = iota
-	Public
-	Private
-	Protected
-	Package
+	VisibilityUnknown VisibilityKind = iota
+	VisibilityPublic
+	VisibilityPrivate
+	VisibilityProtected
+	VisibilityPackage
 )
-
-func (v VisibilityKind) String() string {
-	switch v {
-	case Public:
-		return "public"
-	case Private:
-		return "private"
-	case Protected:
-		return "protected"
-	case Package:
-		return "package"
-	default:
-		return "unknown"
-	}
-}
-
-type ValueType byte
-
-const (
-	Void ValueType = iota
-	Int
-	String
-	Float
-	Bool
-	Custom
-	UnknownType
-)
-
-func (vt ValueType) String() string {
-	switch vt {
-	case Void:
-		return "void"
-	case Int:
-		return "int"
-	case String:
-		return "string"
-	case Float:
-		return "float"
-	case Bool:
-		return "bool"
-	case Custom:
-		return "custom"
-	default:
-		return "unknown"
-	}
-}
-
-func ToValueType(typeStr string) ValueType {
-	s := strings.TrimSpace(strings.ToLower(typeStr))
-	switch s {
-	case "void":
-		return Void
-	case "int":
-		return Int
-	case "string":
-		return String
-	case "float":
-		return Float
-	case "bool":
-		return Bool
-	default:
-		if s == "" {
-			return UnknownType
-		}
-		return Custom
-	}
-}
 
 type Cardinality struct {
 	Raw string
 	Min int
 	Max int // -1 represents '*' (unbounded)
+}
+
+func (m Cardinality) MarshalJSON() ([]byte, error) {
+	if m == UnknownCardinality || m.Raw == "" {
+		return []byte("null"), nil
+	}
+
+	type Alias struct {
+		Raw string `json:"Raw,omitempty"`
+		Min string
+		Max string
+	}
+
+	var maxVal string
+	if m.Max == -1 {
+		maxVal = "*"
+	} else {
+		maxVal = strconv.Itoa(m.Max)
+	}
+
+	return json.Marshal(Alias{
+		Raw: m.Raw,
+		Min: strconv.Itoa(m.Min),
+		Max: maxVal,
+	})
+}
+
+func (m *Cardinality) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*m = UnknownCardinality
+		return nil
+	}
+
+	type Alias struct {
+		Raw string
+		Min string
+		Max string
+	}
+
+	var aux Alias
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	m.Raw = aux.Raw
+	if aux.Max == "*" || aux.Max == "many" {
+		m.Max = -1
+	} else {
+		n, err := strconv.Atoi(aux.Max)
+		if err != nil {
+			return err
+		}
+		m.Max = n
+	}
+
+	return nil
 }
 
 // UnknownCardinality is an empty/unknown multiplicity.

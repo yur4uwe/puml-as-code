@@ -25,7 +25,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 			},
 		},
 		{
@@ -34,7 +34,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Abstract,
 			want: &ast.Entity{
 				Identifier: "MyAbstractClass",
-				Kind:       ast.AbstractClassKind,
+				Kind:       ast.EntityAbstractClass,
 			},
 		},
 		{
@@ -44,7 +44,7 @@ func TestParseEntity(t *testing.T) {
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 			},
 		},
 		{
@@ -60,7 +60,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Stereotype: "Service",
 			},
 		},
@@ -70,7 +70,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Color:      "FF0000",
 			},
 		},
@@ -80,7 +80,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 			},
 		},
 		{
@@ -90,7 +90,7 @@ func TestParseEntity(t *testing.T) {
 			want: &ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: "Database",
 				Color:      "FF0000",
@@ -102,12 +102,12 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "MyClass",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Members: []ast.Member{
 					&dialect.GoField{
 						Name:       "field",
 						Type:       dialect.NamedRef("int"),
-						Visibility: ast.Public,
+						Visibility: ast.VisibilityPublic,
 					},
 				},
 			},
@@ -146,7 +146,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "List",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Generic:    "T",
 			},
 		},
@@ -156,7 +156,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: &ast.Entity{
 				Identifier: "Map",
-				Kind:       ast.ClassKind,
+				Kind:       ast.EntityClass,
 				Generic:    "K, V",
 			},
 		},
@@ -292,7 +292,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 
 			var entryTok tokenizer.Token
 			var mod *string
-			vis := ast.UnknownVisibility
+			vis := ast.VisibilityUnknown
 
 			if tc.entryType == tokenizer.LBRACE {
 				m, err := p.tryReadModifier()
@@ -347,7 +347,7 @@ func TestParseEntityMember(t *testing.T) {
 			want: &dialect.GoField{
 				Name:       "field",
 				Type:       dialect.NamedRef("int"),
-				Visibility: ast.Public,
+				Visibility: ast.VisibilityPublic,
 			},
 		},
 		{
@@ -355,7 +355,7 @@ func TestParseEntityMember(t *testing.T) {
 			input: "-Method()\n",
 			want: &dialect.GoMethod{
 				Name:       "Method",
-				Visibility: ast.Private,
+				Visibility: ast.VisibilityPrivate,
 			},
 		},
 		{
@@ -410,7 +410,7 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:    '-',
 				RArrow:  '>',
-				TypeRHS: ast.Association,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -419,7 +419,7 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:    '-',
 				RArrow:  '>',
-				TypeRHS: ast.Association,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -428,7 +428,7 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:    '.',
 				RArrow:  '>',
-				TypeRHS: ast.Dependency,
+				TypeRHS: ast.RelationDependency,
 			},
 		},
 		{
@@ -438,8 +438,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  '<',
 				Body:    '-',
 				RArrow:  '>',
-				TypeLHS: ast.Association,
-				TypeRHS: ast.Association,
+				TypeLHS: ast.RelationAssociation,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -449,8 +449,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  '<',
 				Body:    '.',
 				RArrow:  '>',
-				TypeLHS: ast.Dependency,
-				TypeRHS: ast.Dependency,
+				TypeLHS: ast.RelationDependency,
+				TypeRHS: ast.RelationDependency,
 			},
 		},
 		{
@@ -460,8 +460,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  '|',
 				Body:    '-',
 				RArrow:  '>',
-				TypeLHS: ast.Inheritance,
-				TypeRHS: ast.Association,
+				TypeLHS: ast.RelationInheritance,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -470,7 +470,7 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:    '-',
 				RArrow:  '|',
-				TypeRHS: ast.Inheritance,
+				TypeRHS: ast.RelationInheritance,
 			},
 		},
 		{
@@ -480,8 +480,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  '|',
 				Body:    '-',
 				RArrow:  '|',
-				TypeLHS: ast.Inheritance,
-				TypeRHS: ast.Inheritance,
+				TypeLHS: ast.RelationInheritance,
+				TypeRHS: ast.RelationInheritance,
 			},
 		},
 		{
@@ -535,8 +535,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  'o',
 				Body:    '-',
 				RArrow:  'o',
-				TypeLHS: ast.Aggregation,
-				TypeRHS: ast.Aggregation,
+				TypeLHS: ast.RelationAggregation,
+				TypeRHS: ast.RelationAggregation,
 			},
 		},
 		{
@@ -546,8 +546,8 @@ func TestParseArrowTokens(t *testing.T) {
 				LArrow:  '*',
 				Body:    '-',
 				RArrow:  '*',
-				TypeLHS: ast.Composition,
-				TypeRHS: ast.Composition,
+				TypeLHS: ast.RelationComposition,
+				TypeRHS: ast.RelationComposition,
 			},
 		},
 		{
@@ -582,9 +582,9 @@ func TestParseArrowTokens(t *testing.T) {
 			input: "-left->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -592,9 +592,9 @@ func TestParseArrowTokens(t *testing.T) {
 			input: "-right->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Direction: ast.Right,
+				Direction: ast.DirectionRight,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -602,9 +602,9 @@ func TestParseArrowTokens(t *testing.T) {
 			input: "-up->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Direction: ast.Top,
+				Direction: ast.DirectionTop,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -612,9 +612,9 @@ func TestParseArrowTokens(t *testing.T) {
 			input: "-down->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Direction: ast.Bottom,
+				Direction: ast.DirectionBottom,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -624,7 +624,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Body:    '-',
 				Attrs:   []string{"foo"},
 				RArrow:  '>',
-				TypeRHS: ast.Association,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -634,7 +634,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Body:    '-',
 				Attrs:   []string{"foo", "bar"},
 				RArrow:  '>',
-				TypeRHS: ast.Association,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -643,9 +643,9 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:      '-',
 				Attrs:     []string{"foo"},
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -654,9 +654,9 @@ func TestParseArrowTokens(t *testing.T) {
 			want: &ast.Relationship{
 				Body:      '-',
 				Attrs:     []string{"foo"},
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 				RArrow:    '>',
-				TypeRHS:   ast.Association,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -666,7 +666,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Body:    '-',
 				Attrs:   []string{"#foo", "%bar"},
 				RArrow:  '>',
-				TypeRHS: ast.Association,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -674,8 +674,8 @@ func TestParseArrowTokens(t *testing.T) {
 			input: "--",
 			want: &ast.Relationship{
 				Body:    '-',
-				TypeLHS: ast.Association,
-				TypeRHS: ast.Association,
+				TypeLHS: ast.RelationAssociation,
+				TypeRHS: ast.RelationAssociation,
 			},
 		},
 		{
@@ -812,7 +812,7 @@ func TestParseNote(t *testing.T) {
 			input: "note left : some note text\n",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 			},
 		},
 		{
@@ -820,7 +820,7 @@ func TestParseNote(t *testing.T) {
 			input: "note right of MyClass : some note text\n",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Right,
+				Direction: ast.DirectionRight,
 				Target:    "MyClass",
 			},
 		},
@@ -829,7 +829,7 @@ func TestParseNote(t *testing.T) {
 			input: "note top of MyClass #green : some note text\n",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Top,
+				Direction: ast.DirectionTop,
 				Target:    "MyClass",
 			},
 		},
@@ -838,7 +838,7 @@ func TestParseNote(t *testing.T) {
 			input: "note bottom on link : some note text\n",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Bottom,
+				Direction: ast.DirectionBottom,
 				Target:    "link",
 			},
 		},
@@ -847,7 +847,7 @@ func TestParseNote(t *testing.T) {
 			input: "note left\nsome note text\nend note\n",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 			},
 		},
 		{
@@ -855,7 +855,7 @@ func TestParseNote(t *testing.T) {
 			input: "note left of MyClass\nsome note text\nend note",
 			want: &ast.Note{
 				Text:      "some note text",
-				Direction: ast.Left,
+				Direction: ast.DirectionLeft,
 				Target:    "MyClass",
 			},
 		},
@@ -1022,7 +1022,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "together\n",
 			kwType: keyword.Together,
 			want: &ast.Container{
-				Kind: ast.TogetherKind,
+				Kind: ast.ContainerTogether,
 			},
 		},
 		{
@@ -1030,7 +1030,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "together {}",
 			kwType: keyword.Together,
 			want: &ast.Container{
-				Kind: ast.TogetherKind,
+				Kind: ast.ContainerTogether,
 			},
 		},
 		{
@@ -1038,11 +1038,11 @@ func TestParseContainer(t *testing.T) {
 			input:  "together { class A }",
 			kwType: keyword.Together,
 			want: &ast.Container{
-				Kind: ast.TogetherKind,
+				Kind: ast.ContainerTogether,
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1053,7 +1053,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1063,7 +1063,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1073,7 +1073,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1083,7 +1083,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "otherpkg",
 				Alias:      "mypkg",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1093,7 +1093,7 @@ func TestParseContainer(t *testing.T) {
 			want: &ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1104,7 +1104,7 @@ func TestParseContainer(t *testing.T) {
 				Identifier: "mypkg",
 				Stereotype: "Service",
 				Color:      "green",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1113,18 +1113,18 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "mypkg",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 					ast.Container{
-						Kind: ast.TogetherKind,
+						Kind: ast.ContainerTogether,
 						Statements: []ast.Statement{
 							&ast.Entity{
 								Identifier: "B",
-								Kind:       ast.ClassKind,
+								Kind:       ast.EntityClass,
 							},
 						},
 					},
@@ -1133,7 +1133,7 @@ func TestParseContainer(t *testing.T) {
 						RHS:     "B",
 						Body:    '-',
 						RArrow:  '>',
-						TypeRHS: ast.Association,
+						TypeRHS: ast.RelationAssociation,
 					},
 				},
 			},
@@ -1144,18 +1144,18 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "p",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "folder",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 					ast.Relationship{
 						LHS:     "folder",
 						RHS:     "p",
 						Body:    '-',
 						RArrow:  '>',
-						TypeRHS: ast.Association,
+						TypeRHS: ast.RelationAssociation,
 					},
 				},
 			},
@@ -1166,7 +1166,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: &ast.Container{
 				Identifier: "p.p",
-				Kind:       ast.PackageKind,
+				Kind:       ast.ContainerPackage,
 			},
 		},
 		{
@@ -1217,12 +1217,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "folder myfolder { class A }",
 			kwType: keyword.Folder,
 			want: &ast.Container{
-				Kind:       ast.FolderKind,
+				Kind:       ast.ContainerFolder,
 				Identifier: "myfolder",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1232,12 +1232,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "frame myframe { class A }",
 			kwType: keyword.Frame,
 			want: &ast.Container{
-				Kind:       ast.FrameKind,
+				Kind:       ast.ContainerFrame,
 				Identifier: "myframe",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1247,12 +1247,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "rectangle myrect { class A }",
 			kwType: keyword.Rectangle,
 			want: &ast.Container{
-				Kind:       ast.RectangleKind,
+				Kind:       ast.ContainerRectangle,
 				Identifier: "myrect",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1262,12 +1262,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "cloud mycloud { class A }",
 			kwType: keyword.Cloud,
 			want: &ast.Container{
-				Kind:       ast.CloudKind,
+				Kind:       ast.ContainerCloud,
 				Identifier: "mycloud",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1277,12 +1277,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "database mydb { class A }",
 			kwType: keyword.Database,
 			want: &ast.Container{
-				Kind:       ast.DatabaseKind,
+				Kind:       ast.ContainerDatabase,
 				Identifier: "mydb",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1292,12 +1292,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "node mynode { class A }",
 			kwType: keyword.Node,
 			want: &ast.Container{
-				Kind:       ast.NodeKind,
+				Kind:       ast.ContainerNode,
 				Identifier: "mynode",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1307,12 +1307,12 @@ func TestParseContainer(t *testing.T) {
 			input:  "namespace myns { class A }",
 			kwType: keyword.Namespace,
 			want: &ast.Container{
-				Kind:       ast.NamespaceKind,
+				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: "A",
-						Kind:       ast.ClassKind,
+						Kind:       ast.EntityClass,
 					},
 				},
 			},
@@ -1322,7 +1322,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "folder myfolder {}",
 			kwType: keyword.Folder,
 			want: &ast.Container{
-				Kind:       ast.FolderKind,
+				Kind:       ast.ContainerFolder,
 				Identifier: "myfolder",
 			},
 		},
@@ -1331,7 +1331,7 @@ func TestParseContainer(t *testing.T) {
 			input:  `namespace myns as "My Namespace" <<API>>` + "\n",
 			kwType: keyword.Namespace,
 			want: &ast.Container{
-				Kind:       ast.NamespaceKind,
+				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
 				Alias:      "My Namespace",
 				Stereotype: "API",

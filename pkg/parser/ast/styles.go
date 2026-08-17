@@ -10,11 +10,11 @@ import (
 )
 
 type StyleRule struct {
-	Selectors      []string
-	Properties     map[string]string
-	IsSkinparam    bool // Origin provenance (true for skinparam, false for <style> block)
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Selectors      []string          `json:",omitempty"`
+	Properties     map[string]string `json:",omitempty"`
+	IsSkinparam    bool              // Origin provenance (true for skinparam, false for <style> block)
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 // StatementNode implements [Statement].

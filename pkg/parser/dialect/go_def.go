@@ -8,13 +8,15 @@ import (
 )
 
 // RefType describes the kind of a GoTypeRef node in the recursive type chain.
+//
+//go:generate enumer -type=RefType -transform=lower -trimprefix=Kind -json
 type RefType int
 
 const (
-	Pointer RefType = iota
-	Slice
-	Array
-	Named // Terminal node — the base type name (e.g. "int", "MyStruct")
+	KindPointer RefType = iota
+	KindSlice
+	KindArray
+	KindNamed // Terminal node — the base type name (e.g. "int", "MyStruct")
 )
 
 // GoTypeRef is a recursive linked-list representation of a Go type.
@@ -27,10 +29,10 @@ const (
 //
 //	Named("pkg") → Named("Type")
 type GoTypeRef struct {
-	Typ       RefType
-	ArraySize int    // Only meaningful when Typ == Array
-	Name      string // Only meaningful when Typ == Named
-	Base      *GoTypeRef
+	Typ       RefType    `json:",omitempty"`
+	ArraySize int        `json:",omitempty"` // Only meaningful when Typ == Array
+	Name      string     `json:",omitempty"` // Only meaningful when Typ == Named
+	Base      *GoTypeRef `json:",omitempty"`
 }
 
 // String reconstructs the Go type syntax from the recursive chain.
@@ -41,11 +43,11 @@ func (g *GoTypeRef) String() string {
 	var hasName bool
 	for curr := g; curr != nil; curr = curr.Base {
 		switch curr.Typ {
-		case Slice:
+		case KindSlice:
 			sb.WriteString("[]")
-		case Pointer:
+		case KindPointer:
 			sb.WriteString("*")
-		case Array:
+		case KindArray:
 			sb.WriteRune('[')
 			if curr.ArraySize <= 0 {
 				sb.WriteRune('?')
@@ -53,7 +55,7 @@ func (g *GoTypeRef) String() string {
 				sb.WriteString(strconv.Itoa(curr.ArraySize))
 			}
 			sb.WriteRune(']')
-		case Named:
+		case KindNamed:
 			if hasName {
 				sb.WriteRune('.')
 			}
@@ -66,21 +68,21 @@ func (g *GoTypeRef) String() string {
 
 func PointerTo(base *GoTypeRef) *GoTypeRef {
 	return &GoTypeRef{
-		Typ:  Pointer,
+		Typ:  KindPointer,
 		Base: base,
 	}
 }
 
 func SliceOf(base *GoTypeRef) *GoTypeRef {
 	return &GoTypeRef{
-		Typ:  Slice,
+		Typ:  KindSlice,
 		Base: base,
 	}
 }
 
 func ArrayOf(size int, base *GoTypeRef) *GoTypeRef {
 	return &GoTypeRef{
-		Typ:       Array,
+		Typ:       KindArray,
 		ArraySize: size,
 		Base:      base,
 	}
@@ -88,7 +90,7 @@ func ArrayOf(size int, base *GoTypeRef) *GoTypeRef {
 
 func NamedRef(name string) *GoTypeRef {
 	return &GoTypeRef{
-		Typ:  Named,
+		Typ:  KindNamed,
 		Name: name,
 	}
 }
@@ -98,17 +100,17 @@ func NamedRef(name string) *GoTypeRef {
 // Type is nil for untyped parameters (e.g. in Go's "a, b int" shorthand,
 // "a" is initially untyped until backfilled).
 type GoParameter struct {
-	Name string
-	Type *GoTypeRef
+	Name string     `json:",omitempty"`
+	Type *GoTypeRef `json:",omitempty"`
 }
 
 // GoField is the Go-specific implementation of [ast.Field].
 // Consumers should type-assert from ast.Field to access Type.
 type GoField struct {
-	Name       string
-	Type       *GoTypeRef
-	Visibility ast.VisibilityKind
-	Modifiers  []string
+	Name       string             `json:",omitempty"`
+	Type       *GoTypeRef         `json:",omitempty"`
+	Visibility ast.VisibilityKind `json:",omitempty"`
+	Modifiers  []string           `json:",omitempty"`
 }
 
 // FieldModifiers implements [ast.Field].
@@ -141,11 +143,11 @@ var (
 // unnamed (error) return values. Consumers should type-assert from
 // ast.Method to access Parameters and ReturnType.
 type GoMethod struct {
-	Name       string
-	ReturnType []GoParameter // Named returns have Name set, unnamed have Name empty
-	Parameters []GoParameter
-	Modifiers  []string
-	Visibility ast.VisibilityKind
+	Name       string             `json:",omitempty"`
+	ReturnType []GoParameter      `json:",omitempty"` // Named returns have Name set, unnamed have Name empty
+	Parameters []GoParameter      `json:",omitempty"`
+	Modifiers  []string           `json:",omitempty"`
+	Visibility ast.VisibilityKind `json:",omitempty"`
 }
 
 // MemberNode implements [ast.Method].

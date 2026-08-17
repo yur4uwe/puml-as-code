@@ -115,7 +115,7 @@ func TestGoDialect_ParseField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			field, err := g.ParseField(toks, ast.UnknownVisibility, nil)
+			field, err := g.ParseField(toks, ast.VisibilityUnknown, nil)
 			if tt.expectError {
 				require.Error(t, err)
 				return
@@ -325,7 +325,7 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			method, err := g.ParseMethod(toks, ast.UnknownVisibility, nil)
+			method, err := g.ParseMethod(toks, ast.VisibilityUnknown, nil)
 			if tt.expectError {
 				require.Error(t, err)
 				return

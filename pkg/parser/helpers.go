@@ -25,81 +25,81 @@ func toInteger(f float64) (int, bool) {
 func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
 	kw := keyword.Classify(tok.Literal)
 	if _, ok := p.stream.TryConsumeKW(keyword.Class); kw == keyword.Abstract && ok {
-		return ast.AbstractClassKind
+		return ast.EntityAbstractClass
 	}
 
 	switch kw {
 	case keyword.Class:
-		return ast.ClassKind
+		return ast.EntityClass
 	case keyword.Abstract:
-		return ast.AbstractClassKind
+		return ast.EntityAbstractClass
 	case keyword.Interface:
-		return ast.InterfaceKind
+		return ast.EntityInterface
 	case keyword.Enum:
-		return ast.EnumKind
+		return ast.EntityEnum
 	case keyword.Entity:
-		return ast.EntityClassKind
+		return ast.EntityEntityClass
 	case keyword.Struct:
-		return ast.StructKind
+		return ast.EntityStruct
 	case keyword.Annotation:
-		return ast.AnnotationKind
+		return ast.EntityAnnotation
 	case keyword.Protocol:
-		return ast.ProtocolKind
+		return ast.EntityProtocol
 	case keyword.Circle:
-		return ast.CircleKind
+		return ast.EntityCircle
 	case keyword.Diamond:
-		return ast.DiamondKind
+		return ast.EntityDiamond
 	case keyword.Exception:
-		return ast.ExceptionKind
+		return ast.EntityException
 	case keyword.Metaclass:
-		return ast.MetaclassKind
+		return ast.EntityMetaclass
 	case keyword.Record:
-		return ast.RecordKind
+		return ast.EntityRecord
 	case keyword.Dataclass:
-		return ast.DataclassKind
+		return ast.EntityDataclass
 	case keyword.Stereotype:
-		return ast.StereotypeKind
+		return ast.EntityStereotype
 	default:
-		return ast.UnknownEntityKind
+		return ast.EntityUnknown
 	}
 }
 
 func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKind {
 	switch tok {
 	case tokenizer.PLUS:
-		return ast.Public
+		return ast.VisibilityPublic
 	case tokenizer.DASH:
-		return ast.Private
+		return ast.VisibilityPrivate
 	case tokenizer.HASH:
-		return ast.Protected
+		return ast.VisibilityProtected
 	case tokenizer.TILDE:
-		return ast.Package
+		return ast.VisibilityPackage
 	default:
-		return ast.UnknownVisibility
+		return ast.VisibilityUnknown
 	}
 }
 
 func (p *Parser) mapKeywordToContainerKind(kw keyword.KeywordKind) ast.ContainerKind {
 	switch kw {
 	case keyword.Package:
-		return ast.PackageKind
+		return ast.ContainerPackage
 	case keyword.Folder:
-		return ast.FolderKind
+		return ast.ContainerFolder
 	case keyword.Frame:
-		return ast.FrameKind
+		return ast.ContainerFrame
 	case keyword.Rectangle:
-		return ast.RectangleKind
+		return ast.ContainerRectangle
 	case keyword.Cloud:
-		return ast.CloudKind
+		return ast.ContainerCloud
 	case keyword.Database:
-		return ast.DatabaseKind
+		return ast.ContainerDatabase
 	case keyword.Node:
-		return ast.NodeKind
+		return ast.ContainerNode
 	case keyword.Namespace:
-		return ast.NamespaceKind
+		return ast.ContainerNamespace
 	case keyword.Together:
-		return ast.TogetherKind
+		return ast.ContainerTogether
 	default:
-		return ast.UnknownContainerKind
+		return ast.ContainerUnknown
 	}
 }

@@ -10,40 +10,41 @@ type Member interface {
 	MemberNode() Member
 }
 
+//go:generate enumer -type=EntityKind -transform=lower -trimprefix=Entity -json
 type EntityKind int
 
 const (
-	UnknownEntityKind EntityKind = iota
-	ClassKind
-	AbstractClassKind
-	InterfaceKind
-	EnumKind
-	EntityClassKind
-	StructKind
-	AnnotationKind
-	ProtocolKind
-	CircleKind
-	DiamondKind
-	ExceptionKind
-	MetaclassKind
-	RecordKind
-	DataclassKind
-	StereotypeKind // For the standalone "stereotype" keyword
+	EntityUnknown EntityKind = iota
+	EntityClass
+	EntityAbstractClass
+	EntityInterface
+	EntityEnum
+	EntityEntityClass
+	EntityStruct
+	EntityAnnotation
+	EntityProtocol
+	EntityCircle
+	EntityDiamond
+	EntityException
+	EntityMetaclass
+	EntityRecord
+	EntityDataclass
+	EntityStereotype // For the standalone "stereotype" keyword
 
 	// Robustness (BCE)
-	BceEntityKind
-	BoundaryKind
-	ControlKind
+	EntityBceEntity
+	EntityBoundary
+	EntityControl
 
 	// Component / Mixed
-	ActorKind
-	ComponentKind
-	ArtifactKind
+	EntityActor
+	EntityComponent
+	EntityArtifact
 )
 
 func (k EntityKind) AllowsBody() bool {
 	switch k {
-	case CircleKind, DiamondKind:
+	case EntityCircle, EntityDiamond:
 		return false
 	default:
 		return true
@@ -51,15 +52,15 @@ func (k EntityKind) AllowsBody() bool {
 }
 
 type Entity struct {
-	Identifier     string
-	Alias          string
-	Kind           EntityKind
-	Stereotype     string
-	Generic        string
-	Color          string
-	Members        []Member
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Identifier     string            `json:",omitempty"`
+	Alias          string            `json:",omitempty"`
+	Kind           EntityKind        `json:",omitempty"`
+	Stereotype     string            `json:",omitempty"`
+	Generic        string            `json:",omitempty"`
+	Color          string            `json:",omitempty"`
+	Members        []Member          `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 var _ Statement = Entity{}
@@ -68,30 +69,31 @@ func (e Entity) StatementNode() Statement {
 	return e
 }
 
+//go:generate enumer -type=ContainerKind -transform=lower -trimprefix=Container -json
 type ContainerKind int
 
 const (
-	UnknownContainerKind ContainerKind = iota
-	PackageKind
-	TogetherKind
-	NamespaceKind
-	FolderKind
-	FrameKind
-	RectangleKind
-	DatabaseKind
-	CloudKind
-	NodeKind
+	ContainerUnknown ContainerKind = iota
+	ContainerPackage
+	ContainerTogether
+	ContainerNamespace
+	ContainerFolder
+	ContainerFrame
+	ContainerRectangle
+	ContainerDatabase
+	ContainerCloud
+	ContainerNode
 )
 
 type Container struct {
-	Identifier     string
-	Alias          string
-	Kind           ContainerKind
-	Stereotype     string
-	Color          string
-	Statements     []Statement
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Identifier     string            `json:",omitempty"`
+	Alias          string            `json:",omitempty"`
+	Kind           ContainerKind     `json:",omitempty"`
+	Stereotype     string            `json:",omitempty"`
+	Color          string            `json:",omitempty"`
+	Statements     []Statement       `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 var _ Statement = Container{}
@@ -101,26 +103,26 @@ func (c Container) StatementNode() Statement {
 }
 
 type Relationship struct {
-	LHS       string
-	RHS       string
-	Direction DirectionKind
+	LHS       string        `json:",omitempty"`
+	RHS       string        `json:",omitempty"`
+	Direction DirectionKind `json:",omitempty"`
 
-	TypeLHS RelationType
-	TypeRHS RelationType
+	TypeLHS RelationType `json:",omitempty"`
+	TypeRHS RelationType `json:",omitempty"`
 	MultLHS Cardinality
 	MultRHS Cardinality
 
 	// Arrow itself
 	Body           rune // '-', '.'
-	LArrow, RArrow rune // '<'/'>', etc.
+	LArrow, RArrow rune `json:",omitempty"`
 	// Special case for left/righ arrow rune of relationship:
 	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
 	// which would have end = '>'
 
-	Label          string
-	Attrs          []string
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Label          string            `json:",omitempty"`
+	Attrs          []string          `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 var _ Statement = Relationship{}
@@ -131,7 +133,7 @@ func (r Relationship) StatementNode() Statement {
 
 type ClassSeparator struct {
 	// Optional label text
-	Label string
+	Label string `json:",omitempty"`
 	// Separator type. One of "-", "=", ".", "_"
 	Type rune
 }
@@ -142,38 +144,12 @@ func (cs ClassSeparator) MemberNode() Member {
 	return cs
 }
 
-// type Field struct {
-// 	// Its impossible to know what is the type of the field and what is its name
-// 	// I will do go's way and first fill the name and then the type
-// 	// Then during generation, use known types to find where the name actually is
-// 	Raw        string
-// 	Name       string
-// 	Type       TypeRef
-// 	Visibility VisibilityKind
-// 	// Optional modifiers
-// 	Modifiers []string
-// 	// This shit is so fucked up...
-// 	// What do you mean only way to distinguish between field and method is
-// 	// by presence of parenthesis?
-// }
-
 type Field interface {
 	Member
 	FieldName() string
 	FieldModifiers() []string
 	FieldVisibility() VisibilityKind
 }
-
-// type Method struct {
-// 	// Name and type will be inferred by assuming that '()' will be right after
-// 	// the name
-// 	Raw        string
-// 	Name       string
-// 	ReturnType []TypeRef // due to multiple return types languages, this is a slice
-// 	Parameters []Parameter
-// 	Modifiers  []string
-// 	Visibility VisibilityKind
-// }
 
 type Method interface {
 	Member
@@ -183,59 +159,30 @@ type Method interface {
 }
 
 type Diagram struct {
-	Name           string
-	Title          string
-	Statements     []Statement
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Name       string      `json:",omitempty"`
+	Title      string      `json:",omitempty"`
+	Statements []Statement `json:",omitempty"`
 }
 
-// DirectionKind is a multi-purpose enum for representing literal directions
-//
-// Possible values:
-//   - Left
-//   - Right
-//   - Top
-//   - Bottom
+//go:generate enumer -type=DirectionKind -transform=lower -trimprefix=Direction -json
 type DirectionKind int
 
 const (
-	UnknownDirectionKind DirectionKind = iota
-	Left
-	Right
-	Top
-	Bottom
+	DirectionUnknown DirectionKind = iota
+	DirectionLeft
+	DirectionRight
+	DirectionTop
+	DirectionBottom
 )
 
-func (d DirectionKind) String() string {
-	switch d {
-	case Left:
-		return "left"
-	case Right:
-		return "right"
-	case Top:
-		return "top"
-	case Bottom:
-		return "bottom"
-	default:
-		return "unknown"
-	}
-}
-
 type Note struct {
-	// note left of Class: note left of Class
-	// where:
-	// Text = note left of Class
-	// Direction = DirectionKind(Left)
-	// Target = Class
-	// Color = ""
-	Text           string
-	Direction      DirectionKind
-	Target         string
-	Color          string
-	Alias          string
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Text           string            `json:",omitempty"`
+	Direction      DirectionKind     `json:",omitempty"`
+	Target         string            `json:",omitempty"`
+	Color          string            `json:",omitempty"`
+	Alias          string            `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 var _ Statement = Note{}
@@ -244,12 +191,12 @@ func (n Note) StatementNode() Statement { return n }
 
 type DiagramBound struct {
 	IsStart        bool
-	Type           string // after '@start' or '@end' e.g. uml for 'startuml', gantt for 'startgantt', etc.
-	ID             string // for identifying the diagram in files there there are more than one
-	Name           string // in essence file name for the rendered diagram
-	Opts           map[string]string
-	LeadingTrivia  []tokenizer.Token
-	TrailingTrivia []tokenizer.Token
+	Type           string            `json:",omitempty"`
+	ID             string            `json:",omitempty"`
+	Name           string            `json:",omitempty"`
+	Opts           map[string]string `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 var _ Statement = DiagramBound{}

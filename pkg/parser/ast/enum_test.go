@@ -6,44 +6,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestToRelationType(t *testing.T) {
-	cases := []struct {
-		in  string
-		out RelationType
-		sig int
-	}{
-		{"--", Association, 0},
-		{"<--", Association, -1},
-		{"-->", Association, 1},
-		{"o--", Aggregation, -1},
-		{"--o", Aggregation, 1},
-		{"*--", Composition, -1},
-		{"--*", Composition, 1},
-		{"<|--", Inheritance, -1},
-		{"--|>", Inheritance, 1},
-		{"<..", Realization, -1},
-		{"..>", Realization, 1},
-		{"<..>", Dependency, 0},
-		{"unknown", UnknownRelation, 0},
-	}
-
-	for _, c := range cases {
-		rt, sig := ToRelationType(c.in)
-		require.Equal(t, c.out, rt, "input=%q", c.in)
-		require.Equal(t, c.sig, sig, "input=%q", c.in)
-	}
-}
-
-func TestToValueType(t *testing.T) {
-	require.Equal(t, Void, ToValueType("void"))
-	require.Equal(t, Int, ToValueType("INT"))
-	require.Equal(t, String, ToValueType(" String "))
-	require.Equal(t, Float, ToValueType("float"))
-	require.Equal(t, Bool, ToValueType("bool"))
-	require.Equal(t, Custom, ToValueType("MyType"))
-	require.Equal(t, UnknownType, ToValueType(""))
-}
-
 func TestParseMultiplicity(t *testing.T) {
 	cases := []struct {
 		in        string

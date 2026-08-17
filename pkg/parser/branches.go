@@ -317,7 +317,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 		return member, nil
 	}
 
-	vis := ast.UnknownVisibility
+	vis := ast.VisibilityUnknown
 	if mod, err := p.tryReadModifier(); err == nil {
 		// Handle scope modifiers
 		member, err = p.parseFieldOrMethod(&mod, vis, unamb(tokenizer.LBRACE))
@@ -374,7 +374,7 @@ func (p *Parser) parseFieldOrMethod(mod *string, vis ast.VisibilityKind, entryTo
 		mods = append(mods, *mod)
 	}
 
-	if vis != ast.UnknownVisibility {
+	if vis != ast.VisibilityUnknown {
 		canEncounterVisibility = false
 	}
 
@@ -717,15 +717,15 @@ func (p *Parser) parseNoteBody() (string, error) {
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	switch tok.Literal {
 	case "left":
-		return ast.Left
+		return ast.DirectionLeft
 	case "right":
-		return ast.Right
+		return ast.DirectionRight
 	case "top":
-		return ast.Top
+		return ast.DirectionTop
 	case "bottom":
-		return ast.Bottom
+		return ast.DirectionBottom
 	default:
-		return ast.UnknownDirectionKind
+		return ast.DirectionUnknown
 	}
 }
 
@@ -994,21 +994,21 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		oppositeBodyTokType = tokenizer.DASH
 		switch rel.LArrow {
 		case '<':
-			rel.TypeLHS = ast.Dependency
+			rel.TypeLHS = ast.RelationDependency
 		case '|':
-			rel.TypeLHS = ast.Realization
+			rel.TypeLHS = ast.RelationRealization
 		}
 	case tokenizer.DASH:
 		oppositeBodyTokType = tokenizer.DOT
 		switch rel.LArrow {
 		case '<':
-			rel.TypeLHS = ast.Association
+			rel.TypeLHS = ast.RelationAssociation
 		case 'o':
-			rel.TypeLHS = ast.Aggregation
+			rel.TypeLHS = ast.RelationAggregation
 		case '*':
-			rel.TypeLHS = ast.Composition
+			rel.TypeLHS = ast.RelationComposition
 		case '|':
-			rel.TypeLHS = ast.Inheritance
+			rel.TypeLHS = ast.RelationInheritance
 		}
 	default:
 		return NewParserError("Unexpected token as the relationship body", tok.Pos)
@@ -1045,13 +1045,13 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					var dir ast.DirectionKind
 					switch tok.Literal {
 					case "left", "l", "le":
-						dir = ast.Left
+						dir = ast.DirectionLeft
 					case "right", "r", "ri":
-						dir = ast.Right
+						dir = ast.DirectionRight
 					case "up", "u":
-						dir = ast.Top
+						dir = ast.DirectionTop
 					case "down", "d", "do":
-						dir = ast.Bottom
+						dir = ast.DirectionBottom
 					default:
 						return NewParserError("Unexpected direction in relationship", tok.Pos)
 					}
@@ -1106,17 +1106,17 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		}
 		switch rel.Body {
 		case '-':
-			rel.TypeRHS = ast.Inheritance
+			rel.TypeRHS = ast.RelationInheritance
 		case '.':
-			rel.TypeRHS = ast.Realization
+			rel.TypeRHS = ast.RelationRealization
 		}
 		rel.RArrow = rune(tok.Literal[0])
 	case tokenizer.RANGLE:
 		switch rel.Body {
 		case '-':
-			rel.TypeRHS = ast.Association
+			rel.TypeRHS = ast.RelationAssociation
 		case '.':
-			rel.TypeRHS = ast.Dependency
+			rel.TypeRHS = ast.RelationDependency
 		}
 		fallthrough
 	case tokenizer.LBRACE:
@@ -1139,11 +1139,11 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		// special case for 'x' and 'o' in relationship
 		switch tok.Literal {
 		case "*":
-			rel.TypeRHS = ast.Composition
+			rel.TypeRHS = ast.RelationComposition
 		case "x":
 		case "o":
 			if rel.Body == '-' {
-				rel.TypeRHS = ast.Aggregation
+				rel.TypeRHS = ast.RelationAggregation
 			}
 		default:
 			return NewParserError("Unexpected identifier in relationship definition", tok.Pos)
@@ -1153,9 +1153,9 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		p.stream.Emit()
 		rel.RArrow = rune(tok.Literal[0])
 	default:
-		if rel.TypeLHS == ast.UnknownRelation && rel.Body == '-' {
-			rel.TypeLHS = ast.Association
-			rel.TypeRHS = ast.Association
+		if rel.TypeLHS == ast.RelationUnknown && rel.Body == '-' {
+			rel.TypeLHS = ast.RelationAssociation
+			rel.TypeRHS = ast.RelationAssociation
 		}
 	}
 	if rel.Body == 0 {

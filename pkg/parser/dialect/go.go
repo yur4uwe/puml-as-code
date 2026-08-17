@@ -104,7 +104,7 @@ func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, in
 		if err != nil {
 			return GoTypeRef{}, 0, err
 		}
-		return GoTypeRef{Typ: Pointer, Base: &base}, newPos, nil
+		return GoTypeRef{Typ: KindPointer, Base: &base}, newPos, nil
 
 	case tokenizer.LBRACKET: // []T or [N]T
 		pos++
@@ -118,7 +118,7 @@ func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, in
 			if err != nil {
 				return GoTypeRef{}, 0, err
 			}
-			return GoTypeRef{Typ: Slice, Base: &base}, newPos, nil
+			return GoTypeRef{Typ: KindSlice, Base: &base}, newPos, nil
 		}
 		if toks[pos].Type == tokenizer.NUMBER {
 			size, _ := strconv.Atoi(toks[pos].Literal)
@@ -131,13 +131,13 @@ func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, in
 			if err != nil {
 				return GoTypeRef{}, 0, err
 			}
-			return GoTypeRef{Typ: Array, ArraySize: size, Base: &base}, newPos, nil
+			return GoTypeRef{Typ: KindArray, ArraySize: size, Base: &base}, newPos, nil
 		}
 		return GoTypeRef{}, 0, fmt.Errorf("%w: expected ']' or number after '['",
 			ErrParsingDialect)
 
 	case tokenizer.IDENTIFIER: // named type, possibly qualified (pkg.Type)
-		ref := GoTypeRef{Typ: Named, Name: toks[pos].Literal}
+		ref := GoTypeRef{Typ: KindNamed, Name: toks[pos].Literal}
 		pos++
 		if pos < len(toks) && toks[pos].Type == tokenizer.DOT {
 			pos++ // skip dot
@@ -145,7 +145,7 @@ func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, in
 				return GoTypeRef{}, 0, fmt.Errorf("%w: expected identifier after '.'",
 					ErrParsingDialect)
 			}
-			qualified := GoTypeRef{Typ: Named, Name: toks[pos].Literal}
+			qualified := GoTypeRef{Typ: KindNamed, Name: toks[pos].Literal}
 			ref.Base = &qualified
 			pos++
 		}
@@ -192,7 +192,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error)
 			sameTypeAmount++
 			continue
 		}
-		field, err := g.parseField(chunk, ast.UnknownVisibility, nil)
+		field, err := g.parseField(chunk, ast.VisibilityUnknown, nil)
 		if err != nil {
 			return nil, fmt.Errorf("parsing parameter: %w", err)
 		}
@@ -267,7 +267,7 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoParameter, error
 	for _, chunk := range chunks {
 		if isNamed {
 			// Parse as name + type (reuse parseField logic)
-			field, err := g.parseField(chunk, ast.UnknownVisibility, nil)
+			field, err := g.parseField(chunk, ast.VisibilityUnknown, nil)
 			if err != nil {
 				return nil, err
 			}

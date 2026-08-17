@@ -1,24 +1,24 @@
 package ast
 
 type GenericCommand struct {
-	Name string
-	Args []string
+	Name string   `json:",omitempty"`
+	Args []string `json:",omitempty"`
 }
 
 var _ Statement = GenericCommand{}
 
 type IncludeCommand struct {
-	Path string
-	Tag  string
+	Path string `json:",omitempty"`
+	Tag  string `json:",omitempty"`
 }
 
 var _ Statement = IncludeCommand{}
 
 type ScaleCommand struct {
-	Scale  float64
-	Width  int // PlantUML allows "scale 200 width"
-	Height int
-	IsMax  bool // PlantUML also allows "scale max 200 width"
+	Scale  float64 `json:",omitempty"`
+	Width  int     `json:",omitempty"` // PlantUML allows "scale 200 width"
+	Height int     `json:",omitempty"`
+	IsMax  bool    // PlantUML also allows "scale max 200 width"
 }
 
 var _ Statement = ScaleCommand{}
@@ -34,15 +34,15 @@ const (
 )
 
 type VisibilityCommand struct {
-	Kind   VisibilityCommandKind // Hide, Show, Remove, Restore
-	Target string                // "empty members", "class Name", "circle", etc.
+	Kind   VisibilityCommandKind `json:",omitempty"` // Hide, Show, Remove, Restore
+	Target string                `json:",omitempty"` // "empty members", "class Name", "circle", etc.
 }
 
 var _ Statement = VisibilityCommand{}
 
 type SetCommand struct {
-	Key   string // e.g. separator
-	Value string // e.g. .
+	Key   string `json:",omitempty"` // e.g. separator
+	Value string `json:",omitempty"` // e.g. .
 }
 
 var _ Statement = SetCommand{}
@@ -56,7 +56,7 @@ const (
 )
 
 type DirectionCommand struct {
-	Direction DirectionCommandKind
+	Direction DirectionCommandKind `json:",omitempty"`
 }
 
 var _ Statement = DirectionCommand{}

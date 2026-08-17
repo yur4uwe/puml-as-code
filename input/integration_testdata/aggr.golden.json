@@ -1,96 +1,60 @@
 {
   "Name": "Aggregation",
-  "Title": "",
   "Statements": [
     {
       "IsStart": true,
       "Type": "uml",
-      "ID": "",
-      "Name": "Aggregation",
-      "Opts": {},
-      "LeadingTrivia": null,
-      "TrailingTrivia": null
+      "Name": "Aggregation"
     },
     {
       "Identifier": "Team",
-      "Alias": "",
-      "Kind": 1,
-      "Stereotype": "",
-      "Generic": "",
-      "Color": "",
+      "Kind": "class",
       "Members": [
         {
           "Name": "name",
           "Type": {
-            "Typ": 3,
-            "ArraySize": 0,
-            "Name": "string",
-            "Base": null
+            "Typ": "named",
+            "Name": "string"
           },
-          "Visibility": 1,
-          "Modifiers": null
+          "Visibility": "public"
         }
-      ],
-      "LeadingTrivia": null,
-      "TrailingTrivia": null
+      ]
     },
     {
       "Identifier": "Player",
-      "Alias": "",
-      "Kind": 1,
-      "Stereotype": "",
-      "Generic": "",
-      "Color": "",
+      "Kind": "class",
       "Members": [
         {
           "Name": "number",
           "Type": {
-            "Typ": 3,
-            "ArraySize": 0,
-            "Name": "int",
-            "Base": null
+            "Typ": "named",
+            "Name": "int"
           },
-          "Visibility": 1,
-          "Modifiers": null
+          "Visibility": "public"
         }
-      ],
-      "LeadingTrivia": null,
-      "TrailingTrivia": null
+      ]
     },
     {
       "LHS": "Team",
       "RHS": "Player",
-      "Direction": 0,
-      "TypeLHS": 2,
-      "TypeRHS": 0,
+      "TypeLHS": "aggregation",
       "MultLHS": {
         "Raw": "1",
-        "Min": 1,
-        "Max": 1
+        "Min": "1",
+        "Max": "1"
       },
       "MultRHS": {
         "Raw": "0..*",
-        "Min": 0,
-        "Max": -1
+        "Min": "0",
+        "Max": "*"
       },
       "Body": 45,
       "LArrow": 111,
-      "RArrow": 0,
-      "Label": "has players",
-      "Attrs": null,
-      "LeadingTrivia": null,
-      "TrailingTrivia": null
+      "Label": "has players"
     },
     {
       "IsStart": false,
-      "Type": "uml",
-      "ID": "",
-      "Name": "",
-      "Opts": {},
-      "LeadingTrivia": null,
-      "TrailingTrivia": null
+      "Type": "uml"
     }
-  ],
-  "LeadingTrivia": null,
-  "TrailingTrivia": null
+  ]
 }
