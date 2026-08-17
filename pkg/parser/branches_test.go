@@ -16,7 +16,7 @@ func TestParseEntity(t *testing.T) {
 		name      string
 		input     string
 		kwType    keyword.KeywordKind
-		want      *ast.Entity
+		want      ast.Statement
 		expectErr bool
 	}{
 		{
@@ -108,6 +108,27 @@ func TestParseEntity(t *testing.T) {
 						Name:       "field",
 						Type:       dialect.NamedRef("int"),
 						Visibility: ast.VisibilityPublic,
+					},
+				},
+			},
+		},
+		{
+			name:   "class with package separator",
+			input:  "class net.http.Client\n",
+			kwType: keyword.Class,
+			want: &ast.Container{
+				Kind:       ast.ContainerPackage,
+				Identifier: "net",
+				Statements: []ast.Statement{
+					&ast.Container{
+						Kind:       ast.ContainerPackage,
+						Identifier: "http",
+						Statements: []ast.Statement{
+							&ast.Entity{
+								Identifier: "Client",
+								Kind:       ast.EntityClass,
+							},
+						},
 					},
 				},
 			},

@@ -11,30 +11,54 @@
       "Value": "."
     },
     {
-      "Identifier": "net.http.Client",
-      "Kind": "class",
-      "Members": [
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
         {
-          "Name": "timeout",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
-          "Visibility": "public"
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Client",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "timeout",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     {
-      "Identifier": "net.http.Server",
-      "Kind": "class",
-      "Members": [
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
         {
-          "Name": "port",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
-          "Visibility": "public"
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Server",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "port",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -53,30 +77,54 @@
       "Value": "::"
     },
     {
-      "Identifier": "auth::oauth::Provider",
-      "Kind": "class",
-      "Members": [
+      "Identifier": "auth",
+      "Kind": "package",
+      "Statements": [
         {
-          "Name": "token",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public"
+          "Identifier": "oauth",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Provider",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "token",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "string"
+                  },
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     {
-      "Identifier": "auth::oauth::Client",
-      "Kind": "class",
-      "Members": [
+      "Identifier": "auth",
+      "Kind": "package",
+      "Statements": [
         {
-          "Name": "id",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public"
+          "Identifier": "oauth",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Client",
+              "Kind": "class",
+              "Members": [
+                {
+                  "Name": "id",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "string"
+                  },
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
         }
       ]
     },

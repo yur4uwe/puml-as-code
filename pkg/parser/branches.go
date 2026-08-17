@@ -219,40 +219,55 @@ func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 	return cmd, nil
 }
 
-func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
+func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) ([]string, error) {
 	switch nameOrAlias.Type {
 	case tokenizer.STRING:
 		if ent.Alias != "" {
-			return NewParserError("Entity alias already set", nameOrAlias.Pos)
+			return nil, NewParserError("Entity alias already set", nameOrAlias.Pos)
 		}
 		ent.Alias = nameOrAlias.Literal
+		return nil, nil
 	case tokenizer.IDENTIFIER:
 		if ent.Identifier != "" {
-			return NewParserError("Entity name already set", nameOrAlias.Pos)
+			return nil, NewParserError("Entity name already set", nameOrAlias.Pos)
 		}
-		var sb strings.Builder
-		sb.WriteString(nameOrAlias.Literal)
+		if _, ok := p.stream.TryConsumePackageSeparator(); !ok {
+			ent.Identifier = nameOrAlias.Literal
+			return nil, nil
+		}
+		pkgPath := []string{nameOrAlias.Literal}
 		for {
-			if sep, ok := p.stream.TryConsumePackageSeparator(); ok {
-				sb.WriteString(sep)
-				tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-				if !ok {
-					return NewParserError("Expected identifier after package separator in entity name", p.stream.PeekTokenAt(0).Pos)
-				}
-				sb.WriteString(tok.Literal)
-				continue
+			tok := p.stream.Emit()
+			if tok.Type != tokenizer.IDENTIFIER {
+				return nil, NewParserError("Expected identifier after package separator", tok.Pos)
 			}
-			break
+			ent.Identifier = tok.Literal
+
+			if _, ok := p.stream.TryConsumePackageSeparator(); !ok {
+				break
+			}
+			pkgPath = append(pkgPath, tok.Literal)
 		}
-		ent.Identifier = sb.String()
+		return pkgPath, nil
 	default:
-		return NewParserError("Expected token for entity identifier or alias", nameOrAlias.Pos)
+		return nil, NewParserError("Expected token for entity identifier or alias", nameOrAlias.Pos)
 	}
-	return nil
+}
+
+func wrapInContainers(ent *ast.Entity, pkgPath []string) ast.Statement {
+	var current ast.Statement = ent
+	for _, pkg := range slices.Backward(pkgPath) {
+		current = &ast.Container{
+			Identifier: pkg,
+			Kind:       ast.ContainerPackage,
+			Statements: []ast.Statement{current},
+		}
+	}
+	return current
 }
 
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
-func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
+func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 	ent := &ast.Entity{
 		Kind:          p.mapTokenToEntityKind(tok),
 		LeadingTrivia: tok.LeadingTrivia,
@@ -261,13 +276,18 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	// Unexpectedly, class and other entity definitions have very strict syntax:
 	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
 
-	if err := p.setAliasAndName(ent, p.stream.Emit()); err != nil {
+	pkgPath, err := p.setAliasAndName(ent, p.stream.Emit())
+	if err != nil {
 		return nil, err
 	}
 
 	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
-		if err := p.setAliasAndName(ent, p.stream.Emit()); err != nil {
+		aliasPkgPath, err := p.setAliasAndName(ent, p.stream.Emit())
+		if err != nil {
 			return nil, err
+		}
+		if len(aliasPkgPath) > 0 {
+			pkgPath = aliasPkgPath
 		}
 	}
 
@@ -297,7 +317,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
 		// No body return entity as is
-		return ent, nil
+		return wrapInContainers(ent, pkgPath), nil
 	}
 
 	// We are inside a body
@@ -310,7 +330,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 
 		member, err := p.parseEntityMember()
 		if err != nil {
-			return ent, err
+			return nil, err
 		}
 		if member == nil {
 			break
@@ -319,7 +339,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 		ent.Members = append(ent.Members, member)
 	}
 
-	return ent, nil
+	return wrapInContainers(ent, pkgPath), nil
 }
 
 func (p *Parser) parseEntityMember() (ast.Member, error) {
