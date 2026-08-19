@@ -9,7 +9,7 @@ import (
 func TestNewTokenStream(t *testing.T) {
 	ts := NewTokenStream("")
 	require.NotNil(t, ts)
-	tok := ts.PeekTokenAt(0)
+	tok := ts.PeekRawTokenAt(0)
 	require.Equal(t, EOF, tok.Type)
 }
 
@@ -40,7 +40,7 @@ func TestPeekTokenAt(t *testing.T) {
 	}
 
 	for i, e := range seq {
-		tok := ts.PeekTokenAt(i)
+		tok := ts.PeekRawTokenAt(i)
 		require.Equal(t, e.Type, tok.Type, "Expected %d to be %s", i, e.Type.String())
 		require.Equal(t, e.Literal, tok.Literal, "Expected %d to be %s", i, e.Literal)
 	}
@@ -172,8 +172,6 @@ func TestStreamEmitRaw(t *testing.T) {
 // 		{Type: RBRACE},
 // 	}))
 // }
-
-
 
 func TestStreamReadUntilNewline(t *testing.T) {
 	t.Skip("Abandoned for now per user instruction")

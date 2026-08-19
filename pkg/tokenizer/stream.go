@@ -24,7 +24,7 @@ func unexpectedTokenError(expected Token, found Token) error {
 
 type TokenStream struct {
 	lexer             *Lexer
-	leadingTrivia     []Token
+	collectedTrivia   []Token
 	buffer            []Token
 	sinks             []TokenSink
 	rawModeTerminator []rune
@@ -48,7 +48,7 @@ func (ts *TokenStream) matchPackageSeparatorAt(startIdx int) (int, bool) {
 	var prevTok Token
 	hasPrev := false
 	for {
-		tok := ts.PeekTokenAt(startIdx + count)
+		tok := ts.PeekRawTokenAt(startIdx + count)
 		if tok.Type == EOF || tok.Type == NEWLINE {
 			break
 		}
@@ -82,7 +82,8 @@ func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
 	return ts.PackageSeparator, true
 }
 
-func (ts *TokenStream) PeekTokenAt(idx int) Token {
+// PeekRawTokenAt returns the idx-th token in the stream.
+func (ts *TokenStream) PeekRawTokenAt(idx int) Token {
 	for len(ts.buffer) <= idx {
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
@@ -96,21 +97,36 @@ func (ts *TokenStream) PeekTokenAt(idx int) Token {
 	return ts.buffer[len(ts.buffer)-1]
 }
 
+// PeekTokenAt returns the idx-th NON-COMMENT token in the stream.
+func (ts *TokenStream) PeekTokenAt(idx int) Token {
+	nonCommentCount := 0
+	for rawIdx := 0; ; rawIdx++ {
+		tok := ts.PeekRawTokenAt(rawIdx)
+		if tok.Type != COMMENT {
+			if nonCommentCount == idx {
+				return tok
+			}
+			nonCommentCount++
+		}
+		if tok.Type == EOF {
+			return tok
+		}
+	}
+}
+
+// Emit consumes the next NON-COMMENT token and returns it.
 func (ts *TokenStream) Emit() Token {
-	for ts.PeekTokenAt(0).Type == COMMENT {
+	for ts.PeekRawTokenAt(0).Type == COMMENT {
 		commentTok := ts.EmitRaw()
-		ts.leadingTrivia = append(ts.leadingTrivia, commentTok)
+		ts.collectedTrivia = append(ts.collectedTrivia, commentTok)
 	}
 	tok := ts.EmitRaw()
-	if len(ts.leadingTrivia) > 0 && tok.Type != NEWLINE {
-		tok.LeadingTrivia = ts.leadingTrivia
-		ts.leadingTrivia = nil
-	}
 	return tok
 }
 
+// EmitRaw consumes the next token and returns it.
 func (ts *TokenStream) EmitRaw() Token {
-	tok := ts.PeekTokenAt(0)
+	tok := ts.PeekRawTokenAt(0)
 	if len(ts.buffer) > 0 {
 		ts.buffer = ts.buffer[1:]
 	}
@@ -118,6 +134,21 @@ func (ts *TokenStream) EmitRaw() Token {
 		sink.Receive(tok)
 	}
 	return tok
+}
+
+func (ts *TokenStream) DumpCollectedTrivia() []Token {
+	defer func() {
+		ts.collectedTrivia = nil
+	}()
+	return ts.collectedTrivia
+}
+
+// EmitCommentToks consumes any immediate COMMENT tokens in the stream,
+// appending them to collected trivia.
+func (ts *TokenStream) EmitCommentToks() {
+	for ts.PeekRawTokenAt(0).Type == COMMENT {
+		ts.Emit()
+	}
 }
 
 func (ts *TokenStream) Attach(sink TokenSink) func() {
@@ -130,19 +161,6 @@ func (ts *TokenStream) Attach(sink TokenSink) func() {
 			}
 		}
 	}
-}
-
-func (ts *TokenStream) AssertSeq(seq []Token) bool {
-	for i, t := range seq {
-		next := ts.PeekTokenAt(i)
-		if next.Type != t.Type {
-			return false
-		}
-		if t.Literal != "" && next.Literal != t.Literal {
-			return false
-		}
-	}
-	return true
 }
 
 func (ts *TokenStream) TokensToString(toks []Token) string {
@@ -220,6 +238,29 @@ func (ts *TokenStream) AssertAnyType(targetTypes ...TokenType) bool {
 
 func (ts *TokenStream) AssertKW(kw keyword.KeywordKind) bool {
 	return keyword.Classify(ts.PeekTokenAt(0).Literal) == kw
+}
+
+func (ts *TokenStream) AssertSeq(seq []Token) bool {
+	for i, t := range seq {
+		next := ts.PeekTokenAt(i)
+		if next.Type != t.Type {
+			return false
+		}
+		if t.Literal != "" && next.Literal != t.Literal {
+			return false
+		}
+	}
+	return true
+}
+
+func (ts *TokenStream) AssertTypeSeq(seq []TokenType) bool {
+	for i, t := range seq {
+		next := ts.PeekTokenAt(i)
+		if next.Type != t {
+			return false
+		}
+	}
+	return true
 }
 
 // MustConsumeType is ONLY for internal use as it panics
@@ -357,20 +398,20 @@ func (ts *TokenStream) ReadRawUntilNewline() string {
 		return ""
 	}
 
-	var filtered []Token
+	var collected []Token
 	for _, tok := range toks {
 		if tok.Type == NEWLINE || tok.Type == EOF {
 			continue
 		}
-		filtered = append(filtered, tok)
+		collected = append(collected, tok)
 	}
 
-	if len(filtered) == 0 {
+	if len(collected) == 0 {
 		return ""
 	}
 
-	start := filtered[0].Pos.Offset
-	end := filtered[len(filtered)-1].Pos.Offset + uint(len(filtered[len(filtered)-1].Literal))
+	start := collected[0].Pos.Offset
+	end := ts.PeekRawTokenAt(0).Pos.Offset
 	str := string(ts.lexer.input[start:end])
 	return strings.TrimSpace(str)
 }

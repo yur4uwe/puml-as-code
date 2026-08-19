@@ -5,16 +5,13 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-
-	"yur4uwe/pac/pkg/tokenizer"
 )
 
 type StyleRule struct {
-	Selectors      []string          `json:",omitempty"`
-	Properties     map[string]string `json:",omitempty"`
-	IsSkinparam    bool              // Origin provenance (true for skinparam, false for <style> block)
-	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
-	TrailingTrivia []tokenizer.Token `json:",omitempty"`
+	Selectors   []string          `json:",omitempty"`
+	Properties  map[string]string `json:",omitempty"`
+	IsSkinparam bool              // Origin provenance (true for skinparam, false for <style> block)
+	Trivia
 }
 
 // StatementNode implements [Statement].

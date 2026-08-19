@@ -54,3 +54,6 @@ Other related quirks:
 - Parser expects any capitalization form of the target, param, and stereotype, just like the spec
 - Though language spec disallows a space between param and stereotype, parser allows it
 - Parser allows line comments on the same line as a style definition, which are ignored by the spec
+
+## Relationships Quirks
+- relationships too can reference overloaded methods by reusing target resolution logic

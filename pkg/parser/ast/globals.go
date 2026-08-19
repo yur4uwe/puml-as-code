@@ -2,6 +2,7 @@ package ast
 
 type TitleDef struct {
 	Text string
+	Trivia
 }
 
 // StatementNode implements [Statement].

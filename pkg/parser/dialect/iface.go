@@ -22,9 +22,16 @@ import (
 // ErrParsingDialect indicates the tokens do not match the dialect's expected syntax
 var ErrParsingDialect = errors.New("tokens do not match dialect syntax")
 
+type MemberOptions struct {
+	Visibility     ast.VisibilityKind
+	Modifiers      []string
+	LeadingTrivia  []tokenizer.Token
+	TrailingTrivia []tokenizer.Token
+}
+
 // Dialect defines how to parse fields and methods for a specific language dialect
 type Dialect interface {
 	Name() string
-	ParseField(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (ast.Field, error)
-	ParseMethod(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (ast.Method, error)
+	ParseField(toks []tokenizer.Token, options *MemberOptions) (ast.Field, error)
+	ParseMethod(toks []tokenizer.Token, options *MemberOptions) (ast.Method, error)
 }

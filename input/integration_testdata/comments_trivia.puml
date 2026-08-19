@@ -1,15 +1,26 @@
-@startuml CommentsTrivia
+@startuml CommentsTrivia ' Trailing comment for diagram start
 
-' This is a single line comment attached to User
-class User {
-  +id string
-}
+' This is a single line comment attached as leading to 'set'
+set separator . ' This is a single line comment attached as trailing to 'set'
+
+package p { ' This is a single line comment attached to Package p after '{'
+    ' This is a single line comment attached to User
+    class User {
+      ' This is a single line comment attached to User.id
+      +id string
+    }
+} /'
+This is a block comment attached to Package p after '}'
+'/
 
 /' Block comment before Service '/
-class Service {
+class Service { ' This is a single line comment attached to Service after '{'
   +Process() error
-}
+  ' This is a single line comment attached to Service.Process
+} ' This is a single line comment attached to Service after '}'
 
-User -> Service : invokes
+' Leading comment for relationship
+User -> Service : invokes ' Trailing comment for relationship
 
-@enduml
+' Leading comment for diagram end
+@enduml ' Trailing comment for diagram end

@@ -8,7 +8,7 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (g GoDialect) parseField(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (*GoField, error) {
+func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoField, error) {
 	// expects this structure:
 	// <name> <type>
 	if len(toks) < 2 {
@@ -20,8 +20,12 @@ func (g GoDialect) parseField(toks []tokenizer.Token, visibility ast.VisibilityK
 	}
 	field := &GoField{
 		Name:       toks[0].Literal,
-		Visibility: visibility,
-		Modifiers:  modifiers,
+		Visibility: opts.Visibility,
+		Modifiers:  opts.Modifiers,
+		Trivia: ast.Trivia{
+			LeadingTrivia:  opts.LeadingTrivia,
+			TrailingTrivia: opts.TrailingTrivia,
+		},
 	}
 
 	var err error
@@ -33,7 +37,7 @@ func (g GoDialect) parseField(toks []tokenizer.Token, visibility ast.VisibilityK
 	return field, nil
 }
 
-func (g GoDialect) parseMethod(toks []tokenizer.Token, visibility ast.VisibilityKind, modifiers []string) (*GoMethod, error) {
+func (g GoDialect) parseMethod(toks []tokenizer.Token, opts *MemberOptions) (*GoMethod, error) {
 	// expects this structure (no 'func' keyword, no receiver):
 	// <name> '(' <params>? ')' <returns>?
 	if len(toks) < 3 {
@@ -73,8 +77,12 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, visibility ast.Visibility
 		Name:       methodName,
 		ReturnType: returns,
 		Parameters: params,
-		Modifiers:  modifiers,
-		Visibility: visibility,
+		Modifiers:  opts.Modifiers,
+		Visibility: opts.Visibility,
+		Trivia: ast.Trivia{
+			LeadingTrivia:  opts.LeadingTrivia,
+			TrailingTrivia: opts.TrailingTrivia,
+		},
 	}, nil
 }
 
@@ -192,7 +200,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error)
 			sameTypeAmount++
 			continue
 		}
-		field, err := g.parseField(chunk, ast.VisibilityUnknown, nil)
+		field, err := g.parseField(chunk, &MemberOptions{Visibility: ast.VisibilityUnknown})
 		if err != nil {
 			return nil, fmt.Errorf("parsing parameter: %w", err)
 		}
@@ -267,7 +275,7 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoParameter, error
 	for _, chunk := range chunks {
 		if isNamed {
 			// Parse as name + type (reuse parseField logic)
-			field, err := g.parseField(chunk, ast.VisibilityUnknown, nil)
+			field, err := g.parseField(chunk, &MemberOptions{Visibility: ast.VisibilityUnknown})
 			if err != nil {
 				return nil, err
 			}

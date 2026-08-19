@@ -1,38 +1,129 @@
 {
-  "Name": "CommentsTrivia",
+  "Name": "CommentsTrivia ' Trailing comment for diagram start",
   "Statements": [
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "CommentsTrivia"
+      "Name": "CommentsTrivia ' Trailing comment for diagram start"
     },
     {
-      "Identifier": "User",
-      "Kind": "class",
-      "Members": [
-        {
-          "Name": "id",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public"
-        }
-      ],
+      "Key": "separator",
+      "Value": ".",
       "LeadingTrivia": [
         {
           "Type": "COMMENT",
-          "Literal": "This is a single line comment attached to User",
+          "Literal": "This is a single line comment attached as leading to 'set'",
           "Pos": {
             "Line": 2,
             "Col": 1,
-            "Offset": 26
-          },
-          "LeadingTrivia": null
+            "Offset": 63
+          }
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached as trailing to 'set'",
+          "Pos": {
+            "Line": 3,
+            "Col": 17,
+            "Offset": 140
+          }
         }
       ]
     },
     {
+      "Identifier": "p",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "User",
+          "Kind": "class",
+          "Members": [
+            {
+              "Name": "id",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              },
+              "Visibility": "public",
+              "LeadingTrivia": [
+                {
+                  "Type": "COMMENT",
+                  "Literal": "This is a single line comment attached to User.id",
+                  "Pos": {
+                    "Line": 8,
+                    "Col": 7,
+                    "Offset": 355
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached to Package p after '{'",
+          "Pos": {
+            "Line": 5,
+            "Col": 13,
+            "Offset": 215
+          }
+        },
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached to User",
+          "Pos": {
+            "Line": 6,
+            "Col": 5,
+            "Offset": 283
+          }
+        },
+        {
+          "Type": "COMMENT",
+          "Literal": "\nThis is a block comment attached to Package p after '}'\n",
+          "Pos": {
+            "Line": 11,
+            "Col": 3,
+            "Offset": 432
+          }
+        }
+      ]
+    },
+    {
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": " Block comment before Service ",
+          "Pos": {
+            "Line": 15,
+            "Col": 1,
+            "Offset": 495
+          }
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached to Service after '{'",
+          "Pos": {
+            "Line": 16,
+            "Col": 17,
+            "Offset": 546
+          }
+        },
+        {
+          "Type": "COMMENT",
+          "Literal": "This is a single line comment attached to Service after '}'",
+          "Pos": {
+            "Line": 19,
+            "Col": 3,
+            "Offset": 691
+          }
+        }
+      ],
       "Identifier": "Service",
       "Kind": "class",
       "Members": [
@@ -48,18 +139,6 @@
           ],
           "Visibility": "public"
         }
-      ],
-      "LeadingTrivia": [
-        {
-          "Type": "COMMENT",
-          "Literal": " Block comment before Service ",
-          "Pos": {
-            "Line": 7,
-            "Col": 1,
-            "Offset": 104
-          },
-          "LeadingTrivia": null
-        }
       ]
     },
     {
@@ -74,11 +153,44 @@
       "MultRHS": null,
       "Body": 45,
       "RArrow": 62,
-      "Label": "invokes"
+      "Label": "invokes ' Trailing comment for relationship",
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Leading comment for relationship",
+          "Pos": {
+            "Line": 21,
+            "Col": 1,
+            "Offset": 754
+          }
+        }
+      ]
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Leading comment for diagram end",
+          "Pos": {
+            "Line": 24,
+            "Col": 1,
+            "Offset": 852
+          }
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Trailing comment for diagram end",
+          "Pos": {
+            "Line": 25,
+            "Col": 9,
+            "Offset": 894
+          }
+        }
+      ]
     }
   ]
 }

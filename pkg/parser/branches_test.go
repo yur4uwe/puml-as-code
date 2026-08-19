@@ -328,7 +328,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				}
 			}
 
-			got, err := p.parseFieldOrMethod(mod, vis, entryTok)
+			got, err := p.parseFieldOrMethod(mod, vis, entryTok, nil)
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -1008,7 +1008,7 @@ func TestParseNote(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal), "First token must be 'note' for test input: %q", tc.input)
 
-			note, err := p.parseNote(tok)
+			note, err := p.parseNote()
 			if tc.expectErr {
 				require.Error(t, err)
 				if tc.errContains != "" {

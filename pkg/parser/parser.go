@@ -27,8 +27,11 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	if err != nil {
 		return nil, err
 	} else if !startBound.IsStart {
-		return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0).Pos)
+		return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
 	}
+
+	p.stream.EmitCommentToks()
+	startBound.TrailingTrivia = p.stream.DumpCollectedTrivia()
 
 	p.ast.Statements = append(p.ast.Statements, startBound)
 	p.ast.Name = startBound.Name
@@ -36,23 +39,27 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
 		if p.isDiagramBound() {
+			boundLeading := p.stream.DumpCollectedTrivia()
 			endBound, err := p.readDiagramBounds()
 			if err != nil {
 				return nil, err
 			}
 			if endBound.IsStart {
-				return nil, NewParserError("Unexpected diagram end marker", p.stream.PeekTokenAt(0).Pos)
+				return nil, NewParserError("Unexpected diagram end marker", p.stream.PeekTokenAt(0))
 			}
 			if endBound.Type != startBound.Type {
-				return nil, NewParserError("Types of starting and ending markers don't match", p.stream.PeekTokenAt(0).Pos)
+				return nil, NewParserError("Types of starting and ending markers don't match", p.stream.PeekTokenAt(0))
 			}
+			endBound.LeadingTrivia = boundLeading
+			p.stream.EmitCommentToks()
+			endBound.TrailingTrivia = p.stream.DumpCollectedTrivia()
 			p.ast.Statements = append(p.ast.Statements, endBound)
 			break
 		}
 
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
-			return nil, NewParserError("Unexpected EOF", tok.Pos)
+			return nil, NewParserError("Unexpected EOF", tok)
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
 			// If the newline is relevant it will be consumed
@@ -138,7 +145,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		return nil, errors.New("unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
-		note, err := p.parseNote(tok)
+		note, err := p.parseNote()
 		if err != nil {
 			return nil, err
 		}

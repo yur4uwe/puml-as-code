@@ -51,20 +51,30 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 		return ast.ClassSeparator{}, fmt.Errorf("unexpected class separator")
 	}
 
+	sep := ast.ClassSeparator{
+		Trivia: ast.Trivia{
+			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+		},
+	}
+
 	if p.stream.AssertSeq(append(start, tokenizer.Token{Type: tokenizer.NEWLINE})) {
-		return ast.ClassSeparator{
-			Type: sepChar,
-		}, nil
+		sep.Type = sepChar
+		// AssertSeq CAN come across some trailing trivia
+		sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		return sep, nil
 	}
 
 	str, err := p.stream.ReadBetween(start, end)
 	if err != nil {
-		return ast.ClassSeparator{}, err
+		return sep, err
 	}
-	return ast.ClassSeparator{
-		Label: str,
-		Type:  sepChar,
-	}, nil
+	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
+		return sep, fmt.Errorf("unexpected tokens after class separator")
+	}
+	sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
+	sep.Label = str
+	sep.Type = sepChar
+	return sep, nil
 }
 
 func (p *Parser) tryReadTag() (string, error) {
@@ -103,8 +113,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	diag := ast.DiagramBound{
-		Opts:          make(map[string]string),
-		LeadingTrivia: atTok.LeadingTrivia,
+		Opts: make(map[string]string),
 	}
 
 	possibleBounds := []string{
