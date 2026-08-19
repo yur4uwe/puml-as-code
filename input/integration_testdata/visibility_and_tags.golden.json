@@ -1,0 +1,122 @@
+{
+  "Name": "VisibilityAndTags",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "VisibilityAndTags"
+    },
+    {
+      "Kind": "hide",
+      "Target": "empty members"
+    },
+    {
+      "Kind": "hide",
+      "Target": "@unlinked"
+    },
+    {
+      "Kind": "hide",
+      "Target": "$hiddenTag"
+    },
+    {
+      "Kind": "show",
+      "Target": "$publicTag"
+    },
+    {
+      "Kind": "remove",
+      "Target": "$deprecated"
+    },
+    {
+      "Kind": "restore",
+      "Target": "User"
+    },
+    {
+      "Identifier": "User",
+      "Kind": "class",
+      "Stereotype": "Entity",
+      "Tags": [
+        "critical",
+        "auth"
+      ],
+      "Members": [
+        {
+          "Name": "id",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        },
+        {
+          "Name": "name",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "PaymentService",
+      "Kind": "class",
+      "Stereotype": "Service",
+      "Tags": [
+        "billing"
+      ],
+      "Members": [
+        {
+          "Name": "Charge",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "error"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "InternalHelper",
+      "Kind": "class",
+      "Tags": [
+        "internal"
+      ],
+      "Members": [
+        {
+          "Name": "HelperFunc",
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "Services",
+      "Kind": "package",
+      "Tags": [
+        "backend"
+      ],
+      "Statements": [
+        {
+          "Identifier": "Gateway",
+          "Kind": "class",
+          "Tags": [
+            "api"
+          ],
+          "Members": [
+            {
+              "Name": "Route",
+              "Visibility": "public"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

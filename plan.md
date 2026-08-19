@@ -24,29 +24,29 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 ## 🗂️ Feature Backlog
 
 ### Category A: Entity Declarations
-* [ ] **A1: Class Headers** — Parse basic `class Name` and aliases (`class Name as "Alias"`).
-* [ ] **A2: Interfaces & Structs** — Support `interface` and `struct` keywords.
-* [ ] **A3: Enums** — Support `enum` type parsing.
-* [ ] **A4: Generic Types** — Parse class template/generic types (e.g., `class List<T>`).
-* [ ] **A5: Stereotypes** — Parse double-bracket stereotypes (e.g., `class Service <<API>>`).
+* [x] **A1: Class Headers** — Parse basic `class Name` and aliases (`class Name as "Alias"`).
+* [x] **A2: Interfaces & Structs** — Support `interface` and `struct` keywords.
+* [x] **A3: Enums** — Support `enum` type parsing.
+* [x] **A4: Generic Types** — Parse class template/generic types (e.g., `class List<T>`).
+* [x] **A5: Stereotypes** — Parse double-bracket stereotypes (e.g., `class Service <<API>>`).
 
 ### Category B: Entity Members (Body Parsing)
-* [ ] **B1: Body Enclosures** — Parse `{ ... }` curly braces for classes/interfaces.
-* [ ] **B2: Fields & Types** — Parse variables with their visibility modifiers (`+`, `-`, `#`, `~`) and basic/custom types (e.g. `+size: int`).
-* [ ] **B3: Methods & Parameters** — Parse functions with parameters and return types (e.g. `+Drive(dest: string): error`).
-* [ ] **B4: Member Modifiers** — Parse `{static}` and `{abstract}` keyword prefixes.
-* [ ] **B5: Visual Dividers** — Handle visual groupings inside entities (e.g. `..`, `--`, `==`).
+* [x] **B1: Body Enclosures** — Parse `{ ... }` curly braces for classes/interfaces.
+* [x] **B2: Fields & Types** — Parse variables with their visibility modifiers (`+`, `-`, `#`, `~`) and basic/custom types (e.g. `+size: int`).
+* [x] **B3: Methods & Parameters** — Parse functions with parameters and return types (e.g. `+Drive(dest: string): error`).
+* [x] **B4: Member Modifiers** — Parse `{static}` and `{abstract}` keyword prefixes.
+* [x] **B5: Visual Dividers** — Handle visual groupings inside entities (e.g. `..`, `--`, `==`).
 
 ### Category C: Relationships & Associations
-* [ ] **C1: Basic Arrows** — Parse inheritance (`<|--`), composition (`*--`), aggregation (`o--`), dependency (`..>`), and association (`-->`).
-* [ ] **C2: Directional Modifiers** — Parse directional tokens (e.g., `-up->`, `-left-`).
-* [ ] **C3: Multiplicity** — Extract multiplicities (e.g., `"1" *-- "0..*"`).
-* [ ] **C4: Relation Labels** — Parse relationship titles and arrows (e.g. `: contains >`).
+* [x] **C1: Basic Arrows** — Parse inheritance (`<|--`), composition (`*--`), aggregation (`o--`), dependency (`..>`), and association (`-->`).
+* [x] **C2: Directional Modifiers** — Parse directional tokens (e.g., `-up->`, `-left-`).
+* [x] **C3: Multiplicity** — Extract multiplicities (e.g., `"1" *-- "0..*"`).
+* [x] **C4: Relation Labels** — Parse relationship titles and arrows (e.g. `: contains >`).
 
 ### Category D: Global Directives & Scoping
-* [ ] **D1: Scoping Blocks (Packages)** — Parse `package Name { ... }` boundaries and group entities cleanly.
+* [x] **D1: Scoping Blocks (Packages)** — Parse `package Name { ... }` boundaries and group entities cleanly.
 * [ ] **D2: Import Directives** — Parse `!include` files.
-* [ ] **D3: Skinparam & Styles** — Parse global design parameters and variables.
+* [x] **D3: Skinparam & Styles** — Parse global design parameters and variables.
 
 ---
 

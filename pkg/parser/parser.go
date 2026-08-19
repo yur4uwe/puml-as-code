@@ -154,11 +154,11 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 
 	switch tok.Type {
 	case tokenizer.IDENTIFIER:
-		rel, err := p.parseRelationship(tok)
+		stmt, err := p.parseInlineMember(tok)
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{rel}, nil
+		return []ast.Statement{stmt}, nil
 	default:
 		return nil, nil
 	}

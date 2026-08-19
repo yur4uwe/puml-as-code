@@ -72,6 +72,7 @@ type Entity struct {
 	Alias      string     `json:",omitempty"`
 	Kind       EntityKind `json:",omitempty"`
 	Stereotype string     `json:",omitempty"`
+	Tags       []string   `json:",omitempty"`
 	Generic    string     `json:",omitempty"`
 	Color      string     `json:",omitempty"`
 	Members    []Member   `json:",omitempty"`
@@ -104,6 +105,7 @@ type Container struct {
 	Alias      string        `json:",omitempty"`
 	Kind       ContainerKind `json:",omitempty"`
 	Stereotype string        `json:",omitempty"`
+	Tags       []string      `json:",omitempty"`
 	Color      string        `json:",omitempty"`
 	Statements []Statement   `json:",omitempty"`
 	Trivia

@@ -1225,11 +1225,20 @@ func TestParseContainer(t *testing.T) {
 			errContains: "Expected a statement in a container body",
 		},
 		{
-			name:        "package with same line body and color without colon/newline",
-			input:       "package mypkg #red { class A }",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected container body to end",
+			name:   "package with same line body and color",
+			input:  "package mypkg #red { class A }",
+			kwType: keyword.Package,
+			want: &ast.Container{
+				Kind:       ast.ContainerPackage,
+				Identifier: "mypkg",
+				Color:      "red",
+				Statements: []ast.Statement{
+					&ast.Entity{
+						Identifier: "A",
+						Kind:       ast.EntityClass,
+					},
+				},
+			},
 		},
 		{
 			name:        "package body class error",
@@ -1439,6 +1448,135 @@ func TestParseTargetRef(t *testing.T) {
 			got, err := p.parseTargetRef(firstTok)
 			require.NoError(t, err)
 			require.Equal(t, tc.want, got)
+		})
+	}
+}
+
+func TestParseInlineMember(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		wantEntity string
+		wantMember func(t *testing.T, member ast.Member)
+	}{
+		{
+			name:       "field with visibility",
+			input:      "Foo : +id string\n",
+			wantEntity: "Foo",
+			wantMember: func(t *testing.T, m ast.Member) {
+				f, ok := m.(*dialect.GoField)
+				require.True(t, ok)
+				require.Equal(t, "id", f.Name)
+				require.Equal(t, ast.VisibilityPublic, f.Visibility)
+			},
+		},
+		{
+			name:       "method with visibility and params",
+			input:      "Foo : +DoWork(ctx Context) error\n",
+			wantEntity: "Foo",
+			wantMember: func(t *testing.T, m ast.Member) {
+				fn, ok := m.(*dialect.GoMethod)
+				require.True(t, ok)
+				require.Equal(t, "DoWork", fn.Name)
+				require.Equal(t, ast.VisibilityPublic, fn.Visibility)
+			},
+		},
+		{
+			name:       "field with static modifier",
+			input:      "Foo : {static} count int\n",
+			wantEntity: "Foo",
+			wantMember: func(t *testing.T, m ast.Member) {
+				f, ok := m.(*dialect.GoField)
+				require.True(t, ok)
+				require.Equal(t, "count", f.Name)
+				require.Contains(t, f.Modifiers, "static")
+			},
+		},
+		{
+			name:       "inline member with leading and trailing trivia",
+			input:      "' Leading comment\nFoo : +id string ' Trailing comment\n",
+			wantEntity: "Foo",
+			wantMember: func(t *testing.T, m ast.Member) {
+				f, ok := m.(*dialect.GoField)
+				require.True(t, ok)
+				require.Equal(t, "id", f.Name)
+				require.NotEmpty(t, f.LeadingTrivia)
+				require.Contains(t, f.LeadingTrivia[0].Literal, "Leading comment")
+				require.NotEmpty(t, f.TrailingTrivia)
+				require.Contains(t, f.TrailingTrivia[0].Literal, "Trailing comment")
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			for tok.Type == tokenizer.NEWLINE {
+				tok = p.stream.Emit()
+			}
+			got, err := p.parseInlineMember(tok)
+			require.NoError(t, err)
+			ent, ok := got.(*ast.Entity)
+			require.True(t, ok)
+			require.Equal(t, tc.wantEntity, ent.Identifier)
+			require.Len(t, ent.Members, 1)
+			tc.wantMember(t, ent.Members[0])
+		})
+	}
+}
+
+func TestParseEntityAndContainerTags(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		wantStereo string
+		wantTags   []string
+	}{
+		{
+			name:       "pre-stereotype tags",
+			input:      "class Foo $tag1 $tag2 <<stereo>>\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"tag1", "tag2"},
+		},
+		{
+			name:       "post-stereotype tags",
+			input:      "class Foo <<stereo>> $tag3\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"tag3"},
+		},
+		{
+			name:       "precedence: pre-stereotype tags override post-stereotype tags",
+			input:      "class Foo $pre <<stereo>> $post\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"pre"},
+		},
+		{
+			name:       "standalone tag without stereotype",
+			input:      "class Foo $alone\n",
+			wantStereo: "",
+			wantTags:   []string{"alone"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
+			ent, ok := got.(*ast.Entity)
+			require.True(t, ok)
+			require.Equal(t, tc.wantStereo, ent.Stereotype)
+			require.Equal(t, tc.wantTags, ent.Tags)
 		})
 	}
 }

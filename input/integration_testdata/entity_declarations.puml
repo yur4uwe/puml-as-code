@@ -1,0 +1,28 @@
+@startuml EntityDeclarations
+
+class User {
+  +id string
+  +name string
+  +GetEmail() string
+}
+
+interface Service<T> <<API>> #lightblue {
+  +Process(item T) error
+}
+
+enum Status {
+  +Active int
+  +Inactive int
+  +Pending int
+}
+
+' Standalone inline declarations
+User : +age int
+User : +SetAge(age int)
+Service : +Cancel()
+
+' Inline declaration with package qualification
+net.http.Client : +Timeout int
+net.http.Client : +Do(req Request) (Response, error)
+
+@enduml

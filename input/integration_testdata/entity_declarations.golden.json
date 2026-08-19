@@ -1,0 +1,254 @@
+{
+  "Name": "EntityDeclarations",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "EntityDeclarations"
+    },
+    {
+      "Identifier": "User",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "id",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        },
+        {
+          "Name": "name",
+          "Type": {
+            "Typ": "named",
+            "Name": "string"
+          },
+          "Visibility": "public"
+        },
+        {
+          "Name": "GetEmail",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "Service",
+      "Kind": "interface",
+      "Stereotype": "API",
+      "Generic": "T",
+      "Color": "lightblue",
+      "Members": [
+        {
+          "Name": "Process",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "error"
+              }
+            }
+          ],
+          "Parameters": [
+            {
+              "Name": "item",
+              "Type": {
+                "Typ": "named",
+                "Name": "T"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "Status",
+      "Kind": "enum",
+      "Members": [
+        {
+          "Name": "Active",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public"
+        },
+        {
+          "Name": "Inactive",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public"
+        },
+        {
+          "Name": "Pending",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "User",
+      "Members": [
+        {
+          "Name": "age",
+          "Type": {
+            "Typ": "named",
+            "Name": "int"
+          },
+          "Visibility": "public",
+          "Modifiers": [
+            ""
+          ],
+          "LeadingTrivia": [
+            {
+              "Type": "COMMENT",
+              "Literal": "Standalone inline declarations",
+              "Pos": {
+                "Line": 18,
+                "Col": 1,
+                "Offset": 227
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "User",
+      "Members": [
+        {
+          "Name": "SetAge",
+          "Parameters": [
+            {
+              "Name": "age",
+              "Type": {
+                "Typ": "named",
+                "Name": "int"
+              }
+            }
+          ],
+          "Modifiers": [
+            ""
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "Service",
+      "Members": [
+        {
+          "Name": "Cancel",
+          "Modifiers": [
+            ""
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Client",
+              "Members": [
+                {
+                  "Name": "Timeout",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "int"
+                  },
+                  "Visibility": "public",
+                  "Modifiers": [
+                    ""
+                  ],
+                  "LeadingTrivia": [
+                    {
+                      "Type": "COMMENT",
+                      "Literal": "Inline declaration with package qualification",
+                      "Pos": {
+                        "Line": 23,
+                        "Col": 1,
+                        "Offset": 321
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "net",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Identifier": "http",
+          "Kind": "package",
+          "Statements": [
+            {
+              "Identifier": "Client",
+              "Members": [
+                {
+                  "Name": "Do",
+                  "ReturnType": [
+                    {
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "Response"
+                      }
+                    },
+                    {
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "error"
+                      }
+                    }
+                  ],
+                  "Parameters": [
+                    {
+                      "Name": "req",
+                      "Type": {
+                        "Typ": "named",
+                        "Name": "Request"
+                      }
+                    }
+                  ],
+                  "Modifiers": [
+                    ""
+                  ],
+                  "Visibility": "public"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

@@ -4,6 +4,7 @@ package parser
 import (
 	"errors"
 	"fmt"
+	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,20 +17,20 @@ import (
 
 func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityCommand, error) {
 	cmd := ast.VisibilityCommand{
-		Kind: ast.Unknown,
+		Kind: ast.VisibilityCMDUnknown,
 		Trivia: ast.Trivia{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Hide:
-		cmd.Kind = ast.Hide
+		cmd.Kind = ast.VisibilityCMDHide
 	case keyword.Show:
-		cmd.Kind = ast.Show
+		cmd.Kind = ast.VisibilityCMDShow
 	case keyword.Remove:
-		cmd.Kind = ast.Remove
+		cmd.Kind = ast.VisibilityCMDRemove
 	case keyword.Restore:
-		cmd.Kind = ast.Restore
+		cmd.Kind = ast.VisibilityCMDRestore
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
@@ -333,11 +334,21 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 		ent.Generic = gen
 	}
 
+	preTags := p.tryReadTags()
 	stereo, err := p.tryReadStereotype()
 	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 		return nil, err
 	}
 	ent.Stereotype = stereo
+	postTags := p.tryReadTags()
+	if len(preTags) > 0 {
+		if len(postTags) > 0 {
+			log.Printf("warning: tags %v after stereotype on entity %q are ignored in favor of pre-stereotype tags %v\n", postTags, ent.Identifier, preTags)
+		}
+		ent.Tags = preTags
+	} else if len(postTags) > 0 {
+		ent.Tags = postTags
+	}
 
 	ent.Color = p.tryParseColor()
 
@@ -539,9 +550,19 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		if err != nil {
 			return container, err
 		}
+		preTags := p.tryReadTags()
 		container.Stereotype, err = p.tryReadStereotype()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 			return container, err
+		}
+		postTags := p.tryReadTags()
+		if len(preTags) > 0 {
+			if len(postTags) > 0 {
+				log.Printf("warning: tags %v after stereotype on container %q are ignored in favor of pre-stereotype tags %v\n", postTags, container.Identifier, preTags)
+			}
+			container.Tags = preTags
+		} else if len(postTags) > 0 {
+			container.Tags = postTags
 		}
 
 		container.Color = p.tryParseColor()
@@ -667,7 +688,7 @@ func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error
 			return tokenizer.Token{}, NewParserError("Expected container name to be a single identifier", tok)
 		}
 		switch tok.Type {
-		case tokenizer.LBRACE, tokenizer.LANGLE, tokenizer.HASH, tokenizer.NEWLINE:
+		case tokenizer.LBRACE, tokenizer.LANGLE, tokenizer.HASH, tokenizer.NEWLINE, tokenizer.DOLLAR:
 			return amb(tokenizer.IDENTIFIER, sb.String()), nil
 		default:
 			sb.WriteString(tok.Literal)
@@ -801,7 +822,7 @@ func (p *Parser) tryParseColor() string {
 	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); !ok {
 		return ""
 	}
-	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON)
+	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON, tokenizer.LBRACE)
 	return p.stream.TokensToString(tokens)
 }
 
@@ -1497,4 +1518,46 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 	}
 
 	return idx - startIdx, true
+}
+
+func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, error) {
+	leadingTrivia := p.stream.DumpCollectedTrivia()
+
+	targetRef, err := p.parseTargetRef(firstTok)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
+		return nil, NewParserError("Expected ':' after entity identifier for inline member declaration", p.stream.PeekTokenAt(0))
+	}
+
+	entryTok := p.stream.PeekTokenAt(0)
+	vis := ast.VisibilityUnknown
+	var mod string = ""
+	switch entryTok.Type {
+	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
+		p.stream.Emit()
+		vis = p.mapTokenToVisibility(entryTok.Type)
+	case tokenizer.LBRACE:
+		var err error
+		mod, err = p.tryReadModifier()
+		if err != nil {
+			return nil, err
+		}
+	case tokenizer.IDENTIFIER:
+		p.stream.Emit()
+	}
+	member, err := p.parseFieldOrMethod(&mod, vis, entryTok, leadingTrivia)
+	if err != nil {
+		return nil, err
+	}
+
+	ent := &ast.Entity{
+		Identifier: targetRef.Entity,
+		Kind:       ast.EntityUnknown,
+		Members:    []ast.Member{member},
+	}
+
+	return wrapInContainers(ent, targetRef.PackagePath), nil
 }

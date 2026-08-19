@@ -1,0 +1,29 @@
+@startuml VisibilityAndTags
+
+hide empty members
+hide @unlinked
+hide $hiddenTag
+show $publicTag
+remove $deprecated
+restore User
+
+class User $critical $auth <<Entity>> $discarded {
+  +id string
+  +name string
+}
+
+class PaymentService <<Service>> $billing {
+  +Charge() error
+}
+
+class InternalHelper $internal {
+  +HelperFunc()
+}
+
+package Services $backend {
+  class Gateway $api {
+    +Route()
+  }
+}
+
+@enduml

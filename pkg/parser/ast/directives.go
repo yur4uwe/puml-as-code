@@ -26,14 +26,15 @@ type ScaleCommand struct {
 
 var _ Statement = ScaleCommand{}
 
+//go:generate enumer -type=VisibilityCommandKind -transform=lower -trimprefix=VisibilityCMD -json
 type VisibilityCommandKind int
 
 const (
-	Unknown VisibilityCommandKind = iota
-	Hide
-	Show
-	Remove
-	Restore
+	VisibilityCMDUnknown VisibilityCommandKind = iota
+	VisibilityCMDHide
+	VisibilityCMDShow
+	VisibilityCMDRemove
+	VisibilityCMDRestore
 )
 
 type VisibilityCommand struct {

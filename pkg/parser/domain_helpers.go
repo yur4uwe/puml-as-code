@@ -77,12 +77,17 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	return sep, nil
 }
 
-func (p *Parser) tryReadTag() (string, error) {
-	if !p.stream.AssertType(tokenizer.DOLLAR) {
-		return "", fmt.Errorf("expected dollar sign tag")
+func (p *Parser) tryReadTags() []string {
+	var tags []string
+	for p.stream.AssertType(tokenizer.DOLLAR) {
+		p.stream.Emit() // consume $
+		tagTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			break
+		}
+		tags = append(tags, tagTok.Literal)
 	}
-	p.stream.Emit() // consume $
-	return p.stream.Emit().Literal, nil
+	return tags
 }
 
 func (p *Parser) isDiagramBound() bool {
