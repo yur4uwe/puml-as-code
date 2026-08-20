@@ -8,13 +8,13 @@ type GenericCommand struct {
 
 var _ Statement = GenericCommand{}
 
-type IncludeCommand struct {
+type IncludeDirective struct {
 	Path string `json:",omitempty"`
 	Tag  string `json:",omitempty"`
 	Trivia
 }
 
-var _ Statement = IncludeCommand{}
+var _ Statement = IncludeDirective{}
 
 type ScaleCommand struct {
 	Scale  float64 `json:",omitempty"`
@@ -69,7 +69,7 @@ type DirectionCommand struct {
 var _ Statement = DirectionCommand{}
 
 func (d GenericCommand) StatementNode() Statement    { return d }
-func (d IncludeCommand) StatementNode() Statement    { return d }
+func (d IncludeDirective) StatementNode() Statement  { return d }
 func (d ScaleCommand) StatementNode() Statement      { return d }
 func (d VisibilityCommand) StatementNode() Statement { return d }
 func (d SetCommand) StatementNode() Statement        { return d }

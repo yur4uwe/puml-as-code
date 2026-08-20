@@ -8,6 +8,8 @@ This document outlines the roadmap, feature backlog, and implementation rules fo
 * **Parser:** Hand-written recursive descent.
 * **Symbol Resolution:** Single-pass using pointers to shared [ast.Entity](file:///home/yur4uwe/Projects/puml-as-code/pkg/parser/ast/structs.go#L20-L25) nodes.
 * **Generators:** Language-agnostic AST mapped via `text/template` and formatted via target language formatting packages (e.g. Go's standard `go/format`).
+* **AST Node Naming Convention:** `*Directive` — preprocessor-style directives that modify parsing context or file resolution (e.g. `IncludeDirective`). `*Command` — runtime diagram instructions that alter rendering or visibility (e.g. `VisibilityCommand`, `SetCommand`, `DirectionCommand`).
+* **Include Resolution:** `!include` is parsed as `ast.IncludeDirective` and left in the AST. A separate post-parse `Resolver` pass splices included files' statements in place. Path resolution follows PlantUML's own policy: paths are relative to the file currently being processed. The parser has no file system access.
 
 ---
 
@@ -45,15 +47,54 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 
 ### Category D: Global Directives & Scoping
 * [x] **D1: Scoping Blocks (Packages)** — Parse `package Name { ... }` boundaries and group entities cleanly.
-* [ ] **D2: Import Directives** — Parse `!include` files.
+* [x] **D2a: Parse Include Directives** — Parse `!include <path>` and `!include <path>!<tag>` into `ast.IncludeDirective{Path, Tag}`. `!include_many` and `!include_once` are accepted with a parse-time warning and produce the same node; no `Kind` field is stored in the AST since the resolver treats all three identically. `Tag` holds either a numeric index (`"0"`, `"1"`) or a named ID (`"MY_ID"`); the resolver distinguishes them via `strconv.Atoi`.
+* [ ] **D2b: Include Resolver Pass** — Post-parse `Resolver` that walks `Diagram.Statements`, finds `IncludeDirective` nodes, and splices the included file's statements in place. Path resolution is relative to the including file (PlantUML's own policy). If `Tag` is set, only the matching `@startuml` block (by index or `id=` attribute) is extracted. Detects circular includes via a `visited` path set and returns a hard error. When a file contains multiple blocks and no `Tag` is specified, emits a warning and uses block 0.
 * [x] **D3: Skinparam & Styles** — Parse global design parameters and variables.
+
+### Category E: Go Code Generation
+> These items convert parsed AST nodes into valid, idiomatic Go source code.
+> They depend on Category F infrastructure being in place first.
+
+* [ ] **E1: Struct Generation** — Map `class` and `struct` entities to Go `type Foo struct { ... }`. Field names are exported/unexported based on visibility (see E5).
+* [ ] **E2: Interface Generation** — Map `interface` entities to Go `type Foo interface { ... }`. Only methods are emitted; fields in an interface body are a hard error.
+* [ ] **E3: Abstract Class → Interface** — Map `abstract class` to Go `interface`. Hard error if the abstract class declares any fields (Go has no abstract structs with state).
+* [ ] **E4: Enum Generation** — Map `enum` entities to an `int` type + `iota` const block: `type Color int` + `const ( ColorRed Color = iota ... )`. Enum member names are prefixed with the enum type name.
+* [ ] **E5: Visibility Mapping** — `+` (public) → exported PascalCase name. `-` (private), `#` (protected), `~` (package) → unexported camelCase name. `#` and `~` also emit a `// protected` / `// package-private` comment since Go has no equivalent modifiers.
+* [ ] **E6: Member Modifiers** — `{static}` members are emitted as package-level functions (not methods). `{abstract}` methods are emitted only into a companion interface, not the struct.
+* [ ] **E7: Inheritance (--|>) → Embedding** — `Bar --|> Foo` where `Foo` is a struct → anonymous embed: `type Bar struct { Foo; ... }`. Where `Foo` is an interface → interface embedding: `type Bar interface { Foo; ... }`. Hard error if more than one struct/concrete parent is listed (Go forbids multiple struct inheritance).
+* [ ] **E8: Realization (..|>) → Compile-time Interface Check** — `Bar ..|> IFoo` → emit `var _ IFoo = (*Bar)(nil)` as a compile-time satisfaction assertion. No method stubs are generated (the diagram defines structure, not logic).
+* [ ] **E9: Composition & Aggregation → Struct Fields** — Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`). Field name is derived from the RHS entity name. Composition and aggregation produce identical output (ownership semantics are not expressible in Go).
+* [ ] **E10: Association (-->) → Pointer Field** — `Car --> Engine` → `Engine *Engine` field on `Car`. Treated as a non-owning reference. Cardinality rules from E9 apply.
+* [ ] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a top-of-file or type-level comment. No structural code is generated; this is a logical relationship with no direct Go equivalent.
+
+### Category F: Generator Infrastructure
+> Cross-cutting concerns that E-series items are built on top of.
+
+* [ ] **F1: Symbol Resolution Pass** — Before generation, walk all `Diagram.Statements` and build a `map[string]*ast.Entity` keyed by both `Identifier` and `Alias`. Required by E7–E11 to resolve both sides of a relationship to their AST nodes and determine their kind (struct vs. interface).
+* [ ] **F2: Template Engine Setup** — Load Go templates from a `templates/go/` directory at runtime using `os.DirFS` (not `embed.FS`, to preserve symlink intent). Directory structure mirrors entity kinds: `struct.go.tmpl`, `interface.go.tmpl`, `enum.go.tmpl`, with `class.go.tmpl` as a symlink to `struct.go.tmpl`. Templates are composed into per-file output.
+* [ ] **F3: Multi-File Output Strategy** — One `.go` file is emitted per `package` block, placed in a subdirectory matching the package name (lowercase). Root-level entities (outside any package block) are written to `<out dir>/types.go` with `package <diagram name>`. The full directory tree mirrors the package hierarchy in the diagram.
+* [ ] **F4: go/format Output Pass** — After template rendering, run `go/format` on each generated file. Surface formatting errors as generator errors (a formatting failure indicates a template or logic bug).
+* [ ] **F5: Generator Test Harness** — Golden-file integration tests for the generator, mirroring the parser's `integration_test.go` pattern. Each fixture is a `.puml` input paired with an expected `.go` output. Tests fail if generated output diverges from the golden file.
 
 ---
 
-## 🎯 Active Milestone: Phase 1 (Entity Headers)
-* **Goal:** Parse headers and types for simple classes, structures, and interfaces.
+## ✅ Completed Milestone: Phase 1 (Parser Foundation)
+* Parsed all entity kinds (class, interface, struct, enum, abstract class) with headers, members, modifiers, and stereotypes.
+* Parsed all relationship types with directionality, multiplicity, and labels.
+* Parsed package/namespace scoping blocks (nested).
+* Parsed skinparam and `<style>` blocks.
+* Implemented Go dialect for field and method member syntax.
+* Full trivia (comment) attachment to statements and members.
+
+---
+
+## 🎯 Active Milestone: Phase 2 (Go Code Generation)
+* **Goal:** Produce valid, `go/format`-clean Go source files from a parsed class diagram.
 * **Tasks:**
-  1. Add a sample class-only diagram to `input/no-rel.puml`.
-  2. Implement parser logic in [parser.go](file:///home/yur4uwe/Projects/puml-as-code/pkg/parser/parser.go) to match class/interface declarations.
-  3. Verify entities are properly added to the `symbol_table`.
-  4. Generate simple Go struct declarations.
+  1. Implement **F1** (symbol resolution pass) as a pre-generation visitor.
+  2. Implement **F2** (template engine setup) with the `templates/go/` directory and `os.DirFS` loader.
+  3. Implement **F3** (multi-file output) — update `GenerateFromClassDiagram` to return `[]GeneratedFile` instead of `string`.
+  4. Implement **E1** (struct) and **E2** (interface) generation end-to-end, including **E5** (visibility) and **F4** (`go/format` pass).
+  5. Add **F5** (golden-file test harness) and a first fixture covering structs and interfaces.
+  6. Implement **E3** (abstract class), **E4** (enum), **E6** (modifiers).
+  7. Implement **E7** (inheritance), **E8** (realization), **E9** (composition/aggregation), **E10** (association), **E11** (dependency).

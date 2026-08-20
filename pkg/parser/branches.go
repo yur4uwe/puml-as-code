@@ -85,6 +85,55 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 	return cmd, nil
 }
 
+func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
+	directiveNameTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+	if !ok {
+		return nil, NewParserError("Expected directive name", p.stream.PeekTokenAt(0))
+	}
+
+	if directiveNameTok.Pos.Offset != tok1.Pos.Offset+1 {
+		return nil, NewParserError("Expected directive name right after !", directiveNameTok)
+	}
+
+	if strings.HasPrefix(directiveNameTok.Literal, "include") {
+		return p.parseIncludeDirective(directiveNameTok)
+	}
+	return nil, NewParserError("Unknown directive", directiveNameTok)
+}
+
+func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirective, error) {
+	switch tok.Literal {
+	case "include_many":
+		log.Printf("warning: include_many directive is treated as 'include'\n")
+	case "include_once":
+		log.Printf("warning: include_once directive is not enforced and treated as 'include'\n")
+	case "include":
+		break
+	default:
+		return ast.IncludeDirective{}, NewParserError("Unknown include directive", tok)
+	}
+
+	dir := ast.IncludeDirective{
+		Trivia: ast.Trivia{
+			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+		},
+	}
+
+	filePathToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.EXCLAMATION)
+	dir.Path = p.stream.TokensToString(filePathToks)
+	if p.stream.AssertType(tokenizer.EXCLAMATION) {
+		p.stream.Emit() // consume '!'
+		// Id or order must be a single token
+		dir.Tag = p.stream.Emit().Literal
+	}
+
+	p.stream.EmitCommentToks()
+
+	dir.TrailingTrivia = p.stream.DumpCollectedTrivia()
+
+	return dir, nil
+}
+
 // parseSkinparam parses flat skinparam commands or nested skinparam blocks.
 // NOTE: This function appends generated ast.StyleRule statements directly to p.ast.Statements
 // instead of returning them, because a single skinparam block can expand into multiple StyleRule

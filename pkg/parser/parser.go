@@ -169,7 +169,11 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 		return p.parseStyleBlock(tok)
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
-		return nil, errors.New("unimplemented preprocessor directive handling")
+		stmt, err := p.parseDirective(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{stmt}, nil
 	}
 
 	if p.HasArrowOnLine() {
