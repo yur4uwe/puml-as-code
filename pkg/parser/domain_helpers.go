@@ -90,7 +90,7 @@ func (p *Parser) tryReadTags() []string {
 	return tags
 }
 
-func (p *Parser) isDiagramBound() bool {
+func (p *Parser) isStartMarker() bool {
 	if !p.stream.AssertType(tokenizer.AT) {
 		return false
 	}
@@ -98,7 +98,22 @@ func (p *Parser) isDiagramBound() bool {
 	if tok.Type != tokenizer.IDENTIFIER {
 		return false
 	}
-	return strings.HasPrefix(tok.Literal, "start") || strings.HasPrefix(tok.Literal, "end")
+	return strings.HasPrefix(tok.Literal, "start")
+}
+
+func (p *Parser) isEndMarker() bool {
+	if !p.stream.AssertType(tokenizer.AT) {
+		return false
+	}
+	tok := p.stream.PeekTokenAt(1)
+	if tok.Type != tokenizer.IDENTIFIER {
+		return false
+	}
+	return strings.HasPrefix(tok.Literal, "end")
+}
+
+func (p *Parser) isDiagramBound() bool {
+	return p.isStartMarker() || p.isEndMarker()
 }
 
 func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
