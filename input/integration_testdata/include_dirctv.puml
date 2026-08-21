@@ -8,3 +8,13 @@
 !include_once include_dirctv.puml
 
 @enduml
+
+Next diagram and this text should be ignored
+
+@startuml
+
+class Foo {
+  +id string
+}
+
+@enduml

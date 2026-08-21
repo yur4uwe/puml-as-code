@@ -118,9 +118,9 @@
               "Type": "COMMENT",
               "Literal": "Standalone inline declarations",
               "Pos": {
-                "Line": 18,
+                "Line": 20,
                 "Col": 1,
-                "Offset": 227
+                "Offset": 245
               }
             }
           ]
@@ -186,9 +186,9 @@
                       "Type": "COMMENT",
                       "Literal": "Inline declaration with package qualification",
                       "Pos": {
-                        "Line": 23,
+                        "Line": 25,
                         "Col": 1,
-                        "Offset": 321
+                        "Offset": 339
                       }
                     }
                   ]

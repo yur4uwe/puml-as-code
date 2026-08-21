@@ -1,3 +1,5 @@
+Pre-diagram text
+
 @startuml EntityDeclarations
 
 class User {
@@ -26,3 +28,5 @@ net.http.Client : +Timeout int
 net.http.Client : +Do(req Request) (Response, error)
 
 @enduml
+
+Post-diagram text
