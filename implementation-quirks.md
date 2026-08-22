@@ -57,3 +57,6 @@ Other related quirks:
 
 ## Relationships Quirks
 - relationships too can reference overloaded methods by reusing target resolution logic
+
+## Identifier quirks
+- For now, parser only supports [A-Za-z0-9_]+ identifiers, even though the plantuml allows almost any shape for it

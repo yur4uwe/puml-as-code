@@ -19,7 +19,7 @@ Foo --> Bar
 @enduml`
 
 	p := &Parser{
-		dialect: dialect.NewGoDialect(),
+		Dialect: dialect.NewGoDialect(),
 	}
 	diag, err := p.Parse(input)
 	require.NoError(t, err)
@@ -66,7 +66,7 @@ class Example {
 @enduml`
 
 	p := &Parser{
-		dialect: dialect.NewGoDialect(),
+		Dialect: dialect.NewGoDialect(),
 	}
 	diag, err := p.Parse(input)
 	require.NoError(t, err)

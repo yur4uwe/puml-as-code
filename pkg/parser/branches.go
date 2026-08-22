@@ -102,18 +102,18 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 }
 
 func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirective, error) {
+	var kind ast.IncludeKind
 	switch tok.Literal {
 	case "include_many":
-		log.Printf("warning: include_many directive is treated as 'include'\n")
-	case "include_once":
-		log.Printf("warning: include_once directive is not enforced and treated as 'include'\n")
-	case "include":
-		break
+		kind = ast.IncludeMany
+	case "include_once", "include":
+		kind = ast.IncludeOnce
 	default:
 		return ast.IncludeDirective{}, NewParserError("Unknown include directive", tok)
 	}
 
 	dir := ast.IncludeDirective{
+		Kind: kind,
 		Trivia: ast.Trivia{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -334,9 +334,11 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 func wrapInContainers(ent *ast.Entity, pkgPath []string) ast.Statement {
 	var current ast.Statement = ent
 	for _, pkg := range slices.Backward(pkgPath) {
+		// Leave with Kind = ast.ContainerUnknown
+		// This will be a good hint to distinguish between
+		// inline and block container declarations
 		current = &ast.Container{
 			Identifier: pkg,
-			Kind:       ast.ContainerPackage,
 			Statements: []ast.Statement{current},
 		}
 	}
@@ -571,9 +573,9 @@ outer:
 		TrailingTrivia: trailingTrivia,
 	}
 	if isMethod {
-		return p.dialect.ParseMethod(entry, &opts)
+		return p.Dialect.ParseMethod(entry, &opts)
 	} else {
-		return p.dialect.ParseField(entry, &opts)
+		return p.Dialect.ParseField(entry, &opts)
 	}
 }
 

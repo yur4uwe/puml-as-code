@@ -117,11 +117,9 @@ func TestParseEntity(t *testing.T) {
 			input:  "class net.http.Client\n",
 			kwType: keyword.Class,
 			want: &ast.Container{
-				Kind:       ast.ContainerPackage,
 				Identifier: "net",
 				Statements: []ast.Statement{
 					&ast.Container{
-						Kind:       ast.ContainerPackage,
 						Identifier: "http",
 						Statements: []ast.Statement{
 							&ast.Entity{
@@ -187,7 +185,7 @@ func TestParseEntity(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 			}
 			tok := p.stream.Emit()
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
@@ -308,7 +306,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 			}
 
 			var entryTok tokenizer.Token
@@ -404,7 +402,7 @@ func TestParseEntityMember(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 			}
 			got, err := p.parseEntityMember()
 			if tc.expectErr {
@@ -1379,7 +1377,7 @@ func TestParseContainer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
@@ -1441,7 +1439,7 @@ func TestParseTargetRef(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
@@ -1512,7 +1510,7 @@ func TestParseInlineMember(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
@@ -1567,7 +1565,7 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()

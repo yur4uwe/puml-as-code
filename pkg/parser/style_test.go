@@ -27,7 +27,7 @@ class User {
 @enduml`
 
 	p := &Parser{
-		dialect: dialect.NewGoDialect(),
+		Dialect: dialect.NewGoDialect(),
 	}
 	diag, err := p.Parse(input)
 	require.NoError(t, err)

@@ -19,7 +19,8 @@
       "Tag": "My_Special_ID"
     },
     {
-      "Path": "include_dirctv.puml"
+      "Path": "include_dirctv.puml",
+      "Kind": "many"
     },
     {
       "Path": "include_dirctv.puml"

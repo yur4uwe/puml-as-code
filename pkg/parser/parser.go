@@ -15,8 +15,19 @@ import (
 type Parser struct {
 	ast      *ast.Diagram
 	stream   *tokenizer.TokenStream
-	dialect  dialect.Dialect
-	targetID string
+	Dialect  dialect.Dialect
+	TargetID string
+}
+
+func NewParser(d dialect.Dialect) *Parser {
+	return &Parser{
+		Dialect: d,
+	}
+}
+
+func (p *Parser) WithTargetID(targetID string) *Parser {
+	p.TargetID = targetID
+	return p
 }
 
 func (p *Parser) moveToDiagStart() error {
@@ -37,7 +48,7 @@ func (p *Parser) moveToDiagStart() error {
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
-	if p.dialect == nil {
+	if p.Dialect == nil {
 		return nil, errors.New("dialect not initialized")
 	}
 
@@ -53,7 +64,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			if blockNum == -1 {
 				return nil, errors.New("no diagrams found")
 			}
-			return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.targetID, blockNum+1)
+			return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
 		}
 
 		blockNum++
@@ -65,11 +76,11 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
 		}
 
-		if p.targetID == "" {
+		if p.TargetID == "" {
 			break
 		}
 
-		num, err := strconv.Atoi(p.targetID)
+		num, err := strconv.Atoi(p.TargetID)
 		if err == nil {
 			// We have numerical ID which means order of the block in the file
 			if num != blockNum {
@@ -80,7 +91,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		}
 
 		// Otherwise, we have a named ID which have to match
-		if p.targetID == startBound.ID {
+		if p.TargetID == startBound.ID {
 			break
 		}
 	}
@@ -148,7 +159,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	}
 
-	if p.targetID == "" {
+	if p.TargetID == "" {
 		// Keep searching for the next diagram start marker
 		// User might not know about discarded blocks
 		err := p.moveToDiagStart()

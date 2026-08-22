@@ -162,11 +162,9 @@
     },
     {
       "Identifier": "net",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "http",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Client",
@@ -201,11 +199,9 @@
     },
     {
       "Identifier": "net",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "http",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Client",

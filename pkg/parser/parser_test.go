@@ -3,8 +3,8 @@ package parser
 import (
 	"testing"
 
-	"yur4uwe/pac/pkg/parser/dialect"
 	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/pkg/parser/dialect"
 )
 
 func TestParseTitle(t *testing.T) {
@@ -34,7 +34,7 @@ func TestParseTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &Parser{dialect: dialect.NewGoDialect()}
+			p := &Parser{Dialect: dialect.NewGoDialect()}
 			diagram, err := p.Parse(tt.input)
 			if tt.expectError {
 				require.Error(t, err)

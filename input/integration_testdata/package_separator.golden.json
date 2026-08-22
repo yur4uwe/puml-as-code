@@ -12,11 +12,9 @@
     },
     {
       "Identifier": "net",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "http",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Client",
@@ -38,11 +36,9 @@
     },
     {
       "Identifier": "net",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "http",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Server",
@@ -90,11 +86,9 @@
     },
     {
       "Identifier": "auth",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "oauth",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Provider",
@@ -116,11 +110,9 @@
     },
     {
       "Identifier": "auth",
-      "Kind": "package",
       "Statements": [
         {
           "Identifier": "oauth",
-          "Kind": "package",
           "Statements": [
             {
               "Identifier": "Client",

@@ -10,13 +10,14 @@ import (
 
 	"yur4uwe/pac/pkg/generator"
 	"yur4uwe/pac/pkg/parser"
+	"yur4uwe/pac/pkg/parser/dialect"
 )
 
 func main() {
 	inputf := flag.String("in", "", "Path to the input file")
 	outdir := flag.String("out", "", "Path to the output dir (optional)")
 	lang := flag.String("lang", "go", "Language to generate code in (default: go)")
-	_ = flag.String("dialect", "go", "Dialect to use (default: go)")
+	id := flag.String("id", "", "Diagram's index in the target file or literal ID (optional)")
 	flag.Parse()
 
 	if *inputf == "" {
@@ -44,7 +45,8 @@ func main() {
 
 	fd.Close()
 
-	p := parser.Parser{}
+	p := parser.NewParser(dialect.Factory(*lang)).
+		WithTargetID(*id)
 	AST, err := p.Parse(string(content))
 	if err != nil {
 		fmt.Printf("Error parsing PUML content: %v\n", err)

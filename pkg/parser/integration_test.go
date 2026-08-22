@@ -33,7 +33,7 @@ func TestDiagramParsing_Golden(t *testing.T) {
 			require.NoError(t, err, "failed to read embedded puml file %s", pumlFileName)
 
 			p := &Parser{
-				dialect: dialect.NewGoDialect(),
+				Dialect: dialect.NewGoDialect(),
 			}
 
 			diagram, err := p.Parse(string(pumlBytes))
@@ -46,7 +46,7 @@ func TestDiagramParsing_Golden(t *testing.T) {
 			diskGoldenPath := filepath.Join("../../input/integration_testdata", goldenFileName)
 
 			if *updateGolden {
-				err := os.WriteFile(diskGoldenPath, actualJSON, 0644)
+				err := os.WriteFile(diskGoldenPath, actualJSON, 0o644)
 				require.NoError(t, err, "failed to update golden file %s", diskGoldenPath)
 				t.Logf("Updated golden file: %s", diskGoldenPath)
 				return
