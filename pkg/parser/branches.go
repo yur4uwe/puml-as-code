@@ -331,13 +331,13 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 	}
 }
 
-func wrapInContainers(ent *ast.Entity, pkgPath []string) ast.Statement {
+func wrapInContainers(ent ast.Entity, pkgPath []string) ast.Statement {
 	var current ast.Statement = ent
 	for _, pkg := range slices.Backward(pkgPath) {
 		// Leave with Kind = ast.ContainerUnknown
 		// This will be a good hint to distinguish between
 		// inline and block container declarations
-		current = &ast.Container{
+		current = ast.Container{
 			Identifier: pkg,
 			Statements: []ast.Statement{current},
 		}
@@ -406,7 +406,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
 		// No body return entity as is
 		ent.TrailingTrivia = p.stream.DumpCollectedTrivia()
-		return wrapInContainers(ent, pkgPath), nil
+		return wrapInContainers(*ent, pkgPath), nil
 	}
 
 	p.stream.EmitCommentToks()
@@ -436,7 +436,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 	if closingTrivia := p.stream.DumpCollectedTrivia(); len(closingTrivia) > 0 {
 		ent.TrailingTrivia = append(ent.TrailingTrivia, closingTrivia...)
 	}
-	return wrapInContainers(ent, pkgPath), nil
+	return wrapInContainers(*ent, pkgPath), nil
 }
 
 func (p *Parser) parseEntityMember() (ast.Member, error) {
@@ -498,7 +498,7 @@ func (p *Parser) parseFieldOrMethod(mod *string, vis ast.VisibilityKind, entryTo
 	mustBeField := false
 	mustBeMethod := false
 	containsLParen := false
-	var mods []string
+	var mods []string = nil
 
 	if mod != nil {
 		switch *mod {
@@ -1585,26 +1585,26 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 
 	entryTok := p.stream.PeekTokenAt(0)
 	vis := ast.VisibilityUnknown
-	var mod string = ""
+	var mod *string = nil
 	switch entryTok.Type {
 	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
 		p.stream.Emit()
 		vis = p.mapTokenToVisibility(entryTok.Type)
 	case tokenizer.LBRACE:
-		var err error
-		mod, err = p.tryReadModifier()
+		m, err := p.tryReadModifier()
 		if err != nil {
 			return nil, err
 		}
+		mod = &m
 	case tokenizer.IDENTIFIER:
 		p.stream.Emit()
 	}
-	member, err := p.parseFieldOrMethod(&mod, vis, entryTok, leadingTrivia)
+	member, err := p.parseFieldOrMethod(mod, vis, entryTok, leadingTrivia)
 	if err != nil {
 		return nil, err
 	}
 
-	ent := &ast.Entity{
+	ent := ast.Entity{
 		Identifier: targetRef.Entity,
 		Kind:       ast.EntityUnknown,
 		Members:    []ast.Member{member},

@@ -172,6 +172,14 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 }
 
 func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, error) {
+	if tok.Type == tokenizer.EXCLAMATION {
+		stmt, err := p.parseDirective(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{stmt}, nil
+	}
+
 	if p.HasArrowOnLine() {
 		rel, err := p.parseRelationship(tok)
 		if err != nil {

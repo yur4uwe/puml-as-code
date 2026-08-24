@@ -72,9 +72,9 @@ class Example {
 	require.NoError(t, err)
 	require.NotNil(t, diag)
 
-	var exampleEntity *ast.Entity
+	var exampleEntity ast.Entity
 	for _, stmt := range diag.Statements {
-		if ent, ok := stmt.(*ast.Entity); ok && ent.Identifier == "Example" {
+		if ent, ok := stmt.(ast.Entity); ok && ent.Identifier == "Example" {
 			exampleEntity = ent
 			break
 		}

@@ -25,9 +25,9 @@ var (
 	ErrRemoteIncludeUnimplemented = errors.New("remote URL includes (http/https) are not implemented")
 )
 
-func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang string, includeStack []string, includedOnce map[string]struct{}, depth int) error {
-	if depth > MaxDepth {
-		return fmt.Errorf("%w: %d", ErrMaxDepthExceeded, depth)
+func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang string, includeStack []string, includedOnce map[string]struct{}) error {
+	if len(includeStack) > MaxDepth {
+		return fmt.Errorf("%w: %d", ErrMaxDepthExceeded, len(includeStack))
 	}
 
 	newStmts := make([]ast.Statement, 0, len(diagram.Statements))
@@ -35,6 +35,18 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 	for _, stmt := range diagram.Statements {
 		var v ast.IncludeDirective
 		switch d := stmt.(type) {
+		case ast.Container:
+			// make a contrived diagram to satisfy 'resolveIncludes'
+			auxDiagram := &ast.Diagram{
+				Statements: d.Statements,
+			}
+			err := resolveIncludes(auxDiagram, basePath, fs, lang, includeStack, includedOnce)
+			if err != nil {
+				return fmt.Errorf("failed to resolve container imports: %w", err)
+			}
+			d.Statements = auxDiagram.Statements
+			newStmts = append(newStmts, d)
+			continue
 		case ast.IncludeDirective:
 			v = d
 		default:
@@ -86,7 +98,7 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 			return err
 		}
 
-		err = resolveIncludes(diag, targetPath, fs, lang, childStack, includedOnce, depth+1)
+		err = resolveIncludes(diag, targetPath, fs, lang, childStack, includedOnce)
 		if err != nil {
 			return err
 		}
@@ -116,5 +128,5 @@ func ResolveImports(diagram *ast.Diagram, basePath string, tag string, fs FileRe
 	includedOnce := map[string]struct{}{
 		rootIdent: {},
 	}
-	return resolveIncludes(diagram, basePath, fs, lang, includeStack, includedOnce, 1)
+	return resolveIncludes(diagram, basePath, fs, lang, includeStack, includedOnce)
 }

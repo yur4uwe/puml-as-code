@@ -110,9 +110,6 @@
             "Name": "int"
           },
           "Visibility": "public",
-          "Modifiers": [
-            ""
-          ],
           "LeadingTrivia": [
             {
               "Type": "COMMENT",
@@ -141,9 +138,6 @@
               }
             }
           ],
-          "Modifiers": [
-            ""
-          ],
           "Visibility": "public"
         }
       ]
@@ -153,9 +147,6 @@
       "Members": [
         {
           "Name": "Cancel",
-          "Modifiers": [
-            ""
-          ],
           "Visibility": "public"
         }
       ]
@@ -176,9 +167,6 @@
                     "Name": "int"
                   },
                   "Visibility": "public",
-                  "Modifiers": [
-                    ""
-                  ],
                   "LeadingTrivia": [
                     {
                       "Type": "COMMENT",
@@ -230,9 +218,6 @@
                         "Name": "Request"
                       }
                     }
-                  ],
-                  "Modifiers": [
-                    ""
                   ],
                   "Visibility": "public"
                 }

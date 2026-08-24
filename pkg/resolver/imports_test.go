@@ -18,17 +18,62 @@ func parseAndResolve(t *testing.T, mainFile string, files MapFS) *ast.Diagram {
 
 	p := parser.NewParser(dialect.NewGoDialect())
 	diag, err := p.Parse(string(content))
-	require.NoError(t, err, "failed to parse main diagram")
+	require.NoError(t, err, "failed to parse main diagram: %v", err)
 
 	err = ResolveImports(diag, mainFile, "", files, "go")
-	require.NoError(t, err, "failed to resolve imports")
+	require.NoError(t, err, "failed to resolve imports: %v", err)
 
 	return diag
 }
 
+// summarizeContainer renders a container as an open marker ("package:p"),
+// followed by the recursively summarized inner statements, followed by a
+// close marker ("endpackage").
+func summarizeContainer(t *testing.T, c *ast.Container) []string {
+	t.Helper()
+
+	label := c.Kind.String()
+	id := c.Identifier
+	if id == "" {
+		id = c.Alias
+	}
+
+	summary := []string{label + ":" + id}
+	for _, inner := range c.Statements {
+		summary = append(summary, summarizeStatement(t, inner)...)
+	}
+	summary = append(summary, "end"+label)
+	return summary
+}
+
+// summarizeStatement converts a single ast.Statement into zero or more summary
+// entries, recursing into containers so nested content is represented as a
+// bracketed sub-sequence rather than flattened away.
+func summarizeStatement(t *testing.T, stmt ast.Statement) []string {
+	t.Helper()
+
+	switch s := stmt.(type) {
+	case ast.Entity:
+		return []string{s.Kind.String() + ":" + s.Identifier}
+	case ast.Relationship:
+		return []string{"rel:" + s.LHS.Entity + "->" + s.RHS.Entity}
+	case ast.Container:
+		return summarizeContainer(t, &s)
+	// case *ast.Container:
+	// 	return summarizeContainer(t, s)
+	case ast.IncludeDirective:
+		t.Fatalf("unexpected un-spliced IncludeDirective remaining in AST: %+v", stmt)
+	case ast.DiagramBound:
+		t.Fatalf("unexpected inner DiagramBound in spliced statement list: %+v", stmt)
+	default:
+		return []string{"stmt"}
+	}
+	return nil
+}
+
 // extractStatementSummary inspects diagram.Statements in order, ensures no unresolved
 // IncludeDirectives remain, verifies outer boundary markers, and returns an ordered
-// summary of statements for exact AST structural assertions.
+// summary of statements (recursing into containers) for exact AST structural assertions.
 func extractStatementSummary(t *testing.T, diagram *ast.Diagram) []string {
 	t.Helper()
 
@@ -43,18 +88,7 @@ func extractStatementSummary(t *testing.T, diagram *ast.Diagram) []string {
 
 	var summary []string
 	for _, stmt := range diagram.Statements[1 : len(diagram.Statements)-1] {
-		switch s := stmt.(type) {
-		case *ast.Entity:
-			summary = append(summary, s.Kind.String()+":"+s.Identifier)
-		case ast.Relationship:
-			summary = append(summary, "rel:"+s.LHS.Entity+"->"+s.RHS.Entity)
-		case ast.IncludeDirective:
-			t.Fatalf("unexpected un-spliced IncludeDirective remaining in AST: %+v", stmt)
-		case ast.DiagramBound:
-			t.Fatalf("unexpected inner DiagramBound in spliced statement list: %+v", stmt)
-		default:
-			summary = append(summary, "stmt")
-		}
+		summary = append(summary, summarizeStatement(t, stmt)...)
 	}
 	return summary
 }
@@ -242,4 +276,29 @@ class App
 	err = ResolveImports(diag, "/project/main.puml", "", fs, "go")
 	require.Error(t, err)
 	require.ErrorIs(t, err, ErrRemoteIncludeUnimplemented)
+}
+
+func TestResolveImports_InsideContainer(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+package p {
+	!include lib.puml
+}
+@enduml
+`),
+		"/project/lib.puml": []byte(`
+@startuml
+class Lib
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	expected := []string{
+		"package:p",
+		"class:Lib",
+		"endpackage",
+	}
+	require.Equal(t, expected, extractStatementSummary(t, diag))
 }

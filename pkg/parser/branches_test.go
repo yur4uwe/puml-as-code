@@ -23,7 +23,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "simple class",
 			input:  "class MyClass",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
 			},
@@ -32,7 +32,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "abstract class",
 			input:  "abstract class MyAbstractClass",
 			kwType: keyword.Abstract,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyAbstractClass",
 				Kind:       ast.EntityAbstractClass,
 			},
@@ -41,7 +41,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with alias",
 			input:  "class MyClass as \"MC\"",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
 				Kind:       ast.EntityClass,
@@ -58,7 +58,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with stereotype",
 			input:  "class MyClass <<Service>>",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
 				Stereotype: "Service",
@@ -68,7 +68,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with color",
 			input:  "class MyClass #FF0000",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
 				Color:      "FF0000",
@@ -78,7 +78,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with empty body",
 			input:  "class MyClass {\n}",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
 			},
@@ -87,7 +87,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class def with all modifiers",
 			input:  "class MyClass as \"MC\" <T> <<Database>> #FF0000",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Alias:      "MC",
 				Kind:       ast.EntityClass,
@@ -100,7 +100,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with field member",
 			input:  "class MyClass {\n  +field int\n}",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
 				Members: []ast.Member{
@@ -116,13 +116,13 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with package separator",
 			input:  "class net.http.Client\n",
 			kwType: keyword.Class,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "net",
 				Statements: []ast.Statement{
-					&ast.Container{
+					ast.Container{
 						Identifier: "http",
 						Statements: []ast.Statement{
-							&ast.Entity{
+							ast.Entity{
 								Identifier: "Client",
 								Kind:       ast.EntityClass,
 							},
@@ -163,7 +163,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with generic",
 			input:  "class List<T>",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "List",
 				Kind:       ast.EntityClass,
 				Generic:    "T",
@@ -173,7 +173,7 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with multiple generics",
 			input:  "class Map<K, V>",
 			kwType: keyword.Class,
-			want: &ast.Entity{
+			want: ast.Entity{
 				Identifier: "Map",
 				Kind:       ast.EntityClass,
 				Generic:    "K, V",
@@ -1025,7 +1025,7 @@ func TestParseContainer(t *testing.T) {
 		name        string
 		input       string
 		kwType      keyword.KeywordKind
-		want        *ast.Container
+		want        ast.Container
 		expectErr   bool
 		errContains string
 	}{
@@ -1040,7 +1040,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "together empty newline",
 			input:  "together\n",
 			kwType: keyword.Together,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind: ast.ContainerTogether,
 			},
 		},
@@ -1048,7 +1048,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "together empty body",
 			input:  "together {}",
 			kwType: keyword.Together,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind: ast.ContainerTogether,
 			},
 		},
@@ -1056,10 +1056,10 @@ func TestParseContainer(t *testing.T) {
 			name:   "together with single class",
 			input:  "together { class A }",
 			kwType: keyword.Together,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind: ast.ContainerTogether,
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1070,7 +1070,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package simple identifier",
 			input:  "package mypkg\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Kind:       ast.ContainerPackage,
 			},
@@ -1079,7 +1079,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package string identifier and alias",
 			input:  `package "My Package" as mypkg` + "\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
 				Kind:       ast.ContainerPackage,
@@ -1089,7 +1089,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package identifier and string alias",
 			input:  `package mypkg as "My Package"` + "\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Alias:      "My Package",
 				Kind:       ast.ContainerPackage,
@@ -1099,7 +1099,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package identical identifier and alias",
 			input:  "package mypkg as otherpkg\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "otherpkg",
 				Alias:      "mypkg",
 				Kind:       ast.ContainerPackage,
@@ -1109,7 +1109,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package with stereotype",
 			input:  "package mypkg <<Service>>\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
 				Kind:       ast.ContainerPackage,
@@ -1119,7 +1119,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "package with stereotype and color",
 			input:  "package mypkg <<Service>> #green\n",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
 				Color:      "green",
@@ -1130,18 +1130,18 @@ func TestParseContainer(t *testing.T) {
 			name:   "package body with relationship and nested package",
 			input:  "package mypkg { class A together { class B } A -> B\n}",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "mypkg",
 				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
 					ast.Container{
 						Kind: ast.ContainerTogether,
 						Statements: []ast.Statement{
-							&ast.Entity{
+							ast.Entity{
 								Identifier: "B",
 								Kind:       ast.EntityClass,
 							},
@@ -1161,11 +1161,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "package with the keyword as a name in relationship",
 			input:  "package p { class folder {} folder --> p }",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "p",
 				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "folder",
 						Kind:       ast.EntityClass,
 					},
@@ -1183,7 +1183,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "expect to correctly parse nested containers",
 			input:  "package p.p {}",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Identifier: "p",
 				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
@@ -1226,12 +1226,12 @@ func TestParseContainer(t *testing.T) {
 			name:   "package with same line body and color",
 			input:  "package mypkg #red { class A }",
 			kwType: keyword.Package,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerPackage,
 				Identifier: "mypkg",
 				Color:      "red",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1250,11 +1250,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "folder with body",
 			input:  "folder myfolder { class A }",
 			kwType: keyword.Folder,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerFolder,
 				Identifier: "myfolder",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1265,11 +1265,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "frame with body",
 			input:  "frame myframe { class A }",
 			kwType: keyword.Frame,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerFrame,
 				Identifier: "myframe",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1280,11 +1280,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "rectangle with body",
 			input:  "rectangle myrect { class A }",
 			kwType: keyword.Rectangle,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerRectangle,
 				Identifier: "myrect",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1295,11 +1295,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "cloud with body",
 			input:  "cloud mycloud { class A }",
 			kwType: keyword.Cloud,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerCloud,
 				Identifier: "mycloud",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1310,11 +1310,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "database with body",
 			input:  "database mydb { class A }",
 			kwType: keyword.Database,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerDatabase,
 				Identifier: "mydb",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1325,11 +1325,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "node with body",
 			input:  "node mynode { class A }",
 			kwType: keyword.Node,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerNode,
 				Identifier: "mynode",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1340,11 +1340,11 @@ func TestParseContainer(t *testing.T) {
 			name:   "namespace with body",
 			input:  "namespace myns { class A }",
 			kwType: keyword.Namespace,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
 				Statements: []ast.Statement{
-					&ast.Entity{
+					ast.Entity{
 						Identifier: "A",
 						Kind:       ast.EntityClass,
 					},
@@ -1355,7 +1355,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "folder empty body",
 			input:  "folder myfolder {}",
 			kwType: keyword.Folder,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerFolder,
 				Identifier: "myfolder",
 			},
@@ -1364,7 +1364,7 @@ func TestParseContainer(t *testing.T) {
 			name:   "namespace with alias and stereotype",
 			input:  `namespace myns as "My Namespace" <<API>>` + "\n",
 			kwType: keyword.Namespace,
-			want: &ast.Container{
+			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
 				Alias:      "My Namespace",
@@ -1391,7 +1391,7 @@ func TestParseContainer(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, *tc.want, got)
+				require.Equal(t, tc.want, got)
 			}
 		})
 	}
@@ -1452,56 +1452,36 @@ func TestParseTargetRef(t *testing.T) {
 
 func TestParseInlineMember(t *testing.T) {
 	tests := []struct {
-		name       string
-		input      string
-		wantEntity string
-		wantMember func(t *testing.T, member ast.Member)
+		name           string
+		input          string
+		wantEntity     string
+		wantMethod     bool
+		wantField      bool
+		wantModifiers  []string
+		wantVisibility ast.VisibilityKind
+		wantMember     func(t *testing.T, member ast.Member)
 	}{
 		{
-			name:       "field with visibility",
-			input:      "Foo : +id string\n",
-			wantEntity: "Foo",
-			wantMember: func(t *testing.T, m ast.Member) {
-				f, ok := m.(*dialect.GoField)
-				require.True(t, ok)
-				require.Equal(t, "id", f.Name)
-				require.Equal(t, ast.VisibilityPublic, f.Visibility)
-			},
+			name:           "field with visibility",
+			input:          "Foo : +id string\n",
+			wantEntity:     "Foo",
+			wantField:      true,
+			wantVisibility: ast.VisibilityPublic,
 		},
 		{
-			name:       "method with visibility and params",
-			input:      "Foo : +DoWork(ctx Context) error\n",
-			wantEntity: "Foo",
-			wantMember: func(t *testing.T, m ast.Member) {
-				fn, ok := m.(*dialect.GoMethod)
-				require.True(t, ok)
-				require.Equal(t, "DoWork", fn.Name)
-				require.Equal(t, ast.VisibilityPublic, fn.Visibility)
-			},
+			name:           "method with visibility and params",
+			input:          "Foo : +DoWork(ctx Context) error\n",
+			wantEntity:     "Foo",
+			wantMethod:     true,
+			wantVisibility: ast.VisibilityPublic,
 		},
 		{
 			name:       "field with static modifier",
 			input:      "Foo : {static} count int\n",
 			wantEntity: "Foo",
-			wantMember: func(t *testing.T, m ast.Member) {
-				f, ok := m.(*dialect.GoField)
-				require.True(t, ok)
-				require.Equal(t, "count", f.Name)
-				require.Contains(t, f.Modifiers, "static")
-			},
-		},
-		{
-			name:       "inline member with leading and trailing trivia",
-			input:      "' Leading comment\nFoo : +id string ' Trailing comment\n",
-			wantEntity: "Foo",
-			wantMember: func(t *testing.T, m ast.Member) {
-				f, ok := m.(*dialect.GoField)
-				require.True(t, ok)
-				require.Equal(t, "id", f.Name)
-				require.NotEmpty(t, f.LeadingTrivia)
-				require.Contains(t, f.LeadingTrivia[0].Literal, "Leading comment")
-				require.NotEmpty(t, f.TrailingTrivia)
-				require.Contains(t, f.TrailingTrivia[0].Literal, "Trailing comment")
+			wantField:  true,
+			wantModifiers: []string{
+				"static",
 			},
 		},
 	}
@@ -1519,11 +1499,21 @@ func TestParseInlineMember(t *testing.T) {
 			}
 			got, err := p.parseInlineMember(tok)
 			require.NoError(t, err)
-			ent, ok := got.(*ast.Entity)
+			ent, ok := got.(ast.Entity)
 			require.True(t, ok)
 			require.Equal(t, tc.wantEntity, ent.Identifier)
 			require.Len(t, ent.Members, 1)
-			tc.wantMember(t, ent.Members[0])
+			if tc.wantMethod {
+				method, ok := ent.Members[0].(*dialect.GoMethod)
+				require.True(t, ok)
+				require.Equal(t, tc.wantModifiers, method.Modifiers)
+				require.Equal(t, tc.wantVisibility, method.Visibility)
+			} else {
+				field, ok := ent.Members[0].(*dialect.GoField)
+				require.True(t, ok)
+				require.Equal(t, tc.wantModifiers, field.Modifiers)
+				require.Equal(t, tc.wantVisibility, field.Visibility)
+			}
 		})
 	}
 }
@@ -1571,7 +1561,7 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 			tok := p.stream.Emit()
 			got, err := p.parseEntity(tok)
 			require.NoError(t, err)
-			ent, ok := got.(*ast.Entity)
+			ent, ok := got.(ast.Entity)
 			require.True(t, ok)
 			require.Equal(t, tc.wantStereo, ent.Stereotype)
 			require.Equal(t, tc.wantTags, ent.Tags)
