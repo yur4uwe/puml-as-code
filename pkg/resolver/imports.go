@@ -12,6 +12,7 @@ import (
 	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/tokenizer"
 )
 
 const (
@@ -91,10 +92,12 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 			return err
 		}
 
+		isBoundless := v.Tag == ""
 		p := parser.NewParser(dialect.Factory(lang)).
 			WithTargetID(v.Tag)
+		p.IsBoundless = isBoundless
 		diag, err := p.Parse(string(fileBytes))
-		if err != nil {
+		if err != nil && !errors.Is(err, tokenizer.ErrUnexpectedEOF) {
 			return err
 		}
 
@@ -106,12 +109,17 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 		// Skip empty diagrams
 		// using <= 2 may be a bit of an overkill
 		// BUT its better to be safe than sorry
-		if len(diag.Statements) <= 2 {
+		if !isBoundless && len(diag.Statements) <= 2 {
 			continue
 		}
 
 		// Strip diagram bound markers
-		diag.Statements = diag.Statements[1 : len(diag.Statements)-1]
+		if _, ok := diag.Statements[0].StatementNode().(ast.DiagramBound); ok {
+			diag.Statements = diag.Statements[1:]
+		}
+		if _, ok := diag.Statements[len(diag.Statements)-1].StatementNode().(ast.DiagramBound); ok {
+			diag.Statements = diag.Statements[:len(diag.Statements)-1]
+		}
 
 		newStmts = append(newStmts, diag.Statements...)
 	}

@@ -13,10 +13,11 @@ import (
 )
 
 type Parser struct {
-	ast      *ast.Diagram
-	stream   *tokenizer.TokenStream
-	Dialect  dialect.Dialect
-	TargetID string
+	ast         *ast.Diagram
+	stream      *tokenizer.TokenStream
+	Dialect     dialect.Dialect
+	TargetID    string
+	IsBoundless bool
 }
 
 func NewParser(d dialect.Dialect) *Parser {
@@ -56,52 +57,54 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	p.stream = tokenizer.NewTokenStream(input)
 
 	var startBound ast.DiagramBound
-	// Initial blockNum is -1 so that the first block is 0-indexed
-	blockNum := -1
-	for {
-		err := p.moveToDiagStart()
-		if err != nil {
-			if blockNum == -1 {
-				return nil, errors.New("no diagrams found")
+	if !p.IsBoundless {
+		// Initial blockNum is -1 so that the first block is 0-indexed
+		blockNum := -1
+		for {
+			err := p.moveToDiagStart()
+			if err != nil {
+				if blockNum == -1 {
+					return nil, errors.New("no diagrams found")
+				}
+				return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
 			}
-			return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
-		}
 
-		blockNum++
+			blockNum++
 
-		startBound, err = p.readDiagramBounds()
-		if err != nil {
-			return nil, err
-		} else if !startBound.IsStart {
-			return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
-		}
+			startBound, err = p.readDiagramBounds()
+			if err != nil {
+				return nil, err
+			} else if !startBound.IsStart {
+				return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
+			}
 
-		if p.TargetID == "" {
-			break
-		}
+			if p.TargetID == "" {
+				break
+			}
 
-		num, err := strconv.Atoi(p.TargetID)
-		if err == nil {
-			// We have numerical ID which means order of the block in the file
-			if num != blockNum {
-				continue
-			} else {
+			num, err := strconv.Atoi(p.TargetID)
+			if err == nil {
+				// We have numerical ID which means order of the block in the file
+				if num != blockNum {
+					continue
+				} else {
+					break
+				}
+			}
+
+			// Otherwise, we have a named ID which have to match
+			if p.TargetID == startBound.ID {
 				break
 			}
 		}
 
-		// Otherwise, we have a named ID which have to match
-		if p.TargetID == startBound.ID {
-			break
-		}
+		p.ast.Statements = append(p.ast.Statements, startBound)
+		p.ast.Name = startBound.Name
 	}
-
-	p.ast.Statements = append(p.ast.Statements, startBound)
-	p.ast.Name = startBound.Name
 
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
-		if p.isEndMarker() {
+		if !p.IsBoundless && p.isEndMarker() {
 			boundLeading := p.stream.DumpCollectedTrivia()
 			endBound, err := p.readDiagramBounds()
 			if err != nil {
@@ -122,7 +125,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
-			return nil, NewParserError("Unexpected EOF", tok)
+			return p.ast, WrapParserError(tokenizer.ErrUnexpectedEOF, tok)
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
 			// If the newline is relevant it will be consumed

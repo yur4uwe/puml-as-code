@@ -103,11 +103,9 @@ MainService --> User
 @enduml
 `),
 		"/project/models.puml": []byte(`
-@startuml
 class User
 class Order
 User --> Order
-@enduml
 `),
 	}
 
@@ -128,20 +126,20 @@ func TestResolveImports_DiamondIncludeOnce(t *testing.T) {
 	fs := MapFS{
 		"/project/root.puml": []byte(`
 @startuml
-!include a.puml
-!include b.puml
+!include a.puml!0
+!include b.puml!0
 class RootApp
 @enduml
 `),
 		"/project/a.puml": []byte(`
 @startuml
-!include common.puml
+!include common.puml!0
 class ServiceA
 @enduml
 `),
 		"/project/b.puml": []byte(`
 @startuml
-!include_once common.puml
+!include_once common.puml!0
 class ServiceB
 @enduml
 `),
@@ -173,9 +171,7 @@ class Main
 @enduml
 `),
 		"/project/snippet.puml": []byte(`
-@startuml
 class ReusedItem
-@enduml
 `),
 	}
 
@@ -192,13 +188,13 @@ func TestResolveImports_CircularCycleError(t *testing.T) {
 	fs := MapFS{
 		"/project/a.puml": []byte(`
 @startuml
-!include b.puml
+!include b.puml!0
 class A
 @enduml
 `),
 		"/project/b.puml": []byte(`
 @startuml
-!include a.puml
+!include a.puml!0
 class B
 @enduml
 `),
@@ -288,9 +284,7 @@ package p {
 @enduml
 `),
 		"/project/lib.puml": []byte(`
-@startuml
 class Lib
-@enduml
 `),
 	}
 
