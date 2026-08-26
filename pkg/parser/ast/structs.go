@@ -197,11 +197,11 @@ const (
 )
 
 type Note struct {
-	Text      string        `json:",omitempty"`
-	Direction DirectionKind `json:",omitempty"`
-	Target    TargetRef
-	Color     string `json:",omitempty"`
-	Alias     string `json:",omitempty"`
+	Text       string        `json:",omitempty"`
+	Direction  DirectionKind `json:",omitempty"`
+	Target     *TargetRef
+	Color      string `json:",omitempty"`
+	Identifier string `json:",omitempty"`
 	Trivia
 }
 

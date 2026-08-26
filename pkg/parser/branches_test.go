@@ -840,7 +840,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionRight,
-				Target:    ast.TargetRef{Entity: "MyClass"},
+				Target:    &ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -849,7 +849,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionTop,
-				Target:    ast.TargetRef{Entity: "MyClass"},
+				Target:    &ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -858,7 +858,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionBottom,
-				Target:    ast.TargetRef{Entity: "link"},
+				Target:    &ast.TargetRef{Entity: "link"},
 			},
 		},
 		{
@@ -875,7 +875,7 @@ func TestParseNote(t *testing.T) {
 			want: &ast.Note{
 				Text:      "some note text",
 				Direction: ast.DirectionLeft,
-				Target:    ast.TargetRef{Entity: "MyClass"},
+				Target:    &ast.TargetRef{Entity: "MyClass"},
 			},
 		},
 		{
@@ -902,16 +902,16 @@ func TestParseNote(t *testing.T) {
 			name:  "inline alias note",
 			input: `note "some note text" as N1`,
 			want: &ast.Note{
-				Text:  "some note text",
-				Alias: "N1",
+				Text:       "some note text",
+				Identifier: "N1",
 			},
 		},
 		{
 			name:  "inline alias note with color",
 			input: `note "some note text" as N1 #blue`,
 			want: &ast.Note{
-				Text:  "some note text",
-				Alias: "N1",
+				Text:       "some note text",
+				Identifier: "N1",
 			},
 		},
 		{

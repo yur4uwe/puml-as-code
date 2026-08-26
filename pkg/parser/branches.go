@@ -791,12 +791,12 @@ func (p *Parser) parseNote() (ast.Note, error) {
 	tok := p.stream.Emit()
 	var err error
 	if tok.Type == tokenizer.STRING {
-		err = p.parseInlineAliasNote(&note, tok)
+		err = p.parseInlineIdentNote(&note, tok)
 	} else {
 		class := keyword.Classify(tok.Literal)
 		switch class {
 		case keyword.Direction:
-			err = p.parseReltiveNote(&note, tok)
+			err = p.parseRelativeNote(&note, tok)
 		case keyword.Position:
 			err = p.parseLinkNote(&note, tok)
 		case keyword.Alias:
@@ -811,7 +811,7 @@ func (p *Parser) parseNote() (ast.Note, error) {
 	return note, nil
 }
 
-func (p *Parser) parseReltiveNote(note *ast.Note, dirTok tokenizer.Token) error {
+func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error {
 	note.Direction = p.mapTokenToDirection(dirTok)
 	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
 		target, err := p.parseTargetRef(p.stream.Emit()) // consume target
@@ -821,7 +821,7 @@ func (p *Parser) parseReltiveNote(note *ast.Note, dirTok tokenizer.Token) error 
 		if strings.ToLower(target.Entity) != "link" && relativeTok.Literal == "on" {
 			return NewParserError("Unexpected identifier for a note link target", relativeTok)
 		}
-		note.Target = target
+		note.Target = &target
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
 		return NewParserError("Unexpected identifier after direction", tok)
 	}
@@ -829,7 +829,7 @@ func (p *Parser) parseReltiveNote(note *ast.Note, dirTok tokenizer.Token) error 
 	return p.parseNoteBody(note)
 }
 
-func (p *Parser) parseInlineAliasNote(note *ast.Note, stringTok tokenizer.Token) error {
+func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) error {
 	note.Text = stringTok.Literal
 	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return NewParserError("Expected alias keyword after note text", aliasTok)
@@ -838,7 +838,7 @@ func (p *Parser) parseInlineAliasNote(note *ast.Note, stringTok tokenizer.Token)
 	if !ok {
 		return NewParserError("Expected identifier after alias keyword", tok)
 	}
-	note.Alias = tok.Literal
+	note.Identifier = tok.Literal
 	p.tryParseColor()
 	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
 		return NewParserError("Unexpected tokens after inline alias note", p.stream.PeekTokenAt(0))
