@@ -11,6 +11,7 @@ import (
 	"yur4uwe/pac/pkg/generator"
 	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/resolver"
 )
 
 func main() {
@@ -22,6 +23,11 @@ func main() {
 
 	if *inputf == "" {
 		fmt.Printf("Please, provide non-empty file path")
+		return
+	}
+
+	if *outdir == "" {
+		fmt.Printf("Output directory not specified, please, provide it\n")
 		return
 	}
 
@@ -53,20 +59,26 @@ func main() {
 		return
 	}
 
-	generator, err := generator.CodeGeneratorByLang(*lang)
+	err = resolver.ResolveImports(AST, *inputf, *id, resolver.OSFileReader{}, *lang)
 	if err != nil {
-		fmt.Printf("Error getting code generator: %v\n", err)
+		fmt.Printf("Error resolving imports: %v\n", err)
 		return
 	}
 
-	parsedCode, err := generator.GenerateFromClassDiagram(AST)
+	tbl, err := resolver.ResolveSymbols(AST)
 	if err != nil {
+		fmt.Printf("Error resolving symbols: %v\n", err)
+		return
+	}
+
+	generator, ok := generator.CodeGeneratorByLang(*lang)
+	if !ok {
+		fmt.Printf("Unsupported language: %s\n", *lang)
+		return
+	}
+
+	if err := generator.GenerateFromClassDiagram(tbl); err != nil {
 		fmt.Printf("Error generating code: %v\n", err)
-		return
-	}
-
-	if *outdir == "" {
-		fmt.Println(parsedCode)
 		return
 	}
 

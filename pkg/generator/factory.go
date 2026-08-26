@@ -1,22 +1,22 @@
 package generator
 
 import (
-	"fmt"
-	gogenerator "yur4uwe/pac/pkg/generator/go"
-	"yur4uwe/pac/pkg/parser/ast"
+	gogen "yur4uwe/pac/pkg/generator/go"
+	"yur4uwe/pac/pkg/resolver"
 )
 
 type CodeGenerator interface {
-	GenerateFromClassDiagram(diagram *ast.Diagram) (string, error)
+	SemanticPass(tbl *resolver.SymbolTable) error
+	GenerateFromClassDiagram(tbl *resolver.SymbolTable) error
 }
 
-var _ CodeGenerator = gogenerator.GoCodeGenerator{}
+var _ CodeGenerator = gogen.GoCodeGenerator{}
 
-func CodeGeneratorByLang(lang string) (CodeGenerator, error) {
+func CodeGeneratorByLang(lang string) (CodeGenerator, bool) {
 	switch lang {
 	case "go":
-		return gogenerator.GoCodeGenerator{}, nil
+		return gogen.GoCodeGenerator{}, true
 	default:
-		return nil, fmt.Errorf("unsupported language: %s", lang)
+		return nil, false
 	}
 }

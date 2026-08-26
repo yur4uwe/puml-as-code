@@ -85,7 +85,7 @@ func (tbl *SymbolTable) FindOrCreateByRef(ref ast.TargetRef) *EntitySymbol {
 }
 
 type EntitySymbol struct {
-	FQN         string // Local name (e.g. "Client")
+	FQN         string
 	PackagePath []string
 	AST         *ast.Entity
 	Notes       []*ast.Note
@@ -108,9 +108,10 @@ func newEntitySymbol(ent *ast.Entity, pkgPath []string) *EntitySymbol {
 
 type RelationshipSymbol struct {
 	AST    *ast.Relationship
-	Source *EntitySymbol // Resolved LHS (or normalized source)
-	Target *EntitySymbol // Resolved RHS (or normalized target)
-	Notes  []*ast.Note   // Notes on the relationship/link
+	Source *EntitySymbol // Subclass / Implementer / Owner
+	Target *EntitySymbol // Superclass / Interface / Contained
+	Type   ast.RelationType
+	Notes  []*ast.Note // Notes on the relationship/link
 }
 
 func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*RelationshipSymbol, error) {
@@ -136,6 +137,7 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		if headR == HeadNavigation {
 			log.Printf("warning: ignoring redundant association arrow on inheritance %s <|%c%c %s", rel.LHS.Entity, rel.Body, rel.Body, rel.RHS.Entity)
 		}
+		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS) // Subclass / Implementer
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS) // Superclass / Interface
 
@@ -143,6 +145,7 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		if headL == HeadNavigation {
 			log.Printf("warning: ignoring redundant association arrow on inheritance %s %c%c|> %s", rel.LHS.Entity, rel.Body, rel.Body, rel.RHS.Entity)
 		}
+		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS) // Subclass / Implementer
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS) // Superclass / Interface
 
@@ -150,26 +153,30 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		if headR == HeadNavigation {
 			log.Printf("warning: ignoring redundant association arrow on containment %s %c-- %s", rel.LHS.Entity, rel.LArrow, rel.RHS.Entity)
 		}
+		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS) // Owner
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS) // Contained
 
 	case headR == HeadContainment:
-
 		if headL == HeadNavigation {
 			log.Printf("warning: ignoring redundant association arrow on containment %s --%c %s", rel.LHS.Entity, rel.RArrow, rel.RHS.Entity)
 		}
+		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS) // Owner
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS) // Contained
 
 	case headL == HeadNavigation && headR == HeadNavigation:
+		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS)
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS)
 
 	case headR == HeadNavigation: // A --> B
+		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS)
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS)
 
 	case headL == HeadNavigation: // A <-- B
+		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS)
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS)
 

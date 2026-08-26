@@ -70,7 +70,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 ### Category F: Generator Infrastructure
 > Cross-cutting concerns that E-series items are built on top of.
 
-* [ ] **F1: Symbol Resolution Pass** — Before generation, walk all `Diagram.Statements` and build a `map[string]*ast.Entity` keyed by both `Identifier` and `Alias`. Required by E7–E11 to resolve both sides of a relationship to their AST nodes and determine their kind (struct vs. interface).
+* [x] **F1: Symbol Resolution Pass** — Before generation, walk all `Diagram.Statements` and build a `map[string]*ast.Entity` keyed by both `Identifier` and `Alias`. Required by E7–E11 to resolve both sides of a relationship to their AST nodes and determine their kind (struct vs. interface).
 * [ ] **F2: Template Engine Setup** — Load Go templates from a `templates/go/` directory at runtime using `os.DirFS` (not `embed.FS`, to preserve symlink intent). Directory structure mirrors entity kinds: `struct.go.tmpl`, `interface.go.tmpl`, `enum.go.tmpl`, with `class.go.tmpl` as a symlink to `struct.go.tmpl`. Templates are composed into per-file output.
 * [ ] **F3: Multi-File Output Strategy** — One `.go` file is emitted per `package` block, placed in a subdirectory matching the package name (lowercase). Root-level entities (outside any package block) are written to `<out dir>/types.go` with `package <diagram name>`. The full directory tree mirrors the package hierarchy in the diagram.
 * [ ] **F4: go/format Output Pass** — After template rendering, run `go/format` on each generated file. Surface formatting errors as generator errors (a formatting failure indicates a template or logic bug).
