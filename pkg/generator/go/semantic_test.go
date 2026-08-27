@@ -26,7 +26,6 @@ func parseAndResolveTable(t *testing.T, input string) *resolver.SymbolTable {
 func TestSemanticPass_PromoteViaRealization(t *testing.T) {
 	input := `
 @startuml
-set separator none
 class Reader {
     +Read() error
 }
@@ -71,7 +70,6 @@ ReadSeeker --|> Reader
 func TestSemanticPass_ErrorIfRealizedClassHasFields(t *testing.T) {
 	input := `
 @startuml
-set separator none
 class Reader {
     +buffer string
     +Read() error

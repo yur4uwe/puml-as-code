@@ -71,6 +71,12 @@ func (ts *TokenStream) matchPackageSeparatorAt(startIdx int) (int, bool) {
 	return 0, false
 }
 
+// AssertPackageSeparator returns whether the next token or sequence of tokens
+// matches the package separator and length of the sequence.
+func (ts *TokenStream) AssertPackageSeparator() (int, bool) {
+	return ts.matchPackageSeparatorAt(0)
+}
+
 func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
 	count, ok := ts.matchPackageSeparatorAt(0)
 	if !ok {

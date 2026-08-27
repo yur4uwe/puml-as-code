@@ -1098,15 +1098,22 @@ func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error)
 	segments := []string{firstTok.Literal}
 
 	for {
-		if _, ok := p.stream.TryConsumePackageSeparator(); ok {
-			tok := p.stream.Emit()
-			if tok.Type != tokenizer.IDENTIFIER && tok.Type != tokenizer.STRING {
-				return ref, NewParserError("Expected identifier or string after package separator in target ref", tok)
-			}
-			segments = append(segments, tok.Literal)
-			continue
+		length, ok := p.stream.AssertPackageSeparator()
+		if !ok {
+			break
 		}
-		break
+
+		afterPkgSep := p.stream.PeekTokenAt(length)
+		if afterPkgSep.Type != tokenizer.IDENTIFIER && afterPkgSep.Type != tokenizer.STRING {
+			// We have hit the case where the separator token is not a part of the entity reference
+			break
+		}
+
+		for range length {
+			p.stream.Emit()
+		}
+
+		segments = append(segments, p.stream.Emit().Literal)
 	}
 
 	if len(segments) > 0 {

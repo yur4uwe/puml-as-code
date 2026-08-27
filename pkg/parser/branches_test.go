@@ -1433,6 +1433,11 @@ func TestParseTargetRef(t *testing.T) {
 			input: `net.http.Client::"Do(Context)"`,
 			want:  ast.TargetRef{PackagePath: []string{"net", "http"}, Entity: "Client", Member: "Do(Context)"},
 		},
+		{
+			name:  "package separator follows the entity but not a part of it",
+			input: "Foo ..|> Bar",
+			want:  ast.TargetRef{Entity: "Foo"},
+		},
 	}
 
 	for _, tc := range tests {
