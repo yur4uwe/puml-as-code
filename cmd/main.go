@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"yur4uwe/pac/pkg/generator"
 	"yur4uwe/pac/pkg/parser"
@@ -16,7 +15,7 @@ import (
 
 func main() {
 	inputf := flag.String("in", "", "Path to the input file")
-	outdir := flag.String("out", "", "Path to the output dir (optional)")
+	outdir := flag.String("out", "", "Path to the output dir")
 	lang := flag.String("lang", "go", "Language to generate code in (default: go)")
 	id := flag.String("id", "", "Diagram's index in the target file or literal ID (optional)")
 	flag.Parse()
@@ -76,43 +75,9 @@ func main() {
 		fmt.Printf("Unsupported language: %s\n", *lang)
 		return
 	}
-
-	if err := generator.GenerateFromClassDiagram(tbl); err != nil {
+	_, err = generator.GenerateFromClassDiagram(tbl)
+	if err != nil {
 		fmt.Printf("Error generating code: %v\n", err)
-		return
-	}
-
-	info, err := os.Stat(*outdir)
-	switch {
-	case os.IsNotExist(err):
-		err = os.MkdirAll(*outdir, 0o755)
-		if err != nil {
-			fmt.Printf("Error creating output directory: %v\n", err)
-			return
-		}
-	case !info.IsDir():
-		fmt.Printf("Output path exists and is not a directory: %s\n", *outdir)
-		return
-	}
-
-	err = os.MkdirAll(*outdir, 0o755)
-	if err != nil {
-		fmt.Printf("Error creating output directory: %v\n", err)
-		return
-	}
-
-	fn := strings.TrimSuffix(filepath.Base(*inputf), filepath.Ext(*inputf)) + ".go"
-
-	outFd, err := os.Create(filepath.Join(*outdir, fn))
-	if err != nil {
-		fmt.Printf("Error creating output file: %v\n", err)
-		return
-	}
-	defer outFd.Close()
-
-	_, err = outFd.Write([]byte(parsedCode))
-	if err != nil {
-		fmt.Printf("Error writing to output file: %v\n", err)
 		return
 	}
 }

@@ -1,0 +1,7 @@
+type {{.Name}} int
+
+const (
+{{- range .Values}}
+    {{.Name}} {{.Type}} = {{.Value}}
+{{- end}}
+)

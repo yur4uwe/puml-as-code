@@ -1,0 +1,14 @@
+type {{.Name}} struct {
+{{- range .Embeds}}
+    {{.}}
+{{- end}}
+{{- range .Fields}}
+    {{.Name}} {{.Type}} {{if .Comment}}{{.Comment}}{{end}}
+{{- end}}
+}
+
+{{- range .Methods}}
+func (s *{{.Name}}) {{.Name}}{{.Signature}} {
+    panic("not implemented")
+}
+{{- end}}

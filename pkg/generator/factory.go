@@ -7,7 +7,7 @@ import (
 
 type CodeGenerator interface {
 	SemanticPass(tbl *resolver.SymbolTable) error
-	GenerateFromClassDiagram(tbl *resolver.SymbolTable) error
+	GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*gogen.GeneratedFile, error)
 }
 
 var _ CodeGenerator = gogen.GoCodeGenerator{}

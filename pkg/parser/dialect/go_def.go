@@ -172,6 +172,41 @@ func (g *GoMethod) MethodVisibility() ast.VisibilityKind {
 	return g.Visibility
 }
 
+func (g *GoMethod) Signature() string {
+	var sb strings.Builder
+	sb.WriteRune('(')
+	for i, param := range g.Parameters {
+		if i > 0 {
+			sb.WriteRune(',')
+		}
+		sb.WriteString(param.Name)
+		sb.WriteRune(' ')
+		sb.WriteString(param.Type.String())
+	}
+	sb.WriteRune(')')
+
+	if len(g.ReturnType) == 0 {
+		return sb.String()
+	}
+
+	sb.WriteRune(' ')
+
+	if len(g.ReturnType) > 1 || g.ReturnType[0].Name != "" {
+		sb.WriteRune('(')
+	}
+
+	for i, param := range g.ReturnType {
+		if i > 0 {
+			sb.WriteRune(',')
+		}
+		sb.WriteString(param.Name)
+		sb.WriteRune(' ')
+		sb.WriteString(param.Type.String())
+	}
+
+	return sb.String()
+}
+
 var (
 	_ ast.Method = (*GoMethod)(nil)
 	_ ast.Member = (*GoMethod)(nil)

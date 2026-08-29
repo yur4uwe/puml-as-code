@@ -1,0 +1,8 @@
+type {{.Name}} interface {
+{{- range .Embeds}}
+    {{.}}
+{{- end}}
+{{- range .Methods}}
+    {{.Name}}{{.Signature}}
+{{- end}}
+}

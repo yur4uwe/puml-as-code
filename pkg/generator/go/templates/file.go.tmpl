@@ -1,0 +1,14 @@
+package {{.PackageName}}
+
+{{range .Enums}}
+{{template "enum.go.tmpl" .}}
+{{end}}
+
+{{range .Interfaces}}
+{{template "interface.go.tmpl" .}}
+{{end}}
+
+{{range .Structs}}
+{{template "struct.go.tmpl" .}}
+{{end}}
+
