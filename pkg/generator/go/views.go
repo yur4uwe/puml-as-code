@@ -18,10 +18,11 @@ type FileView struct {
 }
 
 type StructView struct {
-	Name    string // e.g. "User"
-	Embeds  []string
-	Fields  []FieldView
-	Methods []MethodView
+	Name       string // e.g. "User"
+	Embeds     []string
+	Implements []string
+	Fields     []FieldView
+	Methods    []MethodView
 	NotesView
 	TriviaView
 }

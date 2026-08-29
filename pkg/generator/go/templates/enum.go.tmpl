@@ -1,7 +1,11 @@
 type {{.Name}} int
 
 const (
-{{- range .Values}}
-    {{.Name}} {{.Type}} = {{.Value}}
+{{- range $i, $v := .Values}}
+{{- if eq $i 0}}
+{{$.Name}}{{$v}} {{$.Name}} = iota
+{{- else}}
+{{$.Name}}{{$v}}
+{{- end}}
 {{- end}}
 )

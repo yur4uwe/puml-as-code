@@ -191,7 +191,8 @@ func (g *GoMethod) Signature() string {
 
 	sb.WriteRune(' ')
 
-	if len(g.ReturnType) > 1 || g.ReturnType[0].Name != "" {
+	hasParens := len(g.ReturnType) > 1 || g.ReturnType[0].Name != ""
+	if hasParens {
 		sb.WriteRune('(')
 	}
 
@@ -199,9 +200,15 @@ func (g *GoMethod) Signature() string {
 		if i > 0 {
 			sb.WriteRune(',')
 		}
-		sb.WriteString(param.Name)
-		sb.WriteRune(' ')
+		if param.Name != "" {
+			sb.WriteString(param.Name)
+			sb.WriteRune(' ')
+		}
 		sb.WriteString(param.Type.String())
+	}
+
+	if hasParens {
+		sb.WriteRune(')')
 	}
 
 	return sb.String()

@@ -69,14 +69,18 @@ func (GoCodeGenerator) SemanticPass(tbl *resolver.SymbolTable) error {
 					return err
 				}
 				log.Printf("warning: conditions met for interface promotion, %s will become an interface", rel.Target.FQN)
+			} else if isStruct(rel.Source.AST) && isInterface(rel.Target.AST) {
+				rel.Type = ast.RelationRealization
 			}
 		case ast.RelationRealization:
-			// Promotion check
 			if isStruct(rel.Target.AST) {
+				// Promotion check
 				if err := tryInterfacePromotion(rel.Target); err != nil {
 					return err
 				}
 				log.Printf("warning: conditions met for interface promotion, %s will become an interface", rel.Target.FQN)
+			} else if isInterface(rel.Source.AST) {
+				rel.Type = ast.RelationInheritance
 			}
 		}
 	}

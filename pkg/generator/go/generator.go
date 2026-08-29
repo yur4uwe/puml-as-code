@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"go/format"
 	"log"
+	"strconv"
 	"strings"
 	"text/template"
 
@@ -30,11 +31,11 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 	viewMap := map[string]*FileView{}
 
 	for _, ent := range tbl.Entities {
-		pkgPath := "/"
+		filePath := "types.go"
 		if len(ent.PackagePath) > 0 {
-			pkgPath += strings.Join(ent.PackagePath, "/")
+			filePath = strings.Join(ent.PackagePath, "/") + "/" + filePath
 		}
-		view, ok := viewMap[pkgPath]
+		view, ok := viewMap[filePath]
 		if !ok {
 			pkgName := "root"
 			if len(ent.PackagePath) > 0 {
@@ -43,14 +44,14 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 			view = &FileView{
 				PackageName: pkgName,
 			}
-			viewMap[pkgPath] = view
+			viewMap[filePath] = view
 		}
 
 		switch {
 		case isStruct(ent.AST):
 			view.Structs = append(view.Structs, toStructView(tbl, ent))
 		case isInterface(ent.AST):
-			view.Interfaces = append(view.Interfaces, toInterfaceView(ent))
+			view.Interfaces = append(view.Interfaces, toInterfaceView(tbl, ent))
 		case isEnum(ent.AST):
 			view.Enums = append(view.Enums, toEnumView(ent))
 		}
@@ -80,6 +81,75 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 	return files, nil
 }
 
+func renderSourceStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
+	switch rel.Type {
+	case ast.RelationInheritance:
+		if isInterface(rel.Target.AST) {
+			view.Implements = append(view.Implements, rel.Target.AST.Identifier)
+		} else {
+			view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
+		}
+	case ast.RelationRealization:
+		view.Implements = append(view.Implements, rel.Target.AST.Identifier)
+	}
+}
+
+func formatCompFieldType(ownerName string, mult ast.Cardinality) string {
+	if mult == ast.UnknownCardinality {
+		return ownerName
+	}
+	if mult.Min == 0 && mult.Max == 1 {
+		return "*" + ownerName
+	}
+	if mult.Max == -1 {
+		return "[]" + ownerName
+	}
+	if mult.Min == 1 && mult.Max == 1 {
+		return ownerName
+	}
+	if mult.Max > 0 {
+		return "[" + strconv.Itoa(mult.Max) + "]" + ownerName
+	}
+	return "unknown"
+}
+
+func formatAggFieldType(ownerName string, mult ast.Cardinality) string {
+	if mult == ast.UnknownCardinality {
+		return "*" + ownerName
+	}
+	if mult.Min == 0 && mult.Max == 1 {
+		return "*" + ownerName
+	}
+	if mult.Max == -1 {
+		return "[]*" + ownerName
+	}
+	if mult.Min == 1 && mult.Max == 1 {
+		return "*" + ownerName
+	}
+	if mult.Max > 0 {
+		return "[" + strconv.Itoa(mult.Max) + "]*" + ownerName
+	}
+	return "unknown"
+}
+
+func renderTargetStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
+	fieldView := FieldView{
+		Name: rel.Source.AST.Identifier,
+	}
+	switch rel.Type {
+	// need to clarify the difference between composition and aggregation
+	case ast.RelationComposition:
+		fieldView.Type = formatCompFieldType(rel.Source.AST.Identifier, rel.SourceMult)
+	case ast.RelationAggregation:
+		fieldView.Type = formatAggFieldType(rel.Source.AST.Identifier, rel.SourceMult)
+	case ast.RelationInheritance:
+		// do not output a warning, it will be handled in other struct
+	default:
+		log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
+	}
+	view.Fields = append(view.Fields, fieldView)
+}
+
 func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructView {
 	view := StructView{
 		Name:       ent.AST.Identifier,
@@ -89,23 +159,9 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructV
 
 	for _, rel := range tbl.Relationships {
 		if rel.Source == ent {
-			if rel.Type == ast.RelationInheritance {
-				view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
-			}
+			renderSourceStructRel(&view, rel)
 		} else if rel.Target == ent {
-			fieldView := FieldView{
-				Name: rel.Source.AST.Identifier,
-			}
-			switch rel.Type {
-			// need to clarify the difference between composition and aggregation
-			case ast.RelationComposition:
-			case ast.RelationAggregation:
-			case ast.RelationInheritance:
-				// do not output a warning, it will be handled in other struct
-			default:
-				log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
-			}
-			view.Fields = append(view.Fields, fieldView)
+			renderTargetStructRel(&view, rel)
 		}
 	}
 
@@ -121,16 +177,46 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructV
 	return view
 }
 
-func toInterfaceView(ent *resolver.EntitySymbol) InterfaceView {
+func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) InterfaceView {
 	view := InterfaceView{
 		Name: ent.AST.Identifier,
+	}
+	for _, rel := range tbl.Relationships {
+		if rel.Source == ent {
+			switch rel.Type {
+			case ast.RelationInheritance, ast.RelationRealization:
+				view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
+			}
+		} else if rel.Target == ent {
+			switch rel.Type {
+			// need to clarify the difference between composition and aggregation
+			case ast.RelationComposition:
+			case ast.RelationAggregation:
+			case ast.RelationInheritance:
+				// do not output a warning, it will be handled in other struct
+			default:
+				log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
+			}
+		}
+	}
+
+	for _, member := range ent.AST.Members {
+		view.Methods = append(
+			view.Methods,
+			toMethodView(ent.AST, member.(*dialect.GoMethod)),
+		)
 	}
 	return view
 }
 
 func toEnumView(ent *resolver.EntitySymbol) EnumView {
+	cases := make([]string, len(ent.AST.Members))
+	for i, member := range ent.AST.Members {
+		cases[i] = member.(*dialect.GoField).Name
+	}
 	view := EnumView{
-		Name: ent.AST.Identifier,
+		Name:   ent.AST.Identifier,
+		Values: cases,
 	}
 	return view
 }

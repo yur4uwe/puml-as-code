@@ -107,11 +107,13 @@ func newEntitySymbol(ent *ast.Entity, pkgPath []string) *EntitySymbol {
 }
 
 type RelationshipSymbol struct {
-	AST    *ast.Relationship
-	Source *EntitySymbol // Subclass / Implementer / Owner
-	Target *EntitySymbol // Superclass / Interface / Contained
-	Type   ast.RelationType
-	Notes  []*ast.Note // Notes on the relationship/link
+	AST        *ast.Relationship
+	Source     *EntitySymbol // Subclass / Implementer / Owner
+	Target     *EntitySymbol // Superclass / Interface / Contained
+	SourceMult ast.Cardinality
+	TargetMult ast.Cardinality
+	Type       ast.RelationType
+	Notes      []*ast.Note // Notes on the relationship/link
 }
 
 func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*RelationshipSymbol, error) {
@@ -139,7 +141,9 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		}
 		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS) // Subclass / Implementer
+		symb.SourceMult = rel.MultRHS
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS) // Superclass / Interface
+		symb.TargetMult = rel.MultLHS
 
 	case headR == HeadGeneralization:
 		if headL == HeadNavigation {
@@ -147,7 +151,9 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		}
 		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS) // Subclass / Implementer
+		symb.SourceMult = rel.MultLHS
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS) // Superclass / Interface
+		symb.TargetMult = rel.MultRHS
 
 	case headL == HeadContainment:
 		if headR == HeadNavigation {
@@ -155,7 +161,9 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		}
 		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS) // Owner
+		symb.SourceMult = rel.MultLHS
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS) // Contained
+		symb.TargetMult = rel.MultRHS
 
 	case headR == HeadContainment:
 		if headL == HeadNavigation {
@@ -163,26 +171,36 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship) (*Relationsh
 		}
 		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS) // Owner
+		symb.SourceMult = rel.MultRHS
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS) // Contained
+		symb.TargetMult = rel.MultLHS
 
 	case headL == HeadNavigation && headR == HeadNavigation:
 		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS)
+		symb.SourceMult = rel.MultLHS
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS)
+		symb.TargetMult = rel.MultRHS
 
 	case headR == HeadNavigation: // A --> B
 		symb.Type = rel.TypeRHS
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS)
+		symb.SourceMult = rel.MultLHS
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS)
+		symb.TargetMult = rel.MultRHS
 
 	case headL == HeadNavigation: // A <-- B
 		symb.Type = rel.TypeLHS
 		symb.Source = tbl.FindOrCreateByRef(rel.RHS)
+		symb.SourceMult = rel.MultRHS
 		symb.Target = tbl.FindOrCreateByRef(rel.LHS)
+		symb.TargetMult = rel.MultLHS
 
 	default: // Undirected A -- B
 		symb.Source = tbl.FindOrCreateByRef(rel.LHS)
+		symb.SourceMult = rel.MultLHS
 		symb.Target = tbl.FindOrCreateByRef(rel.RHS)
+		symb.TargetMult = rel.MultRHS
 	}
 
 	return symb, nil
