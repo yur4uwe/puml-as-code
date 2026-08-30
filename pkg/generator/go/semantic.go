@@ -15,7 +15,8 @@ func isInterface(ent *ast.Entity) bool {
 		return false
 	}
 	return ent.Kind == ast.EntityInterface ||
-		ent.Kind == ast.EntityAbstractClass
+		ent.Kind == ast.EntityAbstractClass ||
+		ent.Kind == ast.EntityProtocol
 }
 
 func isStruct(ent *ast.Entity) bool {
@@ -24,7 +25,9 @@ func isStruct(ent *ast.Entity) bool {
 	}
 	return ent.Kind == ast.EntityClass ||
 		ent.Kind == ast.EntityStruct ||
-		ent.Kind == ast.EntityRecord
+		ent.Kind == ast.EntityRecord ||
+		ent.Kind == ast.EntityDataclass ||
+		ent.Kind == ast.EntityException
 }
 
 func isEnum(ent *ast.Entity) bool {

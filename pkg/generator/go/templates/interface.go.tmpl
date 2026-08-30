@@ -1,8 +1,20 @@
+{{range .LeadingTrivia}}
+// {{.}}
+{{- end}}
+{{range .Notes}}
+// NOTE: {{.}}
+{{- end}}
 type {{.Name}} interface {
 {{- range .Embeds}}
     {{.}}
 {{- end}}
 {{- range .Methods}}
+    {{range .LeadingTrivia}}
+    // {{.}}
+    {{- end}}
+    {{range .Notes}}
+    // NOTE: {{.}}
+    {{- end}}
     {{.Name}}{{.Signature}}
 {{- end}}
 }

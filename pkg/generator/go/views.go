@@ -12,6 +12,7 @@ type TriviaView struct {
 // FileView represents a single .go file being generated
 type FileView struct {
 	PackageName string
+	Imports     []string
 	Structs     []StructView
 	Interfaces  []InterfaceView
 	Enums       []EnumView

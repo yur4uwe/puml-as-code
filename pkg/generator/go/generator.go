@@ -1,3 +1,4 @@
+// Package gogenerator provides a code generator and semantic pass for Go code.
 package gogenerator
 
 import (
@@ -142,10 +143,12 @@ func renderTargetStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
 		fieldView.Type = formatCompFieldType(rel.Source.AST.Identifier, rel.SourceMult)
 	case ast.RelationAggregation:
 		fieldView.Type = formatAggFieldType(rel.Source.AST.Identifier, rel.SourceMult)
-	case ast.RelationInheritance:
+	case ast.RelationInheritance, ast.RelationRealization:
 		// do not output a warning, it will be handled in other struct
+		return
 	default:
 		log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
+		return
 	}
 	view.Fields = append(view.Fields, fieldView)
 }
@@ -171,6 +174,7 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructV
 			view.Fields = append(view.Fields, toFieldView(ent.AST, member))
 		case *dialect.GoMethod:
 			view.Methods = append(view.Methods, toMethodView(ent.AST, member))
+		case ast.ClassSeparator:
 		}
 	}
 
@@ -192,7 +196,7 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) Inte
 			// need to clarify the difference between composition and aggregation
 			case ast.RelationComposition:
 			case ast.RelationAggregation:
-			case ast.RelationInheritance:
+			case ast.RelationInheritance, ast.RelationRealization:
 				// do not output a warning, it will be handled in other struct
 			default:
 				log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)

@@ -1,5 +1,13 @@
 package {{.PackageName}}
 
+{{if .Imports}}
+import (
+{{range .Imports}}
+    "{{.}}"
+{{end}}
+)
+{{end}}
+
 {{range .Enums}}
 {{template "enum.go.tmpl" .}}
 {{end}}
