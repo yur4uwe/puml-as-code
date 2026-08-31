@@ -1,17 +1,17 @@
 package root
 
 type Engine struct {
-	Car unknown
-
 	Power int
 }
 
 type Wheel struct {
-	Car unknown
-
 	Size int
 }
 
 type Car struct {
+	Engine Engine
+
+	Wheel [4]*Wheel
+
 	Model string
 }

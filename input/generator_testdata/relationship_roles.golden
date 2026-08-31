@@ -1,0 +1,20 @@
+package root
+
+type Engine struct {
+}
+
+type Wheel struct {
+}
+
+type Item struct {
+}
+
+type Order struct {
+	Items []Item
+
+	engine Engine
+
+	Wheel [4]*Wheel
+
+	Id string
+}

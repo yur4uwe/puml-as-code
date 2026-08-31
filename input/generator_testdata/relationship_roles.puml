@@ -1,0 +1,13 @@
+@startuml
+class Engine
+class Wheel
+class Item
+
+class Order {
+  +id string
+}
+
+Order *-- "0..*" Item : +items
+Order *-- Engine : -engine
+Order o-- "4" Wheel : uses >
+@enduml

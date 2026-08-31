@@ -1,8 +1,8 @@
-==> auth/v1/types.go <==
-package v1
+==> types.go <==
+package root
 
-type Token struct {
-	Secret string
+type Config struct {
+	Env string
 }
 
 ==> models/types.go <==
@@ -14,9 +14,9 @@ type User struct {
 	Name string
 }
 
-==> types.go <==
-package root
+==> auth/v1/types.go <==
+package v1
 
-type Config struct {
-	Env string
+type Token struct {
+	Secret string
 }

@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"unicode"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
@@ -82,21 +83,82 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 	return files, nil
 }
 
+func targetName(target *resolver.EntitySymbol) string {
+	if target == nil {
+		return "unknown"
+	}
+	if target.AST != nil && target.AST.Identifier != "" {
+		return target.AST.Identifier
+	}
+	return simpleName(target.FQN)
+}
+
+func reparseLabel(label string) string {
+	label = strings.TrimSpace(label)
+	if label == "" || strings.Contains(label, " ") {
+		return ""
+	}
+	var isPublic *bool
+	nameStartIdx := 0
+	switch label[0] {
+	case '+':
+		isPublic = new(bool)
+		*isPublic = true
+		nameStartIdx++
+	case '-', '~', '#':
+		isPublic = new(bool)
+		*isPublic = false
+		nameStartIdx++
+	default:
+		// Labels without explicit visibility are treated as descriptive verbs/titles
+		return ""
+	}
+	for i := nameStartIdx; i < len(label); i++ {
+		if unicode.IsLetter(rune(label[i])) ||
+			unicode.IsNumber(rune(label[i])) ||
+			label[i] == '_' {
+			continue
+		}
+		return ""
+	}
+	if len(label[nameStartIdx:]) == 0 {
+		return ""
+	}
+	if *isPublic {
+		return ensureUpper(label[nameStartIdx:])
+	}
+	return ensureLower(label[nameStartIdx:])
+}
+
 func renderSourceStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
+	fieldView := FieldView{}
+	targetIdent := targetName(rel.Target)
+	if customName := reparseLabel(rel.AST.Label); customName != "" {
+		fieldView.Name = customName
+	} else {
+		fieldView.Name = targetIdent
+	}
+
 	switch rel.Type {
 	case ast.RelationInheritance:
 		if isInterface(rel.Target.AST) {
-			view.Implements = append(view.Implements, rel.Target.AST.Identifier)
+			view.Implements = append(view.Implements, targetIdent)
 		} else {
-			view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
+			view.Embeds = append(view.Embeds, targetIdent)
 		}
 	case ast.RelationRealization:
-		view.Implements = append(view.Implements, rel.Target.AST.Identifier)
+		view.Implements = append(view.Implements, targetIdent)
+	case ast.RelationComposition:
+		fieldView.Type = formatCompFieldType(targetIdent, rel.TargetMult)
+		view.Fields = append(view.Fields, fieldView)
+	case ast.RelationAggregation, ast.RelationAssociation:
+		fieldView.Type = formatAggFieldType(targetIdent, rel.TargetMult)
+		view.Fields = append(view.Fields, fieldView)
 	}
 }
 
 func formatCompFieldType(ownerName string, mult ast.Cardinality) string {
-	if mult == ast.UnknownCardinality {
+	if mult == ast.UnknownCardinality || mult.Raw == "" || (mult.Min == 0 && mult.Max == 0) {
 		return ownerName
 	}
 	if mult.Min == 0 && mult.Max == 1 {
@@ -111,11 +173,11 @@ func formatCompFieldType(ownerName string, mult ast.Cardinality) string {
 	if mult.Max > 0 {
 		return "[" + strconv.Itoa(mult.Max) + "]" + ownerName
 	}
-	return "unknown"
+	return ownerName
 }
 
 func formatAggFieldType(ownerName string, mult ast.Cardinality) string {
-	if mult == ast.UnknownCardinality {
+	if mult == ast.UnknownCardinality || mult.Raw == "" || (mult.Min == 0 && mult.Max == 0) {
 		return "*" + ownerName
 	}
 	if mult.Min == 0 && mult.Max == 1 {
@@ -130,28 +192,18 @@ func formatAggFieldType(ownerName string, mult ast.Cardinality) string {
 	if mult.Max > 0 {
 		return "[" + strconv.Itoa(mult.Max) + "]*" + ownerName
 	}
-	return "unknown"
+	return "*" + ownerName
 }
 
-func renderTargetStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
-	fieldView := FieldView{
-		Name: rel.Source.AST.Identifier,
-	}
-	switch rel.Type {
-	// need to clarify the difference between composition and aggregation
-	case ast.RelationComposition:
-		fieldView.Type = formatCompFieldType(rel.Source.AST.Identifier, rel.SourceMult)
-	case ast.RelationAggregation:
-		fieldView.Type = formatAggFieldType(rel.Source.AST.Identifier, rel.SourceMult)
-	case ast.RelationInheritance, ast.RelationRealization:
-		// do not output a warning, it will be handled in other struct
-		return
-	default:
-		log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
-		return
-	}
-	view.Fields = append(view.Fields, fieldView)
-}
+// func renderTargetStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
+// 	switch rel.Type {
+// 	// need to clarify the difference between composition and aggregation
+// 	case ast.RelationInheritance, ast.RelationRealization:
+// 		// do not output a warning, it will be handled in other struct
+// 	default:
+// 		log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
+// 	}
+// }
 
 func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructView {
 	view := StructView{
@@ -163,9 +215,11 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructV
 	for _, rel := range tbl.Relationships {
 		if rel.Source == ent {
 			renderSourceStructRel(&view, rel)
-		} else if rel.Target == ent {
-			renderTargetStructRel(&view, rel)
 		}
+		// // For now doesn't handle any cases
+		// } else if rel.Target == ent {
+		// 	renderTargetStructRel(&view, rel)
+		// }
 	}
 
 	for _, member := range ent.AST.Members {
@@ -275,7 +329,7 @@ func ensureCorrectCase(ownerName string, fieldName string, visibility ast.Visibi
 
 	switch visibility {
 	case ast.VisibilityProtected, ast.VisibilityPrivate:
-		log.Printf("warning: %s field %s.%s is not supported in Go, using package encapsulation instead", visibility, ownerName, fieldName)
+		log.Printf("warning: %s encapsulation for field %s.%s is not supported in Go, using package encapsulation instead", visibility, ownerName, fieldName)
 		fallthrough
 	case ast.VisibilityPackage:
 		if !isUpper(newName[0]) {

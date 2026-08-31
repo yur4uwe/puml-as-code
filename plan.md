@@ -63,15 +63,15 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [ ] **E6: Member Modifiers** — `{static}` members are emitted as package-level functions or package-level variables/constants (not receiver methods/struct fields). `{abstract}` methods are emitted only into companion interfaces.
 * [ ] **E7: Inheritance (--|>) → Embedding** — `Bar --|> Foo` where `Foo` is a struct → anonymous embed: `type Bar struct { Foo; ... }`. Where `Foo` is an interface → interface embedding: `type Bar interface { Foo; ... }`. Multiple struct embedding is fully supported (Go naturally supports embedding multiple structs and resolves field selectors through embedding hierarchy).
 * [x] **E8: Realization (..|>) → Compile-time Interface Check** — `Bar ..|> IFoo` → emit `var _ IFoo = (*Bar)(nil)` as a compile-time satisfaction assertion. Fixed template reference scoping (`(*{{$.Name}})(nil)`).
-* [ ] **E9: Composition & Aggregation → Struct Fields** — Correct relationship ownership: add fields to the owning (source) struct pointing to the target. Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`), fixed `N` → array (`[N]Engine`).
-* [ ] **E10: Association (-->) → Pointer Field** — `Car --> Engine` → non-owning reference field (`Engine *Engine` or `[]*Engine`). Cardinality rules from E9 apply.
+* [x] **E9: Composition & Aggregation → Struct Fields** — Correct relationship ownership: add fields to the owning (source) struct pointing to the target. Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`), fixed `N` → array (`[N]Engine`).
+* [x] **E10: Association (-->) → Pointer Field** — `Car --> Engine` → non-owning reference field (`Engine *Engine` or `[]*Engine`). Cardinality rules from E9 apply.
 * [ ] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a type-level comment.
 * [ ] **E12: Generic Types & Type Parameters** — Parse and render Go type parameters (`[T any]`, `[K comparable, V any]`) on structs and interfaces from `ast.Entity.Generic`.
 * [ ] **E13: Doc Comments, Trivia & Notes** — Map leading/trailing `ast.Trivia` and attached UML notes (`ast.Note`) to idiomatic Go doc comments preceding types, fields, and methods.
 * [ ] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
 * [ ] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports.
 * [ ] **E16: Extended Entity Kinds** — Map `record` and `dataclass` to structs, `protocol` to interface, and `exception` to a struct implementing Go's `error` interface (`Error() string`).
-* [ ] **E17: Relationship Labels & Field Naming** — Use relationship labels or role names (e.g. `Order *-- "*" Item : items` or `: -items`) to derive field names instead of always defaulting to the target type name.
+* [x] **E17: Relationship Labels & Field Naming** — Use relationship labels or role names (e.g. `Order *-- "*" Item : items` or `: -items`) to derive field names instead of always defaulting to the target type name.
 * [ ] **E18: Sketch-Grade / Untyped Fields & Parameters** — Safely handle Level 1 sketch types where field or parameter types are omitted (`Type == nil`), defaulting to `any` instead of panicking.
 * [ ] **E19: Class Separators / Section Comments** — Render `ast.ClassSeparator` dividers (`-- Section --`, `.. Private ..`) as formatted section comments within struct and interface declarations.
 * [ ] **E20: Struct Tags (Deferred)** — Defer struct tags syntax design (` `...` ` or modifiers) until core generation features are completed.
@@ -83,7 +83,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **F2: Template Engine Setup** — Go templates parsed via `embed.FS` (`file.go.tmpl`, `struct.go.tmpl`, `interface.go.tmpl`, `enum.go.tmpl`).
 * [ ] **F3: Multi-File Output Strategy** — Group entities by package path into subdirectories (`<pkg>/types.go`), with root entities written to `types.go`. Ensure package names align with diagram or folder names.
 * [x] **F4: go/format Output Pass** — After template rendering, run `go/format.Source` on each generated file. Surface formatting errors with raw source context.
-* [ ] **F5: Generator Test Harness** — Golden-file integration tests for the generator, mirroring the parser's `integration_test.go` pattern. Each fixture is a `.puml` input paired with expected `.go` files.
+* [x] **F5: Generator Test Harness** — Golden-file integration tests for the generator, mirroring the parser's `integration_test.go` pattern. Each fixture is a `.puml` input paired with expected `.go` files.
 * [ ] **F6: Generator CLI Integration** — Connect generator to CLI pipeline in `cmd/` for automated code generation from input `.puml` files to target output directories.
 
 ---
@@ -102,10 +102,10 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * **Goal:** Produce valid, `go/format`-clean Go source files from a parsed class diagram handling full data scope.
 * **Tasks:**
   1. [x] Fix template scoping bugs in `struct.go.tmpl` and ensure baseline tests pass.
-  2. [ ] Implement **F5** (generator golden test harness) with initial fixtures.
-  3. Fix relationship ownership in **E9** (composition/aggregation) and implement **E10** (association) & **E17** (relation labels/roles).
-  4. Implement **E15** (imports block generation) and **E14** (cross-package qualification).
-  5. Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
-  6. Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
-  7. Implement **E6** (static modifiers) and **E16** (extended entity kinds: exceptions, records, protocols).
-  8. Connect generator into CLI in **F6**.
+  2. [x] Implement **F5** (generator golden test harness) with initial fixtures.
+  3. [x] Fix relationship ownership in **E9** (composition/aggregation) and implement **E10** (association) & **E17** (relation labels/roles).
+  4. [ ] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
+  5. [ ] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
+  6. [ ] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
+  7. [ ] Implement **E6** (static modifiers) and **E16** (extended entity kinds: exceptions, records, protocols).
+  8. [ ] Connect generator into CLI in **F6**.
