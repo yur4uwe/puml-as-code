@@ -1,0 +1,10 @@
+@startuml
+' User represents a customer entity
+class User {
+  ' Unique identifier
+  +id string
+  +name string
+}
+
+note top of User : Main domain entity
+@enduml

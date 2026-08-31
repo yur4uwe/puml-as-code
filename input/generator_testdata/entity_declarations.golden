@@ -1,0 +1,23 @@
+package root
+
+type Status int
+
+const (
+	StatusActive Status = iota
+	StatusInactive
+	StatusPending
+)
+
+type Service interface {
+	Process(item string) error
+}
+
+type User struct {
+	Id string
+
+	Name string
+}
+
+func (s *User) GetEmail() string {
+	panic("not implemented")
+}

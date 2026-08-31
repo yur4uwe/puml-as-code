@@ -1,0 +1,17 @@
+package root
+
+type Engine struct {
+	Car unknown
+
+	Power int
+}
+
+type Wheel struct {
+	Car unknown
+
+	Size int
+}
+
+type Car struct {
+	Model string
+}

@@ -1,0 +1,22 @@
+package root
+
+type Status int
+
+const (
+	StatusActive Status = iota
+	StatusInactive
+)
+
+type Greeter interface {
+	Greet(name string) string
+}
+
+type User struct {
+	Name string
+}
+
+var _ Greeter = (*User)(nil)
+
+func (s *User) Greet(name string) string {
+	panic("not implemented")
+}

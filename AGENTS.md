@@ -51,3 +51,9 @@ go doc ./pkg/parser
 go doc ./pkg/parser/ast
 go doc ./pkg/generator/go
 ```
+
+## 3. Navigating the Codebase
+
+### Current Backlog
+
+Full list of tasks is available in [`plan.md`](file:///home/yur4uwe/Projects/puml-as-code/plan.md).

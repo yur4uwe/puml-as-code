@@ -1,0 +1,22 @@
+==> auth/v1/types.go <==
+package v1
+
+type Token struct {
+	Secret string
+}
+
+==> models/types.go <==
+package models
+
+type User struct {
+	Id string
+
+	Name string
+}
+
+==> types.go <==
+package root
+
+type Config struct {
+	Env string
+}

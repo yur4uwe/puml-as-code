@@ -1387,20 +1387,25 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		p.stream.MustConsumeType(tokenizer.RPAREN)
 		rel.RArrow = rune(tok.Literal[0])
 	// position INDEPENDENT start and end tokens
-	case tokenizer.IDENTIFIER, tokenizer.ASTERISK:
+	case tokenizer.ASTERISK:
+		rel.TypeRHS = ast.RelationComposition
+		p.stream.Emit()
+		rel.RArrow = rune(tok.Literal[0])
+	case tokenizer.IDENTIFIER:
 		// special case for 'x' and 'o' in relationship
 		switch tok.Literal {
-		case "*":
-			rel.TypeRHS = ast.RelationComposition
 		case "x":
+			p.stream.Emit()
+			rel.RArrow = rune(tok.Literal[0])
 		case "o":
 			if rel.Body == '-' {
 				rel.TypeRHS = ast.RelationAggregation
 			}
+			p.stream.Emit()
+			rel.RArrow = rune(tok.Literal[0])
 		default:
 			return NewParserError("Unexpected identifier in relationship definition", tok)
 		}
-		fallthrough
 	case tokenizer.HASH, tokenizer.PLUS, tokenizer.CARET:
 		p.stream.Emit()
 		rel.RArrow = rune(tok.Literal[0])
@@ -1561,11 +1566,10 @@ func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
 		idx++
 		hasRightArrowhead = true
 	case tokenizer.IDENTIFIER:
-		if rTok.Literal != "x" && rTok.Literal != "o" {
-			return 0, false
+		if rTok.Literal == "x" || rTok.Literal == "o" {
+			idx++
+			hasRightArrowhead = true
 		}
-		idx++
-		hasRightArrowhead = true
 	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
 		idx++
 		hasRightArrowhead = true

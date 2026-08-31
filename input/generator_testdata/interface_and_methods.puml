@@ -1,0 +1,16 @@
+@startuml
+interface Greeter {
+  +Greet(name string) string
+}
+
+class User {
+  +name string
+  +Greet(name string) string
+}
+User ..|> Greeter
+
+enum Status {
+  +Active int
+  +Inactive int
+}
+@enduml

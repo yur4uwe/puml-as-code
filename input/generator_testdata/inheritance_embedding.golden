@@ -1,0 +1,21 @@
+package root
+
+type Reader interface {
+	Read() error
+}
+
+type ReadCloser interface {
+	Reader
+
+	Close() error
+}
+
+type Vehicle struct {
+	Speed int
+}
+
+type Car struct {
+	Vehicle
+
+	Vin string
+}

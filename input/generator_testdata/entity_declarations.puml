@@ -1,0 +1,17 @@
+@startuml
+class User {
+  +id string
+  +name string
+  +GetEmail() string
+}
+
+interface Service {
+  +Process(item string) error
+}
+
+enum Status {
+  +Active int
+  +Inactive int
+  +Pending int
+}
+@enduml

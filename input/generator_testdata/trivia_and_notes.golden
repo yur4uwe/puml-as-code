@@ -1,0 +1,10 @@
+package root
+
+// User represents a customer entity
+
+// NOTE: Main domain entity
+type User struct {
+	Id string
+
+	Name string
+}

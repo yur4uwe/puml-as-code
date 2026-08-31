@@ -1,0 +1,19 @@
+@startuml
+class Vehicle {
+  +speed int
+}
+
+class Car {
+  +vin string
+}
+Car --|> Vehicle
+
+interface Reader {
+  +Read() error
+}
+
+interface ReadCloser {
+  +Close() error
+}
+ReadCloser --|> Reader
+@enduml

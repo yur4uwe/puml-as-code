@@ -817,6 +817,102 @@ func TestParseArrowTokens(t *testing.T) {
 	}
 }
 
+func TestParseRelationship(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      ast.Relationship
+		expectErr bool
+	}{
+		{
+			name:  "composition left-headed without right arrowhead",
+			input: "Car *-- Engine",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "Car"},
+				LArrow:  '*',
+				Body:    '-',
+				TypeLHS: ast.RelationComposition,
+				RHS:     ast.TargetRef{Entity: "Engine"},
+			},
+		},
+		{
+			name:  "aggregation left-headed without right arrowhead",
+			input: "Car o-- Wheel",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "Car"},
+				LArrow:  'o',
+				Body:    '-',
+				TypeLHS: ast.RelationAggregation,
+				RHS:     ast.TargetRef{Entity: "Wheel"},
+			},
+		},
+		{
+			name:  "inheritance left-headed without right arrowhead",
+			input: "Vehicle <|-- Car",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "Vehicle"},
+				LArrow:  '|',
+				Body:    '-',
+				TypeLHS: ast.RelationInheritance,
+				RHS:     ast.TargetRef{Entity: "Car"},
+			},
+		},
+		{
+			name:  "composition with multiplicity on target",
+			input: "Car *-- \"1..*\" Engine",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "Car"},
+				LArrow:  '*',
+				Body:    '-',
+				TypeLHS: ast.RelationComposition,
+				MultRHS: ast.Cardinality{Raw: "1..*", Min: 1, Max: -1},
+				RHS:     ast.TargetRef{Entity: "Engine"},
+			},
+		},
+		{
+			name:  "association with label",
+			input: "User --> Service : uses",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "User"},
+				Body:    '-',
+				RArrow:  '>',
+				TypeRHS: ast.RelationAssociation,
+				RHS:     ast.TargetRef{Entity: "Service"},
+				Label:   "uses",
+			},
+		},
+		{
+			name:  "realization with right arrowhead",
+			input: "User ..|> Greeter",
+			want: ast.Relationship{
+				LHS:     ast.TargetRef{Entity: "User"},
+				Body:    '.',
+				RArrow:  '|',
+				TypeRHS: ast.RelationRealization,
+				RHS:     ast.TargetRef{Entity: "Greeter"},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream: tokenizer.NewTokenStream(tc.input),
+			}
+			firstTok := p.stream.Emit()
+			require.True(t, p.HasArrowOnLine(), "HasArrowOnLine should be true for %s", tc.input)
+
+			rel, err := p.parseRelationship(firstTok)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				require.Equal(t, tc.want, rel)
+			}
+		})
+	}
+}
+
 func TestParseNote(t *testing.T) {
 	tests := []struct {
 		name        string

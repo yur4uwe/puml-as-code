@@ -1,0 +1,18 @@
+@startuml
+package models {
+  class User {
+    +id string
+    +name string
+  }
+}
+
+package auth.v1 {
+  class Token {
+    +secret string
+  }
+}
+
+class Config {
+  +env string
+}
+@enduml
