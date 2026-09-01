@@ -9,8 +9,7 @@ type Config struct {
 package models
 
 type User struct {
-	Id string
-
+	Id   string
 	Name string
 }
 

@@ -10,8 +10,6 @@ type Wheel struct {
 
 type Car struct {
 	Engine Engine
-
-	Wheel [4]*Wheel
-
-	Model string
+	Wheel  [4]*Wheel
+	Model  string
 }

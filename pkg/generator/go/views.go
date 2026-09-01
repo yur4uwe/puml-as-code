@@ -14,6 +14,7 @@ type TriviaView struct {
 // FileView represents a single .go file being generated
 type FileView struct {
 	PackageName string
+	ImportPath  string
 	Imports     []string
 	Structs     []StructView
 	Interfaces  []InterfaceView
@@ -22,7 +23,7 @@ type FileView struct {
 
 func (f *FileView) AddImport(importPath string) {
 	// Potentially can improve search performace with binary search
-	if importPath == "" || importPath == f.PackageName {
+	if importPath == "" || importPath == f.PackageName || importPath == f.ImportPath {
 		return
 	}
 	// Deduplicate

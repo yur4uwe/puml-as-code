@@ -1,6 +1,7 @@
 package stdlib
 
 import (
+	"strings"
 	"testing"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -10,33 +11,42 @@ import (
 )
 
 func TestBuiltinTypes(t *testing.T) {
-	assert.True(t, IsBuiltin("error"))
-	assert.True(t, IsBuiltin("any"))
-	assert.True(t, IsBuiltin("string"))
-	assert.True(t, IsBuiltin("int64"))
-	assert.False(t, IsBuiltin("MyCustomType"))
-	assert.False(t, IsBuiltin("Time"))
+	assert.True(t, IsBuiltinType("error"))
+	assert.True(t, IsBuiltinType("any"))
+	assert.True(t, IsBuiltinType("string"))
+	assert.True(t, IsBuiltinType("int64"))
+	assert.False(t, IsBuiltinType("MyCustomType"))
+	assert.False(t, IsBuiltinType("Time"))
 }
 
 func TestLookupImportPath(t *testing.T) {
 	tests := []struct {
-		input        string
+		input        []string
 		expectedPath string
 		expectedOk   bool
 	}{
-		{"time", "time", true},
-		{"context", "context", true},
-		{"io", "io", true},
-		{"http", "net/http", true},
-		{"net/http", "net/http", true},
-		{"json", "encoding/json", true},
-		{"sql", "database/sql", true},
-		{"rand", "crypto/rand", true},
-		{"unknown_pkg", "", false},
+		{[]string{"time"}, "time", true},
+		{[]string{"context"}, "context", true},
+		{[]string{"io"}, "io", true},
+		{[]string{"http"}, "net/http", true},
+		{[]string{"net", "http"}, "net/http", true},
+		{[]string{"json"}, "encoding/json", true},
+		{[]string{"encoding", "json"}, "encoding/json", true},
+		{[]string{"sql"}, "database/sql", true},
+		{[]string{"database", "sql"}, "database/sql", true},
+		{[]string{"rand"}, "crypto/rand", true},
+		{[]string{"crypto", "rand"}, "crypto/rand", true},
+		{[]string{"unknown_pkg"}, "", false},
+		{[]string{}, "", false},
+		{nil, "", false},
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.input, func(t *testing.T) {
+		name := strings.Join(tt.input, "/")
+		if name == "" {
+			name = "empty"
+		}
+		t.Run(name, func(t *testing.T) {
 			path, ok := LookupImportPath(tt.input)
 			assert.Equal(t, tt.expectedOk, ok)
 			if ok {
@@ -44,6 +54,18 @@ func TestLookupImportPath(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIsStdlibPackage(t *testing.T) {
+	assert.True(t, IsStdlibPackage([]string{"time"}))
+	assert.True(t, IsStdlibPackage([]string{"net", "http"}))
+	assert.True(t, IsStdlibPackage([]string{"http"}))
+	assert.True(t, IsStdlibPackage([]string{"encoding", "json"}))
+	assert.True(t, IsStdlibPackage([]string{"json"}))
+	assert.False(t, IsStdlibPackage([]string{"models"}))
+	assert.False(t, IsStdlibPackage([]string{"auth", "v1"}))
+	assert.False(t, IsStdlibPackage([]string{}))
+	assert.False(t, IsStdlibPackage(nil))
 }
 
 func TestIsStdlibEntity(t *testing.T) {

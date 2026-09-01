@@ -9,14 +9,21 @@ import (
 	"yur4uwe/pac/pkg/resolver"
 )
 
+func targetFieldName(target *resolver.EntitySymbol) string {
+	if target == nil {
+		return "unknown"
+	}
+	if target.AST != nil && target.AST.Identifier != "" {
+		return target.AST.Identifier
+	}
+	return stdlib.SimpleName(target.FQN)
+}
+
 func targetTypeName(sourcePkg []string, target *resolver.EntitySymbol) string {
 	if target == nil {
 		return "unknown"
 	}
-	ident := target.AST.Identifier
-	if ident == "" {
-		ident = stdlib.SimpleName(target.FQN)
-	}
+	ident := targetFieldName(target)
 	if slices.Equal(sourcePkg, target.PackagePath) {
 		return ident
 	}

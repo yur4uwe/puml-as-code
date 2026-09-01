@@ -10,11 +10,8 @@ type Item struct {
 }
 
 type Order struct {
-	Items []Item
-
+	Items  []Item
 	engine Engine
-
-	Wheel [4]*Wheel
-
-	Id string
+	Wheel  [4]*Wheel
+	Id     string
 }

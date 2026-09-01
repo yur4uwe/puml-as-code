@@ -1,0 +1,25 @@
+@startuml
+package models {
+  class User {
+    +id string
+    +createdAt time.Time
+  }
+}
+
+package auth.v1 {
+  class Token {
+    +secret string
+    +Validate(ctx context.Context) error
+  }
+}
+
+package billing {
+  class Invoice {
+    +amount float64
+    +Fetch(req *http.Request) (io.Reader, error)
+  }
+}
+
+billing.Invoice *-- models.User
+billing.Invoice --> auth.v1.Token
+@enduml

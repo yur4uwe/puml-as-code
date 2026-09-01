@@ -4,7 +4,6 @@ package root
 
 // NOTE: Main domain entity
 type User struct {
-	Id string
-
+	Id   string
 	Name string
 }

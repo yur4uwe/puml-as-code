@@ -1,0 +1,46 @@
+==> models/types.go <==
+package models
+
+import (
+	"time"
+)
+
+type User struct {
+	Id        string
+	CreatedAt time.Time
+}
+
+==> billing/types.go <==
+package billing
+
+import (
+	"auth/v1"
+	"io"
+	"models"
+	"net/http"
+)
+
+type Invoice struct {
+	User   models.User
+	Token  *v1.Token
+	Amount float64
+}
+
+func (s *Invoice) Fetch(req *http.Request) (io.Reader, error) {
+	panic("not implemented")
+}
+
+==> auth/v1/types.go <==
+package v1
+
+import (
+	"context"
+)
+
+type Token struct {
+	Secret string
+}
+
+func (s *Token) Validate(ctx context.Context) error {
+	panic("not implemented")
+}

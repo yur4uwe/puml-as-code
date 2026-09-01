@@ -3,6 +3,7 @@ package gogenerator
 import (
 	"fmt"
 	"log"
+	"slices"
 
 	"yur4uwe/pac/pkg/generator/go/stdlib"
 	"yur4uwe/pac/pkg/parser/ast"
@@ -95,8 +96,17 @@ func (GoCodeGenerator) SemanticPass(tbl *resolver.SymbolTable) error {
 				return fmt.Errorf("enum %s must declare fields", ent.FQN)
 			}
 		case stdlib.IsStdlibEntity(ent):
-			// We should ignore it
+			if ent.AST == nil {
+				continue
+			}
+			if len(ent.AST.Members) > 0 {
+				log.Printf("warning: custom members declared on stdlib entity %s will be ignored", ent.FQN)
+			}
 		}
 	}
+
+	tbl.Entities = slices.DeleteFunc(tbl.Entities, func(ent *resolver.EntitySymbol) bool {
+		return stdlib.IsStdlibEntity(ent)
+	})
 	return nil
 }

@@ -1,8 +1,10 @@
 package gogenerator
 
 import (
-	"log"
+	"slices"
+	"strings"
 
+	"yur4uwe/pac/pkg/generator/go/stdlib"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/resolver"
@@ -38,6 +40,37 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 	return view
 }
 
+func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) InterfaceView {
+	view := InterfaceView{
+		Name: ent.AST.Identifier,
+	}
+	for _, rel := range tbl.Relationships {
+		if rel.Source != ent {
+			continue
+		}
+
+		switch rel.Type {
+		case ast.RelationInheritance, ast.RelationRealization:
+			if impPath, ok := stdlib.LookupImportPath(rel.Target.PackagePath); ok {
+				fileView.AddImport(impPath)
+			} else if len(rel.Target.PackagePath) > 0 && !slices.Equal(rel.Source.PackagePath, rel.Target.PackagePath) {
+				fileView.AddImport(strings.Join(rel.Target.PackagePath, "/"))
+			}
+
+			embedding := targetTypeName(rel.Source.PackagePath, rel.Target)
+			view.Embeds = append(view.Embeds, embedding)
+		}
+	}
+
+	for _, member := range ent.AST.Members {
+		view.Methods = append(
+			view.Methods,
+			toMethodView(ent.AST, member.(*dialect.GoMethod), fileView),
+		)
+	}
+	return view
+}
+
 func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	cases := make([]string, len(ent.AST.Members))
 	for i, member := range ent.AST.Members {
@@ -50,7 +83,33 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	return view
 }
 
+func collectImports(typeRef *dialect.GoTypeRef, fileView *FileView) {
+	if typeRef == nil || fileView == nil {
+		return
+	}
+
+	// Traverse modifiers (*, [], [N]) to find the root named node
+	curr := typeRef
+	for curr != nil && curr.Typ != dialect.KindNamed {
+		curr = curr.Base
+	}
+
+	// If curr has a Base, it is a qualified package reference (e.g. "time" in time.
+	// Time)
+	if curr == nil || curr.Base == nil {
+		return
+	}
+
+	pkgName := curr.Name
+	if imp, ok := stdlib.LookupImportPath([]string{pkgName}); ok {
+		fileView.AddImport(imp)
+	} else {
+		fileView.AddImport(pkgName)
+	}
+}
+
 func toFieldView(owner *ast.Entity, field *dialect.GoField, fileView *FileView) FieldView {
+	collectImports(field.Type, fileView)
 	return FieldView{
 		Name: ensureCorrectCase(owner.Identifier, field.Name, field.Visibility),
 		Type: field.Type.String(),
@@ -58,42 +117,16 @@ func toFieldView(owner *ast.Entity, field *dialect.GoField, fileView *FileView) 
 }
 
 func toMethodView(owner *ast.Entity, method *dialect.GoMethod, fileView *FileView) MethodView {
+	for _, param := range method.Parameters {
+		collectImports(param.Type, fileView)
+	}
+	for _, ret := range method.ReturnType {
+		collectImports(ret.Type, fileView)
+	}
 	return MethodView{
 		Name:      ensureCorrectCase(owner.Identifier, method.Name, method.Visibility),
 		Signature: method.Signature(),
 	}
-}
-
-func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) InterfaceView {
-	view := InterfaceView{
-		Name: ent.AST.Identifier,
-	}
-	for _, rel := range tbl.Relationships {
-		if rel.Source == ent {
-			switch rel.Type {
-			case ast.RelationInheritance, ast.RelationRealization:
-				view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
-			}
-		} else if rel.Target == ent {
-			switch rel.Type {
-			// need to clarify the difference between composition and aggregation
-			case ast.RelationComposition:
-			case ast.RelationAggregation:
-			case ast.RelationInheritance, ast.RelationRealization:
-				// do not output a warning, it will be handled in other struct
-			default:
-				log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
-			}
-		}
-	}
-
-	for _, member := range ent.AST.Members {
-		view.Methods = append(
-			view.Methods,
-			toMethodView(ent.AST, member.(*dialect.GoMethod), fileView),
-		)
-	}
-	return view
 }
 
 func toNotesView(note []*ast.Note) NotesView {

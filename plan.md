@@ -68,8 +68,8 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [ ] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a type-level comment.
 * [ ] **E12: Generic Types & Type Parameters** — Parse and render Go type parameters (`[T any]`, `[K comparable, V any]`) on structs and interfaces from `ast.Entity.Generic`.
 * [ ] **E13: Doc Comments, Trivia & Notes** — Map leading/trailing `ast.Trivia` and attached UML notes (`ast.Note`) to idiomatic Go doc comments preceding types, fields, and methods.
-* [ ] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
-* [ ] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports.
+* [x] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
+* [x] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports. Normalize short package names to full import paths. (Deferred: package alias disambiguation when multiple packages share the same short name, e.g. `auth.v1` vs `api.v1`).
 * [ ] **E16: Extended Entity Kinds** — Map `record` and `dataclass` to structs, `protocol` to interface, and `exception` to a struct implementing Go's `error` interface (`Error() string`).
 * [x] **E17: Relationship Labels & Field Naming** — Use relationship labels or role names (e.g. `Order *-- "*" Item : items` or `: -items`) to derive field names instead of always defaulting to the target type name.
 * [ ] **E18: Sketch-Grade / Untyped Fields & Parameters** — Safely handle Level 1 sketch types where field or parameter types are omitted (`Type == nil`), defaulting to `any` instead of panicking.
@@ -81,7 +81,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 
 * [x] **F1: Symbol Resolution Pass** — Before generation, walk all `Diagram.Statements` and build symbol tables linking entities and relationships.
 * [x] **F2: Template Engine Setup** — Go templates parsed via `embed.FS` (`file.go.tmpl`, `struct.go.tmpl`, `interface.go.tmpl`, `enum.go.tmpl`).
-* [ ] **F3: Multi-File Output Strategy** — Group entities by package path into subdirectories (`<pkg>/types.go`), with root entities written to `types.go`. Ensure package names align with diagram or folder names.
+* [x] **F3: Multi-File Output Strategy** — Group entities by package path into subdirectories (`<pkg>/types.go`), with root entities written to `types.go`. Ensure package names align with diagram or folder names.
 * [x] **F4: go/format Output Pass** — After template rendering, run `go/format.Source` on each generated file. Surface formatting errors with raw source context.
 * [x] **F5: Generator Test Harness** — Golden-file integration tests for the generator, mirroring the parser's `integration_test.go` pattern. Each fixture is a `.puml` input paired with expected `.go` files.
 * [ ] **F6: Generator CLI Integration** — Connect generator to CLI pipeline in `cmd/` for automated code generation from input `.puml` files to target output directories.
@@ -104,7 +104,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   1. [x] Fix template scoping bugs in `struct.go.tmpl` and ensure baseline tests pass.
   2. [x] Implement **F5** (generator golden test harness) with initial fixtures.
   3. [x] Fix relationship ownership in **E9** (composition/aggregation) and implement **E10** (association) & **E17** (relation labels/roles).
-  4. [ ] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
+  4. [x] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
   5. [ ] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
   6. [ ] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
   7. [ ] Implement **E6** (static modifiers) and **E16** (extended entity kinds: exceptions, records, protocols).

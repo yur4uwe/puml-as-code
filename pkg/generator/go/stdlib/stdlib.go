@@ -117,41 +117,51 @@ func ensureLoaded() {
 	once.Do(initStdlib)
 }
 
-// IsBuiltin checks if the given type name is a Go builtin type.
-func IsBuiltin(name string) bool {
+func IsBuiltinType(name string) bool {
 	_, ok := BuiltinTypes[name]
 	return ok
 }
 
-// LookupImportPath returns the canonical standard library import path for a package identifier or path.
-func LookupImportPath(pkgNameOrPath string) (string, bool) {
+// LookupImportPath returns full standard library import path for a package identifier or path
+func LookupImportPath(pkgNameOrPath []string) (string, bool) {
 	ensureLoaded()
 
+	if len(pkgNameOrPath) == 0 {
+		return "", false
+	}
+
+	pkgStr := strings.Join(pkgNameOrPath, "/")
+
 	// Exact match on full import path
-	if _, ok := stdPackages[pkgNameOrPath]; ok {
-		return pkgNameOrPath, true
+	if _, ok := stdPackages[pkgStr]; ok {
+		return pkgStr, true
 	}
 	// Match on short package name (e.g. "http" -> "net/http", "json" -> "encoding/json")
-	if path, ok := shortToPath[pkgNameOrPath]; ok {
+	if path, ok := shortToPath[pkgStr]; ok {
 		return path, true
 	}
 	return "", false
 }
 
-// IsStdlibPackage checks if the given name or path belongs to the Go standard library.
-func IsStdlibPackage(pkgNameOrPath string) bool {
+// IsStdlibPackage checks if the name or path belongs to the Go standard library
+func IsStdlibPackage(pkgNameOrPath []string) bool {
 	ensureLoaded()
+	if len(pkgNameOrPath) == 0 {
+		return false
+	}
 
-	if _, ok := stdPackages[pkgNameOrPath]; ok {
+	pkgStr := strings.Join(pkgNameOrPath, "/")
+
+	if _, ok := stdPackages[pkgStr]; ok {
 		return true
 	}
-	if _, ok := shortToPath[pkgNameOrPath]; ok {
+	if _, ok := shortToPath[pkgStr]; ok {
 		return true
 	}
 	return false
 }
 
-// IsStdlibEntity checks if an entity symbol represents a Go builtin or standard library type.
+// IsStdlibEntity checks if an entity symbol is a Go builtin or standard library type
 func IsStdlibEntity(ent *resolver.EntitySymbol) bool {
 	if ent == nil {
 		return false
@@ -165,15 +175,14 @@ func IsStdlibEntity(ent *resolver.EntitySymbol) bool {
 		name = SimpleName(ent.FQN)
 	}
 
-	// 1. Built-in types without package (e.g. error, any, string)
-	if len(ent.PackagePath) == 0 && IsBuiltin(name) {
+	// check for builtin types without package (e.g. error, any, string)
+	if len(ent.PackagePath) == 0 && IsBuiltinType(name) {
 		return true
 	}
 
 	// 2. Package path matches standard library (e.g. ["time"], ["net", "http"])
 	if len(ent.PackagePath) > 0 {
-		importPath := strings.Join(ent.PackagePath, "/")
-		if IsStdlibPackage(importPath) || IsStdlibPackage(ent.PackagePath[len(ent.PackagePath)-1]) {
+		if IsStdlibPackage(ent.PackagePath) {
 			return true
 		}
 	}
@@ -182,12 +191,11 @@ func IsStdlibEntity(ent *resolver.EntitySymbol) bool {
 	if strings.Contains(ent.FQN, ".") {
 		parts := strings.Split(ent.FQN, ".")
 		// Check first segment (e.g. "time" from "time.Time")
-		if IsStdlibPackage(parts[0]) {
+		if IsStdlibPackage(parts[:1]) {
 			return true
 		}
 		// Check joined segments except last (e.g. "net/http" from "net.http.Request")
-		joined := strings.Join(parts[:len(parts)-1], "/")
-		if IsStdlibPackage(joined) {
+		if IsStdlibPackage(parts[:len(parts)-1]) {
 			return true
 		}
 	}

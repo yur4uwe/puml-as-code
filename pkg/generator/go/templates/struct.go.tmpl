@@ -6,16 +6,16 @@
 {{- end}}
 type {{.Name}} struct {
 {{- range .Embeds}}
-    {{.}}
+	{{.}}
 {{- end}}
 {{- range .Fields}}
-    {{range .LeadingTrivia}}
-    // {{.}}
-    {{- end}}
-    {{range .Notes}}
-    // NOTE: {{.}}
-    {{- end}}
-    {{.Name}} {{.Type}}{{if .TrailingTrivia}} // {{range $i, $t := .TrailingTrivia}}{{if gt $i 0}} {{end}}{{$t}}{{end}}{{end}}
+	{{- range .LeadingTrivia}}
+	// {{.}}
+	{{- end}}
+	{{- range .Notes}}
+	// NOTE: {{.}}
+	{{- end}}
+	{{.Name}} {{.Type}}{{if .TrailingTrivia}} // {{range $i, $t := .TrailingTrivia}}{{if gt $i 0}} {{end}}{{$t}}{{end}}{{end}}
 {{- end}}
 }
 

@@ -6,7 +6,6 @@ type Reader interface {
 
 type ReadCloser interface {
 	Reader
-
 	Close() error
 }
 
@@ -16,6 +15,5 @@ type Vehicle struct {
 
 type Car struct {
 	Vehicle
-
 	Vin string
 }

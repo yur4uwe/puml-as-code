@@ -33,8 +33,9 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 
 	for _, ent := range tbl.Entities {
 		filePath := "types.go"
+		fileImportPath := strings.Join(ent.PackagePath, "/")
 		if len(ent.PackagePath) > 0 {
-			filePath = strings.Join(ent.PackagePath, "/") + "/" + filePath
+			filePath = fileImportPath + "/" + filePath
 		}
 		view, ok := viewMap[filePath]
 		if !ok {
@@ -44,6 +45,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 			}
 			view = &FileView{
 				PackageName: pkgName,
+				ImportPath:  fileImportPath,
 			}
 			viewMap[filePath] = view
 		}
@@ -58,6 +60,40 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 		}
 	}
 
+	for _, file := range viewMap {
+		// collapse incomplete import paths
+		cleanImports := make([]string, 0, len(file.Imports))
+		for _, incompleteImp := range file.Imports {
+			if strings.Contains(incompleteImp, "/") || stdlib.IsStdlibPackage(strings.Split(incompleteImp, "/")) {
+				cleanImports = append(cleanImports, incompleteImp)
+				continue
+			}
+			var matchFound bool
+			for _, fullImp := range file.Imports {
+				if !strings.Contains(fullImp, "/") {
+					// It is a partial import path
+					continue
+				}
+				if strings.HasSuffix(fullImp, incompleteImp) {
+					// we have found an incomplete import paths
+					// that matches complete one so we ignore it
+					matchFound = true
+					break
+				}
+			}
+			if !matchFound {
+				// we have found an incomplete import path
+				// that does not match any complete one
+				// so we add it to the list
+				if len(incompleteImp) > 0 {
+					cleanImports = append(cleanImports, incompleteImp)
+				}
+			}
+		}
+		slices.Sort(cleanImports)
+		file.Imports = slices.Clip(cleanImports)
+	}
+
 	tmpl := template.Must(template.ParseFS(templateFS, "templates/*.go.tmpl"))
 
 	for path, file := range viewMap {
@@ -66,7 +102,6 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 			return nil, fmt.Errorf("template execution failed: %w", err)
 		}
 
-		// F4: Run go/format
 		formatted, err := format.Source(buf.Bytes())
 		if err != nil {
 			return nil, fmt.Errorf("go/format failed on %s: %w\nRaw source:\n%s", path, err,
@@ -84,35 +119,33 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 
 func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
 	fieldView := FieldView{}
-	targetIdent := targetTypeName(rel.Source.PackagePath, rel.Target)
+	targetType := targetTypeName(rel.Source.PackagePath, rel.Target)
 	if customName := reparseLabel(rel.AST.Label); customName != "" {
 		fieldView.Name = customName
 	} else {
-		fieldView.Name = targetIdent
+		fieldView.Name = targetFieldName(rel.Target)
 	}
 
-	if !slices.Equal(rel.Source.PackagePath, rel.Target.PackagePath) {
-		fileView.AddImport(rel.Target.PackagePath[len(rel.Target.PackagePath)-1])
-	}
-
-	if stdlib.IsStdlibPackage(strings.Join(rel.Target.PackagePath, "/")) {
-		fileView.AddImport(rel.Target.PackagePath[len(rel.Target.PackagePath)-1])
+	if impPath, ok := stdlib.LookupImportPath(rel.Target.PackagePath); ok {
+		fileView.AddImport(impPath)
+	} else if len(rel.Target.PackagePath) > 0 && !slices.Equal(rel.Source.PackagePath, rel.Target.PackagePath) {
+		fileView.AddImport(strings.Join(rel.Target.PackagePath, "/"))
 	}
 
 	switch rel.Type {
 	case ast.RelationInheritance:
 		if isInterface(rel.Target.AST) {
-			view.Implements = append(view.Implements, targetIdent)
+			view.Implements = append(view.Implements, targetType)
 		} else {
-			view.Embeds = append(view.Embeds, targetIdent)
+			view.Embeds = append(view.Embeds, targetType)
 		}
 	case ast.RelationRealization:
-		view.Implements = append(view.Implements, targetIdent)
+		view.Implements = append(view.Implements, targetType)
 	case ast.RelationComposition:
-		fieldView.Type = formatCompFieldType(targetIdent, rel.TargetMult)
+		fieldView.Type = formatCompFieldType(targetType, rel.TargetMult)
 		view.Fields = append(view.Fields, fieldView)
 	case ast.RelationAggregation, ast.RelationAssociation:
-		fieldView.Type = formatAggFieldType(targetIdent, rel.TargetMult)
+		fieldView.Type = formatAggFieldType(targetType, rel.TargetMult)
 		view.Fields = append(view.Fields, fieldView)
 	}
 }
