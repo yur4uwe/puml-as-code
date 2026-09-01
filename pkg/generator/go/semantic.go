@@ -3,8 +3,8 @@ package gogenerator
 import (
 	"fmt"
 	"log"
-	"strings"
 
+	"yur4uwe/pac/pkg/generator/go/stdlib"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/resolver"
@@ -40,7 +40,7 @@ func isEnum(ent *ast.Entity) bool {
 func tryInterfacePromotion(symb *resolver.EntitySymbol) error {
 	if symb.AST == nil {
 		symb.AST = &ast.Entity{
-			Identifier: simpleName(symb.FQN),
+			Identifier: stdlib.SimpleName(symb.FQN),
 			Kind:       ast.EntityInterface,
 		}
 		return nil
@@ -53,13 +53,6 @@ func tryInterfacePromotion(symb *resolver.EntitySymbol) error {
 	}
 	symb.AST.Kind = ast.EntityInterface
 	return nil
-}
-
-func simpleName(fqn string) string {
-	if idx := strings.LastIndex(fqn, "."); idx != -1 {
-		return fqn[idx+1:]
-	}
-	return fqn
 }
 
 func (GoCodeGenerator) SemanticPass(tbl *resolver.SymbolTable) error {
@@ -101,6 +94,8 @@ func (GoCodeGenerator) SemanticPass(tbl *resolver.SymbolTable) error {
 			if len(ent.AST.Members) == 0 {
 				return fmt.Errorf("enum %s must declare fields", ent.FQN)
 			}
+		case stdlib.IsStdlibEntity(ent):
+			// We should ignore it
 		}
 	}
 	return nil

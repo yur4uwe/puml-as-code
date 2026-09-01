@@ -6,14 +6,13 @@ import (
 	"embed"
 	"fmt"
 	"go/format"
-	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"text/template"
-	"unicode"
 
+	"yur4uwe/pac/pkg/generator/go/stdlib"
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/resolver"
 )
 
@@ -51,9 +50,9 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 
 		switch {
 		case isStruct(ent.AST):
-			view.Structs = append(view.Structs, toStructView(tbl, ent))
+			view.Structs = append(view.Structs, toStructView(tbl, ent, view))
 		case isInterface(ent.AST):
-			view.Interfaces = append(view.Interfaces, toInterfaceView(tbl, ent))
+			view.Interfaces = append(view.Interfaces, toInterfaceView(tbl, ent, view))
 		case isEnum(ent.AST):
 			view.Enums = append(view.Enums, toEnumView(ent))
 		}
@@ -83,60 +82,21 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 	return files, nil
 }
 
-func targetName(target *resolver.EntitySymbol) string {
-	if target == nil {
-		return "unknown"
-	}
-	if target.AST != nil && target.AST.Identifier != "" {
-		return target.AST.Identifier
-	}
-	return simpleName(target.FQN)
-}
-
-func reparseLabel(label string) string {
-	label = strings.TrimSpace(label)
-	if label == "" || strings.Contains(label, " ") {
-		return ""
-	}
-	var isPublic *bool
-	nameStartIdx := 0
-	switch label[0] {
-	case '+':
-		isPublic = new(bool)
-		*isPublic = true
-		nameStartIdx++
-	case '-', '~', '#':
-		isPublic = new(bool)
-		*isPublic = false
-		nameStartIdx++
-	default:
-		// Labels without explicit visibility are treated as descriptive verbs/titles
-		return ""
-	}
-	for i := nameStartIdx; i < len(label); i++ {
-		if unicode.IsLetter(rune(label[i])) ||
-			unicode.IsNumber(rune(label[i])) ||
-			label[i] == '_' {
-			continue
-		}
-		return ""
-	}
-	if len(label[nameStartIdx:]) == 0 {
-		return ""
-	}
-	if *isPublic {
-		return ensureUpper(label[nameStartIdx:])
-	}
-	return ensureLower(label[nameStartIdx:])
-}
-
-func renderSourceStructRel(view *StructView, rel *resolver.RelationshipSymbol) {
+func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
 	fieldView := FieldView{}
-	targetIdent := targetName(rel.Target)
+	targetIdent := targetTypeName(rel.Source.PackagePath, rel.Target)
 	if customName := reparseLabel(rel.AST.Label); customName != "" {
 		fieldView.Name = customName
 	} else {
 		fieldView.Name = targetIdent
+	}
+
+	if !slices.Equal(rel.Source.PackagePath, rel.Target.PackagePath) {
+		fileView.AddImport(rel.Target.PackagePath[len(rel.Target.PackagePath)-1])
+	}
+
+	if stdlib.IsStdlibPackage(strings.Join(rel.Target.PackagePath, "/")) {
+		fileView.AddImport(rel.Target.PackagePath[len(rel.Target.PackagePath)-1])
 	}
 
 	switch rel.Type {
@@ -204,160 +164,3 @@ func formatAggFieldType(ownerName string, mult ast.Cardinality) string {
 // 		log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
 // 	}
 // }
-
-func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) StructView {
-	view := StructView{
-		Name:       ent.AST.Identifier,
-		NotesView:  toNotes(ent.Notes),
-		TriviaView: toTrivia(ent.AST.Trivia),
-	}
-
-	for _, rel := range tbl.Relationships {
-		if rel.Source == ent {
-			renderSourceStructRel(&view, rel)
-		}
-		// // For now doesn't handle any cases
-		// } else if rel.Target == ent {
-		// 	renderTargetStructRel(&view, rel)
-		// }
-	}
-
-	for _, member := range ent.AST.Members {
-		switch member := member.(type) {
-		case *dialect.GoField:
-			view.Fields = append(view.Fields, toFieldView(ent.AST, member))
-		case *dialect.GoMethod:
-			view.Methods = append(view.Methods, toMethodView(ent.AST, member))
-		case ast.ClassSeparator:
-		}
-	}
-
-	return view
-}
-
-func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol) InterfaceView {
-	view := InterfaceView{
-		Name: ent.AST.Identifier,
-	}
-	for _, rel := range tbl.Relationships {
-		if rel.Source == ent {
-			switch rel.Type {
-			case ast.RelationInheritance, ast.RelationRealization:
-				view.Embeds = append(view.Embeds, rel.Target.AST.Identifier)
-			}
-		} else if rel.Target == ent {
-			switch rel.Type {
-			// need to clarify the difference between composition and aggregation
-			case ast.RelationComposition:
-			case ast.RelationAggregation:
-			case ast.RelationInheritance, ast.RelationRealization:
-				// do not output a warning, it will be handled in other struct
-			default:
-				log.Printf("warning: ignoring %s relationship between %s and %s", rel.Type, rel.Source.FQN, rel.Target.FQN)
-			}
-		}
-	}
-
-	for _, member := range ent.AST.Members {
-		view.Methods = append(
-			view.Methods,
-			toMethodView(ent.AST, member.(*dialect.GoMethod)),
-		)
-	}
-	return view
-}
-
-func toEnumView(ent *resolver.EntitySymbol) EnumView {
-	cases := make([]string, len(ent.AST.Members))
-	for i, member := range ent.AST.Members {
-		cases[i] = member.(*dialect.GoField).Name
-	}
-	view := EnumView{
-		Name:   ent.AST.Identifier,
-		Values: cases,
-	}
-	return view
-}
-
-func toNotes(note []*ast.Note) NotesView {
-	var notes []string
-	for _, n := range note {
-		notes = append(notes, n.Text)
-	}
-	return NotesView{
-		Notes: notes,
-	}
-}
-
-func toTrivia(t ast.Trivia) TriviaView {
-	var leadingTrivia []string
-	for _, tok := range t.GetLeadingTrivia() {
-		leadingTrivia = append(leadingTrivia, tok.Literal)
-	}
-	var trailingTrivia []string
-	for _, tok := range t.GetTrailingTrivia() {
-		trailingTrivia = append(trailingTrivia, tok.Literal)
-	}
-	return TriviaView{
-		LeadingTrivia:  leadingTrivia,
-		TrailingTrivia: trailingTrivia,
-	}
-}
-
-func ensureUpper(s string) string {
-	firstByte := string(s[0])
-	firstByte = strings.ToUpper(firstByte)
-	return firstByte + s[1:]
-}
-
-func ensureLower(s string) string {
-	firstByte := string(s[0])
-	firstByte = strings.ToLower(firstByte)
-	return firstByte + s[1:]
-}
-
-func isLower(s byte) bool {
-	return s >= 'a' && s <= 'z'
-}
-
-func isUpper(s byte) bool {
-	return s >= 'A' && s <= 'Z'
-}
-
-func ensureCorrectCase(ownerName string, fieldName string, visibility ast.VisibilityKind) string {
-	newName := fieldName
-
-	switch visibility {
-	case ast.VisibilityProtected, ast.VisibilityPrivate:
-		log.Printf("warning: %s encapsulation for field %s.%s is not supported in Go, using package encapsulation instead", visibility, ownerName, fieldName)
-		fallthrough
-	case ast.VisibilityPackage:
-		if !isUpper(newName[0]) {
-			return fieldName
-		}
-		newName = ensureLower(newName)
-		log.Printf("warning: changing field name capitalization %s.%s to %s", ownerName, fieldName, newName)
-	case ast.VisibilityPublic:
-		if !isLower(newName[0]) {
-			return fieldName
-		}
-		newName = ensureUpper(newName)
-		log.Printf("warning: changing field name capitalization %s.%s to %s", ownerName, fieldName, newName)
-	}
-
-	return newName
-}
-
-func toFieldView(owner *ast.Entity, field *dialect.GoField) FieldView {
-	return FieldView{
-		Name: ensureCorrectCase(owner.Identifier, field.Name, field.Visibility),
-		Type: field.Type.String(),
-	}
-}
-
-func toMethodView(owner *ast.Entity, method *dialect.GoMethod) MethodView {
-	return MethodView{
-		Name:      ensureCorrectCase(owner.Identifier, method.Name, method.Visibility),
-		Signature: method.Signature(),
-	}
-}

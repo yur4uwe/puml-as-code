@@ -1,5 +1,7 @@
 package gogenerator
 
+import "slices"
+
 type NotesView struct {
 	Notes []string
 }
@@ -16,6 +18,17 @@ type FileView struct {
 	Structs     []StructView
 	Interfaces  []InterfaceView
 	Enums       []EnumView
+}
+
+func (f *FileView) AddImport(importPath string) {
+	// Potentially can improve search performace with binary search
+	if importPath == "" || importPath == f.PackageName {
+		return
+	}
+	// Deduplicate
+	if !slices.Contains(f.Imports, importPath) {
+		f.Imports = append(f.Imports, importPath)
+	}
 }
 
 type StructView struct {
