@@ -39,6 +39,9 @@ type GoTypeRef struct {
 // The hasName flag tracks whether a Named node was already emitted,
 // so that chained Named nodes (qualified names) are joined with '.'.
 func (g *GoTypeRef) String() string {
+	if g == nil {
+		return "any"
+	}
 	var sb strings.Builder
 	var hasName bool
 	for curr := g; curr != nil; curr = curr.Base {

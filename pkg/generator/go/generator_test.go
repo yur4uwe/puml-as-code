@@ -89,3 +89,38 @@ func (s *User) Greet(name string) string {
 	require.Len(t, files, 1)
 	require.Equal(t, expectedGeneratedFiles, files)
 }
+
+func TestGenerateFromClassDiagram_UntypedSketchMembers(t *testing.T) {
+	tbl := parseAndResolveTable(t, `
+@startuml
+class Sketch {
+  +id
+  +data
+  +Process(input, extra)
+}
+@enduml
+	`)
+
+	expectedGeneratedFiles := []*GeneratedFile{
+		{
+			Path: "types.go",
+			Content: []byte(`package root
+
+type Sketch struct {
+	Id   any
+	Data any
+}
+
+func (s *Sketch) Process(input any, extra any) {
+	panic("not implemented")
+}
+`),
+		},
+	}
+
+	g := GoCodeGenerator{}
+	files, err := g.GenerateFromClassDiagram(tbl)
+	require.NoError(t, err)
+	require.Len(t, files, 1)
+	require.Equal(t, string(expectedGeneratedFiles[0].Content), string(files[0].Content))
+}

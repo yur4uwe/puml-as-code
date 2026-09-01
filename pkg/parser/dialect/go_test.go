@@ -91,8 +91,16 @@ func TestGoDialect_ParseField(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "too few tokens",
-			input:       "MyType",
+			name:  "sketch-grade untyped field",
+			input: "MyType",
+			expectedParam: GoParameter{
+				Name: "MyType",
+				Type: nil,
+			},
+		},
+		{
+			name:        "empty tokens",
+			input:       "",
 			expectError: true,
 		},
 		{
@@ -311,9 +319,25 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			expectError: true,
 		},
 		{
-			name:        "at least one parameterized return is missing",
-			input:       "Method() (res int, error, ok bool)",
-			expectError: true,
+			name:         "multiple named returns with shorthand backfilling",
+			input:        "Method() (res int, err, ok bool)",
+			expectedName: "Method",
+			expectedRets: []GoParameter{
+				{Name: "res", Type: NamedRef("int")},
+				{Name: "err", Type: NamedRef("bool")},
+				{Name: "ok", Type: NamedRef("bool")},
+			},
+			expectedParams: nil,
+		},
+		{
+			name:         "untyped sketch parameters",
+			input:        "Method(a, b)",
+			expectedName: "Method",
+			expectedRets: nil,
+			expectedParams: []GoParameter{
+				{Name: "a", Type: nil},
+				{Name: "b", Type: nil},
+			},
 		},
 		{
 			name:        "unclosed return parenthesis",

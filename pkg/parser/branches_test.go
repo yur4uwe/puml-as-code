@@ -154,10 +154,25 @@ func TestParseEntity(t *testing.T) {
 		},
 		{
 			name:      "invalid member inside body",
-			input:     "class MyClass {\n  invalidField\n}",
+			input:     "class MyClass {\n  name : invalid\n}",
 			kwType:    keyword.Class,
 			want:      nil,
 			expectErr: true,
+		},
+		{
+			name:   "sketch field inside body",
+			input:  "class MyClass {\n  untypedField\n}",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+				Members: []ast.Member{
+					&dialect.GoField{
+						Name: "untypedField",
+						Type: nil,
+					},
+				},
+			},
 		},
 		{
 			name:   "class with generic",
@@ -285,8 +300,19 @@ func TestParseFieldOrMethod(t *testing.T) {
 			expectErr:   true,
 		},
 		{
-			name:        "invalid field (no type)",
+			name:        "sketch field without type",
 			input:       "name\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want: &dialect.GoField{
+				Name: "name",
+				Type: nil,
+			},
+			expectErr: false,
+		},
+		{
+			name:        "invalid field (invalid syntax)",
+			input:       "name : int\n",
 			entryType:   tokenizer.IDENTIFIER,
 			initialName: "name",
 			want:        nil,

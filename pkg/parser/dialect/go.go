@@ -9,15 +9,18 @@ import (
 )
 
 func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoField, error) {
-	// expects this structure:
-	// <name> <type>
-	if len(toks) < 2 {
-		return nil, fmt.Errorf("%w: expected at least two tokens", ErrParsingDialect)
+	if len(toks) == 0 {
+		return nil, fmt.Errorf("%w: expected at least one token", ErrParsingDialect)
 	}
 
 	if toks[0].Type != tokenizer.IDENTIFIER {
 		return nil, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
+
+	if opts == nil {
+		opts = &MemberOptions{}
+	}
+
 	field := &GoField{
 		Name:       toks[0].Literal,
 		Visibility: opts.Visibility,
@@ -26,6 +29,12 @@ func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoF
 			LeadingTrivia:  opts.LeadingTrivia,
 			TrailingTrivia: opts.TrailingTrivia,
 		},
+	}
+
+	// allow sketch-grade definitions
+	if len(toks) == 1 {
+		field.Type = nil
+		return field, nil
 	}
 
 	var err error
@@ -95,14 +104,14 @@ func (g GoDialect) parseType(toks []tokenizer.Token) (*GoTypeRef, error) {
 		return nil, fmt.Errorf("%w: unexpected trailing tokens in type",
 			ErrParsingDialect)
 	}
-	return &ref, nil
+	return ref, nil
 }
 
-func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, int,
+func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (*GoTypeRef, int,
 	error,
 ) {
 	if pos >= len(toks) {
-		return GoTypeRef{}, pos, fmt.Errorf("%w: expected type, got end of tokens",
+		return nil, pos, fmt.Errorf("%w: expected type, got end of tokens",
 			ErrParsingDialect)
 	}
 
@@ -110,57 +119,58 @@ func (g GoDialect) parseTypeFrom(toks []tokenizer.Token, pos int) (GoTypeRef, in
 	case tokenizer.ASTERISK: // *T
 		base, newPos, err := g.parseTypeFrom(toks, pos+1)
 		if err != nil {
-			return GoTypeRef{}, 0, err
+			return nil, 0, err
 		}
-		return GoTypeRef{Typ: KindPointer, Base: &base}, newPos, nil
+
+		return PointerTo(base), newPos, nil
 
 	case tokenizer.LBRACKET: // []T or [N]T
 		pos++
 		if pos >= len(toks) {
-			return GoTypeRef{}, 0, fmt.Errorf("%w: unexpected end after '['",
+			return nil, 0, fmt.Errorf("%w: unexpected end after '['",
 				ErrParsingDialect)
 		}
 		if toks[pos].Type == tokenizer.RBRACKET {
 			// []T — slice
 			base, newPos, err := g.parseTypeFrom(toks, pos+1)
 			if err != nil {
-				return GoTypeRef{}, 0, err
+				return nil, 0, err
 			}
-			return GoTypeRef{Typ: KindSlice, Base: &base}, newPos, nil
+			return SliceOf(base), newPos, nil
 		}
 		if toks[pos].Type == tokenizer.NUMBER {
 			size, _ := strconv.Atoi(toks[pos].Literal)
 			pos++
 			if pos >= len(toks) || toks[pos].Type != tokenizer.RBRACKET {
-				return GoTypeRef{}, 0, fmt.Errorf("%w: expected ']' after array size",
+				return nil, 0, fmt.Errorf("%w: expected ']' after array size",
 					ErrParsingDialect)
 			}
 			base, newPos, err := g.parseTypeFrom(toks, pos+1)
 			if err != nil {
-				return GoTypeRef{}, 0, err
+				return nil, 0, err
 			}
-			return GoTypeRef{Typ: KindArray, ArraySize: size, Base: &base}, newPos, nil
+			return ArrayOf(size, base), newPos, nil
 		}
-		return GoTypeRef{}, 0, fmt.Errorf("%w: expected ']' or number after '['",
+		return nil, 0, fmt.Errorf("%w: expected ']' or number after '['",
 			ErrParsingDialect)
 
 	case tokenizer.IDENTIFIER: // named type, possibly qualified (pkg.Type)
-		ref := GoTypeRef{Typ: KindNamed, Name: toks[pos].Literal}
+		ref := NamedRef(toks[pos].Literal)
 		pos++
 		if pos < len(toks) && toks[pos].Type == tokenizer.DOT {
 			pos++ // skip dot
 			if pos >= len(toks) || toks[pos].Type != tokenizer.IDENTIFIER {
-				return GoTypeRef{}, 0, fmt.Errorf("%w: expected identifier after '.'",
+				return nil, 0, fmt.Errorf("%w: expected identifier after '.'",
 					ErrParsingDialect)
 			}
-			qualified := GoTypeRef{Typ: KindNamed, Name: toks[pos].Literal}
-			ref.Base = &qualified
+			qualified := NamedRef(toks[pos].Literal)
+			ref.Base = qualified
 			pos++
 		}
 		return ref, pos, nil
 
 	default:
-		return GoTypeRef{}, 0, fmt.Errorf("%w: unexpected token '%s' in type",
+		return nil, 0, fmt.Errorf("%w: unexpected token '%s' in type",
 			ErrParsingDialect, toks[pos].Literal)
 	}
 }
@@ -272,13 +282,23 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoParameter, error
 	}
 
 	var returns []GoParameter
+	var sameTypeAmount int
 	for _, chunk := range chunks {
 		if isNamed {
+			if len(chunk) == 1 {
+				returns = append(returns, GoParameter{Name: chunk[0].Literal, Type: nil})
+				sameTypeAmount++
+				continue
+			}
 			// Parse as name + type (reuse parseField logic)
-			field, err := g.parseField(chunk, &MemberOptions{Visibility: ast.VisibilityUnknown})
+			field, err := g.parseField(chunk, nil)
 			if err != nil {
 				return nil, err
 			}
+			for i := 0; i < sameTypeAmount; i++ {
+				returns[len(returns)-1-i].Type = field.Type
+			}
+			sameTypeAmount = 0
 			returns = append(returns, GoParameter{Name: field.Name, Type: field.Type})
 		} else {
 			// Parse as just a type

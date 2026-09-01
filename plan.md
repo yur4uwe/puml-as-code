@@ -72,7 +72,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports. Normalize short package names to full import paths. (Deferred: package alias disambiguation when multiple packages share the same short name, e.g. `auth.v1` vs `api.v1`).
 * [ ] **E16: Extended Entity Kinds** — Map `record` and `dataclass` to structs, `protocol` to interface, and `exception` to a struct implementing Go's `error` interface (`Error() string`).
 * [x] **E17: Relationship Labels & Field Naming** — Use relationship labels or role names (e.g. `Order *-- "*" Item : items` or `: -items`) to derive field names instead of always defaulting to the target type name.
-* [ ] **E18: Sketch-Grade / Untyped Fields & Parameters** — Safely handle Level 1 sketch types where field or parameter types are omitted (`Type == nil`), defaulting to `any` instead of panicking.
+* [x] **E18: Sketch-Grade / Untyped Fields & Parameters** — Safely handle Level 1 sketch types where field or parameter types are omitted (`Type == nil`), defaulting to `any` instead of panicking.
 * [ ] **E19: Class Separators / Section Comments** — Render `ast.ClassSeparator` dividers (`-- Section --`, `.. Private ..`) as formatted section comments within struct and interface declarations.
 * [ ] **E20: Struct Tags (Deferred)** — Defer struct tags syntax design (` `...` ` or modifiers) until core generation features are completed.
 
