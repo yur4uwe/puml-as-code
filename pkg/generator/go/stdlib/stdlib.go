@@ -1,16 +1,15 @@
 package stdlib
 
+//go:generate go run cmd/go-stdlib-gen/main.go
+
 import (
-	"os/exec"
 	"path"
 	"strings"
-	"sync"
 
 	"yur4uwe/pac/pkg/resolver"
 )
 
 var (
-	once        sync.Once
 	stdPackages map[string]struct{}
 	shortToPath map[string]string
 )
@@ -48,36 +47,11 @@ var BuiltinTypes = map[string]struct{}{
 	"uintptr":    {},
 }
 
-// NOTE: Currently, initStdlib is executed synchronously on first call via sync.Once
-// during the generator pass. In the future, we could pre-warm this in a background
-// goroutine concurrently while lexing, parsing, and resolving are happening to hide
-// the subprocess latency.
-// Potential considerations to address if implemented:
-// 1. Cancellation via context.Context if parsing fails early.
-// 2. Ensure it only triggers when the target generation dialect is Go.
-// 3. Non-blocking fallback if the subprocess hangs or fails.
-func initStdlib() {
-	stdPackages = make(map[string]struct{})
-	shortToPath = make(map[string]string)
+func init() {
+	stdPackages = make(map[string]struct{}, len(stdlibPackageList))
+	shortToPath = make(map[string]string, len(stdlibPackageList))
 
-	out, err := exec.Command("go", "list", "std").Output()
-	if err != nil {
-		populateFallback()
-		return
-	}
-
-	lines := strings.SplitSeq(strings.TrimSpace(string(out)), "\n")
-	for line := range lines {
-		pkgPath := strings.TrimSpace(line)
-		if pkgPath == "" ||
-			strings.HasPrefix(pkgPath, "internal/") ||
-			strings.Contains(pkgPath, "/internal/") ||
-			strings.HasPrefix(pkgPath, "vendor/") ||
-			strings.Contains(pkgPath, "/vendor/") ||
-			strings.HasPrefix(pkgPath, "cmd/") {
-			continue
-		}
-
+	for _, pkgPath := range stdlibPackageList {
 		stdPackages[pkgPath] = struct{}{}
 		pkgName := path.Base(pkgPath)
 
@@ -89,34 +63,6 @@ func initStdlib() {
 	}
 }
 
-func populateFallback() {
-	fallbackPkgs := []string{
-		"archive/tar", "archive/zip", "bufio", "bytes", "cmp", "compress/gzip",
-		"context", "crypto", "crypto/aes", "crypto/cipher", "crypto/rand", "crypto/sha256",
-		"crypto/tls", "crypto/x509", "database/sql", "embed", "encoding/base64",
-		"encoding/csv", "encoding/hex", "encoding/json", "encoding/xml", "errors",
-		"flag", "fmt", "hash", "html/template", "image", "image/color", "image/png",
-		"io", "io/fs", "iter", "log", "log/slog", "maps", "math", "math/big", "math/rand",
-		"mime", "net", "net/http", "net/url", "os", "path", "path/filepath", "reflect",
-		"regexp", "runtime", "slices", "sort", "strconv", "strings", "structs", "sync",
-		"sync/atomic", "syscall", "testing", "text/template", "time", "unicode", "unicode/utf8",
-	}
-
-	for _, p := range fallbackPkgs {
-		stdPackages[p] = struct{}{}
-		pkgName := path.Base(p)
-		if override, ok := canonicalOverrides[pkgName]; ok {
-			shortToPath[pkgName] = override
-		} else if _, exists := shortToPath[pkgName]; !exists {
-			shortToPath[pkgName] = p
-		}
-	}
-}
-
-func ensureLoaded() {
-	once.Do(initStdlib)
-}
-
 func IsBuiltinType(name string) bool {
 	_, ok := BuiltinTypes[name]
 	return ok
@@ -124,8 +70,6 @@ func IsBuiltinType(name string) bool {
 
 // LookupImportPath returns full standard library import path for a package identifier or path
 func LookupImportPath(pkgNameOrPath []string) (string, bool) {
-	ensureLoaded()
-
 	if len(pkgNameOrPath) == 0 {
 		return "", false
 	}
@@ -145,7 +89,6 @@ func LookupImportPath(pkgNameOrPath []string) (string, bool) {
 
 // IsStdlibPackage checks if the name or path belongs to the Go standard library
 func IsStdlibPackage(pkgNameOrPath []string) bool {
-	ensureLoaded()
 	if len(pkgNameOrPath) == 0 {
 		return false
 	}
