@@ -52,9 +52,17 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 
 		switch {
 		case isStruct(ent.AST):
-			view.Structs = append(view.Structs, toStructView(tbl, ent, view))
+			aux, err := toStructView(tbl, ent, view)
+			if err != nil {
+				return nil, err
+			}
+			view.Structs = append(view.Structs, aux)
 		case isInterface(ent.AST):
-			view.Interfaces = append(view.Interfaces, toInterfaceView(tbl, ent, view))
+			aux, err := toInterfaceView(tbl, ent, view)
+			if err != nil {
+				return nil, err
+			}
+			view.Interfaces = append(view.Interfaces, aux)
 		case isEnum(ent.AST):
 			view.Enums = append(view.Enums, toEnumView(ent))
 		}

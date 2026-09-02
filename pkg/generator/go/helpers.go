@@ -1,6 +1,7 @@
 package gogenerator
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 	"unicode"
@@ -72,4 +73,56 @@ func reparseLabel(label string) string {
 		return ensureUpperFirst(label[nameStartIdx:])
 	}
 	return ensureLowerFirst(label[nameStartIdx:])
+}
+
+func isValidGoIdent(ident string) bool {
+	if ident == "" {
+		return false
+	}
+	for i, r := range ident {
+		if i == 0 && unicode.IsDigit(r) {
+			return false
+		}
+		if r != '_' && !unicode.IsLetter(r) && !unicode.IsDigit(r) {
+			return false
+		}
+	}
+	return true
+}
+
+func parseGeneric(genericStr string) ([]GenericView, error) {
+	var generics []GenericView
+
+	rawParams := strings.SplitSeq(genericStr, ",")
+	for raw := range rawParams {
+		trimmed := strings.TrimSpace(raw)
+		if trimmed == "" {
+			continue
+		}
+
+		parts := strings.SplitN(trimmed, " ", 2)
+		name := strings.TrimSpace(parts[0])
+		if !isValidGoIdent(name) {
+			return nil, fmt.Errorf("invalid generic identifier %q in: %s", name, genericStr)
+		}
+
+		constraint := "any"
+		if len(parts) > 1 {
+			constraint = strings.TrimSpace(parts[1])
+			if constraint == "" {
+				constraint = "any"
+			}
+		}
+
+		generics = append(generics, GenericView{
+			Name:       name,
+			Constraint: constraint,
+		})
+	}
+
+	if len(generics) == 0 {
+		return nil, fmt.Errorf("invalid generic declaration: %s", genericStr)
+	}
+
+	return generics, nil
 }

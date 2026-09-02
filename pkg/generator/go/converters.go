@@ -10,11 +10,20 @@ import (
 	"yur4uwe/pac/pkg/resolver"
 )
 
-func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) StructView {
+func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) (StructView, error) {
 	view := StructView{
 		Name:       ent.AST.Identifier,
 		NotesView:  toNotesView(ent.Notes),
 		TriviaView: toTriviaView(ent.AST.Trivia),
+	}
+
+	// process generics
+	if ent.AST != nil && len(ent.AST.Generic) != 0 {
+		generics, err := parseGeneric(ent.AST.Generic)
+		if err != nil {
+			return view, err
+		}
+		view.Generics = generics
 	}
 
 	for _, rel := range tbl.Relationships {
@@ -37,13 +46,22 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 		}
 	}
 
-	return view
+	return view, nil
 }
 
-func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) InterfaceView {
+func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) (InterfaceView, error) {
 	view := InterfaceView{
 		Name: ent.AST.Identifier,
 	}
+
+	if ent.AST != nil && len(ent.AST.Generic) != 0 {
+		generics, err := parseGeneric(ent.AST.Generic)
+		if err != nil {
+			return view, err
+		}
+		view.Generics = generics
+	}
+
 	for _, rel := range tbl.Relationships {
 		if rel.Source != ent {
 			continue
@@ -68,7 +86,7 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 			toMethodView(ent.AST, member.(*dialect.GoMethod), fileView),
 		)
 	}
-	return view
+	return view, nil
 }
 
 func toEnumView(ent *resolver.EntitySymbol) EnumView {

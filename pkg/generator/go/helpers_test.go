@@ -75,3 +75,193 @@ func TestTargetTypeName(t *testing.T) {
 		})
 	}
 }
+
+func TestParseGeneric(t *testing.T) {
+	tt := []struct {
+		name        string
+		generic     string
+		expected    []GenericView
+		expectedErr string
+	}{
+		{
+			name:    "single generic with only name",
+			generic: "T",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "any",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "single generic with name and constraint",
+			generic: "T int",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "int",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "multiple generics without constraints",
+			generic: "T, U, V",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "any",
+				},
+				{
+					Name:       "U",
+					Constraint: "any",
+				},
+				{
+					Name:       "V",
+					Constraint: "any",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "multiple generics with constraints",
+			generic: "K comparable, V any",
+			expected: []GenericView{
+				{
+					Name:       "K",
+					Constraint: "comparable",
+				},
+				{
+					Name:       "V",
+					Constraint: "any",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "union type constraint",
+			generic: "T int | string",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "int | string",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "approximation and complex union constraint",
+			generic: "T ~int | ~float64 | ~string",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "~int | ~float64 | ~string",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "qualified package constraint",
+			generic: "T constraints.Ordered",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "constraints.Ordered",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "slice and pointer constraints",
+			generic: "T []byte, U *os.File",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "[]byte",
+				},
+				{
+					Name:       "U",
+					Constraint: "*os.File",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "identifiers with digits and underscores",
+			generic: "T1 int, _elem any, Item_2 comparable",
+			expected: []GenericView{
+				{
+					Name:       "T1",
+					Constraint: "int",
+				},
+				{
+					Name:       "_elem",
+					Constraint: "any",
+				},
+				{
+					Name:       "Item_2",
+					Constraint: "comparable",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:    "extra whitespace around delimiters and tokens",
+			generic: "   T    int    ,    U    string   ",
+			expected: []GenericView{
+				{
+					Name:       "T",
+					Constraint: "int",
+				},
+				{
+					Name:       "U",
+					Constraint: "string",
+				},
+			},
+			expectedErr: "",
+		},
+		{
+			name:        "empty string error",
+			generic:     "",
+			expected:    nil,
+			expectedErr: "invalid generic declaration: ",
+		},
+		{
+			name:        "comma only error",
+			generic:     " , ",
+			expected:    nil,
+			expectedErr: "invalid generic declaration:  , ",
+		},
+		{
+			name:        "invalid identifier starting with digit",
+			generic:     "1T int",
+			expected:    nil,
+			expectedErr: `invalid generic identifier "1T" in: 1T int`,
+		},
+		{
+			name:        "invalid identifier containing hyphen",
+			generic:     "T-1 int",
+			expected:    nil,
+			expectedErr: `invalid generic identifier "T-1" in: T-1 int`,
+		},
+		{
+			name:        "invalid identifier containing special characters",
+			generic:     "T@ int",
+			expected:    nil,
+			expectedErr: `invalid generic identifier "T@" in: T@ int`,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result, err := parseGeneric(tc.generic)
+			if tc.expectedErr != "" {
+				require.EqualError(t, err, tc.expectedErr)
+				return
+			}
+			require.NoError(t, err)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}

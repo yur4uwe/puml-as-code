@@ -32,8 +32,13 @@ func (f *FileView) AddImport(importPath string) {
 	}
 }
 
+type GenericView struct {
+	Name, Constraint string
+}
+
 type StructView struct {
 	Name       string // e.g. "User"
+	Generics   []GenericView
 	Embeds     []string
 	Implements []string
 	Fields     []FieldView
@@ -43,9 +48,10 @@ type StructView struct {
 }
 
 type InterfaceView struct {
-	Name    string
-	Embeds  []string
-	Methods []MethodView
+	Name     string
+	Embeds   []string
+	Generics []GenericView
+	Methods  []MethodView
 	NotesView
 	TriviaView
 }

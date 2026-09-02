@@ -4,7 +4,7 @@
 {{range .Notes}}
 // NOTE: {{.}}
 {{- end}}
-type {{.Name}} struct {
+type {{.Name}}{{if .Generics}}[{{- range $i, $g := .Generics}}{{if gt $i 0}},{{end}} {{.Name}} {{.Constraint}}{{- end}}]{{end}} {
 {{- range .Embeds}}
 	{{.}}
 {{- end}}
