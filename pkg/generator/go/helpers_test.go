@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/resolver"
 	"yur4uwe/pac/pkg/tokenizer"
 
@@ -358,6 +359,101 @@ func TestToTriviaView(t *testing.T) {
 		require.Panics(t, func() {
 			toTriviaView(invalidTrivia)
 		})
+	})
+}
+
+func TestVisibilityMapping(t *testing.T) {
+	owner := &resolver.EntitySymbol{
+		FQN: "Account",
+		AST: &ast.Entity{Identifier: "Account"},
+	}
+
+	t.Run("field visibility", func(t *testing.T) {
+		fPublic := toFieldView(owner, &dialect.GoField{
+			Name:       "id",
+			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+			Visibility: ast.VisibilityPublic,
+		}, &FileView{})
+		require.Equal(t, "Id", fPublic.Name)
+		require.Empty(t, fPublic.TrailingTrivia)
+
+		fPrivate := toFieldView(owner, &dialect.GoField{
+			Name:       "password",
+			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+			Visibility: ast.VisibilityPrivate,
+		}, &FileView{})
+		require.Equal(t, "password", fPrivate.Name)
+		require.Equal(t, []string{"private"}, fPrivate.TrailingTrivia)
+
+		fProtected := toFieldView(owner, &dialect.GoField{
+			Name:       "token",
+			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+			Visibility: ast.VisibilityProtected,
+		}, &FileView{})
+		require.Equal(t, "token", fProtected.Name)
+		require.Equal(t, []string{"protected"}, fProtected.TrailingTrivia)
+
+		fPackage := toFieldView(owner, &dialect.GoField{
+			Name:       "internalState",
+			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+			Visibility: ast.VisibilityPackage,
+		}, &FileView{})
+		require.Equal(t, "internalState", fPackage.Name)
+		require.Empty(t, fPackage.TrailingTrivia)
+
+		fPrivateWithComment := toFieldView(owner, &dialect.GoField{
+			Name:       "secret",
+			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+			Visibility: ast.VisibilityPrivate,
+			Trivia: ast.Trivia{
+				TrailingTrivia: []tokenizer.Token{
+					{Literal: "must be encrypted", Pos: tokenizer.TokenPos{Line: 1}},
+				},
+			},
+		}, &FileView{})
+		require.Equal(t, "secret", fPrivateWithComment.Name)
+		require.Equal(t, []string{"private; must be encrypted"}, fPrivateWithComment.TrailingTrivia)
+	})
+
+	t.Run("method visibility", func(t *testing.T) {
+		mPublic := toMethodView(owner, &dialect.GoMethod{
+			Name:       "login",
+			Visibility: ast.VisibilityPublic,
+		}, &FileView{})
+		require.Equal(t, "Login", mPublic.Name)
+		require.Empty(t, mPublic.TrailingTrivia)
+
+		mProtected := toMethodView(owner, &dialect.GoMethod{
+			Name:       "validate",
+			Visibility: ast.VisibilityProtected,
+		}, &FileView{})
+		require.Equal(t, "validate", mProtected.Name)
+		require.Equal(t, []string{"protected"}, mProtected.TrailingTrivia)
+
+		mPrivate := toMethodView(owner, &dialect.GoMethod{
+			Name:       "hashPassword",
+			Visibility: ast.VisibilityPrivate,
+		}, &FileView{})
+		require.Equal(t, "hashPassword", mPrivate.Name)
+		require.Equal(t, []string{"private"}, mPrivate.TrailingTrivia)
+	})
+
+	t.Run("reparseLabel visibility", func(t *testing.T) {
+		name, vis := reparseLabel("+items")
+		require.Equal(t, "Items", name)
+		require.Equal(t, ast.VisibilityPublic, vis)
+
+		name, vis = reparseLabel("-engine")
+		require.Equal(t, "engine", name)
+		require.Equal(t, ast.VisibilityPrivate, vis)
+
+		name, vis = reparseLabel("#token")
+		require.Equal(t, "token", name)
+		require.Equal(t, ast.VisibilityProtected, vis)
+
+		name, vis = reparseLabel("~config")
+		require.Equal(t, "config", name)
+		require.Equal(t, ast.VisibilityPackage, vis)
 	})
 }
 

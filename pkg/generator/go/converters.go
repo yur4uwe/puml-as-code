@@ -142,12 +142,35 @@ func collectImports(typeRef *dialect.GoTypeRef, fileView *FileView) {
 	}
 }
 
+func visibilityComment(vis ast.VisibilityKind) string {
+	switch vis {
+	case ast.VisibilityPrivate:
+		return "private"
+	case ast.VisibilityProtected:
+		return "protected"
+	default:
+		return ""
+	}
+}
+
+func attachVisibilityComment(trivia *TriviaView, vis ast.VisibilityKind) {
+	if comment := visibilityComment(vis); comment != "" {
+		if len(trivia.TrailingTrivia) == 0 {
+			trivia.TrailingTrivia = []string{comment}
+		} else {
+			trivia.TrailingTrivia[0] = comment + "; " + trivia.TrailingTrivia[0]
+		}
+	}
+}
+
 func toFieldView(owner *resolver.EntitySymbol, field *dialect.GoField, fileView *FileView) FieldView {
 	collectImports(field.Type, fileView)
+	trivia := toTriviaView(field.Trivia)
+	attachVisibilityComment(&trivia, field.Visibility)
 	return FieldView{
 		Name:       ensureCorrectCase(owner.AST.Identifier, field.Name, field.Visibility),
 		Type:       field.Type.String(),
-		TriviaView: toTriviaView(field.Trivia),
+		TriviaView: trivia,
 		NotesView:  toNotesView(owner.MemberNotes[field.Name]),
 	}
 }
@@ -159,10 +182,12 @@ func toMethodView(owner *resolver.EntitySymbol, method *dialect.GoMethod, fileVi
 	for _, ret := range method.ReturnType {
 		collectImports(ret.Type, fileView)
 	}
+	trivia := toTriviaView(method.Trivia)
+	attachVisibilityComment(&trivia, method.Visibility)
 	return MethodView{
 		Name:       ensureCorrectCase(owner.AST.Identifier, method.Name, method.Visibility),
 		Signature:  method.Signature(),
-		TriviaView: toTriviaView(method.Trivia),
+		TriviaView: trivia,
 		NotesView:  toNotesView(owner.MemberNotes[method.Name]),
 	}
 }
@@ -175,7 +200,7 @@ func toNotesView(note []*ast.Note) NotesView {
 			continue
 		}
 		var headerSet bool
-		for _, line := range strings.Split(raw, "\n") {
+		for line := range strings.SplitSeq(raw, "\n") {
 			trimmed := strings.TrimSpace(line)
 			if trimmed == "" {
 				continue

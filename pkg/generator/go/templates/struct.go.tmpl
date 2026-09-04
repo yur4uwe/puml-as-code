@@ -18,7 +18,7 @@ var _ {{.}} = (*{{$.Name}})(nil)
 {{- range .Methods}}
 {{template "doc-comment" .LeadingTrivia -}}
 {{template "doc-comment" .Notes -}}
-func (s *{{$.Name}}{{template "generic-reciever-type-params" $.Generics}}) {{.Name}}{{.Signature}} {
+func (s *{{$.Name}}{{template "generic-reciever-type-params" $.Generics}}) {{.Name}}{{.Signature}} { {{- template "trailing-comment" .TrailingTrivia}}
     panic("not implemented")
 }
 {{- end}}

@@ -126,15 +126,20 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 }
 
 func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
-	fieldView := FieldView{
-		NotesView:  toNotesView(rel.Notes),
-		TriviaView: toTriviaView(rel.AST.Trivia),
-	}
+	trivia := toTriviaView(rel.AST.Trivia)
 	targetType := targetTypeName(rel.Source.PackagePath, rel.Target)
-	if customName := reparseLabel(rel.AST.Label); customName != "" {
-		fieldView.Name = customName
+	fieldName := ""
+	if customName, vis := reparseLabel(rel.AST.Label); customName != "" {
+		fieldName = customName
+		attachVisibilityComment(&trivia, vis)
 	} else {
-		fieldView.Name = targetFieldName(rel.Target)
+		fieldName = targetFieldName(rel.Target)
+	}
+
+	fieldView := FieldView{
+		Name:       fieldName,
+		NotesView:  toNotesView(rel.Notes),
+		TriviaView: trivia,
 	}
 
 	if impPath, ok := stdlib.LookupImportPath(rel.Target.PackagePath); ok {

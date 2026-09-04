@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"yur4uwe/pac/pkg/generator/go/stdlib"
+	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/resolver"
 )
 
@@ -38,25 +39,29 @@ func extractPackageName(pkgPath []string) string {
 	return pkgPath[len(pkgPath)-1]
 }
 
-func reparseLabel(label string) string {
+func reparseLabel(label string) (string, ast.VisibilityKind) {
 	label = strings.TrimSpace(label)
 	if label == "" || strings.Contains(label, " ") {
-		return ""
+		return "", ast.VisibilityUnknown
 	}
-	var isPublic *bool
+	var vis ast.VisibilityKind
 	nameStartIdx := 0
 	switch label[0] {
 	case '+':
-		isPublic = new(bool)
-		*isPublic = true
+		vis = ast.VisibilityPublic
 		nameStartIdx++
-	case '-', '~', '#':
-		isPublic = new(bool)
-		*isPublic = false
+	case '-':
+		vis = ast.VisibilityPrivate
+		nameStartIdx++
+	case '#':
+		vis = ast.VisibilityProtected
+		nameStartIdx++
+	case '~':
+		vis = ast.VisibilityPackage
 		nameStartIdx++
 	default:
 		// Labels without explicit visibility are treated as descriptive verbs/titles
-		return ""
+		return "", ast.VisibilityUnknown
 	}
 	for i := nameStartIdx; i < len(label); i++ {
 		if unicode.IsLetter(rune(label[i])) ||
@@ -64,15 +69,15 @@ func reparseLabel(label string) string {
 			label[i] == '_' {
 			continue
 		}
-		return ""
+		return "", ast.VisibilityUnknown
 	}
 	if len(label[nameStartIdx:]) == 0 {
-		return ""
+		return "", ast.VisibilityUnknown
 	}
-	if *isPublic {
-		return ensureUpperFirst(label[nameStartIdx:])
+	if vis == ast.VisibilityPublic {
+		return ensureUpperFirst(label[nameStartIdx:]), vis
 	}
-	return ensureLowerFirst(label[nameStartIdx:])
+	return ensureLowerFirst(label[nameStartIdx:]), vis
 }
 
 func isValidGoIdent(ident string) bool {

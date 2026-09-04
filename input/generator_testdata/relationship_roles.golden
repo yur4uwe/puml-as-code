@@ -11,7 +11,7 @@ type Item struct {
 
 type Order struct {
 	Items  []Item
-	engine Engine
+	engine Engine // private
 	Wheel  [4]*Wheel
 	Id     string
 }
