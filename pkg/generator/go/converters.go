@@ -12,9 +12,11 @@ import (
 
 func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) (StructView, error) {
 	view := StructView{
-		Name:       ent.AST.Identifier,
-		NotesView:  toNotesView(ent.Notes),
-		TriviaView: toTriviaView(ent.AST.Trivia),
+		Name:      stdlib.SimpleName(ent.FQN),
+		NotesView: toNotesView(ent.Notes),
+	}
+	if ent.AST != nil {
+		view.TriviaView = toTriviaView(ent.AST.Trivia)
 	}
 
 	// process generics
@@ -36,6 +38,10 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 		// }
 	}
 
+	if ent.AST == nil {
+		return view, nil
+	}
+
 	for _, member := range ent.AST.Members {
 		switch member := member.(type) {
 		case *dialect.GoField:
@@ -51,15 +57,18 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 
 func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) (InterfaceView, error) {
 	view := InterfaceView{
-		Name: ent.AST.Identifier,
+		Name: stdlib.SimpleName(ent.FQN),
 	}
 
-	if ent.AST != nil && len(ent.AST.Generic) != 0 {
-		generics, err := parseGeneric(ent.AST.Generic)
-		if err != nil {
-			return view, err
+	if ent.AST != nil {
+		if len(ent.AST.Generic) != 0 {
+			generics, err := parseGeneric(ent.AST.Generic)
+			if err != nil {
+				return view, err
+			}
+			view.Generics = generics
 		}
-		view.Generics = generics
+		view.TriviaView = toTriviaView(ent.AST.Trivia)
 	}
 
 	for _, rel := range tbl.Relationships {
@@ -90,6 +99,9 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 }
 
 func toEnumView(ent *resolver.EntitySymbol) EnumView {
+	if ent == nil {
+		panic("enums should always be explicitly defined")
+	}
 	cases := make([]string, len(ent.AST.Members))
 	for i, member := range ent.AST.Members {
 		cases[i] = member.(*dialect.GoField).Name
@@ -129,8 +141,10 @@ func collectImports(typeRef *dialect.GoTypeRef, fileView *FileView) {
 func toFieldView(owner *ast.Entity, field *dialect.GoField, fileView *FileView) FieldView {
 	collectImports(field.Type, fileView)
 	return FieldView{
-		Name: ensureCorrectCase(owner.Identifier, field.Name, field.Visibility),
-		Type: field.Type.String(),
+		Name:       ensureCorrectCase(owner.Identifier, field.Name, field.Visibility),
+		Type:       field.Type.String(),
+		TriviaView: toTriviaView(field.Trivia),
+		// NotesView:  toNotesView(field.Notes),
 	}
 }
 
@@ -142,8 +156,10 @@ func toMethodView(owner *ast.Entity, method *dialect.GoMethod, fileView *FileVie
 		collectImports(ret.Type, fileView)
 	}
 	return MethodView{
-		Name:      ensureCorrectCase(owner.Identifier, method.Name, method.Visibility),
-		Signature: method.Signature(),
+		Name:       ensureCorrectCase(owner.Identifier, method.Name, method.Visibility),
+		Signature:  method.Signature(),
+		TriviaView: toTriviaView(method.Trivia),
+		// NotesView:  toNotesView(method.Notes),
 	}
 }
 

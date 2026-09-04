@@ -1,0 +1,9 @@
+{{define "leading-trivia" -}}
+{{range . -}}
+// {{.}}
+{{end -}}
+{{end}}
+
+{{define "trailing-trivia" -}}
+{{if .}} // {{- range $i, $t := .}}{{if gt $i 0}} {{end}}{{$t}}{{- end}}{{end -}}
+{{end}}

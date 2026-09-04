@@ -1,9 +1,5 @@
-{{range .LeadingTrivia}}
-// {{.}}
-{{- end}}
-{{range .Notes}}
-// NOTE: {{.}}
-{{- end}}
+{{template "leading-trivia" .LeadingTrivia -}}
+{{template "notes" .Notes -}}
 type {{.Name}} int
 
 const (

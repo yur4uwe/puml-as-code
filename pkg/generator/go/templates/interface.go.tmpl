@@ -1,20 +1,12 @@
-{{range .LeadingTrivia}}
-// {{.}}
-{{- end}}
-{{range .Notes}}
-// NOTE: {{.}}
-{{- end}}
-type {{.Name}}{{if .Generics}}[{{- range $i, $g := .Generics}}{{if gt $i 0}}, {{end}}{{.Name}} {{.Constraint}}{{- end}}]{{end}} interface {
+{{template "leading-trivia" .LeadingTrivia -}}
+{{template "notes" .Notes -}}
+type {{.Name}}{{template "generic-type-params" .Generics}} interface {
 {{- range .Embeds}}
 	{{.}}
 {{- end}}
 {{- range .Methods}}
-	{{- range .LeadingTrivia}}
-	// {{.}}
-	{{- end}}
-	{{- range .Notes}}
-	// NOTE: {{.}}
-	{{- end}}
+    {{template "leading-trivia" .LeadingTrivia -}}
+    {{template "notes" .Notes -}}
 	{{.Name}}{{.Signature}}
 {{- end}}
 }

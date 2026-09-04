@@ -1,0 +1,7 @@
+{{define "generic-type-params" -}}
+{{if .}}[{{- range $i, $g := .}}{{if gt $i 0}}, {{end}}{{$g.Name}} {{$g.Constraint}}{{- end}}]{{end -}}
+{{end}}
+
+{{define "generic-reciever-type-params" -}}
+{{if .}}[{{- range $i, $g := .}}{{if gt $i 0}}, {{end}}{{$g.Name}}{{- end}}]{{end -}}
+{{end}}

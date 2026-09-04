@@ -1,0 +1,11 @@
+@startuml
+
+class User<K, V> {
+  +name string
+}
+
+interface Cache<K comparable, V any> {
+  +Get(key K) V
+}
+
+@enduml

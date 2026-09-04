@@ -32,31 +32,10 @@ func classifyHead(arrow rune) HeadKind {
 	}
 }
 
-type PackageSymbol struct {
-	FQN      string
-	Name     string
-	AST      *ast.Container
-	Children []*PackageSymbol
-}
-
-func newPackageSymbol(ast *ast.Container, pkgPath []string) *PackageSymbol {
-	return &PackageSymbol{
-		FQN:      FQN(ast.Identifier, pkgPath),
-		Name:     ast.Identifier,
-		AST:      ast,
-		Children: []*PackageSymbol{},
-	}
-}
-
-type PackageForest struct {
-	Roots []*PackageSymbol
-}
-
 type SymbolTable struct {
 	Entities      []*EntitySymbol
 	Relationships []*RelationshipSymbol
 	Notes         []*ast.Note // Floating or unlinked notes
-	Structure     *PackageForest
 
 	// Lookup by identifier, alias, or qualified name
 	lookup map[string]*EntitySymbol
@@ -249,7 +228,7 @@ func mergeEntity(target *ast.Entity, incoming *ast.Entity) error {
 	return nil
 }
 
-func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note, pkg *PackageSymbol) error {
+func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note) error {
 	var prevRelationship *RelationshipSymbol
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
@@ -268,14 +247,8 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 			tbl.Entities = append(tbl.Entities, ent)
 			tbl.lookup[ent.FQN] = ent
 		case ast.Container:
-			newPkg := newPackageSymbol(&s, pkgPath)
-			if pkg == nil {
-				tbl.Structure.Roots = append(tbl.Structure.Roots, newPkg)
-			} else {
-				pkg.Children = append(pkg.Children, newPkg)
-			}
-			childPkg := append(slices.Clone(pkgPath), s.Identifier)
-			resolveStatements(tbl, s.Statements, childPkg, noteLookup, newPkg)
+			childPkgPath := append(pkgPath, s.Identifier)
+			resolveStatements(tbl, s.Statements, childPkgPath, noteLookup)
 		case ast.Note:
 			// get rid of the link notes
 			if s.Target.Entity == "link" {
@@ -327,10 +300,9 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 // ResolveSymbols resolves all symbols in the AST and return flat symbol table.
 func ResolveSymbols(diagram *ast.Diagram) (*SymbolTable, error) {
 	tbl := &SymbolTable{
-		lookup:    map[string]*EntitySymbol{},
-		Structure: &PackageForest{},
+		lookup: map[string]*EntitySymbol{},
 	}
-	err := resolveStatements(tbl, diagram.Statements, nil, map[string]*ast.Note{}, nil)
+	err := resolveStatements(tbl, diagram.Statements, nil, map[string]*ast.Note{})
 	if err != nil {
 		return nil, err
 	}

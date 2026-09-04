@@ -1,0 +1,9 @@
+package root
+
+type Cache[K comparable, V any] interface {
+	Get(key K) V
+}
+
+type User[K any, V any] struct {
+	Name string
+}

@@ -66,7 +66,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **E9: Composition & Aggregation → Struct Fields** — Correct relationship ownership: add fields to the owning (source) struct pointing to the target. Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`), fixed `N` → array (`[N]Engine`).
 * [x] **E10: Association (-->) → Pointer Field** — `Car --> Engine` → non-owning reference field (`Engine *Engine` or `[]*Engine`). Cardinality rules from E9 apply.
 * [ ] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a type-level comment.
-* [ ] **E12: Generic Types & Type Parameters** — Parse and render Go type parameters (`[T any]`, `[K comparable, V any]`) on structs and interfaces from `ast.Entity.Generic`.
+* [x] **E12: Generic Types & Type Parameters** — Parse and render Go type parameters (`[T any]`, `[K comparable, V any]`) on structs and interfaces from `ast.Entity.Generic`.
 * [ ] **E13: Doc Comments, Trivia & Notes** — Map leading/trailing `ast.Trivia` and attached UML notes (`ast.Note`) to idiomatic Go doc comments preceding types, fields, and methods.
 * [x] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
 * [x] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports. Normalize short package names to full import paths. (Deferred: package alias disambiguation when multiple packages share the same short name, e.g. `auth.v1` vs `api.v1`).
@@ -105,7 +105,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   2. [x] Implement **F5** (generator golden test harness) with initial fixtures.
   3. [x] Fix relationship ownership in **E9** (composition/aggregation) and implement **E10** (association) & **E17** (relation labels/roles).
   4. [x] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
-  5. [ ] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
+  5. [x] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
   6. [ ] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
   7. [ ] Implement **E6** (static modifiers) and **E16** (extended entity kinds: exceptions, records, protocols).
   8. [ ] Connect generator into CLI in **F6**.

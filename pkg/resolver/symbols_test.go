@@ -105,11 +105,6 @@ class Outside
 	outside := tbl.Lookup("Outside")
 	require.NotNil(t, outside)
 	require.Empty(t, outside.PackagePath)
-
-	require.Len(t, tbl.Structure.Roots, 1)
-	require.Len(t, tbl.Structure.Roots[0].Children, 1)
-	require.Equal(t, "net", tbl.Structure.Roots[0].Name)
-	require.Equal(t, "http", tbl.Structure.Roots[0].Children[0].Name)
 }
 
 func TestResolveSymbols_RelationshipValidationErrors(t *testing.T) {
@@ -202,17 +197,9 @@ package storage {
 	tbl, err := ResolveSymbols(diag)
 	require.NoError(t, err)
 
-	require.Len(t, tbl.Structure.Roots, 2)
-	require.Equal(t, "auth", tbl.Structure.Roots[0].Name)
-	require.Equal(t, "storage", tbl.Structure.Roots[1].Name)
-	require.Len(t, tbl.Structure.Roots[1].Children, 1)
-	require.Equal(t, "db", tbl.Structure.Roots[1].Children[0].Name)
-	require.Equal(t, "storage.db", tbl.Structure.Roots[1].Children[0].FQN)
-
 	token := tbl.Lookup("auth.Token")
 	require.NotNil(t, token)
 
 	client := tbl.Lookup("storage.db.Client")
 	require.NotNil(t, client)
 }
-

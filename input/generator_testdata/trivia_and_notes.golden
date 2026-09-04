@@ -1,9 +1,9 @@
 package root
 
 // User represents a customer entity
-
 // NOTE: Main domain entity
 type User struct {
+	// Unique identifier
 	Id   string
 	Name string
 }
