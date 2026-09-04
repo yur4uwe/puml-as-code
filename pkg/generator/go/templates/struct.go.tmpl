@@ -1,13 +1,13 @@
-{{template "leading-trivia" .LeadingTrivia -}}
-{{template "notes" .Notes -}}
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
 type {{.Name}}{{template "generic-type-params" .Generics}} struct {
 {{- range .Embeds}}
 	{{.}}
 {{- end}}
 {{- range .Fields}}
-    {{template "leading-trivia" .LeadingTrivia -}}
-    {{template "notes" .Notes -}}
-	{{.Name}} {{.Type}}{{if .TrailingTrivia}} // {{range $i, $t := .TrailingTrivia}}{{if gt $i 0}} {{end}}{{$t}}{{end}}{{end}}
+    {{template "doc-comment" .LeadingTrivia -}}
+    {{template "doc-comment" .Notes -}}
+	{{.Name}} {{.Type}}{{template "trailing-comment" .TrailingTrivia}}
 {{- end}}
 }
 
@@ -16,8 +16,8 @@ var _ {{.}} = (*{{$.Name}})(nil)
 {{- end}}
 
 {{- range .Methods}}
-{{template "leading-trivia" .LeadingTrivia -}}
-{{template "notes" .Notes -}}
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
 func (s *{{$.Name}}{{template "generic-reciever-type-params" $.Generics}}) {{.Name}}{{.Signature}} {
     panic("not implemented")
 }

@@ -2,9 +2,43 @@
 ' User represents a customer entity
 class User {
   ' Unique identifier
-  +id string
-  +name string
+  +id string ' primary key
+  +name string /' customer given name '/ /' must not be empty '/
 }
 
-note top of User : Main domain entity
+note top of User 
+Main domain entity
+With an identifier and a name
+end note
+
+note right of User::name : Customer full name
+
+/'
+Order placed by user
+With an order identifier
+'/
+class Order {
+  +id string /' order identifier
+                as a string '/
+}
+
+User --> Order : places
+note on link : Active customer orders
+
+' Greeter service interface
+interface Greeter {
+  ' Greet greets a user
+  +Greet(name string) string /' returns greeting string '/
+}
+
+note top of Greeter : Greeting contract
+note right of Greeter::Greet : Returns formatted greeting
+
+' Role of the user
+enum Role {
+  +Admin int
+  +User int
+} ' Authorization level enum
+
+note top of Role : Authorization level
 @enduml

@@ -1,12 +1,12 @@
-{{template "leading-trivia" .LeadingTrivia -}}
-{{template "notes" .Notes -}}
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
 type {{.Name}}{{template "generic-type-params" .Generics}} interface {
 {{- range .Embeds}}
 	{{.}}
 {{- end}}
 {{- range .Methods}}
-    {{template "leading-trivia" .LeadingTrivia -}}
-    {{template "notes" .Notes -}}
-	{{.Name}}{{.Signature}}
+    {{template "doc-comment" .LeadingTrivia -}}
+    {{template "doc-comment" .Notes -}}
+	{{.Name}}{{.Signature}}{{template "trailing-comment" .TrailingTrivia}}
 {{- end}}
 }

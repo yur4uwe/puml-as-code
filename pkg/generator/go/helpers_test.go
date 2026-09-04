@@ -5,6 +5,7 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/resolver"
+	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
 )
@@ -265,3 +266,98 @@ func TestParseGeneric(t *testing.T) {
 		})
 	}
 }
+
+func TestToTriviaView(t *testing.T) {
+	tt := []struct {
+		name     string
+		trivia   ast.Trivia
+		expected TriviaView
+	}{
+		{
+			name:   "empty trivia",
+			trivia: ast.Trivia{},
+			expected: TriviaView{
+				LeadingTrivia:  nil,
+				TrailingTrivia: nil,
+			},
+		},
+		{
+			name: "leading trivia only",
+			trivia: ast.Trivia{
+				LeadingTrivia: []tokenizer.Token{
+					{Literal: "Doc comment line 1", Pos: tokenizer.TokenPos{Line: 1}},
+					{Literal: "Doc comment line 2", Pos: tokenizer.TokenPos{Line: 2}},
+				},
+			},
+			expected: TriviaView{
+				LeadingTrivia:  []string{"Doc comment line 1", "Doc comment line 2"},
+				TrailingTrivia: nil,
+			},
+		},
+		{
+			name: "single trailing comment on same line",
+			trivia: ast.Trivia{
+				TrailingTrivia: []tokenizer.Token{
+					{Literal: "inline field comment", Pos: tokenizer.TokenPos{Line: 5}},
+				},
+			},
+			expected: TriviaView{
+				LeadingTrivia:  nil,
+				TrailingTrivia: []string{"inline field comment"},
+			},
+		},
+		{
+			name: "multiple trailing comments on same line collapsed with semicolon",
+			trivia: ast.Trivia{
+				TrailingTrivia: []tokenizer.Token{
+					{Literal: "comment 1", Pos: tokenizer.TokenPos{Line: 5}},
+					{Literal: "comment 2", Pos: tokenizer.TokenPos{Line: 5}},
+					{Literal: "comment 3", Pos: tokenizer.TokenPos{Line: 5}},
+				},
+			},
+			expected: TriviaView{
+				LeadingTrivia:  nil,
+				TrailingTrivia: []string{"comment 1; comment 2; comment 3"},
+			},
+		},
+		{
+			name: "block open and close trailing trivia on separate lines",
+			trivia: ast.Trivia{
+				TrailingTrivia: []tokenizer.Token{
+					{Literal: "open comment 1", Pos: tokenizer.TokenPos{Line: 2}},
+					{Literal: "open comment 2", Pos: tokenizer.TokenPos{Line: 2}},
+					{Literal: "close comment 1", Pos: tokenizer.TokenPos{Line: 8}},
+					{Literal: "close comment 2", Pos: tokenizer.TokenPos{Line: 8}},
+				},
+			},
+			expected: TriviaView{
+				LeadingTrivia: nil,
+				TrailingTrivia: []string{
+					"open comment 1; open comment 2",
+					"close comment 1; close comment 2",
+				},
+			},
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := toTriviaView(tc.trivia)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+
+	t.Run("panics on more than 2 distinct trailing trivia lines", func(t *testing.T) {
+		invalidTrivia := ast.Trivia{
+			TrailingTrivia: []tokenizer.Token{
+				{Literal: "line 1", Pos: tokenizer.TokenPos{Line: 1}},
+				{Literal: "line 2", Pos: tokenizer.TokenPos{Line: 2}},
+				{Literal: "line 3", Pos: tokenizer.TokenPos{Line: 3}},
+			},
+		}
+		require.Panics(t, func() {
+			toTriviaView(invalidTrivia)
+		})
+	})
+}
+

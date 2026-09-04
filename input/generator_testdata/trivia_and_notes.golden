@@ -1,9 +1,36 @@
 package root
 
+// Role of the user
+// NOTE: Authorization level
+type Role int // Authorization level enum
+
+const (
+	RoleAdmin Role = iota
+	RoleUser
+)
+
+// Greeter service interface
+// NOTE: Greeting contract
+type Greeter interface {
+	// Greet greets a user
+	// NOTE: Returns formatted greeting
+	Greet(name string) string // returns greeting string
+}
+
 // User represents a customer entity
 // NOTE: Main domain entity
+// With an identifier and a name
 type User struct {
+	// NOTE: Active customer orders
+	Order *Order
 	// Unique identifier
-	Id   string
-	Name string
+	Id string // primary key
+	// NOTE: Customer full name
+	Name string // customer given name; must not be empty
+}
+
+// Order placed by user
+// With an order identifier
+type Order struct {
+	Id string // order identifier; as a string
 }

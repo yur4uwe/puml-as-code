@@ -68,6 +68,7 @@ type EntitySymbol struct {
 	PackagePath []string
 	AST         *ast.Entity
 	Notes       []*ast.Note
+	MemberNotes map[string][]*ast.Note
 }
 
 func FQN(name string, pkgPath []string) string {
@@ -251,7 +252,7 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 			resolveStatements(tbl, s.Statements, childPkgPath, noteLookup)
 		case ast.Note:
 			// get rid of the link notes
-			if s.Target.Entity == "link" {
+			if s.Target != nil && s.Target.Entity == "link" {
 				if prevRelationship == nil {
 					return fmt.Errorf("no relationship found for link note %s", s.Text)
 				}
@@ -270,6 +271,13 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 				target := tbl.LookupByRef(*s.Target)
 				if target == nil {
 					return fmt.Errorf("no entity found for targeted note %v", s)
+				}
+				if s.Target.Member != "" {
+					if target.MemberNotes == nil {
+						target.MemberNotes = make(map[string][]*ast.Note)
+					}
+					target.MemberNotes[s.Target.Member] = append(target.MemberNotes[s.Target.Member], &s)
+					continue
 				}
 				target.Notes = append(target.Notes, &s)
 				continue

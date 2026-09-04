@@ -1081,14 +1081,16 @@ func TestParseNote(t *testing.T) {
 			name:  "link note on link with colon",
 			input: "note on link : some note text\n",
 			want: &ast.Note{
-				Text: "some note text",
+				Text:   "some note text",
+				Target: &ast.TargetRef{Entity: "link"},
 			},
 		},
 		{
 			name:  "link note on link multiline",
 			input: "note on link\nsome note text\nend note",
 			want: &ast.Note{
-				Text: "some note text",
+				Text:   "some note text",
+				Target: &ast.TargetRef{Entity: "link"},
 			},
 		},
 		{

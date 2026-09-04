@@ -106,3 +106,43 @@ class Example {
 	require.NotEmpty(t, method.TrailingTrivia, "Expected trailing trivia on method")
 	require.Contains(t, method.TrailingTrivia[0].Literal, "Method trailing comment")
 }
+
+func TestMultipleTrailingCommentsAttachment(t *testing.T) {
+	input := `@startuml
+class User { /' open comment 1 '/ /' open comment 2 '/
+  +id string /' field comment 1 '/ /' field comment 2 '/
+} /' close comment 1 '/ /' close comment 2 '/
+@enduml`
+
+	p := &Parser{
+		Dialect: dialect.NewGoDialect(),
+	}
+	diag, err := p.Parse(input)
+	require.NoError(t, err)
+	require.NotNil(t, diag)
+
+	var userEntity ast.Entity
+	for _, stmt := range diag.Statements {
+		if ent, ok := stmt.(ast.Entity); ok && ent.Identifier == "User" {
+			userEntity = ent
+			break
+		}
+	}
+	require.NotNil(t, userEntity)
+
+	// Trailing trivia on User entity should contain 4 tokens (2 from opening line, 2 from closing line)
+	require.Len(t, userEntity.TrailingTrivia, 4)
+	require.Contains(t, userEntity.TrailingTrivia[0].Literal, "open comment 1")
+	require.Contains(t, userEntity.TrailingTrivia[1].Literal, "open comment 2")
+	require.Contains(t, userEntity.TrailingTrivia[2].Literal, "close comment 1")
+	require.Contains(t, userEntity.TrailingTrivia[3].Literal, "close comment 2")
+
+	// Field should have 2 trailing comments on the same line
+	require.Len(t, userEntity.Members, 1)
+	field, ok := userEntity.Members[0].(*dialect.GoField)
+	require.True(t, ok)
+	require.Len(t, field.TrailingTrivia, 2)
+	require.Contains(t, field.TrailingTrivia[0].Literal, "field comment 1")
+	require.Contains(t, field.TrailingTrivia[1].Literal, "field comment 2")
+}
+

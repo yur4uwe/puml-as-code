@@ -1,6 +1,7 @@
 package gogenerator
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -45,9 +46,9 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 	for _, member := range ent.AST.Members {
 		switch member := member.(type) {
 		case *dialect.GoField:
-			view.Fields = append(view.Fields, toFieldView(ent.AST, member, fileView))
+			view.Fields = append(view.Fields, toFieldView(ent, member, fileView))
 		case *dialect.GoMethod:
-			view.Methods = append(view.Methods, toMethodView(ent.AST, member, fileView))
+			view.Methods = append(view.Methods, toMethodView(ent, member, fileView))
 		case ast.ClassSeparator:
 		}
 	}
@@ -57,7 +58,8 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 
 func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileView *FileView) (InterfaceView, error) {
 	view := InterfaceView{
-		Name: stdlib.SimpleName(ent.FQN),
+		Name:      stdlib.SimpleName(ent.FQN),
+		NotesView: toNotesView(ent.Notes),
 	}
 
 	if ent.AST != nil {
@@ -92,7 +94,7 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 	for _, member := range ent.AST.Members {
 		view.Methods = append(
 			view.Methods,
-			toMethodView(ent.AST, member.(*dialect.GoMethod), fileView),
+			toMethodView(ent, member.(*dialect.GoMethod), fileView),
 		)
 	}
 	return view, nil
@@ -107,8 +109,10 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 		cases[i] = member.(*dialect.GoField).Name
 	}
 	view := EnumView{
-		Name:   ent.AST.Identifier,
-		Values: cases,
+		Name:       ent.AST.Identifier,
+		Values:     cases,
+		NotesView:  toNotesView(ent.Notes),
+		TriviaView: toTriviaView(ent.AST.Trivia),
 	}
 	return view
 }
@@ -138,17 +142,17 @@ func collectImports(typeRef *dialect.GoTypeRef, fileView *FileView) {
 	}
 }
 
-func toFieldView(owner *ast.Entity, field *dialect.GoField, fileView *FileView) FieldView {
+func toFieldView(owner *resolver.EntitySymbol, field *dialect.GoField, fileView *FileView) FieldView {
 	collectImports(field.Type, fileView)
 	return FieldView{
-		Name:       ensureCorrectCase(owner.Identifier, field.Name, field.Visibility),
+		Name:       ensureCorrectCase(owner.AST.Identifier, field.Name, field.Visibility),
 		Type:       field.Type.String(),
 		TriviaView: toTriviaView(field.Trivia),
-		// NotesView:  toNotesView(field.Notes),
+		NotesView:  toNotesView(owner.MemberNotes[field.Name]),
 	}
 }
 
-func toMethodView(owner *ast.Entity, method *dialect.GoMethod, fileView *FileView) MethodView {
+func toMethodView(owner *resolver.EntitySymbol, method *dialect.GoMethod, fileView *FileView) MethodView {
 	for _, param := range method.Parameters {
 		collectImports(param.Type, fileView)
 	}
@@ -156,17 +160,33 @@ func toMethodView(owner *ast.Entity, method *dialect.GoMethod, fileView *FileVie
 		collectImports(ret.Type, fileView)
 	}
 	return MethodView{
-		Name:       ensureCorrectCase(owner.Identifier, method.Name, method.Visibility),
+		Name:       ensureCorrectCase(owner.AST.Identifier, method.Name, method.Visibility),
 		Signature:  method.Signature(),
 		TriviaView: toTriviaView(method.Trivia),
-		// NotesView:  toNotesView(method.Notes),
+		NotesView:  toNotesView(owner.MemberNotes[method.Name]),
 	}
 }
 
 func toNotesView(note []*ast.Note) NotesView {
 	var notes []string
 	for _, n := range note {
-		notes = append(notes, n.Text)
+		raw := strings.TrimSpace(n.Text)
+		if raw == "" {
+			continue
+		}
+		var headerSet bool
+		for _, line := range strings.Split(raw, "\n") {
+			trimmed := strings.TrimSpace(line)
+			if trimmed == "" {
+				continue
+			}
+			if !headerSet {
+				notes = append(notes, "NOTE: "+trimmed)
+				headerSet = true
+			} else {
+				notes = append(notes, trimmed)
+			}
+		}
 	}
 	return NotesView{
 		Notes: notes,
@@ -176,12 +196,45 @@ func toNotesView(note []*ast.Note) NotesView {
 func toTriviaView(t ast.Trivia) TriviaView {
 	var leadingTrivia []string
 	for _, tok := range t.GetLeadingTrivia() {
-		leadingTrivia = append(leadingTrivia, tok.Literal)
+		lines := strings.SplitSeq(tok.Literal, "\n")
+		for line := range lines {
+			leadingTrivia = append(leadingTrivia, strings.TrimSpace(line))
+		}
 	}
+
 	var trailingTrivia []string
+	var lineTokens []string
+	var currentLine uint
+
 	for _, tok := range t.GetTrailingTrivia() {
-		trailingTrivia = append(trailingTrivia, tok.Literal)
+		lit := strings.TrimSpace(tok.Literal)
+		lines := strings.Split(lit, "\n")
+		for i, line := range lines {
+			lines[i] = strings.TrimSpace(line)
+			if len(lines[i]) == 0 {
+				continue
+			}
+		}
+		if len(lineTokens) == 0 {
+			lineTokens = append(lineTokens, lines...)
+			currentLine = tok.Pos.Line
+		} else if tok.Pos.Line == currentLine {
+			lineTokens = append(lineTokens, lines...)
+		} else {
+			trailingTrivia = append(trailingTrivia, strings.Join(lineTokens, "; "))
+			lineTokens = lines
+			currentLine = tok.Pos.Line
+		}
 	}
+	if len(lineTokens) > 0 {
+		trailingTrivia = append(trailingTrivia, strings.Join(lineTokens, "; "))
+	}
+
+	if len(trailingTrivia) > 2 {
+		// defensive check to spot issues and bugs with trailing trivia aggregation
+		panic(fmt.Sprintf("too many trailing trivia: %d", len(trailingTrivia)))
+	}
+
 	return TriviaView{
 		LeadingTrivia:  leadingTrivia,
 		TrailingTrivia: trailingTrivia,

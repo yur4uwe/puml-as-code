@@ -866,6 +866,8 @@ func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
 	if _, ok := p.stream.TryConsume(amb(tokenizer.IDENTIFIER, "link")); !ok {
 		return NewParserError("Expected 'link' after 'note on'", onTok)
 	}
+	note.Target = &ast.TargetRef{Entity: "link"}
+	p.tryParseColor()
 	return p.parseNoteBody(note)
 }
 

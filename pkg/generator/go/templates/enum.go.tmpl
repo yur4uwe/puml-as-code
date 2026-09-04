@@ -1,6 +1,6 @@
-{{template "leading-trivia" .LeadingTrivia -}}
-{{template "notes" .Notes -}}
-type {{.Name}} int
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
+type {{.Name}} int {{template "trailing-comment" .TrailingTrivia}}
 
 const (
 {{- range $i, $v := .Values}}
