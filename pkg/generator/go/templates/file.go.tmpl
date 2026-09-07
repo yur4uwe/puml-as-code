@@ -8,6 +8,12 @@ import (
 )
 {{end}}
 
+{{range .Variables}}
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
+var {{.Name}} {{.Type}}{{template "trailing-comment" .TrailingTrivia}}
+{{end}}
+
 {{range .Enums}}
 {{template "enum.go.tmpl" .}}
 {{end}}
@@ -19,4 +25,13 @@ import (
 {{range .Structs}}
 {{template "struct.go.tmpl" .}}
 {{end}}
+
+{{range .Functions}}
+{{template "doc-comment" .LeadingTrivia -}}
+{{template "doc-comment" .Notes -}}
+func {{.Name}}{{.Signature}} { {{- template "trailing-comment" .TrailingTrivia}}
+    panic("not implemented")
+}
+{{end}}
+
 

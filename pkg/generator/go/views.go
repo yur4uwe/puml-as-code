@@ -16,6 +16,8 @@ type FileView struct {
 	PackageName string
 	ImportPath  string
 	Imports     []string
+	Variables   []FieldView
+	Functions   []MethodView
 	Structs     []StructView
 	Interfaces  []InterfaceView
 	Enums       []EnumView

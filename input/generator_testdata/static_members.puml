@@ -1,0 +1,16 @@
+@startuml
+class Database {
+  {static} +DefaultTimeout time.Duration
+  {static} -maxConnections int
+  +host string
+  +port int
+  {static} +Connect(host string, port int) (*Database, error)
+  {static} -initPool() void
+  +Query(sql string) ([]byte, error)
+}
+
+interface Service {
+  {static} +NewService() Service
+  +Execute() error
+}
+@enduml

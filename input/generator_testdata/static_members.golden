@@ -1,0 +1,34 @@
+package root
+
+import (
+	"time"
+)
+
+var DefaultTimeout time.Duration
+
+var maxConnections int // private
+
+type Service interface {
+	Execute() error
+}
+
+type Database struct {
+	Host string
+	Port int
+}
+
+func (s *Database) Query(sql string) ([]byte, error) {
+	panic("not implemented")
+}
+
+func Connect(host string, port int) (*Database, error) {
+	panic("not implemented")
+}
+
+func initPool() void { // private
+	panic("not implemented")
+}
+
+func NewService() Service {
+	panic("not implemented")
+}

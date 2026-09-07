@@ -52,14 +52,24 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 				fv.LeadingTrivia = append(pendingSeparators, fv.LeadingTrivia...)
 				pendingSeparators = nil
 			}
-			view.Fields = append(view.Fields, fv)
+			if isStatic(member.Modifiers) {
+				fileView.Variables = append(fileView.Variables, fv)
+			} else {
+				view.Fields = append(view.Fields, fv)
+			}
 		case *dialect.GoMethod:
 			mv := toMethodView(ent, member, fileView)
 			if len(pendingSeparators) > 0 {
 				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
 				pendingSeparators = nil
 			}
-			view.Methods = append(view.Methods, mv)
+			if isStatic(member.Modifiers) {
+				fileView.Functions = append(fileView.Functions, mv)
+			} else if isAbstract(member.Modifiers) {
+				// Abstract methods on structs have no concrete receiver implementation
+			} else {
+				view.Methods = append(view.Methods, mv)
+			}
 		case ast.ClassSeparator:
 			pendingSeparators = append(pendingSeparators, formatSeparator(member)...)
 		}
@@ -127,15 +137,27 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
 				pendingSeparators = nil
 			}
-			view.Methods = append(
-				view.Methods,
-				mv,
-			)
+			if isStatic(m.Modifiers) {
+				fileView.Functions = append(fileView.Functions, mv)
+			} else {
+				view.Methods = append(
+					view.Methods,
+					mv,
+				)
+			}
 		case ast.ClassSeparator:
 			pendingSeparators = append(pendingSeparators, formatSeparator(m)...)
 		}
 	}
 	return view, nil
+}
+
+func isStatic(modifiers []string) bool {
+	return slices.Contains(modifiers, "static") || slices.Contains(modifiers, "classifier")
+}
+
+func isAbstract(modifiers []string) bool {
+	return slices.Contains(modifiers, "abstract")
 }
 
 func toEnumView(ent *resolver.EntitySymbol) EnumView {

@@ -60,7 +60,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **E3: Abstract Class → Interface** — Map `abstract class` to Go `interface`. Hard error if the abstract class declares any fields (Go has no abstract structs with state). Implemented in `SemanticPass`.
 * [x] **E4: Enum Generation** — Map `enum` entities to an `int` type + `iota` const block: `type Color int` + `const ( ColorRed Color = iota ... )`. Enum member names are prefixed with the enum type name.
 * [x] **E5: Visibility Mapping** — `+` (public) → exported PascalCase name. `-` (private), `#` (protected), `~` (package) → unexported camelCase name. `#` and `~` emit `// protected` / `// package-private` comments.
-* [ ] **E6: Member Modifiers** — `{static}` members are emitted as package-level functions or package-level variables/constants (not receiver methods/struct fields). `{abstract}` methods are emitted only into companion interfaces.
+* [x] **E6: Member Modifiers** — `{static}` members are emitted as package-level functions or package-level variables/constants (not receiver methods/struct fields). `{abstract}` methods are emitted only into companion interfaces.
 * [x] **E7: Inheritance (--|>) → Embedding** — `Bar --|> Foo` where `Foo` is a struct → anonymous embed: `type Bar struct { Foo; ... }`. Where `Foo` is an interface → interface embedding: `type Bar interface { Foo; ... }`. Multiple struct embedding is fully supported (Go naturally supports embedding multiple structs and resolves field selectors through embedding hierarchy).
 * [x] **E8: Realization (..|>) → Compile-time Interface Check** — `Bar ..|> IFoo` → emit `var _ IFoo = (*Bar)(nil)` as a compile-time satisfaction assertion. Fixed template reference scoping (`(*{{$.Name}})(nil)`).
 * [x] **E9: Composition & Aggregation → Struct Fields** — Correct relationship ownership: add fields to the owning (source) struct pointing to the target. Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`), fixed `N` → array (`[N]Engine`).
@@ -107,5 +107,5 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   4. [x] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
   5. [x] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
   6. [x] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
-  7. [ ] Implement **E6** (static modifiers) and [x] **E16** (extended entity kinds: exceptions, records, protocols).
+  7. [x] Implement **E6** (static modifiers) and [x] **E16** (extended entity kinds: exceptions, records, protocols).
   8. [ ] Connect generator into CLI in **F6**.

@@ -128,3 +128,39 @@ User --> Order
 		_ = gen.SemanticPass(tbl)
 	})
 }
+
+func TestSemanticPass_PromoteClassWithAbstractMethods(t *testing.T) {
+	input := `
+@startuml
+class Shape {
+    {abstract} +Area() float64
+    {abstract} +Perimeter() float64
+}
+@enduml
+`
+	tbl := parseAndResolveTable(t, input)
+	gen := GoCodeGenerator{}
+	err := gen.SemanticPass(tbl)
+	require.NoError(t, err)
+
+	shape := tbl.Lookup("Shape")
+	require.NotNil(t, shape)
+	require.Equal(t, ast.EntityInterface, shape.AST.Kind, "Shape should be promoted to interface")
+}
+
+func TestSemanticPass_ErrorIfClassWithAbstractMethodsHasFields(t *testing.T) {
+	input := `
+@startuml
+class Shape {
+    +color string
+    {abstract} +Area() float64
+}
+@enduml
+`
+	tbl := parseAndResolveTable(t, input)
+	gen := GoCodeGenerator{}
+	err := gen.SemanticPass(tbl)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "cannot have abstract methods on class Shape")
+	require.Contains(t, err.Error(), "it contains fields")
+}

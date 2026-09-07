@@ -58,6 +58,23 @@ func tryInterfacePromotion(symb *resolver.EntitySymbol) error {
 }
 
 func (GoCodeGenerator) SemanticPass(tbl *resolver.SymbolTable) error {
+	for _, ent := range tbl.Entities {
+		if ent.AST != nil && isStruct(ent.AST) {
+			hasAbstractMethod := slices.ContainsFunc(ent.AST.Members, func(member ast.Member) bool {
+				if m, ok := member.(*dialect.GoMethod); ok {
+					return slices.Contains(m.Modifiers, "abstract")
+				}
+				return false
+			})
+			if hasAbstractMethod {
+				if err := tryInterfacePromotion(ent); err != nil {
+					return fmt.Errorf("cannot have abstract methods on class %s: %w", ent.FQN, err)
+				}
+				log.Printf("warning: conditions met for interface promotion, %s with abstract methods will become an interface", ent.FQN)
+			}
+		}
+	}
+
 	for _, rel := range tbl.Relationships {
 		switch rel.Type {
 		case ast.RelationInheritance:
