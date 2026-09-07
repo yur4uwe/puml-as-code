@@ -1,0 +1,47 @@
+package root
+
+import (
+	"time"
+)
+
+type Status int
+
+const (
+	StatusActive Status = iota
+	StatusSuspended
+)
+
+type Greeter interface {
+
+	// --- Basic ---
+
+	Greet(name string) string
+
+	// === Bulk ===
+
+	GreetAll(names []string) []string
+}
+
+type User struct {
+	Id string
+
+	// --- Meta ---
+
+	Timestamp time.Time
+
+	// ... Additional Info ...
+
+	Bio string
+}
+
+// === Methods ===
+
+func (s *User) Save() error {
+	panic("not implemented")
+}
+
+// ___ Internal ___
+
+func (s *User) validate() bool { // private
+	panic("not implemented")
+}

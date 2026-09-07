@@ -70,10 +70,10 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **E13: Doc Comments, Trivia & Notes** — Map leading/trailing `ast.Trivia` and attached UML notes (`ast.Note`) to idiomatic Go doc comments preceding types, fields, and methods.
 * [x] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
 * [x] **E15: Imports Resolution** — Generate an `import (...)` block in `file.go.tmpl` containing both standard library imports (e.g., `time`, `context`) and internal cross-package imports. Normalize short package names to full import paths. (Deferred: package alias disambiguation when multiple packages share the same short name, e.g. `auth.v1` vs `api.v1`).
-* [ ] **E16: Extended Entity Kinds** — Map `record` and `dataclass` to structs, `protocol` to interface, and `exception` to a struct implementing Go's `error` interface (`Error() string`).
+* [x] **E16: Extended Entity Kinds** — Map `record` and `dataclass` to structs, `protocol` to interface, and `exception` to a struct implementing Go's `error` interface (`Error() string`).
 * [x] **E17: Relationship Labels & Field Naming** — Use relationship labels or role names (e.g. `Order *-- "*" Item : items` or `: -items`) to derive field names instead of always defaulting to the target type name.
 * [x] **E18: Sketch-Grade / Untyped Fields & Parameters** — Safely handle Level 1 sketch types where field or parameter types are omitted (`Type == nil`), defaulting to `any` instead of panicking.
-* [ ] **E19: Class Separators / Section Comments** — Render `ast.ClassSeparator` dividers (`-- Section --`, `.. Private ..`) as formatted section comments within struct and interface declarations.
+* [x] **E19: Class Separators / Section Comments** — Render `ast.ClassSeparator` dividers (`-- Section --`, `.. Private ..`) as formatted section comments within struct and interface declarations.
 * [ ] **E20: Struct Tags (Deferred)** — Defer struct tags syntax design (` `...` ` or modifiers) until core generation features are completed.
 
 ### Category F: Generator Infrastructure
@@ -106,6 +106,6 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   3. [x] Fix relationship ownership in **E9** (composition/aggregation) and implement **E10** (association) & **E17** (relation labels/roles).
   4. [x] Implement **E15** (imports block generation) and **E14** (cross-package qualification).
   5. [x] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
-  6. [ ] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
-  7. [ ] Implement **E6** (static modifiers) and **E16** (extended entity kinds: exceptions, records, protocols).
+  6. [x] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
+  7. [ ] Implement **E6** (static modifiers) and [x] **E16** (extended entity kinds: exceptions, records, protocols).
   8. [ ] Connect generator into CLI in **F6**.

@@ -28,7 +28,8 @@ func isStruct(ent *ast.Entity) bool {
 		ent.Kind == ast.EntityStruct ||
 		ent.Kind == ast.EntityRecord ||
 		ent.Kind == ast.EntityDataclass ||
-		ent.Kind == ast.EntityException
+		ent.Kind == ast.EntityException ||
+		ent.Kind == ast.EntityEntityClass
 }
 
 func isEnum(ent *ast.Entity) bool {

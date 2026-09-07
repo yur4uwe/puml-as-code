@@ -1,0 +1,25 @@
+@startuml
+record UserRecord {
+  +id string
+  +name string
+}
+
+dataclass OrderData {
+  +orderId string
+  +total float64
+}
+
+protocol GreeterProtocol {
+  +Greet(name string) string
+}
+
+exception NotFoundError {
+  +resource string
+  +id string
+}
+
+exception CustomError {
+  +code int
+  +Error() string
+}
+@enduml

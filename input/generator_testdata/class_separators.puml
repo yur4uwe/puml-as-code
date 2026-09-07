@@ -1,0 +1,27 @@
+@startuml
+class User {
+  +id string
+  -- Meta --
+  +timestamp time.Time
+  .. Additional Info ..
+  +bio string
+  == Methods ==
+  +Save() error
+  __ Internal __
+  -validate() bool
+}
+
+interface Greeter {
+  -- Basic --
+  +Greet(name string) string
+  == Bulk ==
+  +GreetAll(names []string) []string
+}
+
+enum Status {
+  -- Active --
+  +Active int
+  -- Inactive --
+  +Suspended int
+}
+@enduml

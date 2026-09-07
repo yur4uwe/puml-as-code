@@ -1,7 +1,10 @@
 {{define "doc-comment" -}}
 {{range . -}}
+{{if eq . ""}}
+{{else -}}
 // {{.}}
-{{end -}}
+{{end}}
+{{- end -}}
 {{end}}
 
 {{define "trailing-comment" -}}

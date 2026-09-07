@@ -43,13 +43,40 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 		return view, nil
 	}
 
+	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
 		switch member := member.(type) {
 		case *dialect.GoField:
-			view.Fields = append(view.Fields, toFieldView(ent, member, fileView))
+			fv := toFieldView(ent, member, fileView)
+			if len(pendingSeparators) > 0 {
+				fv.LeadingTrivia = append(pendingSeparators, fv.LeadingTrivia...)
+				pendingSeparators = nil
+			}
+			view.Fields = append(view.Fields, fv)
 		case *dialect.GoMethod:
-			view.Methods = append(view.Methods, toMethodView(ent, member, fileView))
+			mv := toMethodView(ent, member, fileView)
+			if len(pendingSeparators) > 0 {
+				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
+				pendingSeparators = nil
+			}
+			view.Methods = append(view.Methods, mv)
 		case ast.ClassSeparator:
+			pendingSeparators = append(pendingSeparators, formatSeparator(member)...)
+		}
+	}
+
+	if ent.AST.Kind == ast.EntityException {
+		if !slices.Contains(view.Implements, "error") {
+			view.Implements = append(view.Implements, "error")
+		}
+		hasErrorMethod := slices.ContainsFunc(view.Methods, func(m MethodView) bool {
+			return m.Name == "Error"
+		})
+		if !hasErrorMethod {
+			view.Methods = append(view.Methods, MethodView{
+				Name:      "Error",
+				Signature: "() string",
+			})
 		}
 	}
 
@@ -91,11 +118,22 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 		}
 	}
 
+	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
-		view.Methods = append(
-			view.Methods,
-			toMethodView(ent, member.(*dialect.GoMethod), fileView),
-		)
+		switch m := member.(type) {
+		case *dialect.GoMethod:
+			mv := toMethodView(ent, m, fileView)
+			if len(pendingSeparators) > 0 {
+				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
+				pendingSeparators = nil
+			}
+			view.Methods = append(
+				view.Methods,
+				mv,
+			)
+		case ast.ClassSeparator:
+			pendingSeparators = append(pendingSeparators, formatSeparator(m)...)
+		}
 	}
 	return view, nil
 }
@@ -104,9 +142,13 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	if ent == nil {
 		panic("enums should always be explicitly defined")
 	}
-	cases := make([]string, len(ent.AST.Members))
-	for i, member := range ent.AST.Members {
-		cases[i] = member.(*dialect.GoField).Name
+	var cases []string
+	for _, member := range ent.AST.Members {
+		switch m := member.(type) {
+		case *dialect.GoField:
+			cases = append(cases, m.Name)
+		case ast.ClassSeparator:
+		}
 	}
 	view := EnumView{
 		Name:       ent.AST.Identifier,
@@ -115,6 +157,22 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 		TriviaView: toTriviaView(ent.AST.Trivia),
 	}
 	return view
+}
+
+func formatSeparator(sep ast.ClassSeparator) []string {
+	sepChar := sep.Type
+	if sepChar == 0 {
+		sepChar = '-'
+	}
+	fill := strings.Repeat(string(sepChar), 3)
+	label := strings.TrimSpace(sep.Label)
+	var text string
+	if label != "" {
+		text = fmt.Sprintf("%s %s %s", fill, label, fill)
+	} else {
+		text = fill
+	}
+	return []string{"", text, ""}
 }
 
 func collectImports(typeRef *dialect.GoTypeRef, fileView *FileView) {
@@ -223,7 +281,10 @@ func toTriviaView(t ast.Trivia) TriviaView {
 	for _, tok := range t.GetLeadingTrivia() {
 		lines := strings.SplitSeq(tok.Literal, "\n")
 		for line := range lines {
-			leadingTrivia = append(leadingTrivia, strings.TrimSpace(line))
+			trimmed := strings.TrimSpace(line)
+			if trimmed != "" {
+				leadingTrivia = append(leadingTrivia, trimmed)
+			}
 		}
 	}
 

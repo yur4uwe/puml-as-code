@@ -1,0 +1,36 @@
+package root
+
+type GreeterProtocol interface {
+	Greet(name string) string
+}
+
+type UserRecord struct {
+	Id   string
+	Name string
+}
+
+type OrderData struct {
+	OrderId string
+	Total   float64
+}
+
+type NotFoundError struct {
+	Resource string
+	Id       string
+}
+
+var _ error = (*NotFoundError)(nil)
+
+func (s *NotFoundError) Error() string {
+	panic("not implemented")
+}
+
+type CustomError struct {
+	Code int
+}
+
+var _ error = (*CustomError)(nil)
+
+func (s *CustomError) Error() string {
+	panic("not implemented")
+}
