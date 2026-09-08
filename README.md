@@ -1,5 +1,9 @@
 # puml-as-code (`pac`)
 
+> **Turn PlantUML Class Diagrams into Idiomatic Source Code.**  
+> A fast, extensible compiler and transpiler written in Go that translates UML
+diagrams, relationships, and package hierarchies into formatted, production-ready source code.
+
 [![CI](https://github.com/yur4uwe/puml-as-code/actions/workflows/ci.yml/badge.svg)](https://github.com/yur4uwe/puml-as-code/actions/workflows/ci.yml)
 [![Go Version](https://img.shields.io/badge/Go-1.24+-00ADD8?style=flat&logo=go)](https://go.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENCE.md)
