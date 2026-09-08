@@ -1,0 +1,98 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            archive_ext: tar.gz
+          - goos: linux
+            goarch: arm64
+            archive_ext: tar.gz
+          - goos: darwin
+            goarch: amd64
+            archive_ext: tar.gz
+          - goos: darwin
+            goarch: arm64
+            archive_ext: tar.gz
+          - goos: windows
+            goarch: amd64
+            archive_ext: zip
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+          cache: true
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p dist
+          BINARY_NAME="pac"
+          if [ "${{ matrix.goos }}" = "windows" ]; then
+            BINARY_NAME="pac.exe"
+          fi
+          go build -ldflags="-s -w" -o "dist/${BINARY_NAME}" ./cmd/main.go
+
+      - name: Package archive
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          ARCHIVE_NAME="pac_${VERSION}_${{ matrix.goos }}_${{ matrix.goarch }}"
+          mkdir -p release
+          cd dist
+          if [ "${{ matrix.archive_ext }}" = "tar.gz" ]; then
+            tar -czf "../release/${ARCHIVE_NAME}.tar.gz" *
+          else
+            zip -r "../release/${ARCHIVE_NAME}.zip" *
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pac-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: release/*
+
+  publish-release:
+    name: Create GitHub Release
+    needs: build-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-assets
+          merge-multiple: true
+
+      - name: Generate Checksums
+        run: |
+          cd release-assets
+          sha256sum * > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release-assets/*
+          generate_release_notes: true
