@@ -3,7 +3,7 @@ package tokenizer
 import (
 	"embed"
 	"encoding/json"
-	"path/filepath"
+	"path"
 	"sync"
 	"testing"
 )
@@ -31,11 +31,11 @@ func loadDocsExamples() []exampleCase {
 		}
 
 		for _, entry := range entries {
-			if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+			if entry.IsDir() || path.Ext(entry.Name()) != ".json" {
 				continue
 			}
 
-			data, err := examplesFS.ReadFile(filepath.Join("examples", entry.Name()))
+			data, err := examplesFS.ReadFile(path.Join("examples", entry.Name()))
 			if err != nil {
 				panic("failed to read " + entry.Name() + ": " + err.Error())
 			}

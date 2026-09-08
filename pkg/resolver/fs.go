@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
+	"path/filepath"
 )
 
 // MaxFileSize defines the maximum allowed size for a single diagram file (10MB).
@@ -40,8 +42,10 @@ var DefaultFS FileReader = OSFileReader{}
 
 type MapFS map[string][]byte
 
-func (m MapFS) ReadFile(path string) ([]byte, error) {
-	data, ok := m[path]
+func (m MapFS) ReadFile(p string) ([]byte, error) {
+	// To handle filepath.Join producing '\' on Windows
+	slashPath := path.Clean(filepath.ToSlash(p))
+	data, ok := m[slashPath]
 	if !ok {
 		return nil, os.ErrNotExist
 	}

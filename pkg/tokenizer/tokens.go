@@ -105,6 +105,14 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		return Token{Type: EOF, Literal: "", Pos: l.getPos()}, true
 	}
 
+	// Special case for Windows CRLF line endings
+	if l.ch == '\r' {
+		l.readChar()
+		if l.ch == '\n' {
+			return l.consumeChar(NEWLINE, "\n"), true
+		}
+	}
+
 	if tt, ok := singleCharTokens[l.ch]; ok {
 		return l.consumeChar(tt, string(l.ch)), true
 	}

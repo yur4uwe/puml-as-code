@@ -1,0 +1,4 @@
+* text=auto eol=lf
+*.golden text eol=lf
+*.json text eol=lf
+*.puml text eol=lf

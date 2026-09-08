@@ -43,8 +43,11 @@ func serializeGoldenArchive(files []*GeneratedFile) []byte {
 }
 
 func parseGoldenArchive(data []byte) map[string]string {
-	content := string(data)
-	// Fast path
+	// 1. Normalize CRLF / CR to standard LF
+	content := strings.ReplaceAll(string(data), "\r\n", "\n")
+	content = strings.ReplaceAll(content, "\r", "\n")
+
+	// Fast path: single file archive
 	if !strings.HasPrefix(content, "==> ") {
 		return map[string]string{
 			"types.go": content,
@@ -52,21 +55,32 @@ func parseGoldenArchive(data []byte) map[string]string {
 	}
 
 	result := make(map[string]string)
-	lines := strings.Split(content, "\n")
-	// Path marker must be on the first line
-	currentPath := strings.TrimSuffix(strings.TrimPrefix(lines[0], "==> "), " <==")
-	var linesBuffer []string
+	var currentPath string
+	var currentBuilder strings.Builder
 
-	for _, line := range lines[1:] {
-		if strings.HasPrefix(line, "==> ") && strings.HasSuffix(line, " <==") {
-			result[currentPath] = strings.Join(linesBuffer, "\n")
-			currentPath = strings.TrimSuffix(strings.TrimPrefix(line, "==> "), " <==")
-			linesBuffer = nil
-		} else {
-			linesBuffer = append(linesBuffer, line)
+	for line := range strings.Lines(content) {
+		trimmed := strings.TrimRight(line, "\r\n")
+
+		if strings.HasPrefix(trimmed, "==> ") && strings.HasSuffix(trimmed, " <==") {
+			if currentPath != "" {
+				// Strip the extra separating newline added between sections by serializeGoldenArchive
+				result[currentPath] = strings.TrimSuffix(currentBuilder.String(), "\n\n") + "\n"
+				currentBuilder.Reset()
+			}
+			currentPath = strings.TrimSuffix(strings.TrimPrefix(trimmed, "==> "), " <==")
+			currentPath = filepath.ToSlash(currentPath)
+			continue
+		}
+
+		if currentPath != "" {
+			currentBuilder.WriteString(trimmed)
+			currentBuilder.WriteString("\n")
 		}
 	}
-	result[currentPath] = strings.Join(linesBuffer, "\n")
+
+	if currentPath != "" {
+		result[currentPath] = currentBuilder.String()
+	}
 
 	return result
 }
