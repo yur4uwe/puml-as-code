@@ -68,6 +68,36 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 		}
 	}
 
+	for _, note := range tbl.Notes {
+		raw := strings.TrimSpace(note.Text)
+		if raw == "" {
+			continue
+		}
+		if strings.HasPrefix(raw, "Package ") {
+			fields := strings.Fields(raw)
+			var targetView *FileView
+			if len(fields) >= 2 {
+				pkgName := fields[1]
+				for _, view := range viewMap {
+					if view.PackageName == pkgName {
+						targetView = view
+						break
+					}
+				}
+			}
+			if targetView == nil {
+				targetView = getRootOrFirstView(viewMap)
+			}
+			for line := range strings.SplitSeq(raw, "\n") {
+				targetView.PackageComments = append(targetView.PackageComments, strings.TrimSpace(line))
+			}
+		} else {
+			targetView := getRootOrFirstView(viewMap)
+			nv := toNotesView([]*ast.Note{note})
+			targetView.FileNotes = append(targetView.FileNotes, nv.Notes...)
+		}
+	}
+
 	for _, file := range viewMap {
 		// collapse incomplete import paths
 		cleanImports := make([]string, 0, len(file.Imports))
@@ -125,6 +155,18 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 	return files, nil
 }
 
+func getRootOrFirstView(viewMap map[string]*FileView) *FileView {
+	if view, ok := viewMap["types.go"]; ok {
+		return view
+	}
+	for _, view := range viewMap {
+		return view
+	}
+	root := &FileView{PackageName: "root"}
+	viewMap["types.go"] = root
+	return root
+}
+
 func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
 	// i have not
 	trivia := toTriviaView(rel.AST.Trivia)
@@ -156,8 +198,14 @@ func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, f
 		} else {
 			view.Embeds = append(view.Embeds, targetType)
 		}
+		if len(rel.Notes) > 0 {
+			view.Notes = append(view.Notes, toNotesView(rel.Notes).Notes...)
+		}
 	case ast.RelationRealization:
 		view.Implements = append(view.Implements, targetType)
+		if len(rel.Notes) > 0 {
+			view.Notes = append(view.Notes, toNotesView(rel.Notes).Notes...)
+		}
 	case ast.RelationComposition:
 		fieldView.Type = formatCompFieldType(targetType, rel.TargetMult)
 		view.Fields = append(view.Fields, fieldView)
@@ -174,6 +222,9 @@ func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, f
 			sb.WriteString(")")
 		}
 		view.LeadingTrivia = append(view.LeadingTrivia, sb.String())
+		if len(rel.Notes) > 0 {
+			view.Notes = append(view.Notes, toNotesView(rel.Notes).Notes...)
+		}
 	}
 }
 

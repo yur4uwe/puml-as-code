@@ -75,6 +75,15 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 		}
 	}
 
+	if len(pendingSeparators) > 0 {
+		view.Fields = append(view.Fields, FieldView{
+			TriviaView: TriviaView{
+				LeadingTrivia: pendingSeparators,
+			},
+		})
+		pendingSeparators = nil
+	}
+
 	if ent.AST.Kind == ast.EntityException {
 		if !slices.Contains(view.Implements, "error") {
 			view.Implements = append(view.Implements, "error")
@@ -159,6 +168,16 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 			pendingSeparators = append(pendingSeparators, formatSeparator(m)...)
 		}
 	}
+
+	if len(pendingSeparators) > 0 {
+		view.Methods = append(view.Methods, MethodView{
+			TriviaView: TriviaView{
+				LeadingTrivia: pendingSeparators,
+			},
+		})
+		pendingSeparators = nil
+	}
+
 	return view, nil
 }
 
@@ -210,6 +229,15 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 		case ast.ClassSeparator:
 			pendingSeparators = append(pendingSeparators, formatSeparator(m)...)
 		}
+	}
+
+	if len(pendingSeparators) > 0 && len(view.Cases) > 0 {
+		view.Cases = append(view.Cases, EnumCaseView{
+			TriviaView: TriviaView{
+				LeadingTrivia: pendingSeparators,
+			},
+		})
+		pendingSeparators = nil
 	}
 
 	return view

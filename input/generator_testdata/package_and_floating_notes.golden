@@ -1,0 +1,8 @@
+// Package root provides core domain entities.
+package root
+
+type User struct {
+	Id string
+}
+
+// NOTE: General architecture note: User service is stateless.

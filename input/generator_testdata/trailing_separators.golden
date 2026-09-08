@@ -1,0 +1,20 @@
+package root
+
+type EmptyInterface interface {
+
+	// === Contracts ===
+
+}
+
+type EmptyStruct struct {
+
+	// --- Lifecycle ---
+
+}
+
+type User struct {
+	Id string
+
+	// --- End of profile ---
+
+}

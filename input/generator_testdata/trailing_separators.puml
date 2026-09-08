@@ -1,0 +1,14 @@
+@startuml
+class EmptyStruct {
+  -- Lifecycle --
+}
+
+interface EmptyInterface {
+  == Contracts ==
+}
+
+class User {
+  +id string
+  -- End of profile --
+}
+@enduml

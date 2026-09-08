@@ -50,6 +50,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **D2a: Parse Include Directives** — Parse `!include <path>` and `!include <path>!<tag>` into `ast.IncludeDirective{Path, Tag}`. `!include_many` and `!include_once` are accepted with a parse-time warning and produce the same node; no `Kind` field is stored in the AST since the resolver treats all three identically. `Tag` holds either a numeric index (`"0"`, `"1"`) or a named ID (`"MY_ID"`); the resolver distinguishes them via `strconv.Atoi`.
 * [x] **D2b: Include Resolver Pass** — Post-parse `Resolver` that walks `Diagram.Statements`, finds `IncludeDirective` nodes, and splices the included file's statements in place. Path resolution is relative to the including file (PlantUML's own policy). If `Tag` is set, only the matching `@startuml` block (by index or `id=` attribute) is extracted. Detects circular includes via a `visited` path set and returns a hard error. When a file contains multiple blocks and no `Tag` is specified, emits a warning and uses block 0.
 * [x] **D3: Skinparam & Styles** — Parse global design parameters and variables.
+* [ ] **D4: Package Alias Disambiguation** — When two distinct external packages share the same base name (e.g. v1/auth vs v2/auth).
 
 ### Category E: Go Code Generation
 > These items convert parsed AST nodes into valid, idiomatic Go source code.
@@ -84,7 +85,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **F3: Multi-File Output Strategy** — Group entities by package path into subdirectories (`<pkg>/types.go`), with root entities written to `types.go`. Ensure package names align with diagram or folder names.
 * [x] **F4: go/format Output Pass** — After template rendering, run `go/format.Source` on each generated file. Surface formatting errors with raw source context.
 * [x] **F5: Generator Test Harness** — Golden-file integration tests for the generator, mirroring the parser's `integration_test.go` pattern. Each fixture is a `.puml` input paired with expected `.go` files.
-* [ ] **F6: Generator CLI Integration** — Connect generator to CLI pipeline in `cmd/` for automated code generation from input `.puml` files to target output directories.
+* [x] **F6: Generator CLI Integration** — Connect generator to CLI pipeline in `cmd/` for automated code generation from input `.puml` files to target output directories.
 
 ---
 
@@ -98,7 +99,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 
 ---
 
-## 🎯 Active Milestone: Phase 2 (Go Code Generation)
+## ✅ Completed Milestone: Phase 2 (Go Code Generation)
 * **Goal:** Produce valid, `go/format`-clean Go source files from a parsed class diagram handling full data scope.
 * **Tasks:**
   1. [x] Fix template scoping bugs in `struct.go.tmpl` and ensure baseline tests pass.
@@ -108,8 +109,6 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   5. [x] Implement **E12** (generics) and **E18** (Level 1 untyped fallback to `any`).
   6. [x] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
   7. [x] Implement **E6** (static modifiers) and [x] **E16** (extended entity kinds: exceptions, records, protocols).
-  8. [ ] Connect generator into CLI in **F6**.
-
-## Other:
-- implement notes on relationsips
-- implement class separators on enums
+  8. [x] Connect generator into CLI in **F6**.
+  9. [x] Support notes on links / relationships across structs and fields.
+  10. [x] Support class separators on enums.

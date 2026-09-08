@@ -1,3 +1,4 @@
+{{template "doc-comment" .PackageComments -}}
 package {{.PackageName}}
 
 {{if .Imports}}
@@ -33,5 +34,8 @@ func {{.Name}}{{.Signature}} { {{- template "trailing-comment" .TrailingTrivia}}
     panic("not implemented")
 }
 {{end}}
+
+{{template "doc-comment" .FileNotes}}
+
 
 

@@ -1,0 +1,9 @@
+@startuml
+note "Package root provides core domain entities." as PkgDoc
+
+class User {
+  +id string
+}
+
+note "General architecture note: User service is stateless." as ArchNote
+@enduml

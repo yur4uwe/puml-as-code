@@ -196,7 +196,14 @@ func createImplicitEntity(ref ast.TargetRef, pkgPath []string) *EntitySymbol {
 
 func attachNote(tbl *SymbolTable, noteRef, noteTargetRef ast.TargetRef, note *ast.Note, noteLookup map[string]*ast.Note) {
 	noteTarget := tbl.FindOrCreateByRef(noteTargetRef)
-	noteTarget.Notes = append(noteTarget.Notes, note)
+	if noteTargetRef.Member != "" {
+		if noteTarget.MemberNotes == nil {
+			noteTarget.MemberNotes = make(map[string][]*ast.Note)
+		}
+		noteTarget.MemberNotes[noteTargetRef.Member] = append(noteTarget.MemberNotes[noteTargetRef.Member], note)
+	} else {
+		noteTarget.Notes = append(noteTarget.Notes, note)
+	}
 	delete(noteLookup, noteRef.Entity)
 }
 
@@ -229,7 +236,7 @@ func mergeEntity(target *ast.Entity, incoming *ast.Entity) error {
 	return nil
 }
 
-func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note) error {
+func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) error {
 	var prevRelationship *RelationshipSymbol
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
@@ -249,7 +256,9 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 			tbl.lookup[ent.FQN] = ent
 		case ast.Container:
 			childPkgPath := append(pkgPath, s.Identifier)
-			resolveStatements(tbl, s.Statements, childPkgPath, noteLookup)
+			if err := resolveStatements(tbl, s.Statements, childPkgPath, noteLookup, namedNotes); err != nil {
+				return err
+			}
 		case ast.Note:
 			// get rid of the link notes
 			if s.Target != nil && s.Target.Entity == "link" {
@@ -263,6 +272,7 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 			// get rid of the referenced notes
 			if s.Identifier != "" {
 				noteLookup[s.Identifier] = &s
+				*namedNotes = append(*namedNotes, &s)
 				continue
 			}
 
@@ -310,9 +320,16 @@ func ResolveSymbols(diagram *ast.Diagram) (*SymbolTable, error) {
 	tbl := &SymbolTable{
 		lookup: map[string]*EntitySymbol{},
 	}
-	err := resolveStatements(tbl, diagram.Statements, nil, map[string]*ast.Note{})
+	noteLookup := map[string]*ast.Note{}
+	var namedNotes []*ast.Note
+	err := resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
 	if err != nil {
 		return nil, err
+	}
+	for _, n := range namedNotes {
+		if _, ok := noteLookup[n.Identifier]; ok {
+			tbl.Notes = append(tbl.Notes, n)
+		}
 	}
 	return tbl, nil
 }

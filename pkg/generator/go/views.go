@@ -13,14 +13,16 @@ type TriviaView struct {
 
 // FileView represents a single .go file being generated
 type FileView struct {
-	PackageName string
-	ImportPath  string
-	Imports     []string
-	Variables   []FieldView
-	Functions   []MethodView
-	Structs     []StructView
-	Interfaces  []InterfaceView
-	Enums       []EnumView
+	PackageName     string
+	ImportPath      string
+	PackageComments []string
+	FileNotes       []string
+	Imports         []string
+	Variables       []FieldView
+	Functions       []MethodView
+	Structs         []StructView
+	Interfaces      []InterfaceView
+	Enums           []EnumView
 }
 
 func (f *FileView) AddImport(importPath string) {

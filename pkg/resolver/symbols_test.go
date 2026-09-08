@@ -203,3 +203,61 @@ package storage {
 	client := tbl.Lookup("storage.db.Client")
 	require.NotNil(t, client)
 }
+
+func TestResolveSymbols_NoteRelationships(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+class Service {
+  +DoWork() error
+}
+note "Service level note" as N1
+Service -- N1
+
+note "Method level note" as N2
+N2 -- Service::DoWork
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	tbl, err := ResolveSymbols(diag)
+	require.NoError(t, err)
+
+	svc := tbl.Lookup("Service")
+	require.NotNil(t, svc)
+	require.Len(t, svc.Notes, 1)
+	require.Equal(t, "Service level note", svc.Notes[0].Text)
+
+	require.NotNil(t, svc.MemberNotes)
+	require.Len(t, svc.MemberNotes["DoWork"], 1)
+	require.Equal(t, "Method level note", svc.MemberNotes["DoWork"][0].Text)
+
+	require.Empty(t, tbl.Relationships, "expected note links to not be registered as code relationships")
+}
+
+func TestResolveSymbols_UnlinkedNamedNotes(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+note "Floating unlinked note" as N1
+note "Linked note" as N2
+class Service
+Service -- N2
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	tbl, err := ResolveSymbols(diag)
+	require.NoError(t, err)
+
+	svc := tbl.Lookup("Service")
+	require.NotNil(t, svc)
+	require.Len(t, svc.Notes, 1)
+	require.Equal(t, "Linked note", svc.Notes[0].Text)
+
+	require.Len(t, tbl.Notes, 1)
+	require.Equal(t, "Floating unlinked note", tbl.Notes[0].Text)
+}
+
