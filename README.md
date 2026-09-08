@@ -102,11 +102,10 @@ package domain {
   }
 
   class UserService {
-    -repo UserRepository
     +GetUser(id string) (*User, error)
   }
 
-  UserService --> UserRepository : repo
+  UserService --> UserRepository : -repo
 }
 @enduml
 ```
@@ -137,6 +136,11 @@ const (
 	UserStatusSuspended
 )
 
+type UserRepository interface {
+	FindByID(id string) (*User, error)
+	Save(user *User) error
+}
+
 type User struct {
 	Id        string
 	Name      string
@@ -144,13 +148,8 @@ type User struct {
 	CreatedAt time.Time
 }
 
-type UserRepository interface {
-	FindByID(id string) (*User, error)
-	Save(user *User) error
-}
-
 type UserService struct {
-	Repo UserRepository // private
+	repo *UserRepository // private
 }
 
 func (s *UserService) GetUser(id string) (*User, error) {

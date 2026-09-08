@@ -1,0 +1,28 @@
+@startuml
+package domain {
+  enum UserStatus {
+    -- Active --
+    +Active
+    -- Inactive --
+    +Suspended
+  }
+
+  class User {
+    +id string
+    +name string
+    +status UserStatus
+    +createdAt time.Time
+  }
+
+  interface UserRepository {
+    +FindByID(id string) (*User, error)
+    +Save(user *User) error
+  }
+
+  class UserService {
+    +GetUser(id string) (*User, error)
+  }
+
+  UserService --> UserRepository : -repo
+}
+@enduml

@@ -1,0 +1,39 @@
+==> domain/types.go <==
+package domain
+
+import (
+	"time"
+)
+
+type UserStatus int
+
+const (
+
+	// --- Active ---
+
+	UserStatusActive UserStatus = iota
+
+	// --- Inactive ---
+
+	UserStatusSuspended
+)
+
+type UserRepository interface {
+	FindByID(id string) (*User, error)
+	Save(user *User) error
+}
+
+type User struct {
+	Id        string
+	Name      string
+	Status    UserStatus
+	CreatedAt time.Time
+}
+
+type UserService struct {
+	repo *UserRepository // private
+}
+
+func (s *UserService) GetUser(id string) (*User, error) {
+	panic("not implemented")
+}

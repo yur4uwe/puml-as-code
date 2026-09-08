@@ -261,3 +261,33 @@ Service -- N2
 	require.Equal(t, "Floating unlinked note", tbl.Notes[0].Text)
 }
 
+func TestResolveSymbols_PackageScopedRelationships(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+package domain {
+  class UserService
+  class UserRepository
+  UserService --> UserRepository : repo
+  UserService --> ImplicitStore
+}
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	tbl, err := ResolveSymbols(diag)
+	require.NoError(t, err)
+
+	require.Len(t, tbl.Entities, 3, "expected only 3 entities in domain package, no root ghost entities")
+	for _, ent := range tbl.Entities {
+		require.Equal(t, []string{"domain"}, ent.PackagePath)
+	}
+
+	require.Len(t, tbl.Relationships, 2)
+	require.Equal(t, "domain.UserService", tbl.Relationships[0].Source.FQN)
+	require.Equal(t, "domain.UserRepository", tbl.Relationships[0].Target.FQN)
+	require.Equal(t, "domain.UserService", tbl.Relationships[1].Source.FQN)
+	require.Equal(t, "domain.ImplicitStore", tbl.Relationships[1].Target.FQN)
+}
+
