@@ -3,8 +3,11 @@ package root
 type Status int
 
 const (
-	StatusActive Status = iota
-	StatusInactive
+	StatusInactive Status = iota
+
+	// --- Non-default values ---
+
+	StatusActive
 )
 
 type Greeter interface {

@@ -126,6 +126,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 }
 
 func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
+	// i have not
 	trivia := toTriviaView(rel.AST.Trivia)
 	targetType := targetTypeName(rel.Source.PackagePath, rel.Target)
 	fieldName := ""
@@ -163,6 +164,16 @@ func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, f
 	case ast.RelationAggregation, ast.RelationAssociation:
 		fieldView.Type = formatAggFieldType(targetType, rel.TargetMult)
 		view.Fields = append(view.Fields, fieldView)
+	case ast.RelationDependency:
+		var sb strings.Builder
+		sb.WriteString("Depends on ")
+		sb.WriteString(targetType)
+		if rel.AST != nil && rel.AST.Label != "" {
+			sb.WriteString(" (")
+			sb.WriteString(rel.AST.Label)
+			sb.WriteString(")")
+		}
+		view.LeadingTrivia = append(view.LeadingTrivia, sb.String())
 	}
 }
 

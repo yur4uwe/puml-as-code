@@ -7,7 +7,13 @@ import (
 type Status int
 
 const (
+
+	// --- Active ---
+
 	StatusActive Status = iota
+
+	// --- Inactive ---
+
 	StatusSuspended
 )
 

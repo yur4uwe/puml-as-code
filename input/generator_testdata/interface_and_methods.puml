@@ -10,7 +10,8 @@ class User {
 User ..|> Greeter
 
 enum Status {
-  +Active
   +Inactive
+  -- Non-default values --
+  +Active
 }
 @enduml

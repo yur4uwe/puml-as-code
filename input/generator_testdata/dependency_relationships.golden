@@ -1,0 +1,21 @@
+package root
+
+// Depends on Service
+type Worker interface {
+	Process() error
+}
+
+type Repository struct {
+}
+
+func (s *Repository) FindById(id string) (*User, error) {
+	panic("not implemented")
+}
+
+// Depends on Repository (uses)
+type Service struct {
+}
+
+func (s *Service) GetUser(id string) (*User, error) {
+	panic("not implemented")
+}

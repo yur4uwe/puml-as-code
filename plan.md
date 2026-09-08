@@ -65,7 +65,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
 * [x] **E8: Realization (..|>) → Compile-time Interface Check** — `Bar ..|> IFoo` → emit `var _ IFoo = (*Bar)(nil)` as a compile-time satisfaction assertion. Fixed template reference scoping (`(*{{$.Name}})(nil)`).
 * [x] **E9: Composition & Aggregation → Struct Fields** — Correct relationship ownership: add fields to the owning (source) struct pointing to the target. Relationship cardinality drives the field type: `1` or unset → value type (`Engine Engine`), `0..1` → pointer (`Engine *Engine`), `0..*` or `*` → slice (`Engines []Engine`), fixed `N` → array (`[N]Engine`).
 * [x] **E10: Association (-->) → Pointer Field** — `Car --> Engine` → non-owning reference field (`Engine *Engine` or `[]*Engine`). Cardinality rules from E9 apply.
-* [ ] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a type-level comment.
+* [x] **E11: Dependency (..>) → Comment** — `Service ..> Repository` → emit `// Service depends on Repository` as a type-level comment.
 * [x] **E12: Generic Types & Type Parameters** — Parse and render Go type parameters (`[T any]`, `[K comparable, V any]`) on structs and interfaces from `ast.Entity.Generic`.
 * [x] **E13: Doc Comments, Trivia & Notes** — Map leading/trailing `ast.Trivia` and attached UML notes (`ast.Note`) to idiomatic Go doc comments preceding types, fields, and methods.
 * [x] **E14: Cross-Package Qualified References** — Resolve cross-package entity references and prefix types with their package names (e.g. `auth.User`) when referencing entities in other packages.
@@ -109,3 +109,7 @@ For any feature added to the backlog, follow this 5-step implementation checklis
   6. [x] Implement **E13** (doc comments from notes & trivia) and **E19** (class separators).
   7. [x] Implement **E6** (static modifiers) and [x] **E16** (extended entity kinds: exceptions, records, protocols).
   8. [ ] Connect generator into CLI in **F6**.
+
+## Other:
+- implement notes on relationsips
+- implement class separators on enums

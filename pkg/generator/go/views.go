@@ -58,9 +58,15 @@ type InterfaceView struct {
 	TriviaView
 }
 
+type EnumCaseView struct {
+	Name string // e.g. "RoleAdmin"
+	NotesView
+	TriviaView
+}
+
 type EnumView struct {
-	Name   string
-	Values []string
+	Name  string
+	Cases []EnumCaseView
 	NotesView
 	TriviaView
 }

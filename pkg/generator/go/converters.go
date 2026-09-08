@@ -125,6 +125,16 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 
 			embedding := targetTypeName(rel.Source.PackagePath, rel.Target)
 			view.Embeds = append(view.Embeds, embedding)
+		case ast.RelationDependency:
+			var sb strings.Builder
+			sb.WriteString("Depends on ")
+			sb.WriteString(targetTypeName(rel.Source.PackagePath, rel.Target))
+			if rel.AST != nil && rel.AST.Label != "" {
+				sb.WriteString(" (")
+				sb.WriteString(rel.AST.Label)
+				sb.WriteString(")")
+			}
+			view.LeadingTrivia = append(view.LeadingTrivia, sb.String())
 		}
 	}
 
@@ -164,20 +174,44 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	if ent == nil {
 		panic("enums should always be explicitly defined")
 	}
-	var cases []string
-	for _, member := range ent.AST.Members {
-		switch m := member.(type) {
-		case *dialect.GoField:
-			cases = append(cases, m.Name)
-		case ast.ClassSeparator:
-		}
-	}
 	view := EnumView{
 		Name:       ent.AST.Identifier,
-		Values:     cases,
 		NotesView:  toNotesView(ent.Notes),
 		TriviaView: toTriviaView(ent.AST.Trivia),
 	}
+
+	var pendingSeparators []string
+	for _, member := range ent.AST.Members {
+		switch m := member.(type) {
+		case *dialect.GoField:
+			trivia := toTriviaView(m.Trivia)
+			if len(pendingSeparators) > 0 {
+				trivia.LeadingTrivia = append(pendingSeparators, trivia.LeadingTrivia...)
+				pendingSeparators = nil
+			}
+			attachVisibilityComment(&trivia, m.Visibility)
+
+			caseName := ensureCorrectCase(view.Name,
+				fmt.Sprintf(
+					"%s%s",
+					view.Name,
+					ensureUpperFirst(m.Name),
+				),
+				m.Visibility,
+			)
+
+			caseView := EnumCaseView{
+				Name:       caseName,
+				NotesView:  toNotesView(ent.MemberNotes[m.Name]),
+				TriviaView: trivia,
+			}
+			view.Cases = append(view.Cases, caseView)
+
+		case ast.ClassSeparator:
+			pendingSeparators = append(pendingSeparators, formatSeparator(m)...)
+		}
+	}
+
 	return view
 }
 

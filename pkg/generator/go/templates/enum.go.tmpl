@@ -3,11 +3,10 @@
 type {{.Name}} int {{template "trailing-comment" .TrailingTrivia}}
 
 const (
-{{- range $i, $v := .Values}}
-{{- if eq $i 0}}
-{{$.Name}}{{$v}} {{$.Name}} = iota
-{{- else}}
-{{$.Name}}{{$v}}
-{{- end}}
+{{- range $i, $c := .Cases}}
+    {{template "doc-comment" .LeadingTrivia -}}
+    {{template "doc-comment" .Notes -}}
+	{{$c.Name}}{{if eq $i 0}} {{$.Name}} = iota{{end}}{{template "trailing-comment" .TrailingTrivia}}
 {{- end}}
 )
+

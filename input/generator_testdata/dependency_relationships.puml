@@ -1,0 +1,16 @@
+@startuml
+class Repository {
+  +FindById(id string) (*User, error)
+}
+
+class Service {
+  +GetUser(id string) (*User, error)
+}
+
+interface Worker {
+  +Process() error
+}
+
+Service ..> Repository : uses
+Worker ..> Service
+@enduml
