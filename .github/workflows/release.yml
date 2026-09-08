@@ -40,6 +40,12 @@ jobs:
           go-version: '1.24'
           cache: true
 
+      - name: Install enumer
+        run: go install github.com/dmarkham/enumer@v1.6.3
+
+      - name: Run go generate
+        run: go generate ./...
+
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
