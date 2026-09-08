@@ -36,8 +36,8 @@ note right of Greeter::Greet : Returns formatted greeting
 
 ' Role of the user
 enum Role {
-  +Admin int
-  +User int
+  +Admin
+  +User
 } ' Authorization level enum
 
 note top of Role : Authorization level

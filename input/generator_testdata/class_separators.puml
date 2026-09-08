@@ -20,8 +20,8 @@ interface Greeter {
 
 enum Status {
   -- Active --
-  +Active int
+  +Active
   -- Inactive --
-  +Suspended int
+  +Suspended
 }
 @enduml

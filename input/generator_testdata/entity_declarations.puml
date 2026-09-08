@@ -10,8 +10,8 @@ interface Service {
 }
 
 enum Status {
-  +Active int
-  +Inactive int
-  +Pending int
+  +Active
+  +Inactive
+  +Pending
 }
 @enduml

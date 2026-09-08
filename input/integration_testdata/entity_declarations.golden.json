@@ -75,27 +75,19 @@
       "Kind": "enum",
       "Members": [
         {
-          "Name": "Active",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
+          "Name": "Inactive",
           "Visibility": "public"
         },
         {
-          "Name": "Inactive",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
+          "Label": "Non-default values",
+          "Type": 45
+        },
+        {
+          "Name": "Active",
           "Visibility": "public"
         },
         {
           "Name": "Pending",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
           "Visibility": "public"
         }
       ]
@@ -115,9 +107,9 @@
               "Type": "COMMENT",
               "Literal": "Standalone inline declarations",
               "Pos": {
-                "Line": 20,
+                "Line": 21,
                 "Col": 1,
-                "Offset": 245
+                "Offset": 260
               }
             }
           ]
@@ -172,9 +164,9 @@
                       "Type": "COMMENT",
                       "Literal": "Inline declaration with package qualification",
                       "Pos": {
-                        "Line": 25,
+                        "Line": 26,
                         "Col": 1,
-                        "Offset": 339
+                        "Offset": 354
                       }
                     }
                   ]

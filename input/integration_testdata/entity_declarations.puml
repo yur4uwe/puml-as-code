@@ -13,9 +13,10 @@ interface Service<T> <<API>> #lightblue {
 }
 
 enum Status {
-  +Active int
-  +Inactive int
-  +Pending int
+  +Inactive
+  -- Non-default values --
+  +Active
+  +Pending
 }
 
 ' Standalone inline declarations
