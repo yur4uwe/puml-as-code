@@ -1,0 +1,1668 @@
+[
+  {
+    "n": "layout-and-orientation.md#01",
+    "i": "@startuml\n\nclass Bar1\nclass Bar2\ntogether {\n  class Together1\n  class Together2\n  class Together3\n}\nTogether1 - Together2\nTogether2 - Together3\nTogether2 -[hidden]--\u003e Bar1\nBar1 -[hidden]\u003e Bar2\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "together"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together1"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together2"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Together2"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar1"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "layout-and-orientation.md#02",
+    "i": "@startuml\nclass a\nclass b\npackage A {\n  class a1\n  class a2\n  class a3\n  class a4\n  class a5\n  package sub_a {\n   class sa1\n   class sa2\n   class sa3\n  }\n}\n  \npackage B {\n  class b1\n  class b2\n  class b3\n  class b4\n  class b5\n  package sub_b {\n   class sb1\n   class sb2\n   class sb3\n  }\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_a"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_b"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "layout-and-orientation.md#03",
+    "i": "@startuml\n!pragma layout smetana\nclass a\nclass b\npackage A {\n  class a1\n  class a2\n  class a3\n  class a4\n  class a5\n  package sub_a {\n   class sa1\n   class sa2\n   class sa3\n  }\n}\n  \npackage B {\n  class b1\n  class b2\n  class b3\n  class b4\n  class b5\n  package sub_b {\n   class sb1\n   class sb2\n   class sb3\n  }\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "EXCLAMATION",
+        "l": "!"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "pragma"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "layout"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "smetana"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_a"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_b"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "layout-and-orientation.md#04",
+    "i": "@startuml\nleft to right direction\nclass a\nclass b\npackage A {\n  class a1\n  class a2\n  class a3\n  class a4\n  class a5\n  package sub_a {\n   class sa1\n   class sa2\n   class sa3\n  }\n}\n  \npackage B {\n  class b1\n  class b2\n  class b3\n  class b4\n  class b5\n  package sub_b {\n   class sb1\n   class sb2\n   class sb3\n  }\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "to"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "direction"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_a"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_b"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "layout-and-orientation.md#05",
+    "i": "@startuml\n!pragma layout smetana\nleft to right direction\nclass a\nclass b\npackage A {\n  class a1\n  class a2\n  class a3\n  class a4\n  class a5\n  package sub_a {\n   class sa1\n   class sa2\n   class sa3\n  }\n}\n  \npackage B {\n  class b1\n  class b2\n  class b3\n  class b4\n  class b5\n  package sub_b {\n   class sb1\n   class sb2\n   class sb3\n  }\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "EXCLAMATION",
+        "l": "!"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "pragma"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "layout"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "smetana"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "to"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "direction"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_a"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sa3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sub_b"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sb3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

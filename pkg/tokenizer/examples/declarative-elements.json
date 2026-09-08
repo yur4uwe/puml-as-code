@@ -1,0 +1,288 @@
+[
+  {
+    "n": "declarative-elements.md#01",
+    "i": "@startuml\nabstract        abstract\nabstract class  \"abstract class\"\nannotation      annotation\ncircle          circle\n()              circle_short_form\nclass           class\nclass           class_stereo  \u003c\u003cstereotype\u003e\u003e\ndataclass       dataclass\ndiamond         diamond\n\u003c\u003e              diamond_short_form\nentity          entity\nenum            enum\nexception       exception\ninterface       interface\nmetaclass       metaclass\nprotocol        protocol\nrecord          record\nstereotype      stereotype\nstruct          struct\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "abstract class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "circle"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "circle"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "circle_short_form"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class_stereo"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotype"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dataclass"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dataclass"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond_short_form"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "entity"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "entity"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enum"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enum"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "exception"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "exception"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "metaclass"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "metaclass"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "protocol"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "protocol"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "record"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "record"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotype"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotype"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "struct"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "struct"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

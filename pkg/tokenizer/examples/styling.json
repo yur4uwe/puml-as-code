@@ -1,0 +1,4498 @@
+[
+  {
+    "n": "styling.md#01",
+    "i": "@startuml\n\nskinparam class {\nBackgroundColor PaleGreen\nArrowColor SeaGreen\nBorderColor SpringGreen\n}\nskinparam stereotypeCBackgroundColor YellowGreen\n\nClass01 \"1\" *-- \"many\" Class02 : contains\n\nClass03 o-- Class04 : aggregation\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BackgroundColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "PaleGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrowColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "SeaGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BorderColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "SpringGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotypeCBackgroundColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "YellowGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class01"
+      },
+      {
+        "t": "STRING",
+        "l": "1"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "many"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class02"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "contains"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class03"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class04"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "aggregation"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#02",
+    "i": "@startuml\n\nskinparam class {\nBackgroundColor PaleGreen\nArrowColor SeaGreen\nBorderColor SpringGreen\nBackgroundColor\u003c\u003cFoo\u003e\u003e Wheat\nBorderColor\u003c\u003cFoo\u003e\u003e Tomato\n}\nskinparam stereotypeCBackgroundColor YellowGreen\nskinparam stereotypeCBackgroundColor\u003c\u003c Foo \u003e\u003e DimGray\n\nclass Class01 \u003c\u003cFoo\u003e\u003e\nclass Class03 \u003c\u003cFoo\u003e\u003e\nClass01 \"1\" *-- \"many\" Class02 : contains\n\nClass03 o-- Class04 : aggregation\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BackgroundColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "PaleGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrowColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "SeaGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BorderColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "SpringGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BackgroundColor"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Wheat"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "BorderColor"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Tomato"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotypeCBackgroundColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "YellowGreen"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "stereotypeCBackgroundColor"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "DimGray"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class01"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class03"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class01"
+      },
+      {
+        "t": "STRING",
+        "l": "1"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "many"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class02"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "contains"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class03"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class04"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "aggregation"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#03",
+    "i": "@startuml\n\nskinparam backgroundcolor AntiqueWhite/Gold\nskinparam classBackgroundColor Wheat|CornflowerBlue\n\nclass Foo #red-green\nnote left of Foo #blue\\9932CC\n  this is my\n  note on this class\nend note\n\npackage example #GreenYellow/LightGoldenRodYellow {\n  class Dummy\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "backgroundcolor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AntiqueWhite"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Gold"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "classBackgroundColor"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Wheat"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "CornflowerBlue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue9932CC"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "my"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "on"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "example"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "GreenYellow"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "LightGoldenRodYellow"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#04",
+    "i": "@startuml\ntitle Bracketed line style without label\nclass foo\nclass bar\nbar1 : [bold]  \nbar2 : [dashed]\nbar3 : [dotted]\nbar4 : [hidden]\nbar5 : [plain] \n\nfoo --\u003e bar\nfoo -[bold]-\u003e bar1\nfoo -[dashed]-\u003e bar2\nfoo -[dotted]-\u003e bar3\nfoo -[hidden]-\u003e bar4\nfoo -[plain]-\u003e bar5\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "title"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bracketed"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "style"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "without"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "label"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#05",
+    "i": "@startuml\ntitle Bracketed line style with label\nclass foo\nclass bar\nbar1 : [bold]  \nbar2 : [dashed]\nbar3 : [dotted]\nbar4 : [hidden]\nbar5 : [plain] \n\nfoo --\u003e bar          : ∅\nfoo -[bold]-\u003e bar1   : [bold]\nfoo -[dashed]-\u003e bar2 : [dashed]\nfoo -[dotted]-\u003e bar3 : [dotted]\nfoo -[hidden]-\u003e bar4 : [hidden]\nfoo -[plain]-\u003e bar5  : [plain]\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "title"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bracketed"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "style"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "with"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "label"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "ILLEGAL",
+        "l": "∅"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hidden"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#06",
+    "i": "@startuml\ntitle Bracketed line color\nclass foo\nclass bar\nbar1 : [#red]\nbar2 : [#green]\nbar3 : [#blue]\n\nfoo --\u003e bar\nfoo -[#red]-\u003e bar1     : [#red]\nfoo -[#green]-\u003e bar2   : [#green]\nfoo -[#blue]-\u003e bar3    : [#blue]\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "title"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bracketed"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "color"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#07",
+    "i": "@startuml\ntitle Bracketed line thickness\nclass foo\nclass bar\nbar1 : [thickness=1]\nbar2 : [thickness=2]\nbar3 : [thickness=4]\nbar4 : [thickness=8]\nbar5 : [thickness=16]\n\nfoo --\u003e bar                 : ∅\nfoo -[thickness=1]-\u003e bar1   : [1]\nfoo -[thickness=2]-\u003e bar2   : [2]\nfoo -[thickness=4]-\u003e bar3   : [4]\nfoo -[thickness=8]-\u003e bar4   : [8]\nfoo -[thickness=16]-\u003e bar5  : [16]\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "title"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bracketed"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "ILLEGAL",
+        "l": "∅"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#08",
+    "i": "@startuml\ntitle Bracketed line style mix\nclass foo\nclass bar\nbar1 : [#red,thickness=1]\nbar2 : [#red,dashed,thickness=2]\nbar3 : [#green,dashed,thickness=4]\nbar4 : [#blue,dotted,thickness=8]\nbar5 : [#blue,plain,thickness=16]\n\nfoo --\u003e bar                             : ∅\nfoo -[#red,thickness=1]-\u003e bar1          : [#red,1]\nfoo -[#red,dashed,thickness=2]-\u003e bar2   : [#red,dashed,2]\nfoo -[#green,dashed,thickness=4]-\u003e bar3 : [#green,dashed,4]\nfoo -[#blue,dotted,thickness=8]-\u003e bar4  : [blue,dotted,8]\nfoo -[#blue,plain,thickness=16]-\u003e bar5  : [blue,plain,16]\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "title"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bracketed"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "style"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "mix"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "ILLEGAL",
+        "l": "∅"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "NUMBER",
+        "l": "8"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "thickness"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar5"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plain"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "NUMBER",
+        "l": "16"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#09",
+    "i": "@startuml\nclass foo\nfoo --\u003e bar : normal\nfoo --\u003e bar1 #line:red;line.bold;text:red  : red bold\nfoo --\u003e bar2 #green;line.dashed;text:green : green dashed\nfoo --\u003e bar3 #blue;line.dotted;text:blue   : blue dotted\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "normal"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar1"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar3"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#10",
+    "i": "@startuml\nabstract   abstract\nannotation annotation #pink ##[bold]red\nclass      class      #palegreen ##[dashed]green\ninterface  interface  #aliceblue ##[dotted]blue\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "pink"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "palegreen"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "aliceblue"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#11",
+    "i": "@startuml\nabstract   abstract\nannotation annotation #pink;line:red;line.bold;text:red\nclass      class      #palegreen;line:green;line.dashed;text:green\ninterface  interface  #aliceblue;line:blue;line.dotted;text:blue\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "pink"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "palegreen"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "aliceblue"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "text"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "styling.md#12",
+    "i": "@startuml\nclass bar #line:green;back:lightblue\nclass bar2 #lightblue;line:green\n\nclass Foo1 #back:red;line:00FFFF\nclass FooDashed #line.dashed:blue\nclass FooDotted #line.dotted:blue\nclass FooBold #line.bold\nclass Demo1 #back:lightgreen|yellow;header:blue/red\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "back"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "lightblue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar2"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "lightblue"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "green"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo1"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "back"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "00FFFF"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "FooDashed"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dashed"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "FooDotted"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dotted"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "FooBold"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "line"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bold"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Demo1"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "back"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "lightgreen"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "yellow"
+      },
+      {
+        "t": "SEMICOLON",
+        "l": ";"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "header"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

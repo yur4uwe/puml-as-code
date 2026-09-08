@@ -1,0 +1,234 @@
+[
+  {
+    "n": "names-and-aliases.md#01",
+    "i": "@startuml\nclass \"This is my class\" as class1\nclass class2 as \"It works this way too\"\n\nclass2 *-- \"foo/dummy\" : use\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "This is my class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class2"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "STRING",
+        "l": "It works this way too"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class2"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "foo/dummy"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "use"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "names-and-aliases.md#02",
+    "i": "@startuml\nclass $C1\nclass $C2 $C2\nclass \"$C2\" as dollarC2\nremove $C1\nremove $C2\nremove dollarC2\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "DOLLAR",
+        "l": "$"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "DOLLAR",
+        "l": "$"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "DOLLAR",
+        "l": "$"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "$C2"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dollarC2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "remove"
+      },
+      {
+        "t": "DOLLAR",
+        "l": "$"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "remove"
+      },
+      {
+        "t": "DOLLAR",
+        "l": "$"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "remove"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dollarC2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

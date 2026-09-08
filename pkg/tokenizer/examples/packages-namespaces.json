@@ -1,0 +1,1388 @@
+[
+  {
+    "n": "packages-namespaces.md#01",
+    "i": "@startuml\n\npackage \"Classic Collections\" #DDDDDD {\n  Object \u003c|-- ArrayList\n}\n\npackage com.plantuml {\n  Object \u003c|-- Demo1\n  Demo1 *- Demo2\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "STRING",
+        "l": "Classic Collections"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "DDDDDD"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "com"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plantuml"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Demo1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Demo1"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Demo2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#02",
+    "i": "@startuml\nscale 750 width\npackage foo1 \u003c\u003cNode\u003e\u003e {\n  class Class1\n}\n\npackage foo2 \u003c\u003cRectangle\u003e\u003e {\n  class Class2\n}\n\npackage foo3 \u003c\u003cFolder\u003e\u003e {\n  class Class3\n}\n\npackage foo4 \u003c\u003cFrame\u003e\u003e {\n  class Class4\n}\n\npackage foo5 \u003c\u003cCloud\u003e\u003e {\n  class Class5\n}\n\npackage foo6 \u003c\u003cDatabase\u003e\u003e {\n  class Class6\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "scale"
+      },
+      {
+        "t": "NUMBER",
+        "l": "750"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "width"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo1"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Node"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Rectangle"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Folder"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Frame"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo5"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Cloud"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class5"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo6"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Database"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class6"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#03",
+    "i": "@startuml\n\nskinparam packageStyle rectangle\n\npackage foo1.foo2 {\n}\n\npackage foo1.foo2.foo3 {\n  class Object\n}\n\nfoo1.foo2 +-- foo1.foo2.foo3\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "packageStyle"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "rectangle"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo1"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo2"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo1"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo2"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo3"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo1"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo2"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo1"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo2"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#04",
+    "i": "@startuml\n\nset separator ::\nclass X1::X2::foo {\n  some info\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "set"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "separator"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "X1"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "X2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "some"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "info"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#05",
+    "i": "@startuml\n\nset separator none\nclass X1.X2.foo {\n  some info\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "set"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "separator"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "none"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "X1"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "X2"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "some"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "info"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#06",
+    "i": "@startuml\nclass A.B.C.D.Z {\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Z"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#07",
+    "i": "@startuml\nset separator none\nclass A.B.C.D.Z {\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "set"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "separator"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "none"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Z"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#08",
+    "i": "@startuml\n!pragma useIntermediatePackages false\nclass A.B.C.D.Z {\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "EXCLAMATION",
+        "l": "!"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "pragma"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "useIntermediatePackages"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "false"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Z"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "packages-namespaces.md#09",
+    "i": "@startuml\nset separator none\npackage A.B.C.D {\n  class Z {\n  }\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "set"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "separator"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "none"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "package"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Z"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

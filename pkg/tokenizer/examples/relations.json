@@ -1,0 +1,3944 @@
+[
+  {
+    "n": "relations.md#01",
+    "i": "@startuml\nClass01 \u003c|-- Class02\nClass03 *-- Class04\nClass05 o-- Class06\nClass07 .. Class08\nClass09 -- Class10\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class01"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class02"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class03"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class04"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class05"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class06"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class07"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class08"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class09"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class10"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#02",
+    "i": "@startuml\nClass11 \u003c|.. Class12\nClass13 --\u003e Class14\nClass15 ..\u003e Class16\nClass17 ..|\u003e Class18\nClass19 \u003c--* Class20\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class11"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class12"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class13"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class14"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class15"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class16"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class17"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class18"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class19"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class20"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#03",
+    "i": "@startuml\nClass21 #-- Class22\nClass23 x-- Class24\nClass25 }-- Class26\nClass27 +-- Class28\nClass29 ^-- Class30\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class21"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class22"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class23"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "x"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class24"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class25"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class26"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class27"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class28"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class29"
+      },
+      {
+        "t": "CARET",
+        "l": "^"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class30"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#04",
+    "i": "@startuml\n\nClass01 \"1\" *-- \"many\" Class02 : contains\n\nClass03 o-- Class04 : aggregation\n\nClass05 --\u003e \"1\" Class06\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class01"
+      },
+      {
+        "t": "STRING",
+        "l": "1"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "many"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class02"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "contains"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class03"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class04"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "aggregation"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class05"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "STRING",
+        "l": "1"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Class06"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#05",
+    "i": "@startuml\nclass Car\n\nDriver - Car : drives \u003e\nCar *- Wheel : have 4 \u003e\nCar -- Person : \u003c owns\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Car"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Driver"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Car"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "drives"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Car"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Wheel"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "have"
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Car"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Person"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "owns"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#06",
+    "i": "@startuml\nRoom o- Student\nRoom *-- Chair\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Room"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Room"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Chair"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#07",
+    "i": "@startuml\nStudent -o Room\nChair --* Room\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "o"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Room"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Chair"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Room"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#08",
+    "i": "@startuml\nfoo -left-\u003e dummyLeft\nfoo -right-\u003e dummyRight\nfoo -up-\u003e dummyUp\nfoo -down-\u003e dummyDown\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyLeft"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyRight"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "up"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyUp"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "down"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyDown"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#09",
+    "i": "@startuml\nleft to right direction\nfoo -left-\u003e dummyLeft\nfoo -right-\u003e dummyRight\nfoo -up-\u003e dummyUp\nfoo -down-\u003e dummyDown\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "to"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "direction"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyLeft"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyRight"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "up"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyUp"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "down"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "dummyDown"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#10",
+    "i": "@startuml\nclass Student {\n  Name\n}\nStudent \"0..*\" - \"1..*\" Course\n(Student, Course) .. Enrollment\n\nclass Enrollment {\n  drop()\n  cancel()\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Name"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "STRING",
+        "l": "0..*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "1..*"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Course"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Course"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Enrollment"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Enrollment"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "drop"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "cancel"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#11",
+    "i": "@startuml\nclass Student {\n  Name\n}\nStudent \"0..*\" -- \"1..*\" Course\n(Student, Course) . Enrollment\n\nclass Enrollment {\n  drop()\n  cancel()\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Name"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "STRING",
+        "l": "0..*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "1..*"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Course"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Student"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Course"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Enrollment"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Enrollment"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "drop"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "cancel"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#12",
+    "i": "@startuml\nclass Station {\n    +name: string\n}\n\nclass StationCrossing {\n    +cost: TimeInterval\n}\n\n\u003c\u003e diamond\n\nStationCrossing . diamond\ndiamond - \"from 0..*\" Station\ndiamond - \"to 0..* \" Station\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Station"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "name"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "string"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "StationCrossing"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "cost"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "TimeInterval"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "StationCrossing"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "from 0..*"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Station"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "diamond"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "STRING",
+        "l": "to 0..* "
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Station"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#13",
+    "i": "@startuml\nclass foo\nbar ()- foo\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#14",
+    "i": "@startuml\nclass class1\nclass class2\n\nclass1 [Qualifier] - class2\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class1"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Qualifier"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#15",
+    "i": "@startuml\n    interface Map\u003cK,V\u003e\n    class HashMap\u003cLong,Customer\u003e\n\n    Map \u003c|.. HashMap\n    Shop [customerId: long] ---\u003e \"customer\\n1\" Customer\n    HashMap [id: Long] -r-\u003e \"value\" Customer\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Map"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "K"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "V"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "HashMap"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Long"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Customer"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Map"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "HashMap"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Shop"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "customerId"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "long"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "STRING",
+        "l": "customer\\n1"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Customer"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "HashMap"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "id"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Long"
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "r"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "STRING",
+        "l": "value"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Customer"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#16",
+    "i": "@startuml\nclass Foo {\n+ field1\n+ field2\n}\n\nclass Bar {\n+ field3\n+ field4\n}\n\nFoo::field1 --\u003e Bar::field3 : foo\nFoo::field2 --\u003e Bar::field4 : bar\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field3"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field2"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Bar"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field4"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#17",
+    "i": "@startuml\nleft to right direction\n\nclass User {\n  id : INTEGER\n  ..\n  other_id : INTEGER\n}\n\nclass Email {\n  id : INTEGER\n  ..\n  user_id : INTEGER\n  address : INTEGER\n}\n\nUser::id *-- Email::user_id\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "to"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "direction"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "User"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "id"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "INTEGER"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "other_id"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "INTEGER"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Email"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "id"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "INTEGER"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "user_id"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "INTEGER"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "address"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "INTEGER"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "User"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "id"
+      },
+      {
+        "t": "ASTERISK",
+        "l": "*"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Email"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "user_id"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#18",
+    "i": "@startuml\nskinparam groupInheritance 1\n\nA1 \u003c|-- B1\n\nA2 \u003c|-- B2\nA2 \u003c|-- C2\n\nA3 \u003c|-- B3\nA3 \u003c|-- C3\nA3 \u003c|-- D3\n\nA4 \u003c|-- B4\nA4 \u003c|-- C4\nA4 \u003c|-- D4\nA4 \u003c|-- E4\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "groupInheritance"
+      },
+      {
+        "t": "NUMBER",
+        "l": "1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A1"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "E4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#19",
+    "i": "@startuml\nskinparam groupInheritance 2\n\nA1 \u003c|-- B1\n\nA2 \u003c|-- B2\nA2 \u003c|-- C2\n\nA3 \u003c|-- B3\nA3 \u003c|-- C3\nA3 \u003c|-- D3\n\nA4 \u003c|-- B4\nA4 \u003c|-- C4\nA4 \u003c|-- D4\nA4 \u003c|-- E4\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "groupInheritance"
+      },
+      {
+        "t": "NUMBER",
+        "l": "2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A1"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "E4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#20",
+    "i": "@startuml\nskinparam groupInheritance 3\n\nA1 \u003c|-- B1\n\nA2 \u003c|-- B2\nA2 \u003c|-- C2\n\nA3 \u003c|-- B3\nA3 \u003c|-- C3\nA3 \u003c|-- D3\n\nA4 \u003c|-- B4\nA4 \u003c|-- C4\nA4 \u003c|-- D4\nA4 \u003c|-- E4\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "groupInheritance"
+      },
+      {
+        "t": "NUMBER",
+        "l": "3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A1"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "E4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "relations.md#21",
+    "i": "@startuml\nskinparam groupInheritance 4\n\nA1 \u003c|-- B1\n\nA2 \u003c|-- B2\nA2 \u003c|-- C2\n\nA3 \u003c|-- B3\nA3 \u003c|-- C3\nA3 \u003c|-- D3\n\nA4 \u003c|-- B4\nA4 \u003c|-- C4\nA4 \u003c|-- D4\nA4 \u003c|-- E4\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "groupInheritance"
+      },
+      {
+        "t": "NUMBER",
+        "l": "4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A1"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A2"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A3"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D3"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "B4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "C4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "D4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A4"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "E4"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

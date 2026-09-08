@@ -1,6 +1,6 @@
 package stdlib
 
-//go:generate go run cmd/go-stdlib-gen/main.go
+//go:generate go run yur4uwe/pac/cmd/go-stdlib-gen
 
 import (
 	"path"

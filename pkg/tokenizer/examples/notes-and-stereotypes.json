@@ -1,0 +1,2150 @@
+[
+  {
+    "n": "notes-and-stereotypes.md#01",
+    "i": "@startuml\nclass Object \u003c\u003c general \u003e\u003e\nObject \u003c|--- ArrayList\n\nnote top of Object : In java, every class\\nextends this one.\n\nnote \"This is a floating note\" as N1\nnote \"This note is connected\\nto several objects.\" as N2\nObject .. N2\nN2 .. ArrayList\n\nclass Foo\nnote left: On last defined class\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "general"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "top"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "In"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "java"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "every"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "classnextends"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "one"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "STRING",
+        "l": "This is a floating note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "N1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "STRING",
+        "l": "This note is connected\\nto several objects."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "N2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "N2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "N2"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "On"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "last"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "defined"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "notes-and-stereotypes.md#02",
+    "i": "@startuml\n\nclass Foo\nnote left: On last defined class\n\nnote top of Foo\n  In java, \u003csize:18\u003eevery\u003c/size\u003e \u003cu\u003eclass\u003c/u\u003e\n  \u003cb\u003eextends\u003c/b\u003e\n  \u003ci\u003ethis\u003c/i\u003e one.\nend note\n\nnote as N1\n  This note is \u003cu\u003ealso\u003c/u\u003e\n  \u003cb\u003e\u003ccolor:royalBlue\u003eon several\u003c/color\u003e\n  \u003cs\u003ewords\u003c/s\u003e lines\n  And this is hosted by \u003cimg:https://plantuml.com/sourceforge.jpg\u003e\nend note\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "On"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "last"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "defined"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "top"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "In"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "java"
+      },
+      {
+        "t": "COMMA",
+        "l": ","
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "size"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "NUMBER",
+        "l": "18"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "every"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "size"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "u"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "u"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "extends"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "i"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "i"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "one"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "N1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "u"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "also"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "u"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "b"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "color"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "royalBlue"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "on"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "several"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "color"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "s"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "words"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "s"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "lines"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "And"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "hosted"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "by"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "img"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "https"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "plantuml"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "com"
+      },
+      {
+        "t": "SLASH",
+        "l": "/"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "sourceforge"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "jpg"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "notes-and-stereotypes.md#03",
+    "i": "@startuml\nclass A {\n{static} int counter\n+void {abstract} start(int timeout)\n}\nnote right of A::counter\n  This member is annotated\nend note\nnote right of A::start\n  This method is now explained in a UML note\nend note\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "static"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "counter"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "void"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "start"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "timeout"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "counter"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "member"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotated"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "start"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "now"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "explained"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "in"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "a"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "UML"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "notes-and-stereotypes.md#04",
+    "i": "@startuml\nclass A {\n{static} int counter\n+void {abstract} start(int timeoutms)\n+void {abstract} start(Duration timeout)\n}\nnote left of A::counter\n  This member is annotated\nend note\nnote right of A::\"start(int timeoutms)\"\n  This method with int\nend note\nnote right of A::\"start(Duration timeout)\"\n  This method with Duration\nend note\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "static"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "counter"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "void"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "start"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "timeoutms"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "void"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "start"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Duration"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "timeout"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "left"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "counter"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "member"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotated"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "STRING",
+        "l": "start(int timeoutms)"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "with"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "STRING",
+        "l": "start(Duration timeout)"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "This"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "with"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Duration"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "notes-and-stereotypes.md#05",
+    "i": "@startuml\n\nclass Dummy\nDummy --\u003e Foo : A link\nnote on link #red: note that is red\n\nDummy --\u003e Foo2 : Another link\nnote right on link #blue\nthis is my note on right link\nand in blue\nend note\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "link"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "on"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "link"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "that"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "red"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "RANGLE",
+        "l": "\u003e"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo2"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Another"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "link"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "on"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "link"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "this"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "is"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "my"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "on"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "right"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "link"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "and"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "in"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "blue"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "end"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "note"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "notes-and-stereotypes.md#06",
+    "i": "@startuml\n\nabstract class AbstractList\nabstract AbstractCollection\ninterface List\ninterface Collection\n\nList \u003c|-- AbstractList\nCollection \u003c|-- AbstractCollection\n\nCollection \u003c|- List\nAbstractCollection \u003c|- AbstractList\nAbstractList \u003c|-- ArrayList\n\nclass ArrayList {\n  Object[] elementData\n  size()\n}\n\nenum TimeUnit {\n  DAYS\n  HOURS\n  MINUTES\n}\n\nannotation SuppressWarnings\n\nannotation Annotation {\n  annotation with members\n  String foo()\n  String bar()\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractCollection"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "List"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "interface"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Collection"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "List"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Collection"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractCollection"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Collection"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "List"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractCollection"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "AbstractList"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "elementData"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "size"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enum"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "TimeUnit"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "DAYS"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "HOURS"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "MINUTES"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "SuppressWarnings"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Annotation"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "annotation"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "with"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "members"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "String"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "foo"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "String"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "bar"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]

@@ -1,4 +1,3 @@
 /.vscode
 /.zed
-pkg/tokenizer/examples/*.json
 *_enumer.go

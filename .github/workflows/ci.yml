@@ -26,6 +26,12 @@ jobs:
           go-version: ${{ matrix.go }}
           cache: true
 
+      - name: Install enumer
+        run: go install github.com/dmarkham/enumer@v1.6.3
+
+      - name: Run go generate
+        run: go generate ./...
+
       - name: Verify dependencies
         run: go mod verify
 

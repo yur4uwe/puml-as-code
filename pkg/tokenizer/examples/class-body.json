@@ -1,0 +1,1570 @@
+[
+  {
+    "n": "class-body.md#01",
+    "i": "@startuml\nObject \u003c|-- ArrayList\n\nObject : equals()\nArrayList : Object[] elementData\nArrayList : size()\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LANGLE",
+        "l": "\u003c"
+      },
+      {
+        "t": "PIPE",
+        "l": "|"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "equals"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Object"
+      },
+      {
+        "t": "LBRACKET",
+        "l": "["
+      },
+      {
+        "t": "RBRACKET",
+        "l": "]"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "elementData"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "ArrayList"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "size"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#02",
+    "i": "@startuml\nclass Dummy {\n  String data\n  void methods()\n}\n\nclass Flight {\n   flightNumber : Integer\n   departureTime : Date\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "String"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "data"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "void"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "methods"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Flight"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "flightNumber"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Integer"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "departureTime"
+      },
+      {
+        "t": "COLON",
+        "l": ":"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Date"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#03",
+    "i": "@startuml\nclass Dummy {\n  {field} A field (despite parentheses)\n  {method} Some method\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "A"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "despite"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "parentheses"
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Some"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#04",
+    "i": "@startuml\n\nclass Dummy {\n -field1\n #field2\n ~method1()\n +method2()\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "TILDE",
+        "l": "~"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method1"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method2"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#05",
+    "i": "@startuml\nskinparam classAttributeIconSize 0\nclass Dummy {\n -field1\n #field2\n ~method1()\n +method2()\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "skinparam"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "classAttributeIconSize"
+      },
+      {
+        "t": "NUMBER",
+        "l": "0"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "TILDE",
+        "l": "~"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method1"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method2"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#06",
+    "i": "@startuml\nclass Dummy {\n field1\n field2\n method1()\n method2()\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field2"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method1"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method2"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#07",
+    "i": "@startuml\nclass Dummy {\n field1\n \\~Dummy()\n method1()\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "field1"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "BACKSLASH",
+        "l": "\\"
+      },
+      {
+        "t": "TILDE",
+        "l": "~"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "method1"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#08",
+    "i": "@startuml\n-class \"private Class\" {\n}\n\n#class \"protected Class\" {\n}\n\n~class \"package private Class\" {\n}\n\n+class \"public Class\" {\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "private Class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "HASH",
+        "l": "#"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "protected Class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "TILDE",
+        "l": "~"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "package private Class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "STRING",
+        "l": "public Class"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#09",
+    "i": "@startuml\nclass Dummy {\n  {static} String id\n  {abstract} void methods()\n}\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Dummy"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "static"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "String"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "id"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "abstract"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "void"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "methods"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  },
+  {
+    "n": "class-body.md#10",
+    "i": "@startuml\nclass Foo1 {\n  You can use\n  several lines\n  ..\n  as you want\n  and group\n  ==\n  things together.\n  __\n  You can have as many groups\n  as you want\n  --\n  End of class\n}\n\nclass User {\n  .. Simple Getter ..\n  + getName()\n  + getAddress()\n  .. Some setter ..\n  + setName()\n  __ private data __\n  int age\n  -- encrypted --\n  String password\n}\n\n@enduml",
+    "e": [
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "startuml"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Foo1"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "You"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "can"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "use"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "several"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "lines"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "you"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "want"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "and"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "group"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "EQUALS",
+        "l": "="
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "things"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "together"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "You"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "can"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "have"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "many"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "groups"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "as"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "you"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "want"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "End"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "of"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "class"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "User"
+      },
+      {
+        "t": "LBRACE",
+        "l": "{"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Simple"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Getter"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "getName"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "getAddress"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "Some"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "setter"
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "DOT",
+        "l": "."
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "PLUS",
+        "l": "+"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "setName"
+      },
+      {
+        "t": "LPAREN",
+        "l": "("
+      },
+      {
+        "t": "RPAREN",
+        "l": ")"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "private"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "data"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "UNDERSCORE",
+        "l": "_"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "int"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "age"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "encrypted"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "DASH",
+        "l": "-"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "String"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "password"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "RBRACE",
+        "l": "}"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "NEWLINE",
+        "l": "\n"
+      },
+      {
+        "t": "AT",
+        "l": "@"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "enduml"
+      }
+    ]
+  }
+]
