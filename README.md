@@ -8,34 +8,47 @@
 
 ---
 
-## Supported Features
+## Core Capabilities (Language-Agnostic)
 
-- **Rich Entity Mapping:**
-  - `class` / `struct` / `record` / `dataclass` &rarr; Go `struct`
-  - `interface` / `protocol` / `abstract class` &rarr; Go `interface`
-  - `enum` &rarr; Typed integer const block with `iota`
-  - `exception` &rarr; Struct implementing the standard Go `error` interface (`Error() string`) with compile-time assertion
-- **Comprehensive Relationships & Associations:**
-  - **Inheritance (`--|>`)**: Embedded structs or embedded interfaces
-  - **Realization (`..|>`)**: Compile-time satisfaction assertions (`var _ Interface = (*Struct)(nil)`)
-  - **Composition (`*--`) / Aggregation (`o--`) / Association (`-->`)**: Struct reference fields with cardinality mapping (`1`, `0..1`, `*`, `[N]`)
-  - **Dependency (`..>`)**: Type-level dependency annotations
-- **Member Modifiers & Encapsulation:**
-  - **Visibility**: `+` (public / PascalCase), `-` (private / camelCase), `#` (protected), `~` (package-private)
-  - **Static Members (`{static}`)**: Emitted as package-level variables and standalone functions
-  - **Abstract Members (`{abstract}`)**: Validated and extracted into companion interfaces
-- **Packages & Automatic Imports:**
-  - Multi-package diagram layouts (`package foo { ... }`) mapped to directory trees (`<pkg>/types.go`)
-  - Automatic detection and import resolution for the **Go Standard Library** (`time.Time`, `context.Context`, `net/http`, etc.)
-  - Cross-package qualified type referencing
-- **Documentation, Notes & Section Dividers:**
-  - Single-line and multi-line comments mapped to Go doc comments
-  - PlantUML notes (`note on link`, `note "..." as N`, `note top of X`) converted into doc annotations (`// NOTE: ...`)
-  - Diagram visual dividers (`-- Section --`, `== Methods ==`, `.. Info ..`) converted into formatted section comments
-- **Generics & Type Parameters:**
-  - Generic classes (e.g. `class Container<T>`, `class Cache<K, V>`) mapped to Go type parameters `[T any]`, `[K comparable, V any]`
-- **Include Directives:**
-  - Splicing and resolution of `!include`, `!include_once`, and `!include_many` file directives
+`puml-as-code` parses the full specification of PlantUML Class Diagrams into a decoupled, language-agnostic Abstract Syntax Tree (AST) that supports:
+
+- Entity Declarations such as, `class`, `interface`, `struct`, `enum`, `abstract class`, `record`, `dataclass`, `protocol` and `exception`.
+- Member Syntax & Modifiers: 
+  - Strongly-typed fields and methods via target language-specific dialect*.
+  - Modifiers: `{static}` (classifier level) and `{abstract}` (interface constraint).
+  - Double-bracket stereotypes (e.g. `<<Service>>`) and generic type parameters (e.g. `<T>`, `<K, V>`).
+- Encapsulation (Visibility) - Full support for `+` (public), `-` (private), `#` (protected) and `~` (package-private).
+- Comprehensive Relationships & Multiplicities:
+  - Generalization / Inheritance (`<|--`, `--|>`)
+  - Realization / Interface Implementation (`<|..`, `..|>`)
+  - Composition (`*--`) & Aggregation (`o--`)
+  - Association (`-->`) & Dependency (`..>`)
+  - Cardinality & Multiplicity mapping (`"1"`, `"0..1"`, `"0..*"`, `"*"`), direction modifiers (`-up->`, `-left-`) and relationship role labels.
+- Hierarchical Scoping & Namespaces - Nested package containers (`package A.B { ... }`) with scoped lexical environments, qualified cross-package references, and forward-reference symbol resolution.
+- Doc Comments & Concrete Syntax Retention - Captures single/multi-line comments, PlantUML notes (`note on link`, `note "..." as N`, targeted notes), and structural dividers (`-- Section --`, `== Methods ==`, `.. Info ..`).
+
+\* *Read more [About Dialects](pkg/parser/dialect/README.md).*
+
+---
+
+## Target Language Backends
+
+`puml-as-code` uses a decoupled template-driven code emission architecture with language-specific semantic passes and formatting toolchains:
+
+### 1. Go (Reference Backend)
+- Struct and interface emission with struct embedding for inheritance.
+- Cardinality-driven field lowering (pointers `*T`, slices `[]T`, fixed arrays `[N]T`).
+- Compile-time interface satisfaction assertions (`var _ IFoo = (*Bar)(nil)`).
+- `iota`-based enum const blocks.
+- `exception` types auto-implementing Go's `error` interface (`Error() string`).
+- Automatic Go Standard Library import detection (`time.Time`, `context.Context`, `net/http`, etc.).
+- Canonical AST formatting via standard `go/format`.
+
+### 2. Multi-Target Extensibility
+ Designed for straightforward addition of new target backends (TypeScript, Python, Rust, Java, etc.) by implementing:
+- target dialect parser (read more [About Dialects](pkg/parser/dialect/README.md))
+- semantic pass
+- template generator
 
 ---
 
@@ -161,23 +174,37 @@ func (s *UserService) GetUser(id string) (*User, error) {
 
 ## Architecture
 
-```
-┌────────────────┐      ┌─────────────────────────┐      ┌─────────────────────────┐
-│  PUML Source   │ ───> │  Recursive-Descent      │ ───> │  Language-Agnostic AST  │
-│  Files / Links │      │  Lexer & Parser Pass    │      │  Nodes & Directives     │
-└────────────────┘      └─────────────────────────┘      └─────────────────────────┘
-                                                                      │
-                                                                      ▼
-┌────────────────┐      ┌─────────────────────────┐      ┌─────────────────────────┐
-│ Target Code    │ <─── │  Template Generator     │ <─── │  Symbol & Dependency    │
-│ (Formatted Go) │      │  Engine & go/format     │      │  Resolution Pass        │
-└────────────────┘      └─────────────────────────┘      └─────────────────────────┘
-```
+<!--
+@startuml(id=ARCH) docs/images/architecture.svg
+!theme plain
+skinparam roundcorner 8
+skinparam shadowing false
 
-1. **Lexer & Parser:** Hand-written scanner and recursive-descent parser that constructs a clean AST without executing I/O.
-2. **Include & Symbol Resolver:** Resolves `!include` directives, builds pointer-based symbol tables, and scopes package namespaces.
-3. **Semantic Pass:** Language-specific validation (e.g. promoting abstract classes to interfaces, preventing stateful interfaces).
-4. **Code Generation:** Template-driven rendering formatted with standard toolchains (`go/format`).
+rectangle "PUML Source\n(Files & Directives)" as Input
+rectangle "Lexer & Parser\n(Recursive-Descent)" as Parser
+rectangle "Language-Agnostic AST\n(Nodes & Directives)" as AST
+rectangle "Symbol & Include Resolver\n(Packages & Scopes)" as Resolver
+rectangle "Semantic Validation\n(Interface promotion & rules)" as Semantic
+rectangle "Template Generator\n(Go / Multi-target + go/format)" as Generator
+rectangle "Target Source Code\n(Formatted Output)" as Output
+
+Input -right-> Parser : raw text
+Parser -right-> AST : token stream
+AST -down-> Resolver : statement tree
+Resolver -left-> Semantic : symbol table
+Semantic -left-> Generator : validated views
+Generator -left-> Output : formatted files
+@enduml
+-->
+
+![Architecture Diagram](docs/images/architecture.svg)
+
+1. Lexer: lazy-resolving source markup scanner.
+2. Parser: recursive-descent LL(*) parser that constructs language-agnostic AST without executing I/O.
+2. Include Resolver: provides in-place AST expansion for `!include` and `!include_once` directives with cyclic dependency detection. Provides support for `!include_many` directive for boilerplate inclusion.
+4. Symbol Resolver: builds pointer-based symbol table, and scopes package namespaces.
+3. Semantic Pass: Language-specific validation (implemented per language) (e.g. for golang: promoting abstract classes to interfaces, preventing stateful interfaces).
+4. Code Generation: Template-driven rendering formatted with standard toolchains (implemented per language) (e.g. `go/format`).
 
 ---
 
