@@ -1,3 +1,4 @@
+// Package ast contains the AST nodes for the parser.
 package ast
 
 type TitleDef struct {
@@ -11,3 +12,15 @@ func (t TitleDef) StatementNode() Statement {
 }
 
 var _ Statement = TitleDef{}
+
+type UnhandledStatement struct {
+	Text string
+	Trivia
+}
+
+// StatementNode implements [Statement].
+func (t UnhandledStatement) StatementNode() Statement {
+	return t
+}
+
+var _ Statement = UnhandledStatement{}

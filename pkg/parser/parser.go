@@ -66,7 +66,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				if blockNum == -1 {
 					return nil, errors.New("no diagrams found")
 				}
-				return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
+				return nil, WrapParserError(fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1), tokenizer.Token{})
 			}
 
 			blockNum++

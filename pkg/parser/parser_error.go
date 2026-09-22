@@ -8,8 +8,9 @@ import (
 )
 
 type parserError struct {
-	Err error
-	Tok tokenizer.Token
+	Err  error
+	Tok  tokenizer.Token
+	File string
 }
 
 var _ error = parserError{}
