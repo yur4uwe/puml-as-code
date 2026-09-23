@@ -9,7 +9,10 @@
       "Name": "diagram.png"
     },
     {
-      "Text": "System Architecture Overview"
+      "Kind": "title",
+      "Text": "System Architecture Overview",
+      "VerticalAlignment": "",
+      "HorizontalAlignment": ""
     },
     {
       "Identifier": "Controller",

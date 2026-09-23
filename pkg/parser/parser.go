@@ -192,6 +192,33 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 	}
 
 	switch keyword.Classify(tok.Literal) {
+	case keyword.Title,
+		keyword.Header,
+		keyword.Footer,
+		keyword.Legend:
+		stmt, err := p.parseLayoutStatement(tok, nil)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{stmt}, nil
+	case keyword.Direction:
+		nextTok := p.stream.PeekTokenAt(0)
+		nextKW := keyword.Classify(nextTok.Literal)
+		if nextKW == keyword.Header || nextKW == keyword.Footer || nextKW == keyword.Legend || nextKW == keyword.Title {
+			actualKwTok := p.stream.Emit()
+			stmt, err := p.parseLayoutStatement(actualKwTok, &tok)
+			if err != nil {
+				return nil, err
+			}
+			return []ast.Statement{stmt}, nil
+		}
+		return nil, NewParserError("Unexpected direction keyword in container", tok)
+	case keyword.Caption:
+		stmt, err := p.parseUnhandled(tok)
+		if err != nil {
+			return nil, err
+		}
+		return []ast.Statement{stmt}, nil
 	case keyword.Class,
 		keyword.Interface,
 		keyword.Struct,
@@ -269,28 +296,44 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 
 	var stmnt ast.Statement
 	var err error
+
 	switch keyword.Classify(tok.Literal) {
 	// Multi-statement branches
 	case keyword.Skinparam:
 		return p.parseSkinparam()
 
 	// Single-statement branches
-	case keyword.Title:
-		stmnt, err = p.parseTitle()
+	case keyword.Title,
+		keyword.Header,
+		keyword.Footer,
+		keyword.Legend:
+		stmnt, err = p.parseLayoutStatement(tok, nil)
+	case keyword.Caption:
+		stmnt, err = p.parseUnhandled(tok)
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
 		stmnt, err = p.parseVisibilityCommand(tok)
 	case keyword.Scale:
 		stmnt, err = p.parseScale()
 	case keyword.Direction:
-		stmnt, err = p.parseDiagDirection(tok)
+		nextTok := p.stream.PeekTokenAt(0)
+		if nextTok.Literal == "to" {
+			stmnt, err = p.parseDiagDirection(tok)
+			break
+		} else if nextKW := keyword.Classify(nextTok.Literal); nextKW == keyword.Header ||
+			nextKW == keyword.Footer ||
+			nextKW == keyword.Legend ||
+			nextKW == keyword.Title {
+			actualKwTok := p.stream.Emit()
+			stmnt, err = p.parseLayoutStatement(actualKwTok, &tok)
+			if err != nil {
+				return nil, err
+			}
+			return []ast.Statement{stmnt}, nil
+		} else {
+			return nil, NewParserError("Unexpected token after direction", tok)
+		}
 	case keyword.Set:
 		stmnt, err = p.parseSetDirective()
-	case keyword.Header,
-		keyword.Footer,
-		keyword.Legend,
-		keyword.Caption,
-		keyword.Newpage:
-		return nil, errors.New("unimplemented layout directive handling")
 	}
 	if err != nil {
 		return nil, err

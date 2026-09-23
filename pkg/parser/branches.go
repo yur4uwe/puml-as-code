@@ -97,8 +97,9 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
 		return p.parseIncludeDirective(directiveNameTok)
+	} else {
+		return p.parseUnhandledDirective(directiveNameTok)
 	}
-	return nil, NewParserError("Unknown directive", directiveNameTok)
 }
 
 func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirective, error) {
@@ -880,33 +881,28 @@ func (p *Parser) tryParseColor() string {
 }
 
 func (p *Parser) parseNoteBody(note *ast.Note) error {
-	tok := p.stream.Emit()
-
-	noteEndSequence := []tokenizer.Token{unamb(tokenizer.NEWLINE)}
+	tok := p.stream.PeekTokenAt(0)
 	switch tok.Type {
 	case tokenizer.COLON:
-		// to not error out
+		p.stream.Emit()
+		note.Text = p.stream.ReadUntilNewline()
+		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		return nil
 	case tokenizer.NEWLINE:
-		noteEndSequence = []tokenizer.Token{amb(tokenizer.IDENTIFIER, "end"), amb(tokenizer.IDENTIFIER, "note")}
 		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-	default:
-		return NewParserError("Expected ':' or newline after note definition", tok)
-	}
-
-	body, err := p.stream.ConsumeTextBlock(noteEndSequence)
-	if err != nil {
-		return err
-	}
-
-	if len(note.TrailingTrivia) == 0 {
-		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-	} else {
+		body, err := p.stream.ConsumeTextBlock("endnote", "end note")
+		if err != nil {
+			return err
+		}
+		note.Text = body
 		if closingTrivia := p.stream.DumpCollectedTrivia(); len(closingTrivia) > 0 {
 			note.TrailingTrivia = append(note.TrailingTrivia, closingTrivia...)
 		}
+		return nil
+	default:
+		p.stream.Emit()
+		return NewParserError("Expected ':' or newline after note definition", tok)
 	}
-	note.Text = strings.TrimSuffix(body, "\n")
-	return nil
 }
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
@@ -1068,31 +1064,6 @@ func (p *Parser) parseStyleRules(selectors []string) ([]ast.Statement, error) {
 		rules = append([]ast.Statement{currentRule}, rules...)
 	}
 	return rules, nil
-}
-
-func (p *Parser) parseTitle() (ast.Statement, error) {
-	leadingTrivia := p.stream.DumpCollectedTrivia()
-	if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); ok {
-		// Multi-line title block ending with 'end title'
-		titleEndSequence := []tokenizer.Token{
-			unamb(tokenizer.NEWLINE),
-			amb(tokenizer.IDENTIFIER, "end"),
-			amb(tokenizer.IDENTIFIER, "title"),
-		}
-		var err error
-		p.ast.Title, err = p.stream.ConsumeTextBlock(titleEndSequence)
-		return ast.TitleDef{
-			Text: p.ast.Title,
-			Trivia: ast.Trivia{
-				LeadingTrivia:  leadingTrivia,
-				TrailingTrivia: p.stream.DumpCollectedTrivia(),
-			},
-		}, err
-	}
-
-	// Single-line title
-	p.ast.Title = p.stream.ReadRawUntilNewline()
-	return ast.TitleDef{Text: p.ast.Title}, nil
 }
 
 func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error) {
@@ -1624,4 +1595,127 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	}
 
 	return wrapInContainers(ent, targetRef.PackagePath), nil
+}
+
+func mapKwTokToTextBlockKind(kw keyword.KeywordKind) ast.TextBlockKind {
+	switch kw {
+	case keyword.Header:
+		return ast.BlockHeader
+	case keyword.Footer:
+		return ast.BlockFooter
+	case keyword.Legend:
+		return ast.BlockLegend
+	case keyword.Title:
+		return ast.BlockTitle
+	default:
+		return ast.BlockUnknown
+	}
+}
+
+func parseLayoutAlignmentToken(tok tokenizer.Token, blockKind ast.TextBlockKind) (horiz string, vert string, isAlign bool) {
+	switch strings.ToLower(tok.Literal) {
+	case "left", "right", "center":
+		return strings.ToLower(tok.Literal), "", true
+	case "top", "bottom":
+		if blockKind != ast.BlockLegend {
+			return "", "", false
+		}
+		return "", strings.ToLower(tok.Literal), true
+	default:
+		return "", "", false
+	}
+}
+
+func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *tokenizer.Token) (ast.Statement, error) {
+	blockKind := mapKwTokToTextBlockKind(keyword.Classify(kwTok.Literal))
+	leadingTrivia := p.stream.DumpCollectedTrivia()
+
+	block := ast.TextBlock{
+		Kind: blockKind,
+		Trivia: ast.Trivia{
+			LeadingTrivia: leadingTrivia,
+		},
+	}
+
+	// Process prefix alignment if provided (e.g. "left header", "center footer")
+	if prefixAlignment != nil {
+		if blockKind == ast.BlockTitle {
+			return nil, NewParserError("Title alignment not supported", *prefixAlignment)
+		}
+		h, v, isAlign := parseLayoutAlignmentToken(*prefixAlignment, blockKind)
+		if !isAlign {
+			if strings.EqualFold(prefixAlignment.Literal, "top") || strings.EqualFold(prefixAlignment.Literal, "bottom") {
+				return nil, NewParserError("Vertical alignment only supported for legend", *prefixAlignment)
+			}
+			return nil, NewParserError("Invalid alignment", *prefixAlignment)
+		}
+		block.HorizontalAlignment = h
+		block.VerticalAlignment = v
+	}
+
+	// Consume any trailing alignment modifiers on the opener line (e.g. "legend top left", "header center")
+	for !p.stream.AssertType(tokenizer.NEWLINE) && !p.stream.AssertType(tokenizer.EOF) {
+		peekTok := p.stream.PeekTokenAt(0)
+		h, v, isAlign := parseLayoutAlignmentToken(peekTok, blockKind)
+		if !isAlign {
+			break
+		}
+		if blockKind == ast.BlockTitle {
+			break // For title, any tokens on the same line are title text
+		}
+		if h != "" {
+			if block.HorizontalAlignment != "" {
+				return nil, NewParserError("Horizontal alignment already set", peekTok)
+			}
+			block.HorizontalAlignment = h
+			p.stream.Emit()
+		} else if v != "" {
+			if block.VerticalAlignment != "" {
+				return nil, NewParserError("Vertical alignment already set", peekTok)
+			}
+			block.VerticalAlignment = v
+			p.stream.Emit()
+		}
+	}
+
+	// Collect remaining tokens on the opener line
+	var lineContentToks []tokenizer.Token
+	for !p.stream.AssertType(tokenizer.NEWLINE) && !p.stream.AssertType(tokenizer.EOF) {
+		lineContentToks = append(lineContentToks, p.stream.Emit())
+	}
+
+	if len(lineContentToks) == 0 {
+		// --- MULTI-LINE BLOCK FORM ---
+		body, err := p.stream.ConsumeTextBlock("end" + kwTok.Literal)
+		if err != nil {
+			if errors.Is(err, tokenizer.ErrScopeDelimiterHit) {
+				return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s (hit enclosing scope delimiter)", kwTok.Literal), kwTok)
+			}
+			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kwTok.Literal), kwTok)
+		}
+		block.Text = body
+		p.stream.EmitCommentToks()
+		block.TrailingTrivia = p.stream.DumpCollectedTrivia()
+
+		if blockKind == ast.BlockTitle {
+			p.ast.Title = block.Text
+		}
+		return block, nil
+	}
+
+	// --- SINGLE-LINE INLINE FORM ---
+	p.stream.TryConsumeType(tokenizer.NEWLINE)
+	p.stream.EmitCommentToks()
+	block.TrailingTrivia = p.stream.DumpCollectedTrivia()
+
+	startContentOffset := lineContentToks[0].Pos.Offset
+	lastContentTok := lineContentToks[len(lineContentToks)-1]
+	endContentOffset := lastContentTok.Pos.Offset + uint(len(lastContentTok.Literal))
+
+	block.Text = strings.TrimSpace(p.stream.SliceInput(startContentOffset, endContentOffset))
+
+	if blockKind == ast.BlockTitle {
+		p.ast.Title = block.Text
+	}
+	return block, nil
 }

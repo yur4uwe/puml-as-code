@@ -286,8 +286,8 @@ func TestToTriviaView(t *testing.T) {
 			name: "leading trivia only",
 			trivia: ast.Trivia{
 				LeadingTrivia: []tokenizer.Token{
-					{Literal: "Doc comment line 1", Pos: tokenizer.TokenPos{Line: 1}},
-					{Literal: "Doc comment line 2", Pos: tokenizer.TokenPos{Line: 2}},
+					{Literal: "Doc comment line 1", Pos: tokenizer.Pos{Line: 1}},
+					{Literal: "Doc comment line 2", Pos: tokenizer.Pos{Line: 2}},
 				},
 			},
 			expected: TriviaView{
@@ -299,7 +299,7 @@ func TestToTriviaView(t *testing.T) {
 			name: "single trailing comment on same line",
 			trivia: ast.Trivia{
 				TrailingTrivia: []tokenizer.Token{
-					{Literal: "inline field comment", Pos: tokenizer.TokenPos{Line: 5}},
+					{Literal: "inline field comment", Pos: tokenizer.Pos{Line: 5}},
 				},
 			},
 			expected: TriviaView{
@@ -311,9 +311,9 @@ func TestToTriviaView(t *testing.T) {
 			name: "multiple trailing comments on same line collapsed with semicolon",
 			trivia: ast.Trivia{
 				TrailingTrivia: []tokenizer.Token{
-					{Literal: "comment 1", Pos: tokenizer.TokenPos{Line: 5}},
-					{Literal: "comment 2", Pos: tokenizer.TokenPos{Line: 5}},
-					{Literal: "comment 3", Pos: tokenizer.TokenPos{Line: 5}},
+					{Literal: "comment 1", Pos: tokenizer.Pos{Line: 5}},
+					{Literal: "comment 2", Pos: tokenizer.Pos{Line: 5}},
+					{Literal: "comment 3", Pos: tokenizer.Pos{Line: 5}},
 				},
 			},
 			expected: TriviaView{
@@ -325,10 +325,10 @@ func TestToTriviaView(t *testing.T) {
 			name: "block open and close trailing trivia on separate lines",
 			trivia: ast.Trivia{
 				TrailingTrivia: []tokenizer.Token{
-					{Literal: "open comment 1", Pos: tokenizer.TokenPos{Line: 2}},
-					{Literal: "open comment 2", Pos: tokenizer.TokenPos{Line: 2}},
-					{Literal: "close comment 1", Pos: tokenizer.TokenPos{Line: 8}},
-					{Literal: "close comment 2", Pos: tokenizer.TokenPos{Line: 8}},
+					{Literal: "open comment 1", Pos: tokenizer.Pos{Line: 2}},
+					{Literal: "open comment 2", Pos: tokenizer.Pos{Line: 2}},
+					{Literal: "close comment 1", Pos: tokenizer.Pos{Line: 8}},
+					{Literal: "close comment 2", Pos: tokenizer.Pos{Line: 8}},
 				},
 			},
 			expected: TriviaView{
@@ -351,9 +351,9 @@ func TestToTriviaView(t *testing.T) {
 	t.Run("panics on more than 2 distinct trailing trivia lines", func(t *testing.T) {
 		invalidTrivia := ast.Trivia{
 			TrailingTrivia: []tokenizer.Token{
-				{Literal: "line 1", Pos: tokenizer.TokenPos{Line: 1}},
-				{Literal: "line 2", Pos: tokenizer.TokenPos{Line: 2}},
-				{Literal: "line 3", Pos: tokenizer.TokenPos{Line: 3}},
+				{Literal: "line 1", Pos: tokenizer.Pos{Line: 1}},
+				{Literal: "line 2", Pos: tokenizer.Pos{Line: 2}},
+				{Literal: "line 3", Pos: tokenizer.Pos{Line: 3}},
 			},
 		}
 		require.Panics(t, func() {
@@ -407,7 +407,7 @@ func TestVisibilityMapping(t *testing.T) {
 			Visibility: ast.VisibilityPrivate,
 			Trivia: ast.Trivia{
 				TrailingTrivia: []tokenizer.Token{
-					{Literal: "must be encrypted", Pos: tokenizer.TokenPos{Line: 1}},
+					{Literal: "must be encrypted", Pos: tokenizer.Pos{Line: 1}},
 				},
 			},
 		}, &FileView{})
@@ -456,4 +456,3 @@ func TestVisibilityMapping(t *testing.T) {
 		require.Equal(t, ast.VisibilityPackage, vis)
 	})
 }
-

@@ -55,7 +55,6 @@ const (
 	Footer
 	Legend
 	Caption
-	Newpage
 
 	// Misc
 	End
@@ -68,7 +67,7 @@ func Classify(ident string) KeywordKind {
 	switch ident {
 	case "as":
 		return Alias
-	case "left", "right", "top", "bottom", "up", "down":
+	case "left", "right", "top", "bottom", "up", "down", "center":
 		return Direction
 	case "of", "on":
 		return Position

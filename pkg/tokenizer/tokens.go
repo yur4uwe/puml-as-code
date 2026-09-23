@@ -53,20 +53,20 @@ const (
 	COMMENT
 )
 
-type TokenPos struct {
+type Pos struct {
 	Line   uint
 	Col    uint
 	Offset uint
 }
 
-func (p TokenPos) String() string {
+func (p Pos) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Col)
 }
 
 type Token struct {
 	Type    TokenType
 	Literal string
-	Pos     TokenPos
+	Pos     Pos
 }
 
 var singleCharTokens = map[rune]TokenType{

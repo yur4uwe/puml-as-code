@@ -29,8 +29,8 @@ type Lexer struct {
 
 type lexerState struct{}
 
-func (l *Lexer) getPos() TokenPos {
-	return TokenPos{
+func (l *Lexer) getPos() Pos {
+	return Pos{
 		Line:   l.line,
 		Col:    l.col,
 		Offset: uint(l.position),

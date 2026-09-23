@@ -197,24 +197,99 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 	return sb.String()
 }
 
-func (ts *TokenStream) ConsumeTextBlock(endSequence []Token) (string, error) {
-	if len(endSequence) == 0 {
-		panic("empty end sequence for raw mode")
-	}
-	tok := ts.EmitRaw()
-	startOff := tok.Pos.Offset
-	for !ts.AssertSeq(endSequence) {
-		tok = ts.EmitRaw()
-		if tok.Type == EOF {
-			return "", ErrUnexpectedEOF
-		}
-	}
-	endOff := tok.Pos.Offset + uint(len(tok.Literal))
-	for range endSequence {
-		ts.EmitRaw() // consume end markers
+// ConsumeTextBlock consumes all tokens until a matching closer line is found.
+// It handles single-token ("endheader") and multi-token ("end header") closers case-insensitively,
+// preserves leading indentation on the body lines, strips indentation before the closer line,
+// prevents false-positive matches mid-line, and tracks brace depth to avoid leaking past
+// enclosing container scopes.
+func (ts *TokenStream) ConsumeTextBlock(closers ...string) (string, error) {
+	if len(closers) == 0 {
+		return "", errors.New("empty closers for ConsumeTextBlock")
 	}
 
-	return string(ts.lexer.input[startOff:endOff]), nil
+	var startBodyOffset uint
+	if ts.AssertType(NEWLINE) {
+		nlTok := ts.Emit()
+		startBodyOffset = nlTok.Pos.Offset + 1
+	} else if !ts.AssertType(EOF) {
+		startBodyOffset = ts.PeekRawTokenAt(0).Pos.Offset
+	}
+
+	braceDepth := 0
+	var closerStartOffset uint
+	matched := false
+
+	for {
+		if ts.AssertType(EOF) {
+			return "", ErrUnexpectedEOF
+		}
+
+		// Collect tokens on the current line
+		var curLineToks []Token
+		for !ts.AssertType(NEWLINE) && !ts.AssertType(EOF) {
+			t := ts.Emit()
+			curLineToks = append(curLineToks, t)
+			if t.Type == LBRACE {
+				braceDepth++
+			} else if t.Type == RBRACE {
+				braceDepth--
+			}
+		}
+
+		if braceDepth < 0 {
+			return "", ErrScopeDelimiterHit
+		}
+
+		if isLineCloser(curLineToks, closers) {
+			closerStartOffset = curLineToks[0].Pos.Offset
+			ts.TryConsumeType(NEWLINE)
+			matched = true
+			break
+		}
+
+		ts.TryConsumeType(NEWLINE)
+	}
+
+	if !matched {
+		return "", ErrUnexpectedEOF
+	}
+
+	rawBody := ts.SliceInput(startBodyOffset, closerStartOffset)
+	if lastNL := strings.LastIndex(rawBody, "\n"); lastNL != -1 {
+		rawBody = rawBody[:lastNL]
+		rawBody = strings.TrimSuffix(rawBody, "\r")
+	} else {
+		rawBody = ""
+	}
+
+	return rawBody, nil
+}
+
+func isLineCloser(lineToks []Token, closers []string) bool {
+	if len(lineToks) == 0 {
+		return false
+	}
+	var sb strings.Builder
+	for _, t := range lineToks {
+		sb.WriteString(t.Literal)
+	}
+	rawLine := sb.String()
+
+	for _, closer := range closers {
+		cleanCloser := strings.ReplaceAll(closer, " ", "")
+		if strings.EqualFold(rawLine, cleanCloser) {
+			return true
+		}
+		if len(lineToks) >= 2 && strings.EqualFold(lineToks[0].Literal, "end") {
+			if strings.EqualFold("end"+lineToks[1].Literal, cleanCloser) {
+				return true
+			}
+		}
+		if strings.EqualFold(lineToks[0].Literal, closer) {
+			return true
+		}
+	}
+	return false
 }
 
 // Assert checks if the next token matches the given target (Type and Literal if literal is set).
@@ -325,6 +400,7 @@ func (ts *TokenStream) ConsumeUntilType(targetTypes ...TokenType) []Token {
 var (
 	ErrStartMarkerNotFound = errors.New("start marker not found")
 	ErrUnexpectedEOF       = errors.New("unexpected EOF")
+	ErrScopeDelimiterHit   = errors.New("hit enclosing scope delimiter")
 )
 
 // ReadBetween handles the common pattern of [start markers]...[end markers]
@@ -438,4 +514,17 @@ func (ts *TokenStream) ReadBlock(endMark ...Token) (string, error) {
 		tok = ts.EmitRaw()
 	}
 	return "", fmt.Errorf("block end not found")
+}
+
+func (ts *TokenStream) SliceInput(start, end uint) string {
+	if int(start) > len(ts.lexer.input) {
+		return ""
+	}
+	if int(end) > len(ts.lexer.input) {
+		end = uint(len(ts.lexer.input))
+	}
+	if start > end {
+		return ""
+	}
+	return string(ts.lexer.input[start:end])
 }

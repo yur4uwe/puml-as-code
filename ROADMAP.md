@@ -1,4 +1,4 @@
-# Tooling Roadmap: Formatter, Highlighting & LSP 🗺️
+# Tooling Roadmap: Formatter, Highlighting & LSP
 
 High-level implementation roadmap for extending `pac` into formatting, syntax highlighting, and editor tooling.
 

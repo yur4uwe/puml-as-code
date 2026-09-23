@@ -15,7 +15,7 @@ func Format(src string) (string, error) {
 
 	for _, stmt := range tree.Statements {
 		switch stmt.(type) {
-		case ast.TitleDef:
+		case ast.TextBlock:
 		case ast.UnhandledStatement:
 		}
 	}
