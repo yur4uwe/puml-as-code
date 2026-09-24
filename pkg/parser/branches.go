@@ -890,7 +890,7 @@ func (p *Parser) parseNoteBody(note *ast.Note) error {
 		return nil
 	case tokenizer.NEWLINE:
 		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-		body, err := p.stream.ConsumeTextBlock("endnote", "end note")
+		body, err := p.stream.ConsumeTextBlock("end", "note")
 		if err != nil {
 			return err
 		}
@@ -1654,7 +1654,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 	}
 
 	// Consume any trailing alignment modifiers on the opener line (e.g. "legend top left", "header center")
-	for !p.stream.AssertType(tokenizer.NEWLINE) && !p.stream.AssertType(tokenizer.EOF) {
+	for !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		peekTok := p.stream.PeekTokenAt(0)
 		h, v, isAlign := parseLayoutAlignmentToken(peekTok, blockKind)
 		if !isAlign {
@@ -1673,46 +1673,38 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 			if block.VerticalAlignment != "" {
 				return nil, NewParserError("Vertical alignment already set", peekTok)
 			}
+			if blockKind != ast.BlockLegend {
+				return nil, NewParserError("Vertical alignment only supported for legend", peekTok)
+			}
 			block.VerticalAlignment = v
 			p.stream.Emit()
 		}
 	}
 
-	// Collect remaining tokens on the opener line
-	var lineContentToks []tokenizer.Token
-	for !p.stream.AssertType(tokenizer.NEWLINE) && !p.stream.AssertType(tokenizer.EOF) {
-		lineContentToks = append(lineContentToks, p.stream.Emit())
-	}
+	lineContentToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
 
+	var body string
 	if len(lineContentToks) == 0 {
 		// --- MULTI-LINE BLOCK FORM ---
-		body, err := p.stream.ConsumeTextBlock("end" + kwTok.Literal)
+		var err error
+		body, err = p.stream.ConsumeTextBlock("end", kwTok.Literal)
 		if err != nil {
 			if errors.Is(err, tokenizer.ErrScopeDelimiterHit) {
 				return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s (hit enclosing scope delimiter)", kwTok.Literal), kwTok)
 			}
 			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kwTok.Literal), kwTok)
 		}
-		block.Text = body
-		p.stream.EmitCommentToks()
-		block.TrailingTrivia = p.stream.DumpCollectedTrivia()
+	} else {
+		// --- SINGLE-LINE INLINE FORM ---
+		// We must consume newline as per ConsumeUntilType contract
+		p.stream.MustConsumeType(tokenizer.NEWLINE)
 
-		if blockKind == ast.BlockTitle {
-			p.ast.Title = block.Text
-		}
-		return block, nil
+		body = p.stream.SliceInputBetweenTokens(lineContentToks...)
 	}
 
-	// --- SINGLE-LINE INLINE FORM ---
-	p.stream.TryConsumeType(tokenizer.NEWLINE)
+	block.Text = body
 	p.stream.EmitCommentToks()
 	block.TrailingTrivia = p.stream.DumpCollectedTrivia()
-
-	startContentOffset := lineContentToks[0].Pos.Offset
-	lastContentTok := lineContentToks[len(lineContentToks)-1]
-	endContentOffset := lastContentTok.Pos.Offset + uint(len(lastContentTok.Literal))
-
-	block.Text = strings.TrimSpace(p.stream.SliceInput(startContentOffset, endContentOffset))
 
 	if blockKind == ast.BlockTitle {
 		p.ast.Title = block.Text

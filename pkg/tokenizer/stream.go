@@ -202,10 +202,12 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 // preserves leading indentation on the body lines, strips indentation before the closer line,
 // prevents false-positive matches mid-line, and tracks brace depth to avoid leaking past
 // enclosing container scopes.
-func (ts *TokenStream) ConsumeTextBlock(closers ...string) (string, error) {
-	if len(closers) == 0 {
+func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, error) {
+	if len(delimiterLiterals) == 0 {
 		return "", errors.New("empty closers for ConsumeTextBlock")
 	}
+
+	delim := strings.ToLower(strings.Join(delimiterLiterals, ""))
 
 	var startBodyOffset uint
 	if ts.AssertType(NEWLINE) {
@@ -215,9 +217,7 @@ func (ts *TokenStream) ConsumeTextBlock(closers ...string) (string, error) {
 		startBodyOffset = ts.PeekRawTokenAt(0).Pos.Offset
 	}
 
-	braceDepth := 0
 	var closerStartOffset uint
-	matched := false
 
 	for {
 		if ts.AssertType(EOF) {
@@ -225,33 +225,24 @@ func (ts *TokenStream) ConsumeTextBlock(closers ...string) (string, error) {
 		}
 
 		// Collect tokens on the current line
-		var curLineToks []Token
-		for !ts.AssertType(NEWLINE) && !ts.AssertType(EOF) {
-			t := ts.Emit()
-			curLineToks = append(curLineToks, t)
-			if t.Type == LBRACE {
-				braceDepth++
-			} else if t.Type == RBRACE {
-				braceDepth--
-			}
+		curLineToks := ts.ConsumeUntilType(NEWLINE)
+		if len(curLineToks) <= 0 {
+			ts.TryConsumeType(NEWLINE)
+			continue
 		}
 
-		if braceDepth < 0 {
-			return "", ErrScopeDelimiterHit
+		var sb strings.Builder
+		for _, t := range curLineToks {
+			sb.WriteString(t.Literal)
 		}
 
-		if isLineCloser(curLineToks, closers) {
+		if strings.EqualFold(sb.String(), delim) {
 			closerStartOffset = curLineToks[0].Pos.Offset
 			ts.TryConsumeType(NEWLINE)
-			matched = true
 			break
+		} else if strings.EqualFold(sb.String(), "@enduml") {
+			return "", ErrUnexpectedEOF
 		}
-
-		ts.TryConsumeType(NEWLINE)
-	}
-
-	if !matched {
-		return "", ErrUnexpectedEOF
 	}
 
 	rawBody := ts.SliceInput(startBodyOffset, closerStartOffset)
@@ -263,33 +254,6 @@ func (ts *TokenStream) ConsumeTextBlock(closers ...string) (string, error) {
 	}
 
 	return rawBody, nil
-}
-
-func isLineCloser(lineToks []Token, closers []string) bool {
-	if len(lineToks) == 0 {
-		return false
-	}
-	var sb strings.Builder
-	for _, t := range lineToks {
-		sb.WriteString(t.Literal)
-	}
-	rawLine := sb.String()
-
-	for _, closer := range closers {
-		cleanCloser := strings.ReplaceAll(closer, " ", "")
-		if strings.EqualFold(rawLine, cleanCloser) {
-			return true
-		}
-		if len(lineToks) >= 2 && strings.EqualFold(lineToks[0].Literal, "end") {
-			if strings.EqualFold("end"+lineToks[1].Literal, cleanCloser) {
-				return true
-			}
-		}
-		if strings.EqualFold(lineToks[0].Literal, closer) {
-			return true
-		}
-	}
-	return false
 }
 
 // Assert checks if the next token matches the given target (Type and Literal if literal is set).
@@ -527,4 +491,12 @@ func (ts *TokenStream) SliceInput(start, end uint) string {
 		return ""
 	}
 	return string(ts.lexer.input[start:end])
+}
+
+func (ts *TokenStream) SliceInputBetweenTokens(toks ...Token) string {
+	span, ok := TokenSliceSpan(toks)
+	if !ok {
+		return ""
+	}
+	return ts.SliceInput(span.Start.Offset, span.End.Offset)
 }

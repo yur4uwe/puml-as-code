@@ -25,7 +25,7 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 	fullText := p.stream.SliceInput(tok.Pos.Offset, endOffset)
 	return ast.UnhandledStatement{
 		Text: fullText,
-		Span: ast.SourceSpan{
+		Span: tokenizer.SourceSpan{
 			Start: tok.Pos,
 			End:   endPos,
 		},
@@ -41,7 +41,7 @@ func (p *Parser) parseUnhandledDirective(dirNameTok tokenizer.Token) (ast.Statem
 		Trivia: ast.Trivia{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
-		Span: ast.SourceSpan{
+		Span: tokenizer.SourceSpan{
 			Start: dirNameTok.Pos,
 		},
 	}

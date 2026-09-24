@@ -35,13 +35,9 @@ func (t TextBlock) StatementNode() Statement {
 
 var _ Statement = TextBlock{}
 
-type SourceSpan struct {
-	Start, End tokenizer.Pos
-}
-
 type UnhandledStatement struct {
 	Text string
-	Span SourceSpan
+	Span tokenizer.SourceSpan
 	Trivia
 }
 

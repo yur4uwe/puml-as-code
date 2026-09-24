@@ -63,10 +63,27 @@ func (p Pos) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Col)
 }
 
+type SourceSpan struct {
+	Start, End Pos
+}
+
 type Token struct {
 	Type    TokenType
 	Literal string
 	Pos     Pos
+}
+
+func (t Token) EndOffset() uint {
+	return t.Pos.Offset + uint(len([]rune(t.Literal)))
+}
+
+func (t Token) EndPos() Pos {
+	runeLen := uint(len([]rune(t.Literal)))
+	return Pos{
+		Line:   t.Pos.Line,
+		Col:    t.Pos.Col + runeLen,
+		Offset: t.Pos.Offset + runeLen,
+	}
 }
 
 var singleCharTokens = map[rune]TokenType{
@@ -159,4 +176,21 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 	}
 
 	return l.consumeChar(ILLEGAL, string(l.ch))
+}
+
+func SpanBetween(first, last Token) SourceSpan {
+	if first.Pos.Offset > last.Pos.Offset {
+		first, last = last, first
+	}
+	return SourceSpan{
+		Start: first.Pos,
+		End:   last.EndPos(),
+	}
+}
+
+func TokenSliceSpan(toks []Token) (span SourceSpan, ok bool) {
+	if len(toks) == 0 {
+		return SourceSpan{}, false
+	}
+	return SpanBetween(toks[0], toks[len(toks)-1]), true
 }
