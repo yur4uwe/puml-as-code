@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"unicode"
 
 	"yur4uwe/pac/internal/helpers"
@@ -193,4 +194,36 @@ func TokenSliceSpan(toks []Token) (span SourceSpan, ok bool) {
 		return SourceSpan{}, false
 	}
 	return SpanBetween(toks[0], toks[len(toks)-1]), true
+}
+
+// MatchTokenPrefix checks whether the beginning of lineToks matches target.
+// It joins the literals of leading tokens until they match target (ignoring spaces),
+// allowing both single-token and multi-token representations (e.g. ["!", "endif"],
+// ["end", "note"], ["end", "legend"], ["endlegend"], ["alt"]).
+// It returns the number of line tokens matched, and whether a match was found.
+func MatchTokenPrefix(lineToks []Token, target string) (int, bool) {
+	if len(lineToks) == 0 || target == "" {
+		return 0, false
+	}
+
+	cleanTarget := strings.ToLower(strings.ReplaceAll(target, " ", ""))
+	var accumulated strings.Builder
+
+	for i, tok := range lineToks {
+		accumulated.WriteString(strings.ToLower(tok.Literal))
+		if accumulated.String() == cleanTarget {
+			return i + 1, true
+		}
+		if accumulated.Len() >= len(cleanTarget) {
+			return 0, false
+		}
+	}
+	return 0, false
+}
+
+// MatchTokenLine checks whether lineToks matches target exactly with no trailing tokens on the line.
+// It returns true only if the entire line of tokens forms the target (ignoring spaces).
+func MatchTokenLine(lineToks []Token, target string) bool {
+	consumed, ok := MatchTokenPrefix(lineToks, target)
+	return ok && consumed == len(lineToks)
 }

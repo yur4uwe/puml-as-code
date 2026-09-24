@@ -160,6 +160,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			continue
 		}
 
+		return nil, NewParserError("Unexpected token", tok)
 	}
 
 	if p.TargetID == "" {
@@ -192,8 +193,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 	}
 
 	switch keyword.Classify(tok.Literal) {
-	case keyword.Title,
-		keyword.Header,
+	case keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
 		stmt, err := p.parseLayoutStatement(tok, nil)
@@ -213,7 +213,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 			return []ast.Statement{stmt}, nil
 		}
 		return nil, NewParserError("Unexpected direction keyword in container", tok)
-	case keyword.Caption:
+	case keyword.Caption, keyword.Sprite:
 		stmt, err := p.parseUnhandled(tok)
 		if err != nil {
 			return nil, err
@@ -308,8 +308,6 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 		keyword.Footer,
 		keyword.Legend:
 		stmnt, err = p.parseLayoutStatement(tok, nil)
-	case keyword.Caption:
-		stmnt, err = p.parseUnhandled(tok)
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
 		stmnt, err = p.parseVisibilityCommand(tok)
 	case keyword.Scale:

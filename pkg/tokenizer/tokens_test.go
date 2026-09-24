@@ -128,3 +128,40 @@ func TestResolveAmbiguousToken_Number(t *testing.T) {
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "0b101", tok.Literal)
 }
+
+func TestMatchTokenLineAndPrefix(t *testing.T) {
+	tok := func(lit string, tt TokenType) Token {
+		return Token{Literal: lit, Type: tt}
+	}
+
+	t.Run("MatchTokenLine", func(t *testing.T) {
+		// Exact line match
+		require.True(t, MatchTokenLine([]Token{tok("end", IDENTIFIER), tok("note", IDENTIFIER)}, "end note"))
+		require.True(t, MatchTokenLine([]Token{tok("endnote", IDENTIFIER)}, "end note"))
+		require.True(t, MatchTokenLine([]Token{tok("!", EXCLAMATION), tok("endif", IDENTIFIER)}, "!endif"))
+		require.True(t, MatchTokenLine([]Token{tok("end", IDENTIFIER)}, "end"))
+
+		// Trailing tokens must fail MatchTokenLine
+		require.False(t, MatchTokenLine([]Token{tok("end", IDENTIFIER), tok("note", IDENTIFIER)}, "end"))
+		require.False(t, MatchTokenLine([]Token{tok("end", IDENTIFIER), tok("note", IDENTIFIER), tok("foo", IDENTIFIER)}, "end note"))
+		require.False(t, MatchTokenLine([]Token{tok("!", EXCLAMATION), tok("endif", IDENTIFIER), tok("label", IDENTIFIER)}, "!endif"))
+	})
+
+	t.Run("MatchTokenPrefix", func(t *testing.T) {
+		// Prefix match allowing trailing tokens
+		consumed, ok := MatchTokenPrefix([]Token{tok("!", EXCLAMATION), tok("if", IDENTIFIER), tok("(", LPAREN)}, "!if")
+		require.True(t, ok)
+		require.Equal(t, 2, consumed)
+
+		consumed, ok = MatchTokenPrefix([]Token{tok("alt", IDENTIFIER), tok("condition", IDENTIFIER)}, "alt")
+		require.True(t, ok)
+		require.Equal(t, 1, consumed)
+
+		// Partial token name must not match
+		_, ok = MatchTokenPrefix([]Token{tok("alternative", IDENTIFIER)}, "alt")
+		require.False(t, ok)
+		_, ok = MatchTokenPrefix([]Token{tok("!", EXCLAMATION), tok("ifdef", IDENTIFIER)}, "!if")
+		require.False(t, ok)
+	})
+}
+

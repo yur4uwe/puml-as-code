@@ -98,7 +98,7 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
 		return p.parseIncludeDirective(directiveNameTok)
 	} else {
-		return p.parseUnhandledDirective(directiveNameTok)
+		return p.parseUnhandledDirective(tok1, directiveNameTok)
 	}
 }
 

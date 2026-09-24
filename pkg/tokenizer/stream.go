@@ -231,16 +231,11 @@ func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, er
 			continue
 		}
 
-		var sb strings.Builder
-		for _, t := range curLineToks {
-			sb.WriteString(t.Literal)
-		}
-
-		if strings.EqualFold(sb.String(), delim) {
+		if MatchTokenLine(curLineToks, delim) {
 			closerStartOffset = curLineToks[0].Pos.Offset
 			ts.TryConsumeType(NEWLINE)
 			break
-		} else if strings.EqualFold(sb.String(), "@enduml") {
+		} else if MatchTokenLine(curLineToks, "@enduml") {
 			return "", ErrUnexpectedEOF
 		}
 	}

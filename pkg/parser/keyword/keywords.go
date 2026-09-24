@@ -55,6 +55,7 @@ const (
 	Footer
 	Legend
 	Caption
+	Sprite
 
 	// Misc
 	End
