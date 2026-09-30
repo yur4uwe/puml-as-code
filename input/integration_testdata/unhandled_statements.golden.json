@@ -1,0 +1,383 @@
+{
+  "Name": "UnhandledStatements",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "Name": "UnhandledStatements"
+    },
+    {
+      "Text": "caption Figure 1: Architecture Overview",
+      "Span": {
+        "Start": {
+          "Line": 3,
+          "Col": 1,
+          "Offset": 60
+        },
+        "End": {
+          "Line": 3,
+          "Col": 40,
+          "Offset": 99
+        }
+      },
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Leading trivia for caption",
+          "Pos": {
+            "Line": 2,
+            "Col": 1,
+            "Offset": 31
+          }
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Trailing trivia for caption",
+          "Pos": {
+            "Line": 3,
+            "Col": 41,
+            "Offset": 100
+          }
+        }
+      ]
+    },
+    {
+      "Text": "sprite $service_icon jar:archimate/service",
+      "Span": {
+        "Start": {
+          "Line": 6,
+          "Col": 1,
+          "Offset": 164
+        },
+        "End": {
+          "Line": 6,
+          "Col": 43,
+          "Offset": 206
+        }
+      },
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Single-line sprite declaration",
+          "Pos": {
+            "Line": 5,
+            "Col": 1,
+            "Offset": 131
+          }
+        }
+      ]
+    },
+    {
+      "Text": "!define SERVICE_VERSION \"v1.2.",
+      "Span": {
+        "Start": {
+          "Line": 9,
+          "Col": 1,
+          "Offset": 247
+        },
+        "End": {
+          "Line": 9,
+          "Col": 31,
+          "Offset": 277
+        }
+      },
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Root fallback single-line directives",
+          "Pos": {
+            "Line": 8,
+            "Col": 1,
+            "Offset": 208
+          }
+        }
+      ]
+    },
+    {
+      "Text": "!global $DEPLOY_ENV = \"pro",
+      "Span": {
+        "Start": {
+          "Line": 10,
+          "Col": 1,
+          "Offset": 280
+        },
+        "End": {
+          "Line": 10,
+          "Col": 27,
+          "Offset": 306
+        }
+      }
+    },
+    {
+      "Text": "!theme spacelab",
+      "Span": {
+        "Start": {
+          "Line": 11,
+          "Col": 1,
+          "Offset": 309
+        },
+        "End": {
+          "Line": 11,
+          "Col": 16,
+          "Offset": 324
+        }
+      }
+    },
+    {
+      "Text": "!function $formatName($val)\n  !return \"Service: \" + $val\n!endfunction",
+      "Span": {
+        "Start": {
+          "Line": 14,
+          "Col": 1,
+          "Offset": 360
+        },
+        "End": {
+          "Line": 16,
+          "Col": 13,
+          "Offset": 429
+        }
+      },
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Non-nestable blocked directives",
+          "Pos": {
+            "Line": 13,
+            "Col": 1,
+            "Offset": 326
+          }
+        }
+      ]
+    },
+    {
+      "Text": "!procedure $setupPipeline()\n  class PipelineGenerated\n!endprocedure",
+      "Span": {
+        "Start": {
+          "Line": 18,
+          "Col": 1,
+          "Offset": 431
+        },
+        "End": {
+          "Line": 20,
+          "Col": 14,
+          "Offset": 498
+        }
+      }
+    },
+    {
+      "Text": "!definelong LOG_SERVICE\n  class Logger {\n    +Log(msg: string)\n  }\n!enddefinelong",
+      "Span": {
+        "Start": {
+          "Line": 22,
+          "Col": 1,
+          "Offset": 500
+        },
+        "End": {
+          "Line": 26,
+          "Col": 15,
+          "Offset": 581
+        }
+      }
+    },
+    {
+      "Text": "!if ($ENABLE_METRICS)\n  !if ($DETAILED)\n    class DetailedMetrics\n  !else\n    class BasicMetrics\n  !endif\n!endif",
+      "Span": {
+        "Start": {
+          "Line": 29,
+          "Col": 1,
+          "Offset": 613
+        },
+        "End": {
+          "Line": 35,
+          "Col": 7,
+          "Offset": 725
+        }
+      },
+      "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Nestable blocked directives",
+          "Pos": {
+            "Line": 28,
+            "Col": 1,
+            "Offset": 583
+          }
+        }
+      ]
+    },
+    {
+      "Text": "!while ($count \u003e 0)\n  class LoopWorker\n!endwhile",
+      "Span": {
+        "Start": {
+          "Line": 37,
+          "Col": 1,
+          "Offset": 727
+        },
+        "End": {
+          "Line": 39,
+          "Col": 10,
+          "Offset": 775
+        }
+      }
+    },
+    {
+      "Text": "!foreach $item in $items\n  class ItemWorker\n!endfor",
+      "Span": {
+        "Start": {
+          "Line": 41,
+          "Col": 1,
+          "Offset": 777
+        },
+        "End": {
+          "Line": 43,
+          "Col": 8,
+          "Offset": 828
+        }
+      }
+    },
+    {
+      "Identifier": "CoreService",
+      "Kind": "package",
+      "Statements": [
+        {
+          "Text": "caption Core Service Caption",
+          "Span": {
+            "Start": {
+              "Line": 47,
+              "Col": 3,
+              "Offset": 896
+            },
+            "End": {
+              "Line": 47,
+              "Col": 31,
+              "Offset": 924
+            }
+          },
+          "LeadingTrivia": [
+            {
+              "Type": "COMMENT",
+              "Literal": "Unhandled statements inside container",
+              "Pos": {
+                "Line": 46,
+                "Col": 3,
+                "Offset": 854
+              }
+            }
+          ]
+        },
+        {
+          "Text": "sprite $local_icon icon.png",
+          "Span": {
+            "Start": {
+              "Line": 48,
+              "Col": 3,
+              "Offset": 927
+            },
+            "End": {
+              "Line": 48,
+              "Col": 30,
+              "Offset": 954
+            }
+          }
+        },
+        {
+          "Text": "!if ($INTERNAL_FLAG)\n    class IgnoredInsideMacro\n  !endif",
+          "Span": {
+            "Start": {
+              "Line": 50,
+              "Col": 3,
+              "Offset": 958
+            },
+            "End": {
+              "Line": 52,
+              "Col": 9,
+              "Offset": 1016
+            }
+          }
+        },
+        {
+          "Identifier": "AuthService",
+          "Kind": "class",
+          "Members": [
+            {
+              "Name": "Token",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              },
+              "Visibility": "public"
+            },
+            {
+              "Name": "Authenticate",
+              "ReturnType": [
+                {
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "bool"
+                  }
+                }
+              ],
+              "Parameters": [
+                {
+                  "Name": "user",
+                  "Type": {
+                    "Typ": "named",
+                    "Name": "string"
+                  }
+                }
+              ],
+              "Visibility": "public"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "Identifier": "UserStore",
+      "Kind": "class",
+      "Members": [
+        {
+          "Name": "FindUser",
+          "ReturnType": [
+            {
+              "Type": {
+                "Typ": "named",
+                "Name": "bool"
+              }
+            }
+          ],
+          "Parameters": [
+            {
+              "Name": "id",
+              "Type": {
+                "Typ": "named",
+                "Name": "string"
+              }
+            }
+          ],
+          "Visibility": "public"
+        }
+      ]
+    },
+    {
+      "LHS": {
+        "Entity": "AuthService"
+      },
+      "RHS": {
+        "Entity": "UserStore"
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "Body": 45,
+      "RArrow": 62,
+      "Label": "queries"
+    },
+    {
+      "IsStart": false,
+      "Type": "uml"
+    }
+  ]
+}

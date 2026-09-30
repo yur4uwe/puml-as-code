@@ -73,9 +73,15 @@ func (l *Lexer) isEOF() bool {
 	return l.ch == 0
 }
 
-func (l *Lexer) consumeChar(tokenType TokenType, literal string) Token {
-	tok := Token{Type: tokenType, Literal: literal, Pos: l.getPos()}
+func (l *Lexer) consumeChar(tokenType TokenType, literal rune) Token {
+	tok := Token{
+		Type:    tokenType,
+		Literal: string(literal),
+		Pos:     l.getPos(),
+		Span:    SourceSpan{Start: l.getPos()},
+	}
 	l.readChar()
+	tok.Span.End = l.getPos()
 	return tok
 }
 
@@ -97,7 +103,7 @@ func (l *Lexer) Emit() Token {
 }
 
 func (l *Lexer) findNextTokenStart() {
-	for l.ch != '\n' && unicode.IsSpace(l.ch) {
+	for l.ch != '\n' && l.ch != '\r' && unicode.IsSpace(l.ch) {
 		l.readChar()
 	}
 }

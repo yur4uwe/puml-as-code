@@ -1,3 +1,4 @@
+// Package tokenizer provides tools of tokenization for PUML source code.
 package tokenizer
 
 import (
@@ -71,20 +72,18 @@ type SourceSpan struct {
 type Token struct {
 	Type    TokenType
 	Literal string
-	Pos     Pos
+	Span    SourceSpan
+
+	// Backwards compatibility alias for Span.Start
+	Pos Pos
 }
 
 func (t Token) EndOffset() uint {
-	return t.Pos.Offset + uint(len([]rune(t.Literal)))
+	return t.Span.End.Offset
 }
 
 func (t Token) EndPos() Pos {
-	runeLen := uint(len([]rune(t.Literal)))
-	return Pos{
-		Line:   t.Pos.Line,
-		Col:    t.Pos.Col + runeLen,
-		Offset: t.Pos.Offset + runeLen,
-	}
+	return t.Span.End
 }
 
 var singleCharTokens = map[rune]TokenType{
@@ -117,7 +116,7 @@ var singleCharTokens = map[rune]TokenType{
 	'_':  UNDERSCORE,
 }
 
-// ResolveUnambiguousToken handles tokens with obvious, unambiguous identification (no lookahead, no mode).
+// ResolveUnambiguousToken handles tokens with obvious, unambiguous identification.
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	if l.isEOF() {
 		return Token{Type: EOF, Literal: "", Pos: l.getPos()}, true
@@ -125,27 +124,51 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 
 	// Special case for Windows CRLF line endings
 	if l.ch == '\r' {
+		crlfTok := Token{
+			Type:    NEWLINE,
+			Literal: "\n",
+			Pos:     l.getPos(),
+			Span:    SourceSpan{Start: l.getPos()},
+		}
 		l.readChar()
 		if l.ch == '\n' {
-			return l.consumeChar(NEWLINE, "\n"), true
+			l.readChar()
+			crlfTok.Span.End = l.getPos()
+			return crlfTok, true
 		}
 	}
 
 	if tt, ok := singleCharTokens[l.ch]; ok {
-		return l.consumeChar(tt, string(l.ch)), true
+		return l.consumeChar(tt, l.ch), true
 	}
 
 	start := l.getPos()
+	token := Token{
+		Type:    ILLEGAL,
+		Literal: "",
+		Pos:     start,
+		Span:    SourceSpan{Start: start},
+	}
 	switch l.ch {
 	case '"':
-		return Token{Type: STRING, Literal: l.readString(), Pos: start}, true
+		token.Type = STRING
+		token.Literal = l.readString()
 	case '\'':
-		return Token{Type: COMMENT, Literal: l.readLineComment(), Pos: start}, true
+		token.Type = COMMENT
+		token.Literal = l.readLineComment()
 	case '/':
 		if l.peekChar() == '\'' {
-			return Token{Type: COMMENT, Literal: l.readBlockComment(), Pos: start}, true
+			token.Type = COMMENT
+			token.Literal = l.readBlockComment()
+		} else {
+			token.Type = SLASH
+			token.Literal = string(l.readChar())
 		}
-		return l.consumeChar(SLASH, string(l.ch)), true
+	}
+
+	if token.Type != ILLEGAL {
+		token.Span.End = l.getPos()
+		return token, true
 	}
 
 	return Token{}, false
@@ -156,27 +179,31 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 	if helpers.IsIdentifierRune(l.ch) || l.ch == '\\' {
 		start := l.getPos()
 		lit := l.readIdentifier()
-		return Token{Type: IDENTIFIER, Literal: lit, Pos: start}
+		span := SourceSpan{Start: start, End: l.getPos()}
+		return Token{Type: IDENTIFIER, Literal: lit, Pos: start, Span: span}
 	}
 
 	if unicode.IsDigit(l.ch) {
 		start := l.getPos()
 		lit, err := l.readNumber()
-		if err != nil {
-			// If the error is about a trailing identifier character, it means this is
-			// an identifier that just happens to start with digits (like a hex color 00FFFF).
-			// We continue reading it as an identifier and combine the literals.
-			if errors.Is(err, ErrInvalidTrailingChar) {
-				rest := l.readIdentifier()
-				fullLit := lit + rest
-				return Token{Type: IDENTIFIER, Literal: fullLit, Pos: start}
-			}
-			return Token{Type: ILLEGAL, Literal: err.Error(), Pos: start}
+		if err == nil {
+			span := SourceSpan{Start: start, End: l.getPos()}
+			return Token{Type: NUMBER, Literal: lit, Pos: start, Span: span}
 		}
-		return Token{Type: NUMBER, Literal: lit, Pos: start}
+		// If the error is about a trailing identifier character, it means this is
+		// an identifier that just happens to start with digits (like a hex color 00FFFF).
+		// We continue reading it as an identifier and combine the literals.
+		if errors.Is(err, ErrInvalidTrailingChar) {
+			rest := l.readIdentifier()
+			fullLit := lit + rest
+			span := SourceSpan{Start: start, End: l.getPos()}
+			return Token{Type: IDENTIFIER, Literal: fullLit, Pos: start, Span: span}
+		}
+		span := SourceSpan{Start: start, End: l.getPos()}
+		return Token{Type: ILLEGAL, Literal: err.Error(), Pos: start, Span: span}
 	}
 
-	return l.consumeChar(ILLEGAL, string(l.ch))
+	return l.consumeChar(ILLEGAL, l.ch)
 }
 
 func SpanBetween(first, last Token) SourceSpan {

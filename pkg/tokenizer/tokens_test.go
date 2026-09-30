@@ -165,3 +165,139 @@ func TestMatchTokenLineAndPrefix(t *testing.T) {
 	})
 }
 
+func TestSourceFidelity(t *testing.T) {
+	// Helper to collect all tokens safely up to EOF with an iteration guard against infinite loops
+	tokenizeAll := func(t *testing.T, input string) []Token {
+		t.Helper()
+		l := NewLexer(input)
+		var tokens []Token
+		const maxIterations = 200
+		for i := range maxIterations {
+			tok := l.Emit()
+			tokens = append(tokens, tok)
+			if tok.Type == EOF {
+				break
+			}
+			if i == maxIterations-1 {
+				t.Fatalf("possible infinite loop: exceeded %d iterations on input %q", maxIterations, input)
+			}
+		}
+		return tokens
+	}
+
+	assertTokenFidelity := func(t *testing.T, input string, tok Token, expectedType TokenType, expectedLit, expectedRaw string) {
+		t.Helper()
+		require.Equal(t, expectedType, tok.Type, "token type mismatch")
+		require.Equal(t, expectedLit, tok.Literal, "semantic literal mismatch")
+
+		// Verify backwards compatibility alias
+		require.Equal(t, tok.Span.Start, tok.Pos, "tok.Pos must equal tok.Span.Start")
+
+		// Verify source fidelity invariant: source[Span.Start.Offset : Span.End.Offset] == expectedRaw
+		require.LessOrEqual(t, int(tok.Span.End.Offset), len(input), "token End.Offset exceeds input bounds")
+		runes := []rune(input)
+		rawSlice := string(runes[tok.Span.Start.Offset:tok.Span.End.Offset])
+		require.Equal(t, expectedRaw, rawSlice, "raw source slice mismatch")
+	}
+
+	t.Run("strings", func(t *testing.T) {
+		t.Run("basic quoted string", func(t *testing.T) {
+			input := `"hello world"`
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], STRING, "hello world", `"hello world"`)
+		})
+
+		t.Run("string with escape sequences", func(t *testing.T) {
+			input := `"hello \"world\""`
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], STRING, `hello \"world\"`, `"hello \"world\""`)
+		})
+
+		t.Run("empty string", func(t *testing.T) {
+			input := `""`
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], STRING, "", `""`)
+		})
+
+		t.Run("non-ascii unicode string", func(t *testing.T) {
+			input := `"Привіт"`
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1, "token count mismatch")
+			assertTokenFidelity(t, input, toks[0], STRING, "Привіт", `"Привіт"`)
+			require.Equal(t, uint(len([]rune(input))), toks[0].Span.End.Offset, "length mismatch")
+		})
+	})
+
+	t.Run("comments", func(t *testing.T) {
+		t.Run("single line comment with whitespace", func(t *testing.T) {
+			input := "'   some comment text\n"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], COMMENT, "some comment text", "'   some comment text")
+		})
+
+		t.Run("multiline block comment", func(t *testing.T) {
+			input := "/' line 1\n   line 2\n   line 3 '/"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], COMMENT, " line 1\n   line 2\n   line 3 ", input)
+			require.Equal(t, uint(0), toks[0].Span.Start.Line, "start line should be 0")
+			require.Equal(t, uint(2), toks[0].Span.End.Line, "end line should be 2 for 3-line block comment")
+			require.Equal(t, uint(2), toks[0].EndPos().Line, "EndPos().Line must reflect multiline end line")
+		})
+	})
+
+	t.Run("identifiers and numbers", func(t *testing.T) {
+		t.Run("identifier", func(t *testing.T) {
+			input := "myIdentifier"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], IDENTIFIER, "myIdentifier", "myIdentifier")
+		})
+
+		t.Run("number", func(t *testing.T) {
+			input := "12345"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], NUMBER, "12345", "12345")
+		})
+	})
+
+	t.Run("single character tokens and operators", func(t *testing.T) {
+		t.Run("punctuation", func(t *testing.T) {
+			input := "{:+"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 3)
+			assertTokenFidelity(t, input, toks[0], LBRACE, "{", "{")
+			assertTokenFidelity(t, input, toks[1], COLON, ":", ":")
+			assertTokenFidelity(t, input, toks[2], PLUS, "+", "+")
+		})
+
+		t.Run("standalone slash operator", func(t *testing.T) {
+			input := "/ foo"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 2)
+			assertTokenFidelity(t, input, toks[0], SLASH, "/", "/")
+			require.Equal(t, IDENTIFIER, toks[1].Type, "next token should be IDENTIFIER")
+		})
+	})
+
+	t.Run("newlines and crlf", func(t *testing.T) {
+		t.Run("standard newline", func(t *testing.T) {
+			input := "\n"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], NEWLINE, "\n", "\n")
+		})
+
+		t.Run("crlf newline", func(t *testing.T) {
+			input := "\r\n"
+			toks := tokenizeAll(t, input)
+			require.GreaterOrEqual(t, len(toks), 1)
+			assertTokenFidelity(t, input, toks[0], NEWLINE, "\n", "\r\n")
+		})
+	})
+}

@@ -10,8 +10,7 @@ Goal: Canonical, idempotent pretty-printer for PUML diagrams.
 
 - [ ] **1. Lossless AST & Trivia Hardening**
   - Add `LaxDialect` (`pkg/parser/dialect/lax.go`): default dialect for formatting that captures arbitrary/sketch member syntax into `LaxField` / `LaxMethod` with raw tokens instead of rejecting non-Go syntax.
-  - Add fallback node (`ast.RawStatement`) to pass unhandled diagram lines without failing.
-  - Preserve vertical whitespace (blank line counts between statements).
+  - Add fallback node (`ast.UnhandledStatement`) to pass unhandled diagram lines without failing.
   - *Trivia normalization rule:* Mid-line comments (e.g. `A /' note '/ --> B`) are normalized to line-trailing comments. Idempotence is preserved: `Format(Format(S)) == Format(S)`.
 - [ ] **2. AST Pretty-Printer (`pkg/formatter`)**
   - Canonical indentation (2 spaces) for blocks (`package`, `class`, `interface`).

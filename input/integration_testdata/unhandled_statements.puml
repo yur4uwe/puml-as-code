@@ -1,0 +1,67 @@
+@startuml UnhandledStatements
+
+' Leading trivia for caption
+caption Figure 1: Architecture Overview ' Trailing trivia for caption
+
+' Single-line sprite declaration
+sprite $service_icon jar:archimate/service
+
+' Root fallback single-line directives
+!define SERVICE_VERSION "v1.2.3"
+!global $DEPLOY_ENV = "prod"
+!theme spacelab
+
+' Non-nestable blocked directives
+!function $formatName($val)
+  !return "Service: " + $val
+!endfunction
+
+!procedure $setupPipeline()
+  class PipelineGenerated
+!endprocedure
+
+!definelong LOG_SERVICE
+  class Logger {
+    +Log(msg: string)
+  }
+!enddefinelong
+
+' Nestable blocked directives
+!if ($ENABLE_METRICS)
+  !if ($DETAILED)
+    class DetailedMetrics
+  !else
+    class BasicMetrics
+  !endif
+!endif
+
+!while ($count > 0)
+  class LoopWorker
+!endwhile
+
+!foreach $item in $items
+  class ItemWorker
+!endfor
+
+package CoreService {
+  ' Unhandled statements inside container
+  caption Core Service Caption
+  sprite $local_icon icon.png
+
+  !if ($INTERNAL_FLAG)
+    class IgnoredInsideMacro
+  !endif
+
+  class AuthService {
+    +Token string
+    +Authenticate(user string) bool
+  }
+}
+
+class UserStore {
+  +FindUser(id string) bool
+}
+
+AuthService --> UserStore : queries
+
+@enduml
