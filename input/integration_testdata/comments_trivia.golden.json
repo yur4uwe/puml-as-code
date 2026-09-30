@@ -13,10 +13,17 @@
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached as leading to 'set'",
-          "Pos": {
-            "Line": 2,
-            "Col": 1,
-            "Offset": 63
+          "Span": {
+            "Start": {
+              "Line": 2,
+              "Col": 1,
+              "Offset": 63
+            },
+            "End": {
+              "Line": 3,
+              "Col": 0,
+              "Offset": 123
+            }
           }
         }
       ],
@@ -24,10 +31,17 @@
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached as trailing to 'set'",
-          "Pos": {
-            "Line": 3,
-            "Col": 17,
-            "Offset": 140
+          "Span": {
+            "Start": {
+              "Line": 3,
+              "Col": 17,
+              "Offset": 140
+            },
+            "End": {
+              "Line": 4,
+              "Col": 0,
+              "Offset": 201
+            }
           }
         }
       ]
@@ -51,10 +65,17 @@
                 {
                   "Type": "COMMENT",
                   "Literal": "This is a single line comment attached to User.id",
-                  "Pos": {
-                    "Line": 8,
-                    "Col": 7,
-                    "Offset": 355
+                  "Span": {
+                    "Start": {
+                      "Line": 8,
+                      "Col": 7,
+                      "Offset": 355
+                    },
+                    "End": {
+                      "Line": 9,
+                      "Col": 0,
+                      "Offset": 406
+                    }
                   }
                 }
               ]
@@ -66,28 +87,49 @@
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached to Package p after '{'",
-          "Pos": {
-            "Line": 5,
-            "Col": 13,
-            "Offset": 215
+          "Span": {
+            "Start": {
+              "Line": 5,
+              "Col": 13,
+              "Offset": 215
+            },
+            "End": {
+              "Line": 6,
+              "Col": 0,
+              "Offset": 278
+            }
           }
         },
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached to User",
-          "Pos": {
-            "Line": 6,
-            "Col": 5,
-            "Offset": 283
+          "Span": {
+            "Start": {
+              "Line": 6,
+              "Col": 5,
+              "Offset": 283
+            },
+            "End": {
+              "Line": 7,
+              "Col": 0,
+              "Offset": 331
+            }
           }
         },
         {
           "Type": "COMMENT",
           "Literal": "\nThis is a block comment attached to Package p after '}'\n",
-          "Pos": {
-            "Line": 11,
-            "Col": 3,
-            "Offset": 432
+          "Span": {
+            "Start": {
+              "Line": 11,
+              "Col": 3,
+              "Offset": 432
+            },
+            "End": {
+              "Line": 14,
+              "Col": 0,
+              "Offset": 493
+            }
           }
         }
       ]
@@ -97,10 +139,17 @@
         {
           "Type": "COMMENT",
           "Literal": " Block comment before Service ",
-          "Pos": {
-            "Line": 15,
-            "Col": 1,
-            "Offset": 495
+          "Span": {
+            "Start": {
+              "Line": 15,
+              "Col": 1,
+              "Offset": 495
+            },
+            "End": {
+              "Line": 16,
+              "Col": 0,
+              "Offset": 529
+            }
           }
         }
       ],
@@ -108,19 +157,33 @@
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached to Service after '{'",
-          "Pos": {
-            "Line": 16,
-            "Col": 17,
-            "Offset": 546
+          "Span": {
+            "Start": {
+              "Line": 16,
+              "Col": 17,
+              "Offset": 546
+            },
+            "End": {
+              "Line": 17,
+              "Col": 0,
+              "Offset": 607
+            }
           }
         },
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached to Service after '}'",
-          "Pos": {
-            "Line": 19,
-            "Col": 3,
-            "Offset": 691
+          "Span": {
+            "Start": {
+              "Line": 19,
+              "Col": 3,
+              "Offset": 691
+            },
+            "End": {
+              "Line": 20,
+              "Col": 0,
+              "Offset": 752
+            }
           }
         }
       ],
@@ -158,10 +221,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Leading comment for relationship",
-          "Pos": {
-            "Line": 21,
-            "Col": 1,
-            "Offset": 754
+          "Span": {
+            "Start": {
+              "Line": 21,
+              "Col": 1,
+              "Offset": 754
+            },
+            "End": {
+              "Line": 22,
+              "Col": 0,
+              "Offset": 788
+            }
           }
         }
       ]
@@ -173,10 +243,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Leading comment for diagram end",
-          "Pos": {
-            "Line": 24,
-            "Col": 1,
-            "Offset": 852
+          "Span": {
+            "Start": {
+              "Line": 24,
+              "Col": 1,
+              "Offset": 852
+            },
+            "End": {
+              "Line": 25,
+              "Col": 0,
+              "Offset": 885
+            }
           }
         }
       ],
@@ -184,10 +261,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Trailing comment for diagram end",
-          "Pos": {
-            "Line": 25,
-            "Col": 9,
-            "Offset": 894
+          "Span": {
+            "Start": {
+              "Line": 25,
+              "Col": 9,
+              "Offset": 894
+            },
+            "End": {
+              "Line": 26,
+              "Col": 0,
+              "Offset": 928
+            }
           }
         }
       ]

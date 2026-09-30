@@ -41,9 +41,9 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 		endTok = lineToks[len(lineToks)-1]
 	}
 
-	text := p.stream.SliceInput(startTok.Pos.Offset, endTok.EndOffset())
+	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
 	span := tokenizer.SourceSpan{
-		Start: startTok.Pos,
+		Start: startTok.Span.Start,
 		End:   endTok.EndPos(),
 	}
 
@@ -108,9 +108,9 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 		p.stream.TryConsumeType(tokenizer.NEWLINE)
 	}
 
-	text := p.stream.SliceInput(startTok.Pos.Offset, endTok.EndOffset())
+	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
 	span := tokenizer.SourceSpan{
-		Start: startTok.Pos,
+		Start: startTok.Span.Start,
 		End:   endTok.EndPos(),
 	}
 

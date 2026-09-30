@@ -16,7 +16,7 @@ type parserError struct {
 var _ error = parserError{}
 
 func (e parserError) Error() string {
-	return fmt.Sprintf("parser: %v at %d:%d token: %s(%s)", e.Err, e.Tok.Pos.Line, e.Tok.Pos.Col, e.Tok.Type.String(), e.Tok.Literal)
+	return fmt.Sprintf("parser: %v at %d:%d token: %s(%s)", e.Err, e.Tok.Span.Start.Line, e.Tok.Span.Start.Col, e.Tok.Type.String(), e.Tok.Literal)
 }
 
 func (e parserError) Unwrap() error {

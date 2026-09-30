@@ -73,9 +73,6 @@ type Token struct {
 	Type    TokenType
 	Literal string
 	Span    SourceSpan
-
-	// Backwards compatibility alias for Span.Start
-	Pos Pos
 }
 
 func (t Token) EndOffset() uint {
@@ -119,7 +116,7 @@ var singleCharTokens = map[rune]TokenType{
 // ResolveUnambiguousToken handles tokens with obvious, unambiguous identification.
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	if l.isEOF() {
-		return Token{Type: EOF, Literal: "", Pos: l.getPos()}, true
+		return Token{Type: EOF, Literal: "", Span: SourceSpan{Start: l.getPos(), End: l.getPos()}}, true
 	}
 
 	// Special case for Windows CRLF line endings
@@ -127,7 +124,6 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		crlfTok := Token{
 			Type:    NEWLINE,
 			Literal: "\n",
-			Pos:     l.getPos(),
 			Span:    SourceSpan{Start: l.getPos()},
 		}
 		l.readChar()
@@ -146,7 +142,6 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	token := Token{
 		Type:    ILLEGAL,
 		Literal: "",
-		Pos:     start,
 		Span:    SourceSpan{Start: start},
 	}
 	switch l.ch {
@@ -180,7 +175,7 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		start := l.getPos()
 		lit := l.readIdentifier()
 		span := SourceSpan{Start: start, End: l.getPos()}
-		return Token{Type: IDENTIFIER, Literal: lit, Pos: start, Span: span}
+		return Token{Type: IDENTIFIER, Literal: lit, Span: span}
 	}
 
 	if unicode.IsDigit(l.ch) {
@@ -188,7 +183,7 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		lit, err := l.readNumber()
 		if err == nil {
 			span := SourceSpan{Start: start, End: l.getPos()}
-			return Token{Type: NUMBER, Literal: lit, Pos: start, Span: span}
+			return Token{Type: NUMBER, Literal: lit, Span: span}
 		}
 		// If the error is about a trailing identifier character, it means this is
 		// an identifier that just happens to start with digits (like a hex color 00FFFF).
@@ -197,21 +192,21 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 			rest := l.readIdentifier()
 			fullLit := lit + rest
 			span := SourceSpan{Start: start, End: l.getPos()}
-			return Token{Type: IDENTIFIER, Literal: fullLit, Pos: start, Span: span}
+			return Token{Type: IDENTIFIER, Literal: fullLit, Span: span}
 		}
 		span := SourceSpan{Start: start, End: l.getPos()}
-		return Token{Type: ILLEGAL, Literal: err.Error(), Pos: start, Span: span}
+		return Token{Type: ILLEGAL, Literal: err.Error(), Span: span}
 	}
 
 	return l.consumeChar(ILLEGAL, l.ch)
 }
 
 func SpanBetween(first, last Token) SourceSpan {
-	if first.Pos.Offset > last.Pos.Offset {
+	if first.Span.Start.Offset > last.Span.Start.Offset {
 		first, last = last, first
 	}
 	return SourceSpan{
-		Start: first.Pos,
+		Start: first.Span.Start,
 		End:   last.EndPos(),
 	}
 }

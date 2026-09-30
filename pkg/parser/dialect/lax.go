@@ -54,7 +54,7 @@ func StringifyTokenSlice(toks []tokenizer.Token) string {
 
 	firstTok := toks[0]
 	lastTok := toks[len(toks)-1]
-	bufLen := lastTok.Pos.Offset + uint(len(lastTok.Literal)) - firstTok.Pos.Offset
+	bufLen := lastTok.Span.End.Offset - firstTok.Span.Start.Offset
 
 	var sb strings.Builder
 	sb.Grow(int(bufLen) + len(toks))
@@ -127,11 +127,8 @@ func needsSpaceBetween(curr, next tokenizer.Token) bool {
 	}
 
 	// 10. Respect source whitespace between tokens if present, unless explicitly avoided above
-	endCurr := curr.Pos.Offset + uint(len(curr.Literal))
-	if curr.Type == tokenizer.STRING {
-		endCurr += 2 // account for quotes
-	}
-	if next.Pos.Offset > endCurr {
+	endCurr := curr.Span.End.Offset
+	if next.Span.Start.Offset > endCurr {
 		// Avoid space before array brackets in types like "int[]" or "string[]"
 		if isWordLike(curr.Type) && next.Type == tokenizer.LBRACKET {
 			return true

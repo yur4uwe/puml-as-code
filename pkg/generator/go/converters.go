@@ -387,13 +387,13 @@ func toTriviaView(t ast.Trivia) TriviaView {
 		}
 		if len(lineTokens) == 0 {
 			lineTokens = append(lineTokens, lines...)
-			currentLine = tok.Pos.Line
-		} else if tok.Pos.Line == currentLine {
+			currentLine = tok.Span.Start.Line
+		} else if tok.Span.Start.Line == currentLine {
 			lineTokens = append(lineTokens, lines...)
 		} else {
 			trailingTrivia = append(trailingTrivia, strings.Join(lineTokens, "; "))
 			lineTokens = lines
-			currentLine = tok.Pos.Line
+			currentLine = tok.Span.Start.Line
 		}
 	}
 	if len(lineTokens) > 0 {

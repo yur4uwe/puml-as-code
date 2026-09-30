@@ -190,9 +190,6 @@ func TestSourceFidelity(t *testing.T) {
 		require.Equal(t, expectedType, tok.Type, "token type mismatch")
 		require.Equal(t, expectedLit, tok.Literal, "semantic literal mismatch")
 
-		// Verify backwards compatibility alias
-		require.Equal(t, tok.Span.Start, tok.Pos, "tok.Pos must equal tok.Span.Start")
-
 		// Verify source fidelity invariant: source[Span.Start.Offset : Span.End.Offset] == expectedRaw
 		require.LessOrEqual(t, int(tok.Span.End.Offset), len(input), "token End.Offset exceeds input bounds")
 		runes := []rune(input)

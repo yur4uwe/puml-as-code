@@ -91,7 +91,7 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 		return nil, NewParserError("Expected directive name", p.stream.PeekTokenAt(0))
 	}
 
-	if directiveNameTok.Pos.Offset != tok1.Pos.Offset+1 {
+	if directiveNameTok.Span.Start.Offset != tok1.Span.Start.Offset+1 {
 		return nil, NewParserError("Expected directive name right after !", directiveNameTok)
 	}
 

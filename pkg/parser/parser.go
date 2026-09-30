@@ -168,7 +168,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// User might not know about discarded blocks
 		err := p.moveToDiagStart()
 		if err == nil {
-			log.Printf("warning: discarded diagram block at %s and all following blocks\n", p.stream.PeekTokenAt(0).Pos)
+			log.Printf("warning: discarded diagram block at %s and all following blocks\n", p.stream.PeekTokenAt(0).Span.Start)
 		}
 	}
 

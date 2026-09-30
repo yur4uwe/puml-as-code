@@ -106,10 +106,17 @@
             {
               "Type": "COMMENT",
               "Literal": "Standalone inline declarations",
-              "Pos": {
-                "Line": 21,
-                "Col": 1,
-                "Offset": 260
+              "Span": {
+                "Start": {
+                  "Line": 21,
+                  "Col": 1,
+                  "Offset": 260
+                },
+                "End": {
+                  "Line": 22,
+                  "Col": 0,
+                  "Offset": 292
+                }
               }
             }
           ]
@@ -163,10 +170,17 @@
                     {
                       "Type": "COMMENT",
                       "Literal": "Inline declaration with package qualification",
-                      "Pos": {
-                        "Line": 26,
-                        "Col": 1,
-                        "Offset": 354
+                      "Span": {
+                        "Start": {
+                          "Line": 26,
+                          "Col": 1,
+                          "Offset": 354
+                        },
+                        "End": {
+                          "Line": 27,
+                          "Col": 0,
+                          "Offset": 401
+                        }
                       }
                     }
                   ]

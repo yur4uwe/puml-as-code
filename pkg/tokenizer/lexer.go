@@ -77,7 +77,6 @@ func (l *Lexer) consumeChar(tokenType TokenType, literal rune) Token {
 	tok := Token{
 		Type:    tokenType,
 		Literal: string(literal),
-		Pos:     l.getPos(),
 		Span:    SourceSpan{Start: l.getPos()},
 	}
 	l.readChar()

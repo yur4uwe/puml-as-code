@@ -24,10 +24,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Leading trivia for caption",
-          "Pos": {
-            "Line": 2,
-            "Col": 1,
-            "Offset": 31
+          "Span": {
+            "Start": {
+              "Line": 2,
+              "Col": 1,
+              "Offset": 31
+            },
+            "End": {
+              "Line": 3,
+              "Col": 0,
+              "Offset": 59
+            }
           }
         }
       ],
@@ -35,10 +42,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Trailing trivia for caption",
-          "Pos": {
-            "Line": 3,
-            "Col": 41,
-            "Offset": 100
+          "Span": {
+            "Start": {
+              "Line": 3,
+              "Col": 41,
+              "Offset": 100
+            },
+            "End": {
+              "Line": 4,
+              "Col": 0,
+              "Offset": 129
+            }
           }
         }
       ]
@@ -52,8 +66,8 @@
           "Offset": 164
         },
         "End": {
-          "Line": 6,
-          "Col": 43,
+          "Line": 7,
+          "Col": 0,
           "Offset": 206
         }
       },
@@ -61,16 +75,23 @@
         {
           "Type": "COMMENT",
           "Literal": "Single-line sprite declaration",
-          "Pos": {
-            "Line": 5,
-            "Col": 1,
-            "Offset": 131
+          "Span": {
+            "Start": {
+              "Line": 5,
+              "Col": 1,
+              "Offset": 131
+            },
+            "End": {
+              "Line": 6,
+              "Col": 0,
+              "Offset": 163
+            }
           }
         }
       ]
     },
     {
-      "Text": "!define SERVICE_VERSION \"v1.2.",
+      "Text": "!define SERVICE_VERSION \"v1.2.3\"",
       "Span": {
         "Start": {
           "Line": 9,
@@ -78,25 +99,32 @@
           "Offset": 247
         },
         "End": {
-          "Line": 9,
-          "Col": 31,
-          "Offset": 277
+          "Line": 10,
+          "Col": 0,
+          "Offset": 279
         }
       },
       "LeadingTrivia": [
         {
           "Type": "COMMENT",
           "Literal": "Root fallback single-line directives",
-          "Pos": {
-            "Line": 8,
-            "Col": 1,
-            "Offset": 208
+          "Span": {
+            "Start": {
+              "Line": 8,
+              "Col": 1,
+              "Offset": 208
+            },
+            "End": {
+              "Line": 9,
+              "Col": 0,
+              "Offset": 246
+            }
           }
         }
       ]
     },
     {
-      "Text": "!global $DEPLOY_ENV = \"pro",
+      "Text": "!global $DEPLOY_ENV = \"prod\"",
       "Span": {
         "Start": {
           "Line": 10,
@@ -104,9 +132,9 @@
           "Offset": 280
         },
         "End": {
-          "Line": 10,
-          "Col": 27,
-          "Offset": 306
+          "Line": 11,
+          "Col": 0,
+          "Offset": 308
         }
       }
     },
@@ -119,8 +147,8 @@
           "Offset": 309
         },
         "End": {
-          "Line": 11,
-          "Col": 16,
+          "Line": 12,
+          "Col": 0,
           "Offset": 324
         }
       }
@@ -134,8 +162,8 @@
           "Offset": 360
         },
         "End": {
-          "Line": 16,
-          "Col": 13,
+          "Line": 17,
+          "Col": 0,
           "Offset": 429
         }
       },
@@ -143,10 +171,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Non-nestable blocked directives",
-          "Pos": {
-            "Line": 13,
-            "Col": 1,
-            "Offset": 326
+          "Span": {
+            "Start": {
+              "Line": 13,
+              "Col": 1,
+              "Offset": 326
+            },
+            "End": {
+              "Line": 14,
+              "Col": 0,
+              "Offset": 359
+            }
           }
         }
       ]
@@ -160,8 +195,8 @@
           "Offset": 431
         },
         "End": {
-          "Line": 20,
-          "Col": 14,
+          "Line": 21,
+          "Col": 0,
           "Offset": 498
         }
       }
@@ -175,8 +210,8 @@
           "Offset": 500
         },
         "End": {
-          "Line": 26,
-          "Col": 15,
+          "Line": 27,
+          "Col": 0,
           "Offset": 581
         }
       }
@@ -190,8 +225,8 @@
           "Offset": 613
         },
         "End": {
-          "Line": 35,
-          "Col": 7,
+          "Line": 36,
+          "Col": 0,
           "Offset": 725
         }
       },
@@ -199,10 +234,17 @@
         {
           "Type": "COMMENT",
           "Literal": "Nestable blocked directives",
-          "Pos": {
-            "Line": 28,
-            "Col": 1,
-            "Offset": 583
+          "Span": {
+            "Start": {
+              "Line": 28,
+              "Col": 1,
+              "Offset": 583
+            },
+            "End": {
+              "Line": 29,
+              "Col": 0,
+              "Offset": 612
+            }
           }
         }
       ]
@@ -216,8 +258,8 @@
           "Offset": 727
         },
         "End": {
-          "Line": 39,
-          "Col": 10,
+          "Line": 40,
+          "Col": 0,
           "Offset": 775
         }
       }
@@ -231,8 +273,8 @@
           "Offset": 777
         },
         "End": {
-          "Line": 43,
-          "Col": 8,
+          "Line": 44,
+          "Col": 0,
           "Offset": 828
         }
       }
@@ -250,8 +292,8 @@
               "Offset": 896
             },
             "End": {
-              "Line": 47,
-              "Col": 31,
+              "Line": 48,
+              "Col": 0,
               "Offset": 924
             }
           },
@@ -259,10 +301,17 @@
             {
               "Type": "COMMENT",
               "Literal": "Unhandled statements inside container",
-              "Pos": {
-                "Line": 46,
-                "Col": 3,
-                "Offset": 854
+              "Span": {
+                "Start": {
+                  "Line": 46,
+                  "Col": 3,
+                  "Offset": 854
+                },
+                "End": {
+                  "Line": 47,
+                  "Col": 0,
+                  "Offset": 893
+                }
               }
             }
           ]
@@ -276,8 +325,8 @@
               "Offset": 927
             },
             "End": {
-              "Line": 48,
-              "Col": 30,
+              "Line": 49,
+              "Col": 0,
               "Offset": 954
             }
           }
@@ -291,8 +340,8 @@
               "Offset": 958
             },
             "End": {
-              "Line": 52,
-              "Col": 9,
+              "Line": 53,
+              "Col": 0,
               "Offset": 1016
             }
           }

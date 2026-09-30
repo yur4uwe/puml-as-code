@@ -15,7 +15,7 @@ type UnexpectedTokenError struct {
 }
 
 func (e UnexpectedTokenError) Error() string {
-	return fmt.Sprintf("token stream: unexpected token %s(%q) at %d:%d, expected %s(%q)", e.Found.Type, e.Found.Literal, e.Found.Pos.Line, e.Found.Pos.Col, e.Expected.Type, e.Expected.Literal)
+	return fmt.Sprintf("token stream: unexpected token %s(%q) at %d:%d, expected %s(%q)", e.Found.Type, e.Found.Literal, e.Found.Span.Start.Line, e.Found.Span.Start.Col, e.Expected.Type, e.Expected.Literal)
 }
 
 func unexpectedTokenError(expected Token, found Token) error {
@@ -53,7 +53,7 @@ func (ts *TokenStream) matchPackageSeparatorAt(startIdx int) (int, bool) {
 			break
 		}
 		if hasPrev {
-			if tok.Pos.Offset != prevTok.Pos.Offset+uint(len([]rune(prevTok.Literal))) {
+			if tok.Span.Start.Offset != prevTok.Span.End.Offset {
 				break
 			}
 		}
@@ -183,8 +183,8 @@ func (ts *TokenStream) TokensToString(toks []Token) string {
 		}
 
 		if prevTok != nil {
-			startNext := tok.Pos.Offset
-			endPrev := prevTok.Pos.Offset + uint(len(prevTok.Literal))
+			startNext := tok.Span.Start.Offset
+			endPrev := prevTok.Span.End.Offset
 			if startNext > endPrev {
 				sb.WriteString(string(ts.lexer.input[endPrev:startNext]))
 			}
@@ -212,9 +212,9 @@ func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, er
 	var startBodyOffset uint
 	if ts.AssertType(NEWLINE) {
 		nlTok := ts.Emit()
-		startBodyOffset = nlTok.Pos.Offset + 1
+		startBodyOffset = nlTok.Span.End.Offset
 	} else if !ts.AssertType(EOF) {
-		startBodyOffset = ts.PeekRawTokenAt(0).Pos.Offset
+		startBodyOffset = ts.PeekRawTokenAt(0).Span.Start.Offset
 	}
 
 	var closerStartOffset uint
@@ -232,7 +232,7 @@ func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, er
 		}
 
 		if MatchTokenLine(curLineToks, delim) {
-			closerStartOffset = curLineToks[0].Pos.Offset
+			closerStartOffset = curLineToks[0].Span.Start.Offset
 			ts.TryConsumeType(NEWLINE)
 			break
 		} else if MatchTokenLine(curLineToks, "@enduml") {
@@ -451,8 +451,8 @@ func (ts *TokenStream) ReadRawUntilNewline() string {
 		return ""
 	}
 
-	start := collected[0].Pos.Offset
-	end := ts.PeekRawTokenAt(0).Pos.Offset
+	start := collected[0].Span.Start.Offset
+	end := ts.PeekRawTokenAt(0).Span.Start.Offset
 	str := string(ts.lexer.input[start:end])
 	return strings.TrimSpace(str)
 }
@@ -461,10 +461,10 @@ func (ts *TokenStream) ReadRawUntilNewline() string {
 // So actual end markers are implicitly append([]Token{NEWLINE}, ...endMark)
 func (ts *TokenStream) ReadBlock(endMark ...Token) (string, error) {
 	tok := ts.EmitRaw()
-	startPos := tok.Pos
+	startPos := tok.Span.Start
 	for tok.Type != EOF {
 		if tok.Type == NEWLINE && ts.AssertSeq(endMark) {
-			endPos := tok.Pos
+			endPos := tok.Span.Start
 			for range endMark {
 				ts.EmitRaw() // consume end markers
 			}
