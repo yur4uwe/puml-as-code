@@ -49,9 +49,9 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 
 	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
-		Text: text,
+		Raw:  text,
 		Span: span,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -116,9 +116,9 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 
 	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
-		Text: text,
+		Raw:  text,
 		Span: span,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},

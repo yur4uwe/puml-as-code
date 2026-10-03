@@ -25,7 +25,7 @@ func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoF
 		Name:       toks[0].Literal,
 		Visibility: opts.Visibility,
 		Modifiers:  opts.Modifiers,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia:  opts.LeadingTrivia,
 			TrailingTrivia: opts.TrailingTrivia,
 		},
@@ -88,7 +88,7 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, opts *MemberOptions) (*Go
 		Parameters: params,
 		Modifiers:  opts.Modifiers,
 		Visibility: opts.Visibility,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia:  opts.LeadingTrivia,
 			TrailingTrivia: opts.TrailingTrivia,
 		},

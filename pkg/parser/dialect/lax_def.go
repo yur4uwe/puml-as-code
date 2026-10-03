@@ -6,7 +6,7 @@ type LaxField struct {
 	Text       string             `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // FieldModifiers implements [ast.Field].
@@ -35,7 +35,7 @@ type LaxMethod struct {
 	Text       string             `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // MemberNode implements [ast.Method].

@@ -18,7 +18,7 @@ import (
 func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityCommand, error) {
 	cmd := ast.VisibilityCommand{
 		Kind: ast.VisibilityCMDUnknown,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -62,7 +62,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 	}
 
 	cmd := ast.DirectionCommand{
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -115,7 +115,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirectiv
 
 	dir := ast.IncludeDirective{
 		Kind: kind,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -170,7 +170,7 @@ func (p *Parser) parseSkinparam() ([]ast.Statement, error) {
 		rule := &ast.StyleRule{
 			Properties:  make(map[string]string),
 			IsSkinparam: true,
-			Trivia: ast.Trivia{
+			BaseNode: ast.BaseNode{
 				LeadingTrivia:  leadingTrivia,
 				TrailingTrivia: p.stream.DumpCollectedTrivia(),
 			},
@@ -187,7 +187,7 @@ func (p *Parser) parseSkinparam() ([]ast.Statement, error) {
 
 func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 	cmd := ast.ScaleCommand{
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -350,7 +350,7 @@ func wrapInContainers(ent ast.Entity, pkgPath []string) ast.Statement {
 func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 	ent := &ast.Entity{
 		Kind: p.mapTokenToEntityKind(tok),
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -584,7 +584,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 	containerClass := keyword.Classify(tok.Literal)
 	container := ast.Container{
 		Kind: p.mapKeywordToContainerKind(containerClass),
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -707,7 +707,7 @@ func (p *Parser) parseSetDirective() (ast.Statement, error) {
 	return ast.SetCommand{
 		Key:   keyTok.Literal,
 		Value: directiveVal,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -785,7 +785,7 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 func (p *Parser) parseNote() (ast.Note, error) {
 	// tok is a keyword 'note'
 	note := ast.Note{
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
@@ -929,7 +929,7 @@ func (p *Parser) parseSkinparamBlock(selectors []string, leadingTrivia []tokeniz
 		Selectors:   slices.Clone(selectors),
 		Properties:  make(map[string]string),
 		IsSkinparam: true,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: leadingTrivia,
 		},
 	}
@@ -1632,7 +1632,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 
 	block := ast.TextBlock{
 		Kind: blockKind,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: leadingTrivia,
 		},
 	}

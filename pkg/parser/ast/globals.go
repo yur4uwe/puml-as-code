@@ -25,7 +25,7 @@ type TextBlock struct {
 	VerticalAlignment   string
 	HorizontalAlignment string
 
-	Trivia
+	BaseNode
 }
 
 // StatementNode implements [Statement].
@@ -36,9 +36,8 @@ func (t TextBlock) StatementNode() Statement {
 var _ Statement = TextBlock{}
 
 type UnhandledStatement struct {
-	Text string
-	Span tokenizer.SourceSpan
-	Trivia
+	Raw string
+	BaseNode
 }
 
 // StatementNode implements [Statement].

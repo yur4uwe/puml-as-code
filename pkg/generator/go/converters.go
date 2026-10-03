@@ -17,7 +17,7 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 		NotesView: toNotesView(ent.Notes),
 	}
 	if ent.AST != nil {
-		view.TriviaView = toTriviaView(ent.AST.Trivia)
+		view.TriviaView = toTriviaView(ent.AST.BaseNode)
 	}
 
 	// process generics
@@ -116,7 +116,7 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 			}
 			view.Generics = generics
 		}
-		view.TriviaView = toTriviaView(ent.AST.Trivia)
+		view.TriviaView = toTriviaView(ent.AST.BaseNode)
 	}
 
 	for _, rel := range tbl.Relationships {
@@ -196,21 +196,22 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	view := EnumView{
 		Name:       ent.AST.Identifier,
 		NotesView:  toNotesView(ent.Notes),
-		TriviaView: toTriviaView(ent.AST.Trivia),
+		TriviaView: toTriviaView(ent.AST.BaseNode),
 	}
 
 	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
 		switch m := member.(type) {
 		case *dialect.GoField:
-			trivia := toTriviaView(m.Trivia)
+			trivia := toTriviaView(m.BaseNode)
 			if len(pendingSeparators) > 0 {
 				trivia.LeadingTrivia = append(pendingSeparators, trivia.LeadingTrivia...)
 				pendingSeparators = nil
 			}
 			attachVisibilityComment(&trivia, m.Visibility)
 
-			caseName := ensureCorrectCase(view.Name,
+			caseName := ensureCorrectCase(
+				view.Name,
 				fmt.Sprintf(
 					"%s%s",
 					view.Name,
@@ -307,7 +308,7 @@ func attachVisibilityComment(trivia *TriviaView, vis ast.VisibilityKind) {
 
 func toFieldView(owner *resolver.EntitySymbol, field *dialect.GoField, fileView *FileView) FieldView {
 	collectImports(field.Type, fileView)
-	trivia := toTriviaView(field.Trivia)
+	trivia := toTriviaView(field.BaseNode)
 	attachVisibilityComment(&trivia, field.Visibility)
 	return FieldView{
 		Name:       ensureCorrectCase(owner.AST.Identifier, field.Name, field.Visibility),
@@ -324,7 +325,7 @@ func toMethodView(owner *resolver.EntitySymbol, method *dialect.GoMethod, fileVi
 	for _, ret := range method.ReturnType {
 		collectImports(ret.Type, fileView)
 	}
-	trivia := toTriviaView(method.Trivia)
+	trivia := toTriviaView(method.BaseNode)
 	attachVisibilityComment(&trivia, method.Visibility)
 	return MethodView{
 		Name:       ensureCorrectCase(owner.AST.Identifier, method.Name, method.Visibility),
@@ -360,7 +361,7 @@ func toNotesView(note []*ast.Note) NotesView {
 	}
 }
 
-func toTriviaView(t ast.Trivia) TriviaView {
+func toTriviaView(t ast.BaseNode) TriviaView {
 	var leadingTrivia []string
 	for _, tok := range t.GetLeadingTrivia() {
 		lines := strings.SplitSeq(tok.Literal, "\n")

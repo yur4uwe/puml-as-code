@@ -114,7 +114,7 @@ type GoField struct {
 	Type       *GoTypeRef         `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // FieldModifiers implements [ast.Field].
@@ -152,7 +152,7 @@ type GoMethod struct {
 	Parameters []GoParameter      `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // MemberNode implements [ast.Method].

@@ -52,7 +52,7 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	}
 
 	sep := ast.ClassSeparator{
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}

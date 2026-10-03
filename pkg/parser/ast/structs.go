@@ -2,28 +2,31 @@ package ast
 
 import "yur4uwe/pac/pkg/tokenizer"
 
-type TriviaHolder interface {
+type Node interface {
+	Span() tokenizer.SourceSpan
 	GetLeadingTrivia() []tokenizer.Token
 	GetTrailingTrivia() []tokenizer.Token
 }
 
 type Statement interface {
-	TriviaHolder
+	Node
 	StatementNode() Statement
 }
 
 type Member interface {
-	TriviaHolder
+	Node
 	MemberNode() Member
 }
 
-type Trivia struct {
-	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
-	TrailingTrivia []tokenizer.Token `json:",omitempty"`
+type BaseNode struct {
+	NodeSpan       tokenizer.SourceSpan `json:",omitempty"`
+	LeadingTrivia  []tokenizer.Token    `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token    `json:",omitempty"`
 }
 
-func (t Trivia) GetLeadingTrivia() []tokenizer.Token  { return t.LeadingTrivia }
-func (t Trivia) GetTrailingTrivia() []tokenizer.Token { return t.TrailingTrivia }
+func (bn BaseNode) GetLeadingTrivia() []tokenizer.Token  { return bn.LeadingTrivia }
+func (bn BaseNode) GetTrailingTrivia() []tokenizer.Token { return bn.TrailingTrivia }
+func (bn BaseNode) Span() tokenizer.SourceSpan           { return bn.NodeSpan }
 
 //go:generate enumer -type=EntityKind -transform=lower -trimprefix=Entity -json
 type EntityKind int
@@ -67,7 +70,7 @@ func (k EntityKind) AllowsBody() bool {
 }
 
 type Entity struct {
-	Trivia
+	BaseNode
 	Identifier string     `json:",omitempty"`
 	Alias      string     `json:",omitempty"`
 	Kind       EntityKind `json:",omitempty"`
@@ -108,7 +111,7 @@ type Container struct {
 	Tags       []string      `json:",omitempty"`
 	Color      string        `json:",omitempty"`
 	Statements []Statement   `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = Container{}
@@ -142,7 +145,7 @@ type Relationship struct {
 
 	Label string   `json:",omitempty"`
 	Attrs []string `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = Relationship{}
@@ -156,7 +159,7 @@ type ClassSeparator struct {
 	Label string `json:",omitempty"`
 	// Separator type. One of "-", "=", ".", "_"
 	Type rune
-	Trivia
+	BaseNode
 }
 
 var _ Member = ClassSeparator{}
@@ -202,7 +205,7 @@ type Note struct {
 	Target     *TargetRef
 	Color      string `json:",omitempty"`
 	Identifier string `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = Note{}
@@ -215,7 +218,7 @@ type DiagramBound struct {
 	ID      string            `json:",omitempty"`
 	Name    string            `json:",omitempty"`
 	Opts    map[string]string `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = DiagramBound{}
