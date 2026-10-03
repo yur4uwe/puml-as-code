@@ -57,10 +57,13 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 		},
 	}
 
+	mark := p.Mark(p.stream.PeekTokenAt(0))
+
 	if p.stream.AssertSeq(append(start, tokenizer.Token{Type: tokenizer.NEWLINE})) {
 		sep.Type = sepChar
 		// AssertSeq CAN come across some trailing trivia
 		sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		sep.NodeSpan = p.Span(mark)
 		return sep, nil
 	}
 
@@ -68,9 +71,11 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	if err != nil {
 		return sep, err
 	}
-	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
+	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		return sep, fmt.Errorf("unexpected tokens after class separator")
 	}
+	sep.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
 	sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	sep.Label = str
 	sep.Type = sepChar
@@ -238,4 +243,22 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	return diag, nil
+}
+
+type Mark struct {
+	start tokenizer.Token
+}
+
+func (p *Parser) Mark(tok tokenizer.Token) Mark {
+	return Mark{
+		start: tok,
+	}
+}
+
+func (p *Parser) Span(m Mark) tokenizer.SourceSpan {
+	return tokenizer.SpanEnclosing(m.start, p.stream.LastSemanticToken())
+}
+
+func (p *Parser) SpanTo(m Mark, endTok tokenizer.Token) tokenizer.SourceSpan {
+	return tokenizer.SpanEnclosing(m.start, endTok)
 }

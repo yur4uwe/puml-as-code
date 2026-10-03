@@ -16,6 +16,7 @@ import (
 )
 
 func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityCommand, error) {
+	mark := p.Mark(tok)
 	cmd := ast.VisibilityCommand{
 		Kind: ast.VisibilityCMDUnknown,
 		BaseNode: ast.BaseNode{
@@ -33,11 +34,13 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityComm
 		cmd.Kind = ast.VisibilityCMDRestore
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
+	cmd.BaseNode.NodeSpan = p.Span(mark)
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return cmd, nil
 }
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, error) {
+	mark := p.Mark(tok)
 	var to string
 	switch tok.Literal {
 	case "left":
@@ -78,14 +81,16 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 	case "top":
 		cmd.Direction = ast.TopToBottomDirection
 	}
-	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
+	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		return cmd, NewParserError("Unexpected tokens after direction command", p.stream.PeekTokenAt(0))
 	}
+	cmd.BaseNode.NodeSpan = p.Span(mark)
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return cmd, nil
 }
 
 func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
+	startMark := p.Mark(tok1)
 	directiveNameTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
 		return nil, NewParserError("Expected directive name", p.stream.PeekTokenAt(0))
@@ -96,7 +101,9 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 	}
 
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
-		return p.parseIncludeDirective(directiveNameTok)
+		dir, err := p.parseIncludeDirective(directiveNameTok)
+		dir.NodeSpan = p.Span(startMark)
+		return dir, err
 	} else {
 		return p.parseUnhandledDirective(tok1, directiveNameTok)
 	}
@@ -113,6 +120,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirectiv
 		return ast.IncludeDirective{}, NewParserError("Unknown include directive", tok)
 	}
 
+	mark := p.Mark(tok)
 	dir := ast.IncludeDirective{
 		Kind: kind,
 		BaseNode: ast.BaseNode{
@@ -125,7 +133,11 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirectiv
 	if p.stream.AssertType(tokenizer.EXCLAMATION) {
 		p.stream.Emit() // consume '!'
 		// Id or order must be a single token
-		dir.Tag = p.stream.Emit().Literal
+		lastDirTok := p.stream.Emit()
+		dir.Tag = lastDirTok.Literal
+		dir.BaseNode.NodeSpan = p.SpanTo(mark, lastDirTok)
+	} else {
+		dir.BaseNode.NodeSpan = p.SpanTo(mark, filePathToks[len(filePathToks)-1])
 	}
 
 	p.stream.EmitCommentToks()
@@ -185,7 +197,8 @@ func (p *Parser) parseSkinparam() ([]ast.Statement, error) {
 	return stmts, nil
 }
 
-func (p *Parser) parseScale() (ast.ScaleCommand, error) {
+func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) {
+	mark := p.Mark(startTok)
 	cmd := ast.ScaleCommand{
 		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
@@ -211,6 +224,7 @@ func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 			if errW == nil && errH == nil {
 				cmd.Width = w
 				cmd.Height = h
+				cmd.BaseNode.NodeSpan = p.SpanTo(mark, tok)
 				return cmd, nil
 			}
 		}
@@ -290,9 +304,10 @@ func (p *Parser) parseScale() (ast.ScaleCommand, error) {
 		return cmd, NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok)
 	}
 
-	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
+	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		return cmd, NewParserError("Unexpected tokens after scale command", p.stream.PeekTokenAt(0))
 	}
+	cmd.BaseNode.NodeSpan = p.Span(mark)
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return cmd, nil
 }
@@ -686,7 +701,8 @@ func (p *Parser) wrapImplicitPackageContainers(c ast.Container) ast.Container {
 	return current
 }
 
-func (p *Parser) parseSetDirective() (ast.Statement, error) {
+func (p *Parser) parseSetDirective(startTok tokenizer.Token) (ast.Statement, error) {
+	mark := p.Mark(startTok)
 	leadingTrivia := p.stream.DumpCollectedTrivia()
 	tok := p.stream.PeekTokenAt(0)
 	keyTok := p.stream.Emit() // consume "separator"
@@ -708,6 +724,7 @@ func (p *Parser) parseSetDirective() (ast.Statement, error) {
 		Key:   keyTok.Literal,
 		Value: directiveVal,
 		BaseNode: ast.BaseNode{
+			NodeSpan:       p.Span(mark),
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -782,7 +799,8 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 	return "", "", NewParserError("Invalid container alias and identifier combination", lhs)
 }
 
-func (p *Parser) parseNote() (ast.Note, error) {
+func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
+	mark := p.Mark(startTok)
 	// tok is a keyword 'note'
 	note := ast.Note{
 		BaseNode: ast.BaseNode{
@@ -806,70 +824,14 @@ func (p *Parser) parseNote() (ast.Note, error) {
 			return note, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok)
 		}
 	}
+	note.BaseNode.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
+	closingTrivia := p.stream.DumpCollectedTrivia()
+	note.TrailingTrivia = append(note.TrailingTrivia, closingTrivia...)
 	if err != nil {
 		return note, err
 	}
 	return note, nil
-}
-
-func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error {
-	note.Direction = p.mapTokenToDirection(dirTok)
-	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
-		target, err := p.parseTargetRef(p.stream.Emit()) // consume target
-		if err != nil {
-			return err
-		}
-		if strings.ToLower(target.Entity) != "link" && relativeTok.Literal == "on" {
-			return NewParserError("Unexpected identifier for a note link target", relativeTok)
-		}
-		note.Target = &target
-	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
-		return NewParserError("Unexpected identifier after direction", tok)
-	}
-	p.tryParseColor()
-	return p.parseNoteBody(note)
-}
-
-func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) error {
-	note.Text = stringTok.Literal
-	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
-		return NewParserError("Expected alias keyword after note text", aliasTok)
-	}
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if !ok {
-		return NewParserError("Expected identifier after alias keyword", tok)
-	}
-	note.Identifier = tok.Literal
-	p.tryParseColor()
-	if res := p.stream.ConsumeUntilType(tokenizer.NEWLINE); len(res) != 0 {
-		return NewParserError("Unexpected tokens after inline alias note", p.stream.PeekTokenAt(0))
-	}
-	note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-	return nil
-}
-
-func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if !ok {
-		return NewParserError("Expected identifier after alias keyword", tok)
-	}
-	p.tryParseColor()
-	if !p.stream.AssertType(tokenizer.NEWLINE) {
-		return NewParserError("Expected newline after alias keyword", tok)
-	}
-	return p.parseNoteBody(note)
-}
-
-func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
-	if onTok.Literal != "on" {
-		return NewParserError("Unexpected identifier after 'note'", onTok)
-	}
-	if _, ok := p.stream.TryConsume(amb(tokenizer.IDENTIFIER, "link")); !ok {
-		return NewParserError("Expected 'link' after 'note on'", onTok)
-	}
-	note.Target = &ast.TargetRef{Entity: "link"}
-	p.tryParseColor()
-	return p.parseNoteBody(note)
 }
 
 func (p *Parser) tryParseColor() string {
@@ -878,31 +840,6 @@ func (p *Parser) tryParseColor() string {
 	}
 	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON, tokenizer.LBRACE)
 	return p.stream.TokensToString(tokens)
-}
-
-func (p *Parser) parseNoteBody(note *ast.Note) error {
-	tok := p.stream.PeekTokenAt(0)
-	switch tok.Type {
-	case tokenizer.COLON:
-		p.stream.Emit()
-		note.Text = p.stream.ReadUntilNewline()
-		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-		return nil
-	case tokenizer.NEWLINE:
-		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
-		body, err := p.stream.ConsumeTextBlock("end", "note")
-		if err != nil {
-			return err
-		}
-		note.Text = body
-		if closingTrivia := p.stream.DumpCollectedTrivia(); len(closingTrivia) > 0 {
-			note.TrailingTrivia = append(note.TrailingTrivia, closingTrivia...)
-		}
-		return nil
-	default:
-		p.stream.Emit()
-		return NewParserError("Expected ':' or newline after note definition", tok)
-	}
 }
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
@@ -1127,6 +1064,7 @@ func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error)
 }
 
 func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relationship, error) {
+	mark := p.Mark(firstTargetTok)
 	// Entry token is supposedly the first identifier
 	var err error
 	var rel ast.Relationship
@@ -1159,6 +1097,8 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	if err != nil {
 		return rel, err
 	}
+
+	rel.BaseNode.NodeSpan = p.Span(mark)
 
 	endingToken := p.stream.PeekTokenAt(0)
 	switch endingToken.Type {
@@ -1627,6 +1567,7 @@ func parseLayoutAlignmentToken(tok tokenizer.Token, blockKind ast.TextBlockKind)
 }
 
 func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *tokenizer.Token) (ast.Statement, error) {
+	mark := p.Mark(kwTok)
 	blockKind := mapKwTokToTextBlockKind(keyword.Classify(kwTok.Literal))
 	leadingTrivia := p.stream.DumpCollectedTrivia()
 
@@ -1701,6 +1642,8 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 
 		body = p.stream.SliceInputBetweenTokens(lineContentToks...)
 	}
+
+	block.BaseNode.NodeSpan = p.Span(mark)
 
 	block.Text = body
 	p.stream.EmitCommentToks()

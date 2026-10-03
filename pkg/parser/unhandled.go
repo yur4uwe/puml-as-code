@@ -42,16 +42,13 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SourceSpan{
-		Start: startTok.Span.Start,
-		End:   endTok.EndPos(),
-	}
+	span := tokenizer.SpanEnclosing(startTok, endTok)
 
 	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
-		Raw:  text,
-		Span: span,
+		Raw: text,
 		BaseNode: ast.BaseNode{
+			NodeSpan:       span,
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -109,16 +106,13 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SourceSpan{
-		Start: startTok.Span.Start,
-		End:   endTok.EndPos(),
-	}
+	span := tokenizer.SpanEnclosing(startTok, endTok)
 
 	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
-		Raw:  text,
-		Span: span,
+		Raw: text,
 		BaseNode: ast.BaseNode{
+			NodeSpan:       span,
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},

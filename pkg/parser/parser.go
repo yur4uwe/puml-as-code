@@ -255,7 +255,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		return nil, errors.New("unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
-		note, err := p.parseNote()
+		note, err := p.parseNote(tok)
 		if err != nil {
 			return nil, err
 		}
@@ -311,7 +311,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
 		stmnt, err = p.parseVisibilityCommand(tok)
 	case keyword.Scale:
-		stmnt, err = p.parseScale()
+		stmnt, err = p.parseScale(tok)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		if nextTok.Literal == "to" {
@@ -331,7 +331,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement
 			return nil, NewParserError("Unexpected token after direction", tok)
 		}
 	case keyword.Set:
-		stmnt, err = p.parseSetDirective()
+		stmnt, err = p.parseSetDirective(tok)
 	}
 	if err != nil {
 		return nil, err

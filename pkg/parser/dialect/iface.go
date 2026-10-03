@@ -27,6 +27,7 @@ type MemberOptions struct {
 	Modifiers      []string
 	LeadingTrivia  []tokenizer.Token
 	TrailingTrivia []tokenizer.Token
+	MemberSpan     tokenizer.SourceSpan
 }
 
 // Dialect defines how to parse fields and methods for a specific language dialect

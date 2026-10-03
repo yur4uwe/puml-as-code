@@ -201,7 +201,7 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 	return l.consumeChar(ILLEGAL, l.ch)
 }
 
-func SpanBetween(first, last Token) SourceSpan {
+func SpanEnclosing(first, last Token) SourceSpan {
 	if first.Span.Start.Offset > last.Span.Start.Offset {
 		first, last = last, first
 	}
@@ -215,7 +215,7 @@ func TokenSliceSpan(toks []Token) (span SourceSpan, ok bool) {
 	if len(toks) == 0 {
 		return SourceSpan{}, false
 	}
-	return SpanBetween(toks[0], toks[len(toks)-1]), true
+	return SpanEnclosing(toks[0], toks[len(toks)-1]), true
 }
 
 // MatchTokenPrefix checks whether the beginning of lineToks matches target.

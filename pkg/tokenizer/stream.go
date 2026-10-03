@@ -23,12 +23,13 @@ func unexpectedTokenError(expected Token, found Token) error {
 }
 
 type TokenStream struct {
-	lexer             *Lexer
-	collectedTrivia   []Token
-	buffer            []Token
-	sinks             []TokenSink
-	rawModeTerminator []rune
-	PackageSeparator  string
+	lexer               *Lexer
+	collectedTrivia     []Token
+	buffer              []Token
+	sinks               []TokenSink
+	rawModeTerminator   []rune
+	PackageSeparator    string
+	lastNonNewlineToken Token
 }
 
 func NewTokenStream(input string) *TokenStream {
@@ -138,6 +139,9 @@ func (ts *TokenStream) EmitRaw() Token {
 	}
 	for _, sink := range ts.sinks {
 		sink.Receive(tok)
+	}
+	if tok.Type != EOF && tok.Type != NEWLINE && tok.Type != COMMENT {
+		ts.lastNonNewlineToken = tok
 	}
 	return tok
 }
@@ -494,4 +498,8 @@ func (ts *TokenStream) SliceInputBetweenTokens(toks ...Token) string {
 		return ""
 	}
 	return ts.SliceInput(span.Start.Offset, span.End.Offset)
+}
+
+func (ts *TokenStream) LastSemanticToken() Token {
+	return ts.lastNonNewlineToken
 }
