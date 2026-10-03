@@ -19,5 +19,6 @@ func Format(src string) (string, error) {
 		case ast.UnhandledStatement:
 		}
 	}
-	panic("unimplemented")
+
+	return "Formatter connected", nil
 }
