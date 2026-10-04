@@ -125,6 +125,9 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
+			if p.IsBoundless {
+				break
+			}
 			return p.ast, WrapParserError(tokenizer.ErrUnexpectedEOF, tok)
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
@@ -142,21 +145,21 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
-		stmts, err := p.parseDiagramOnlyStatement(tok)
+		stmt, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if len(stmts) > 0 {
-			p.ast.Statements = append(p.ast.Statements, stmts...)
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}
 
-		stmts, err = p.parseContainerStatement(tok)
+		stmt, err = p.parseContainerStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if len(stmts) > 0 {
-			p.ast.Statements = append(p.ast.Statements, stmts...)
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}
 
@@ -175,13 +178,13 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	return p.ast, nil
 }
 
-func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, error) {
+func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.EXCLAMATION {
 		stmt, err := p.parseDirective(tok)
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{stmt}, nil
+		return stmt, nil
 	}
 
 	if p.HasArrowOnLine() {
@@ -189,7 +192,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{rel}, nil
+		return rel, nil
 	}
 
 	switch keyword.Classify(tok.Literal) {
@@ -200,7 +203,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{stmt}, nil
+		return stmt, nil
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		nextKW := keyword.Classify(nextTok.Literal)
@@ -210,7 +213,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 			if err != nil {
 				return nil, err
 			}
-			return []ast.Statement{stmt}, nil
+			return stmt, nil
 		}
 		return nil, NewParserError("Unexpected direction keyword in container", tok)
 	case keyword.Caption, keyword.Sprite:
@@ -218,7 +221,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{stmt}, nil
+		return stmt, nil
 	case keyword.Class,
 		keyword.Interface,
 		keyword.Struct,
@@ -235,7 +238,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{ent}, nil
+		return ent, nil
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -250,16 +253,16 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{cont}, nil
+		return cont, nil
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
-		return nil, errors.New("unimplemented entity keyword handling")
+		return nil, NewParserError("unimplemented entity keyword handling", tok)
 	// Special Keywords
 	case keyword.Note:
 		note, err := p.parseNote(tok)
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{note}, nil
+		return note, nil
 	}
 
 	switch tok.Type {
@@ -268,76 +271,51 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		if err != nil {
 			return nil, err
 		}
-		return []ast.Statement{stmt}, nil
+		return stmt, nil
 	default:
 		return nil, nil
 	}
 }
 
-func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement, error) {
+func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
 		return p.parseStyleBlock(tok)
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
-		stmt, err := p.parseDirective(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseDirective(tok)
 	}
 
 	if p.HasArrowOnLine() {
-		stmnt, err := p.parseRelationship(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmnt}, nil
+		return p.parseRelationship(tok)
 	}
 
-	var stmnt ast.Statement
-	var err error
-
 	switch keyword.Classify(tok.Literal) {
-	// Multi-statement branches
 	case keyword.Skinparam:
-		return p.parseSkinparam()
-
-	// Single-statement branches
+		return p.parseSkinparamRoot(tok)
 	case keyword.Title,
 		keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		stmnt, err = p.parseLayoutStatement(tok, nil)
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
-		stmnt, err = p.parseVisibilityCommand(tok)
+		return p.parseVisibilityCommand(tok)
 	case keyword.Scale:
-		stmnt, err = p.parseScale(tok)
+		return p.parseScale(tok)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		if nextTok.Literal == "to" {
-			stmnt, err = p.parseDiagDirection(tok)
-			break
+			return p.parseDiagDirection(tok)
 		} else if nextKW := keyword.Classify(nextTok.Literal); nextKW == keyword.Header ||
 			nextKW == keyword.Footer ||
 			nextKW == keyword.Legend ||
 			nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			stmnt, err = p.parseLayoutStatement(actualKwTok, &tok)
-			if err != nil {
-				return nil, err
-			}
-			return []ast.Statement{stmnt}, nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		} else {
 			return nil, NewParserError("Unexpected token after direction", tok)
 		}
 	case keyword.Set:
-		stmnt, err = p.parseSetDirective(tok)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if stmnt != nil {
-		return []ast.Statement{stmnt}, nil
+		return p.parseSetDirective(tok)
 	}
 
 	return nil, nil

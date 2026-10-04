@@ -1,9 +1,7 @@
 // Package ast contains the AST nodes for the parser.
 package ast
 
-import (
-	"yur4uwe/pac/pkg/tokenizer"
-)
+
 
 //go:generate enumer -type=TextBlockKind -transform=lower -json -trimprefix=Block
 type TextBlockKind int

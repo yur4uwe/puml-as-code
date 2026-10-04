@@ -6,15 +6,51 @@
       "IsStart": true,
       "Type": "uml",
       "ID": "main_diagram",
-      "Name": "diagram.png"
+      "Name": "diagram.png",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Kind": "title",
       "Text": "System Architecture Overview",
       "VerticalAlignment": "",
-      "HorizontalAlignment": ""
+      "HorizontalAlignment": "",
+      "NodeSpan": {
+        "Start": {
+          "Line": 1,
+          "Col": 1,
+          "Offset": 39
+        },
+        "End": {
+          "Line": 2,
+          "Col": 0,
+          "Offset": 73
+        }
+      }
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "Controller",
       "Kind": "class",
       "Members": [
@@ -28,13 +64,37 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

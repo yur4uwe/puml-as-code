@@ -4,32 +4,133 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "SkinparamRules"
+      "Name": "SkinparamRules",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
-      "Properties": {
-        "backgroundColor": "#FFFFFF"
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 26
+        },
+        "End": {
+          "Line": 3,
+          "Col": 0,
+          "Offset": 59
+        }
       },
-      "IsSkinparam": true
+      "Keyword": "skinparam",
+      "Name": "backgroundColor",
+      "Value": "#FFFFFF"
     },
     {
-      "Properties": {
-        "classBackgroundColor": "#FF0000"
+      "NodeSpan": {
+        "Start": {
+          "Line": 3,
+          "Col": 1,
+          "Offset": 60
+        },
+        "End": {
+          "Line": 4,
+          "Col": 0,
+          "Offset": 98
+        }
       },
-      "IsSkinparam": true
+      "Keyword": "skinparam",
+      "Name": "classBackgroundColor",
+      "Value": "#FF0000"
     },
     {
-      "Selectors": [
-        "class"
-      ],
-      "Properties": {
-        "BackgroundColor": "Green",
-        "BorderColor": "Black",
-        "HeaderBackgroundColor": "Red"
+      "NodeSpan": {
+        "Start": {
+          "Line": 5,
+          "Col": 1,
+          "Offset": 100
+        },
+        "End": {
+          "Line": 10,
+          "Col": 0,
+          "Offset": 191
+        }
       },
-      "IsSkinparam": true
+      "Keyword": "skinparam",
+      "Name": "class",
+      "Statements": [
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 6,
+              "Col": 3,
+              "Offset": 120
+            },
+            "End": {
+              "Line": 7,
+              "Col": 0,
+              "Offset": 141
+            }
+          },
+          "Name": "BackgroundColor",
+          "Value": "Green"
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 7,
+              "Col": 3,
+              "Offset": 144
+            },
+            "End": {
+              "Line": 8,
+              "Col": 0,
+              "Offset": 169
+            }
+          },
+          "Name": "HeaderBackgroundColor",
+          "Value": "Red"
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 8,
+              "Col": 3,
+              "Offset": 172
+            },
+            "End": {
+              "Line": 9,
+              "Col": 0,
+              "Offset": 189
+            }
+          },
+          "Name": "BorderColor",
+          "Value": "Black"
+        }
+      ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "Service",
       "Kind": "class",
       "Members": [
@@ -43,13 +144,37 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

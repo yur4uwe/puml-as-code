@@ -4,33 +4,129 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "VisibilityAndTags"
+      "Name": "VisibilityAndTags",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Kind": "hide",
-      "Target": "empty members"
+      "Target": "empty members",
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 29
+        },
+        "End": {
+          "Line": 3,
+          "Col": 0,
+          "Offset": 47
+        }
+      }
     },
     {
       "Kind": "hide",
-      "Target": "@unlinked"
+      "Target": "@unlinked",
+      "NodeSpan": {
+        "Start": {
+          "Line": 3,
+          "Col": 1,
+          "Offset": 48
+        },
+        "End": {
+          "Line": 4,
+          "Col": 0,
+          "Offset": 62
+        }
+      }
     },
     {
       "Kind": "hide",
-      "Target": "$hiddenTag"
+      "Target": "$hiddenTag",
+      "NodeSpan": {
+        "Start": {
+          "Line": 4,
+          "Col": 1,
+          "Offset": 63
+        },
+        "End": {
+          "Line": 5,
+          "Col": 0,
+          "Offset": 78
+        }
+      }
     },
     {
       "Kind": "show",
-      "Target": "$publicTag"
+      "Target": "$publicTag",
+      "NodeSpan": {
+        "Start": {
+          "Line": 5,
+          "Col": 1,
+          "Offset": 79
+        },
+        "End": {
+          "Line": 6,
+          "Col": 0,
+          "Offset": 94
+        }
+      }
     },
     {
       "Kind": "remove",
-      "Target": "$deprecated"
+      "Target": "$deprecated",
+      "NodeSpan": {
+        "Start": {
+          "Line": 6,
+          "Col": 1,
+          "Offset": 95
+        },
+        "End": {
+          "Line": 7,
+          "Col": 0,
+          "Offset": 113
+        }
+      }
     },
     {
       "Kind": "restore",
-      "Target": "User"
+      "Target": "User",
+      "NodeSpan": {
+        "Start": {
+          "Line": 7,
+          "Col": 1,
+          "Offset": 114
+        },
+        "End": {
+          "Line": 8,
+          "Col": 0,
+          "Offset": 126
+        }
+      }
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "User",
       "Kind": "class",
       "Stereotype": "Entity",
@@ -45,7 +141,19 @@
             "Typ": "named",
             "Name": "string"
           },
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         },
         {
           "Name": "name",
@@ -53,11 +161,35 @@
             "Typ": "named",
             "Name": "string"
           },
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "PaymentService",
       "Kind": "class",
       "Stereotype": "Service",
@@ -75,11 +207,35 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "InternalHelper",
       "Kind": "class",
       "Tags": [
@@ -88,7 +244,19 @@
       "Members": [
         {
           "Name": "HelperFunc",
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
@@ -100,6 +268,18 @@
       ],
       "Statements": [
         {
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          },
           "Identifier": "Gateway",
           "Kind": "class",
           "Tags": [
@@ -108,15 +288,51 @@
           "Members": [
             {
               "Name": "Route",
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              }
             }
           ]
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

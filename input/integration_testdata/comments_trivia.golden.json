@@ -4,11 +4,35 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "CommentsTrivia ' Trailing comment for diagram start"
+      "Name": "CommentsTrivia ' Trailing comment for diagram start",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Key": "separator",
       "Value": ".",
+      "NodeSpan": {
+        "Start": {
+          "Line": 3,
+          "Col": 1,
+          "Offset": 124
+        },
+        "End": {
+          "Line": 3,
+          "Col": 16,
+          "Offset": 139
+        }
+      },
       "LeadingTrivia": [
         {
           "Type": "COMMENT",
@@ -51,6 +75,36 @@
       "Kind": "package",
       "Statements": [
         {
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          },
+          "LeadingTrivia": [
+            {
+              "Type": "COMMENT",
+              "Literal": "This is a single line comment attached to User",
+              "Span": {
+                "Start": {
+                  "Line": 6,
+                  "Col": 5,
+                  "Offset": 283
+                },
+                "End": {
+                  "Line": 7,
+                  "Col": 0,
+                  "Offset": 331
+                }
+              }
+            }
+          ],
           "Identifier": "User",
           "Kind": "class",
           "Members": [
@@ -61,6 +115,18 @@
                 "Name": "string"
               },
               "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              },
               "LeadingTrivia": [
                 {
                   "Type": "COMMENT",
@@ -83,6 +149,18 @@
           ]
         }
       ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "TrailingTrivia": [
         {
           "Type": "COMMENT",
@@ -97,22 +175,6 @@
               "Line": 6,
               "Col": 0,
               "Offset": 278
-            }
-          }
-        },
-        {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached to User",
-          "Span": {
-            "Start": {
-              "Line": 6,
-              "Col": 5,
-              "Offset": 283
-            },
-            "End": {
-              "Line": 7,
-              "Col": 0,
-              "Offset": 331
             }
           }
         },
@@ -135,6 +197,18 @@
       ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "LeadingTrivia": [
         {
           "Type": "COMMENT",
@@ -200,7 +274,19 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
@@ -217,6 +303,18 @@
       "Body": 45,
       "RArrow": 62,
       "Label": "invokes ' Trailing comment for relationship",
+      "NodeSpan": {
+        "Start": {
+          "Line": 22,
+          "Col": 1,
+          "Offset": 789
+        },
+        "End": {
+          "Line": 22,
+          "Col": 16,
+          "Offset": 804
+        }
+      },
       "LeadingTrivia": [
         {
           "Type": "COMMENT",
@@ -239,6 +337,18 @@
     {
       "IsStart": false,
       "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "LeadingTrivia": [
         {
           "Type": "COMMENT",

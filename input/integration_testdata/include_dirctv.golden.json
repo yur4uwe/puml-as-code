@@ -2,32 +2,128 @@
   "Statements": [
     {
       "IsStart": true,
-      "Type": "uml"
-    },
-    {
-      "Path": "include_dirctv.puml"
-    },
-    {
-      "Path": "../../../include_dirctv.puml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Path": "include_dirctv.puml",
-      "Tag": "0"
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 11
+        },
+        "End": {
+          "Line": 3,
+          "Col": 0,
+          "Offset": 39
+        }
+      }
+    },
+    {
+      "Path": "../../../include_dirctv.puml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 3,
+          "Col": 1,
+          "Offset": 40
+        },
+        "End": {
+          "Line": 4,
+          "Col": 0,
+          "Offset": 77
+        }
+      }
     },
     {
       "Path": "include_dirctv.puml",
-      "Tag": "My_Special_ID"
+      "Tag": "0",
+      "NodeSpan": {
+        "Start": {
+          "Line": 4,
+          "Col": 1,
+          "Offset": 78
+        },
+        "End": {
+          "Line": 5,
+          "Col": 0,
+          "Offset": 108
+        }
+      }
     },
     {
       "Path": "include_dirctv.puml",
-      "Kind": "many"
+      "Tag": "My_Special_ID",
+      "NodeSpan": {
+        "Start": {
+          "Line": 5,
+          "Col": 1,
+          "Offset": 109
+        },
+        "End": {
+          "Line": 6,
+          "Col": 0,
+          "Offset": 151
+        }
+      }
     },
     {
-      "Path": "include_dirctv.puml"
+      "Path": "include_dirctv.puml",
+      "Kind": "many",
+      "NodeSpan": {
+        "Start": {
+          "Line": 6,
+          "Col": 1,
+          "Offset": 152
+        },
+        "End": {
+          "Line": 7,
+          "Col": 0,
+          "Offset": 185
+        }
+      }
+    },
+    {
+      "Path": "include_dirctv.puml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 7,
+          "Col": 1,
+          "Offset": 186
+        },
+        "End": {
+          "Line": 8,
+          "Col": 0,
+          "Offset": 219
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

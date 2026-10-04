@@ -1,0 +1,93 @@
+package parser
+
+import (
+	"reflect"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/pkg/tokenizer"
+)
+
+// assertASTEqual asserts that got and want are equal, ignoring any NodeSpan values.
+func assertASTEqual(t *testing.T, want, got any) {
+	t.Helper()
+	require.Equal(t, stripSpans(want), stripSpans(got))
+}
+
+// stripSpans returns a copy of v with all tokenizer.SourceSpan values zeroed out.
+func stripSpans(v any) any {
+	if v == nil {
+		return nil
+	}
+	val := reflect.ValueOf(v)
+	return stripValue(val).Interface()
+}
+
+func stripValue(val reflect.Value) reflect.Value {
+	if !val.IsValid() {
+		return val
+	}
+
+	switch val.Kind() {
+	case reflect.Pointer:
+		if val.IsNil() {
+			return val
+		}
+		elem := stripValue(val.Elem())
+		newPtr := reflect.New(val.Type().Elem())
+		newPtr.Elem().Set(elem)
+		return newPtr
+
+	case reflect.Interface:
+		if val.IsNil() {
+			return val
+		}
+		return stripValue(val.Elem())
+
+	case reflect.Slice:
+		if val.IsNil() {
+			return val
+		}
+		newSlice := reflect.MakeSlice(val.Type(), val.Len(), val.Cap())
+		for i := 0; i < val.Len(); i++ {
+			newSlice.Index(i).Set(stripValue(val.Index(i)))
+		}
+		return newSlice
+
+	case reflect.Map:
+		if val.IsNil() {
+			return val
+		}
+		newMap := reflect.MakeMap(val.Type())
+		for _, key := range val.MapKeys() {
+			newMap.SetMapIndex(key, stripValue(val.MapIndex(key)))
+		}
+		return newMap
+
+	case reflect.Struct:
+		if val.Type() == reflect.TypeOf(tokenizer.SourceSpan{}) {
+			return reflect.Zero(val.Type())
+		}
+
+		newStruct := reflect.New(val.Type()).Elem()
+		for i := 0; i < val.NumField(); i++ {
+			field := val.Type().Field(i)
+			fieldVal := val.Field(i)
+
+			if field.Name == "NodeSpan" {
+				newStruct.Field(i).Set(reflect.Zero(field.Type))
+				continue
+			}
+
+			if !field.IsExported() {
+				continue
+			}
+
+			newStruct.Field(i).Set(stripValue(fieldVal))
+		}
+		return newStruct
+
+	default:
+		return val
+	}
+}

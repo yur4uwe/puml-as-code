@@ -37,7 +37,7 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 	}
 	note.Identifier = tok.Literal
 	p.tryParseColor()
-	if !p.stream.AssertAnyType(tokenizer.NEWLINE) {
+	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		return NewParserError("Unexpected tokens after inline alias note", p.stream.PeekTokenAt(0))
 	}
 	return nil

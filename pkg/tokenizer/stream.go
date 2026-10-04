@@ -157,7 +157,7 @@ func (ts *TokenStream) DumpCollectedTrivia() []Token {
 // appending them to collected trivia.
 func (ts *TokenStream) EmitCommentToks() {
 	for ts.PeekRawTokenAt(0).Type == COMMENT {
-		ts.Emit()
+		ts.collectedTrivia = append(ts.collectedTrivia, ts.EmitRaw())
 	}
 }
 

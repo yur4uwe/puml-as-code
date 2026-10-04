@@ -72,6 +72,8 @@ func Classify(ident string) KeywordKind {
 		return Direction
 	case "of", "on":
 		return Position
+	case "skinparamlong":
+		return Skinparam
 	}
 	val, err := KeywordKindString(ident)
 	if err != nil {

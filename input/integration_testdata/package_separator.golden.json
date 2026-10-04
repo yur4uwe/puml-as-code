@@ -4,11 +4,35 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "PackageSeparator"
+      "Name": "PackageSeparator",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Key": "separator",
-      "Value": "."
+      "Value": ".",
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 28
+        },
+        "End": {
+          "Line": 3,
+          "Col": 0,
+          "Offset": 43
+        }
+      }
     },
     {
       "Identifier": "net",
@@ -17,6 +41,18 @@
           "Identifier": "http",
           "Statements": [
             {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              },
               "Identifier": "Client",
               "Kind": "class",
               "Members": [
@@ -26,13 +62,49 @@
                     "Typ": "named",
                     "Name": "int"
                   },
-                  "Visibility": "public"
+                  "Visibility": "public",
+                  "NodeSpan": {
+                    "Start": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    },
+                    "End": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    }
+                  }
                 }
               ]
             }
-          ]
+          ],
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Identifier": "net",
@@ -41,6 +113,18 @@
           "Identifier": "http",
           "Statements": [
             {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              },
               "Identifier": "Server",
               "Kind": "class",
               "Members": [
@@ -50,13 +134,49 @@
                     "Typ": "named",
                     "Name": "int"
                   },
-                  "Visibility": "public"
+                  "Visibility": "public",
+                  "NodeSpan": {
+                    "Start": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    },
+                    "End": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    }
+                  }
                 }
               ]
             }
-          ]
+          ],
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "LHS": {
@@ -78,11 +198,35 @@
       "MultRHS": null,
       "Body": 45,
       "RArrow": 62,
-      "Label": "connects"
+      "Label": "connects",
+      "NodeSpan": {
+        "Start": {
+          "Line": 12,
+          "Col": 1,
+          "Offset": 126
+        },
+        "End": {
+          "Line": 12,
+          "Col": 36,
+          "Offset": 161
+        }
+      }
     },
     {
       "Key": "separator",
-      "Value": "::"
+      "Value": "::",
+      "NodeSpan": {
+        "Start": {
+          "Line": 14,
+          "Col": 1,
+          "Offset": 174
+        },
+        "End": {
+          "Line": 15,
+          "Col": 0,
+          "Offset": 190
+        }
+      }
     },
     {
       "Identifier": "auth",
@@ -91,6 +235,18 @@
           "Identifier": "oauth",
           "Statements": [
             {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              },
               "Identifier": "Provider",
               "Kind": "class",
               "Members": [
@@ -100,13 +256,49 @@
                     "Typ": "named",
                     "Name": "string"
                   },
-                  "Visibility": "public"
+                  "Visibility": "public",
+                  "NodeSpan": {
+                    "Start": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    },
+                    "End": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    }
+                  }
                 }
               ]
             }
-          ]
+          ],
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "Identifier": "auth",
@@ -115,6 +307,18 @@
           "Identifier": "oauth",
           "Statements": [
             {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              },
               "Identifier": "Client",
               "Kind": "class",
               "Members": [
@@ -124,13 +328,49 @@
                     "Typ": "named",
                     "Name": "string"
                   },
-                  "Visibility": "public"
+                  "Visibility": "public",
+                  "NodeSpan": {
+                    "Start": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    },
+                    "End": {
+                      "Line": 0,
+                      "Col": 0,
+                      "Offset": 0
+                    }
+                  }
                 }
               ]
             }
-          ]
+          ],
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
       "LHS": {
@@ -152,11 +392,35 @@
       "MultRHS": null,
       "Body": 45,
       "RArrow": 62,
-      "Label": "authenticates"
+      "Label": "authenticates",
+      "NodeSpan": {
+        "Start": {
+          "Line": 24,
+          "Col": 1,
+          "Offset": 285
+        },
+        "End": {
+          "Line": 24,
+          "Col": 46,
+          "Offset": 330
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

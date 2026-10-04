@@ -4,11 +4,23 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "UnhandledStatements"
+      "Name": "UnhandledStatements",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
-      "Text": "caption Figure 1: Architecture Overview",
-      "Span": {
+      "Raw": "caption Figure 1: Architecture Overview",
+      "NodeSpan": {
         "Start": {
           "Line": 3,
           "Col": 1,
@@ -58,8 +70,8 @@
       ]
     },
     {
-      "Text": "sprite $service_icon jar:archimate/service",
-      "Span": {
+      "Raw": "sprite $service_icon jar:archimate/service",
+      "NodeSpan": {
         "Start": {
           "Line": 6,
           "Col": 1,
@@ -91,8 +103,8 @@
       ]
     },
     {
-      "Text": "!define SERVICE_VERSION \"v1.2.3\"",
-      "Span": {
+      "Raw": "!define SERVICE_VERSION \"v1.2.3\"",
+      "NodeSpan": {
         "Start": {
           "Line": 9,
           "Col": 1,
@@ -124,8 +136,8 @@
       ]
     },
     {
-      "Text": "!global $DEPLOY_ENV = \"prod\"",
-      "Span": {
+      "Raw": "!global $DEPLOY_ENV = \"prod\"",
+      "NodeSpan": {
         "Start": {
           "Line": 10,
           "Col": 1,
@@ -139,8 +151,8 @@
       }
     },
     {
-      "Text": "!theme spacelab",
-      "Span": {
+      "Raw": "!theme spacelab",
+      "NodeSpan": {
         "Start": {
           "Line": 11,
           "Col": 1,
@@ -154,8 +166,8 @@
       }
     },
     {
-      "Text": "!function $formatName($val)\n  !return \"Service: \" + $val\n!endfunction",
-      "Span": {
+      "Raw": "!function $formatName($val)\n  !return \"Service: \" + $val\n!endfunction",
+      "NodeSpan": {
         "Start": {
           "Line": 14,
           "Col": 1,
@@ -187,8 +199,8 @@
       ]
     },
     {
-      "Text": "!procedure $setupPipeline()\n  class PipelineGenerated\n!endprocedure",
-      "Span": {
+      "Raw": "!procedure $setupPipeline()\n  class PipelineGenerated\n!endprocedure",
+      "NodeSpan": {
         "Start": {
           "Line": 18,
           "Col": 1,
@@ -202,8 +214,8 @@
       }
     },
     {
-      "Text": "!definelong LOG_SERVICE\n  class Logger {\n    +Log(msg: string)\n  }\n!enddefinelong",
-      "Span": {
+      "Raw": "!definelong LOG_SERVICE\n  class Logger {\n    +Log(msg: string)\n  }\n!enddefinelong",
+      "NodeSpan": {
         "Start": {
           "Line": 22,
           "Col": 1,
@@ -217,8 +229,8 @@
       }
     },
     {
-      "Text": "!if ($ENABLE_METRICS)\n  !if ($DETAILED)\n    class DetailedMetrics\n  !else\n    class BasicMetrics\n  !endif\n!endif",
-      "Span": {
+      "Raw": "!if ($ENABLE_METRICS)\n  !if ($DETAILED)\n    class DetailedMetrics\n  !else\n    class BasicMetrics\n  !endif\n!endif",
+      "NodeSpan": {
         "Start": {
           "Line": 29,
           "Col": 1,
@@ -250,8 +262,8 @@
       ]
     },
     {
-      "Text": "!while ($count \u003e 0)\n  class LoopWorker\n!endwhile",
-      "Span": {
+      "Raw": "!while ($count \u003e 0)\n  class LoopWorker\n!endwhile",
+      "NodeSpan": {
         "Start": {
           "Line": 37,
           "Col": 1,
@@ -265,8 +277,8 @@
       }
     },
     {
-      "Text": "!foreach $item in $items\n  class ItemWorker\n!endfor",
-      "Span": {
+      "Raw": "!foreach $item in $items\n  class ItemWorker\n!endfor",
+      "NodeSpan": {
         "Start": {
           "Line": 41,
           "Col": 1,
@@ -284,8 +296,8 @@
       "Kind": "package",
       "Statements": [
         {
-          "Text": "caption Core Service Caption",
-          "Span": {
+          "Raw": "caption Core Service Caption",
+          "NodeSpan": {
             "Start": {
               "Line": 47,
               "Col": 3,
@@ -317,8 +329,8 @@
           ]
         },
         {
-          "Text": "sprite $local_icon icon.png",
-          "Span": {
+          "Raw": "sprite $local_icon icon.png",
+          "NodeSpan": {
             "Start": {
               "Line": 48,
               "Col": 3,
@@ -332,8 +344,8 @@
           }
         },
         {
-          "Text": "!if ($INTERNAL_FLAG)\n    class IgnoredInsideMacro\n  !endif",
-          "Span": {
+          "Raw": "!if ($INTERNAL_FLAG)\n    class IgnoredInsideMacro\n  !endif",
+          "NodeSpan": {
             "Start": {
               "Line": 50,
               "Col": 3,
@@ -347,6 +359,18 @@
           }
         },
         {
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          },
           "Identifier": "AuthService",
           "Kind": "class",
           "Members": [
@@ -356,7 +380,19 @@
                 "Typ": "named",
                 "Name": "string"
               },
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              }
             },
             {
               "Name": "Authenticate",
@@ -377,13 +413,49 @@
                   }
                 }
               ],
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                },
+                "End": {
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
+                }
+              }
             }
           ]
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "UserStore",
       "Kind": "class",
       "Members": [
@@ -406,7 +478,19 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
@@ -422,11 +506,35 @@
       "MultRHS": null,
       "Body": 45,
       "RArrow": 62,
-      "Label": "queries"
+      "Label": "queries",
+      "NodeSpan": {
+        "Start": {
+          "Line": 64,
+          "Col": 1,
+          "Offset": 1150
+        },
+        "End": {
+          "Line": 64,
+          "Col": 26,
+          "Offset": 1175
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }

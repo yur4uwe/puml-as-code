@@ -4,20 +4,116 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "StyleBlocks"
+      "Name": "StyleBlocks",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     },
     {
-      "Selectors": [
-        "class"
-      ],
-      "Properties": {
-        "BackgroundColor": "#FF0000",
-        "FontColor": "#333333",
-        "FontSize": "12"
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 23
+        },
+        "End": {
+          "Line": 9,
+          "Col": 0,
+          "Offset": 111
+        }
       },
-      "IsSkinparam": false
+      "Statements": [
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 3,
+              "Col": 1,
+              "Offset": 31
+            },
+            "End": {
+              "Line": 8,
+              "Col": 0,
+              "Offset": 102
+            }
+          },
+          "Selectors": [
+            "class"
+          ],
+          "Statements": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 4,
+                  "Col": 3,
+                  "Offset": 41
+                },
+                "End": {
+                  "Line": 5,
+                  "Col": 0,
+                  "Offset": 59
+                }
+              },
+              "Property": "FontColor",
+              "Value": "#333333"
+            },
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 5,
+                  "Col": 3,
+                  "Offset": 62
+                },
+                "End": {
+                  "Line": 6,
+                  "Col": 0,
+                  "Offset": 74
+                }
+              },
+              "Property": "FontSize",
+              "Value": "12"
+            },
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 6,
+                  "Col": 3,
+                  "Offset": 77
+                },
+                "End": {
+                  "Line": 7,
+                  "Col": 0,
+                  "Offset": 100
+                }
+              },
+              "Property": "BackgroundColor",
+              "Value": "#FF0000"
+            }
+          ]
+        }
+      ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      },
       "Identifier": "Component",
       "Kind": "class",
       "Members": [
@@ -31,13 +127,37 @@
               }
             }
           ],
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
         }
       ]
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 0,
+          "Col": 0,
+          "Offset": 0
+        }
+      }
     }
   ]
 }
