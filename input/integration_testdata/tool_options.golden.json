@@ -10,13 +10,13 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
-          "Line": 0,
+          "Line": 1,
           "Col": 0,
-          "Offset": 0
+          "Offset": 38
         }
       }
     },
@@ -41,14 +41,14 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 3,
+          "Col": 1,
+          "Offset": 75
         },
         "End": {
-          "Line": 0,
+          "Line": 6,
           "Col": 0,
-          "Offset": 0
+          "Offset": 111
         }
       },
       "Identifier": "Controller",
@@ -67,14 +67,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 4,
+              "Col": 3,
+              "Offset": 96
             },
             "End": {
-              "Line": 0,
+              "Line": 5,
               "Col": 0,
-              "Offset": 0
+              "Offset": 109
             }
           }
         }
@@ -85,14 +85,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 6,
+          "Col": 1,
+          "Offset": 112
         },
         "End": {
-          "Line": 0,
+          "Line": 7,
           "Col": 0,
-          "Offset": 0
+          "Offset": 119
         }
       }
     }

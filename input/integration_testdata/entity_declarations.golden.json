@@ -7,28 +7,28 @@
       "Name": "EntityDeclarations",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 2,
+          "Col": 1,
+          "Offset": 18
         },
         "End": {
-          "Line": 0,
+          "Line": 3,
           "Col": 0,
-          "Offset": 0
+          "Offset": 46
         }
       }
     },
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 4,
+          "Col": 1,
+          "Offset": 48
         },
         "End": {
-          "Line": 0,
+          "Line": 9,
           "Col": 0,
-          "Offset": 0
+          "Offset": 111
         }
       },
       "Identifier": "User",
@@ -43,14 +43,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 5,
+              "Col": 3,
+              "Offset": 63
             },
             "End": {
-              "Line": 0,
+              "Line": 6,
               "Col": 0,
-              "Offset": 0
+              "Offset": 73
             }
           }
         },
@@ -63,14 +63,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 6,
+              "Col": 3,
+              "Offset": 76
             },
             "End": {
-              "Line": 0,
+              "Line": 7,
               "Col": 0,
-              "Offset": 0
+              "Offset": 88
             }
           }
         },
@@ -87,14 +87,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 7,
+              "Col": 3,
+              "Offset": 91
             },
             "End": {
-              "Line": 0,
+              "Line": 8,
               "Col": 0,
-              "Offset": 0
+              "Offset": 109
             }
           }
         }
@@ -103,14 +103,14 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 10,
+          "Col": 1,
+          "Offset": 113
         },
         "End": {
-          "Line": 0,
+          "Line": 13,
           "Col": 0,
-          "Offset": 0
+          "Offset": 181
         }
       },
       "Identifier": "Service",
@@ -141,14 +141,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 11,
+              "Col": 3,
+              "Offset": 157
             },
             "End": {
-              "Line": 0,
+              "Line": 12,
               "Col": 0,
-              "Offset": 0
+              "Offset": 179
             }
           }
         }
@@ -157,14 +157,14 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 14,
+          "Col": 1,
+          "Offset": 183
         },
         "End": {
-          "Line": 0,
+          "Line": 20,
           "Col": 0,
-          "Offset": 0
+          "Offset": 258
         }
       },
       "Identifier": "Status",
@@ -175,14 +175,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 15,
+              "Col": 3,
+              "Offset": 199
             },
             "End": {
-              "Line": 0,
+              "Line": 16,
               "Col": 0,
-              "Offset": 0
+              "Offset": 208
             }
           }
         },
@@ -207,14 +207,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 17,
+              "Col": 3,
+              "Offset": 238
             },
             "End": {
-              "Line": 0,
+              "Line": 18,
               "Col": 0,
-              "Offset": 0
+              "Offset": 245
             }
           }
         },
@@ -223,14 +223,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 18,
+              "Col": 3,
+              "Offset": 248
             },
             "End": {
-              "Line": 0,
+              "Line": 19,
               "Col": 0,
-              "Offset": 0
+              "Offset": 256
             }
           }
         }
@@ -260,14 +260,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 22,
+              "Col": 8,
+              "Offset": 300
             },
             "End": {
-              "Line": 0,
+              "Line": 23,
               "Col": 0,
-              "Offset": 0
+              "Offset": 308
             }
           },
           "LeadingTrivia": [
@@ -320,14 +320,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 23,
+              "Col": 8,
+              "Offset": 316
             },
             "End": {
-              "Line": 0,
+              "Line": 24,
               "Col": 0,
-              "Offset": 0
+              "Offset": 332
             }
           }
         }
@@ -353,14 +353,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 24,
+              "Col": 11,
+              "Offset": 343
             },
             "End": {
-              "Line": 0,
+              "Line": 25,
               "Col": 0,
-              "Offset": 0
+              "Offset": 352
             }
           }
         }
@@ -396,14 +396,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 27,
+                      "Col": 19,
+                      "Offset": 420
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 28,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 432
                     }
                   },
                   "LeadingTrivia": [
@@ -504,14 +504,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 28,
+                      "Col": 19,
+                      "Offset": 451
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 29,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 485
                     }
                   }
                 }
@@ -550,14 +550,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 30,
+          "Col": 1,
+          "Offset": 487
         },
         "End": {
-          "Line": 0,
+          "Line": 31,
           "Col": 0,
-          "Offset": 0
+          "Offset": 494
         }
       }
     }

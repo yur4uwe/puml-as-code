@@ -1,20 +1,20 @@
 {
-  "Name": "CommentsTrivia ' Trailing comment for diagram start",
+  "Name": "CommentsTrivia",
   "Statements": [
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "CommentsTrivia ' Trailing comment for diagram start",
+      "Name": "CommentsTrivia",
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
           "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Col": 25,
+          "Offset": 24
         }
       }
     },
@@ -34,6 +34,22 @@
         }
       },
       "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Trailing comment for diagram start",
+          "Span": {
+            "Start": {
+              "Line": 0,
+              "Col": 26,
+              "Offset": 25
+            },
+            "End": {
+              "Line": 1,
+              "Col": 0,
+              "Offset": 61
+            }
+          }
+        },
         {
           "Type": "COMMENT",
           "Literal": "This is a single line comment attached as leading to 'set'",
@@ -77,14 +93,14 @@
         {
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 7,
+              "Col": 5,
+              "Offset": 336
             },
             "End": {
-              "Line": 0,
+              "Line": 11,
               "Col": 0,
-              "Offset": 0
+              "Offset": 429
             }
           },
           "LeadingTrivia": [
@@ -117,14 +133,14 @@
               "Visibility": "public",
               "NodeSpan": {
                 "Start": {
-                  "Line": 0,
-                  "Col": 0,
-                  "Offset": 0
+                  "Line": 9,
+                  "Col": 7,
+                  "Offset": 413
                 },
                 "End": {
-                  "Line": 0,
+                  "Line": 10,
                   "Col": 0,
-                  "Offset": 0
+                  "Offset": 423
                 }
               },
               "LeadingTrivia": [
@@ -151,14 +167,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 5,
+          "Col": 1,
+          "Offset": 203
         },
         "End": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 11,
+          "Col": 2,
+          "Offset": 431
         }
       },
       "TrailingTrivia": [
@@ -199,14 +215,14 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 16,
+          "Col": 1,
+          "Offset": 530
         },
         "End": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 19,
+          "Col": 2,
+          "Offset": 690
         }
       },
       "LeadingTrivia": [
@@ -277,14 +293,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 17,
+              "Col": 3,
+              "Offset": 610
             },
             "End": {
-              "Line": 0,
+              "Line": 18,
               "Col": 0,
-              "Offset": 0
+              "Offset": 626
             }
           }
         }
@@ -302,7 +318,7 @@
       "MultRHS": null,
       "Body": 45,
       "RArrow": 62,
-      "Label": "invokes ' Trailing comment for relationship",
+      "Label": "invokes",
       "NodeSpan": {
         "Start": {
           "Line": 22,
@@ -339,17 +355,33 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 25,
+          "Col": 1,
+          "Offset": 886
         },
         "End": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 25,
+          "Col": 8,
+          "Offset": 893
         }
       },
       "LeadingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Trailing comment for relationship",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 27,
+              "Offset": 815
+            },
+            "End": {
+              "Line": 23,
+              "Col": 0,
+              "Offset": 850
+            }
+          }
+        },
         {
           "Type": "COMMENT",
           "Literal": "Leading comment for diagram end",

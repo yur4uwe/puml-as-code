@@ -8,13 +8,13 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
-          "Line": 0,
+          "Line": 1,
           "Col": 0,
-          "Offset": 0
+          "Offset": 20
         }
       }
     },
@@ -43,14 +43,14 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 0,
-                  "Col": 0,
-                  "Offset": 0
+                  "Line": 4,
+                  "Col": 1,
+                  "Offset": 39
                 },
                 "End": {
-                  "Line": 0,
+                  "Line": 9,
                   "Col": 0,
-                  "Offset": 0
+                  "Offset": 121
                 }
               },
               "Identifier": "Client",
@@ -65,14 +65,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 5,
+                      "Col": 3,
+                      "Offset": 65
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 6,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 77
                     }
                   }
                 },
@@ -89,14 +89,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 6,
+                      "Col": 3,
+                      "Offset": 80
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 7,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 91
                     }
                   }
                 },
@@ -122,14 +122,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 7,
+                      "Col": 3,
+                      "Offset": 94
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 8,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 119
                     }
                   }
                 }
@@ -172,14 +172,14 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 0,
-                  "Col": 0,
-                  "Offset": 0
+                  "Line": 10,
+                  "Col": 1,
+                  "Offset": 123
                 },
                 "End": {
-                  "Line": 0,
+                  "Line": 14,
                   "Col": 0,
-                  "Offset": 0
+                  "Offset": 177
                 }
               },
               "Identifier": "Server",
@@ -194,14 +194,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 11,
+                      "Col": 3,
+                      "Offset": 149
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 12,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 158
                     }
                   }
                 },
@@ -218,14 +218,14 @@
                   "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
-                      "Line": 0,
-                      "Col": 0,
-                      "Offset": 0
+                      "Line": 12,
+                      "Col": 3,
+                      "Offset": 161
                     },
                     "End": {
-                      "Line": 0,
+                      "Line": 13,
                       "Col": 0,
-                      "Offset": 0
+                      "Offset": 175
                     }
                   }
                 }
@@ -366,6 +366,7 @@
       }
     },
     {
+      "Kind": "relative",
       "Text": "Note on package entity",
       "Direction": "right",
       "Target": {
@@ -389,6 +390,7 @@
       }
     },
     {
+      "Kind": "relative",
       "Text": "Note on method parens",
       "Direction": "left",
       "Target": {
@@ -413,6 +415,7 @@
       }
     },
     {
+      "Kind": "relative",
       "Text": "Note on quoted signature",
       "Direction": "top",
       "Target": {
@@ -441,14 +444,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 23,
+          "Col": 1,
+          "Offset": 532
         },
         "End": {
-          "Line": 0,
+          "Line": 24,
           "Col": 0,
-          "Offset": 0
+          "Offset": 539
         }
       }
     }

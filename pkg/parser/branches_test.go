@@ -210,7 +210,7 @@ func TestParseEntity(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -357,7 +357,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}

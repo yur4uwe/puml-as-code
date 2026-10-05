@@ -34,7 +34,7 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (ast.VisibilityComm
 		cmd.Kind = ast.VisibilityCMDRestore
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
-	cmd.BaseNode.NodeSpan = p.Span(mark)
+	cmd.NodeSpan = p.Span(mark)
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return cmd, nil
 }
@@ -313,6 +313,7 @@ func wrapInContainers(ent ast.Entity, pkgPath []string) ast.Statement {
 
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
 func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
+	m := p.Mark(tok)
 	ent := &ast.Entity{
 		Kind: p.mapTokenToEntityKind(tok),
 		BaseNode: ast.BaseNode{
@@ -369,8 +370,10 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 
 	ent.Color = p.tryParseColor()
 
-	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
+	if tok, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
 		// No body return entity as is
+		ent.NodeSpan = p.SpanTo(m, tok)
+		p.stream.EmitCommentToks()
 		ent.TrailingTrivia = p.stream.DumpCollectedTrivia()
 		return wrapInContainers(*ent, pkgPath), nil
 	}
@@ -396,6 +399,8 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 
 		ent.Members = append(ent.Members, member)
 	}
+
+	ent.NodeSpan = p.Span(m)
 
 	p.stream.EmitCommentToks()
 
@@ -465,6 +470,7 @@ func (p *Parser) parseFieldOrMethod(mod *string, vis ast.VisibilityKind, entryTo
 	mustBeMethod := false
 	containsLParen := false
 	var mods []string = nil
+	m := p.Mark(entryTok)
 
 	if mod != nil {
 		switch *mod {
@@ -522,6 +528,8 @@ outer:
 		}
 	}
 
+	span := p.Span(m)
+
 	if mustBeField && mustBeMethod {
 		return nil, NewParserError(
 			"Cannot be field and method at the same time",
@@ -537,6 +545,7 @@ outer:
 		Modifiers:      mods,
 		LeadingTrivia:  leadingTrivia,
 		TrailingTrivia: trailingTrivia,
+		MemberSpan:     span,
 	}
 	if isMethod {
 		return p.Dialect.ParseMethod(entry, &opts)
@@ -777,7 +786,7 @@ func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
 			return note, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok)
 		}
 	}
-	note.BaseNode.NodeSpan = p.Span(mark)
+	note.NodeSpan = p.Span(mark)
 	p.stream.EmitCommentToks()
 	closingTrivia := p.stream.DumpCollectedTrivia()
 	note.TrailingTrivia = append(note.TrailingTrivia, closingTrivia...)
@@ -916,7 +925,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 		break
 	case tokenizer.COLON:
 		p.stream.Emit()
-		rel.Label = p.stream.ReadRawUntilNewline()
+		rel.Label = p.stream.ReadUntilNewline()
 	default:
 		return rel, NewParserError("Expected newline or colon after relationship", endingToken)
 	}
@@ -1432,7 +1441,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		// We must consume newline as per ConsumeUntilType contract
 		p.stream.MustConsumeType(tokenizer.NEWLINE)
 
-		body = p.stream.SliceInputBetweenTokens(lineContentToks...)
+		body = p.stream.SliceInputEnclosingTokens(lineContentToks...)
 	}
 
 	block.BaseNode.NodeSpan = p.Span(mark)

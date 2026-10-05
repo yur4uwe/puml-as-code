@@ -8,13 +8,13 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
-          "Line": 0,
+          "Line": 1,
           "Col": 0,
-          "Offset": 0
+          "Offset": 29
         }
       }
     },
@@ -361,14 +361,14 @@
         {
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 54,
+              "Col": 3,
+              "Offset": 1020
             },
             "End": {
-              "Line": 0,
+              "Line": 58,
               "Col": 0,
-              "Offset": 0
+              "Offset": 1097
             }
           },
           "Identifier": "AuthService",
@@ -383,14 +383,14 @@
               "Visibility": "public",
               "NodeSpan": {
                 "Start": {
-                  "Line": 0,
-                  "Col": 0,
-                  "Offset": 0
+                  "Line": 55,
+                  "Col": 5,
+                  "Offset": 1044
                 },
                 "End": {
-                  "Line": 0,
+                  "Line": 56,
                   "Col": 0,
-                  "Offset": 0
+                  "Offset": 1057
                 }
               }
             },
@@ -416,14 +416,14 @@
               "Visibility": "public",
               "NodeSpan": {
                 "Start": {
-                  "Line": 0,
-                  "Col": 0,
-                  "Offset": 0
+                  "Line": 56,
+                  "Col": 5,
+                  "Offset": 1062
                 },
                 "End": {
-                  "Line": 0,
+                  "Line": 57,
                   "Col": 0,
-                  "Offset": 0
+                  "Offset": 1093
                 }
               }
             }
@@ -432,28 +432,28 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 45,
+          "Col": 1,
+          "Offset": 830
         },
         "End": {
-          "Line": 0,
+          "Line": 59,
           "Col": 0,
-          "Offset": 0
+          "Offset": 1099
         }
       }
     },
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 60,
+          "Col": 1,
+          "Offset": 1101
         },
         "End": {
-          "Line": 0,
+          "Line": 63,
           "Col": 0,
-          "Offset": 0
+          "Offset": 1148
         }
       },
       "Identifier": "UserStore",
@@ -481,14 +481,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 61,
+              "Col": 3,
+              "Offset": 1121
             },
             "End": {
-              "Line": 0,
+              "Line": 62,
               "Col": 0,
-              "Offset": 0
+              "Offset": 1146
             }
           }
         }
@@ -525,14 +525,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 66,
+          "Col": 1,
+          "Offset": 1187
         },
         "End": {
-          "Line": 0,
+          "Line": 67,
           "Col": 0,
-          "Offset": 0
+          "Offset": 1194
         }
       }
     }

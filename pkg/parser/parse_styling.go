@@ -85,7 +85,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 	}
 
 	toks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.SEMICOLON)
-	value := p.stream.SliceInputBetweenTokens(toks...)
+	value := p.stream.SliceInputEnclosingTokens(toks...)
 	span := p.Span(mark)
 	p.stream.TryConsumeType(tokenizer.SEMICOLON)
 	p.stream.EmitCommentToks()
@@ -193,7 +193,7 @@ func (p *Parser) getSelectors(startTok tokenizer.Token) ([]string, error) {
 	// LBRACE is canonocal syntax but leave newline for error recovery
 	toks := p.stream.ConsumeUntilType(tokenizer.LBRACE, tokenizer.NEWLINE)
 	toks = append([]tokenizer.Token{startTok}, toks...)
-	headerText := p.stream.SliceInputBetweenTokens(toks...)
+	headerText := p.stream.SliceInputEnclosingTokens(toks...)
 
 	var selectors []string
 	for _, part := range strings.Split(headerText, ",") {
@@ -260,7 +260,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 			return currentRule, NewParserError("Expected value after style declaration", p.stream.PeekRawTokenAt(0))
 		}
 
-		val := p.stream.SliceInputBetweenTokens(toks...)
+		val := p.stream.SliceInputEnclosingTokens(toks...)
 		semicolonTok, hasSemicolon := p.stream.TryConsumeType(tokenizer.SEMICOLON)
 		var span tokenizer.SourceSpan
 		if hasSemicolon {
@@ -302,4 +302,3 @@ func (p *Parser) hasLBraceOnLine() bool {
 		}
 	}
 }
-

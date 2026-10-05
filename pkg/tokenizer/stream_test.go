@@ -181,7 +181,7 @@ func TestStreamReadUntilNewline(t *testing.T) {
 	require.Equal(t, "foo bar  baz", line)
 
 	ts2 := NewTokenStream("foo bar /' comment '/ baz\nnext")
-	lineRaw := ts2.ReadRawUntilNewline()
+	lineRaw := ts2.ReadUntilNewline()
 	require.Equal(t, "foo bar  comment  baz", lineRaw)
 }
 

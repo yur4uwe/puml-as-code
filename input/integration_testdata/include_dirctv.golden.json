@@ -6,13 +6,13 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
-          "Line": 0,
+          "Line": 1,
           "Col": 0,
-          "Offset": 0
+          "Offset": 9
         }
       }
     },
@@ -114,14 +114,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 9,
+          "Col": 1,
+          "Offset": 221
         },
         "End": {
-          "Line": 0,
+          "Line": 10,
           "Col": 0,
-          "Offset": 0
+          "Offset": 228
         }
       }
     }

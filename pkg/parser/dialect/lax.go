@@ -26,6 +26,7 @@ func (l LaxDialect) ParseField(toks []tokenizer.Token, options *MemberOptions) (
 		Modifiers:  options.Modifiers,
 		Visibility: options.Visibility,
 		BaseNode: ast.BaseNode{
+			NodeSpan:       options.MemberSpan,
 			LeadingTrivia:  options.LeadingTrivia,
 			TrailingTrivia: options.TrailingTrivia,
 		},
@@ -39,6 +40,7 @@ func (l LaxDialect) ParseMethod(toks []tokenizer.Token, options *MemberOptions) 
 		Modifiers:  options.Modifiers,
 		Visibility: options.Visibility,
 		BaseNode: ast.BaseNode{
+			NodeSpan:       options.MemberSpan,
 			LeadingTrivia:  options.LeadingTrivia,
 			TrailingTrivia: options.TrailingTrivia,
 		},

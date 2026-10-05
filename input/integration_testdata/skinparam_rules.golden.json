@@ -8,13 +8,13 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 0,
+          "Col": 1,
           "Offset": 0
         },
         "End": {
-          "Line": 0,
+          "Line": 1,
           "Col": 0,
-          "Offset": 0
+          "Offset": 24
         }
       }
     },
@@ -121,14 +121,14 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 11,
+          "Col": 1,
+          "Offset": 193
         },
         "End": {
-          "Line": 0,
+          "Line": 14,
           "Col": 0,
-          "Offset": 0
+          "Offset": 225
         }
       },
       "Identifier": "Service",
@@ -147,14 +147,14 @@
           "Visibility": "public",
           "NodeSpan": {
             "Start": {
-              "Line": 0,
-              "Col": 0,
-              "Offset": 0
+              "Line": 12,
+              "Col": 3,
+              "Offset": 211
             },
             "End": {
-              "Line": 0,
+              "Line": 13,
               "Col": 0,
-              "Offset": 0
+              "Offset": 223
             }
           }
         }
@@ -165,14 +165,14 @@
       "Type": "uml",
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 14,
+          "Col": 1,
+          "Offset": 226
         },
         "End": {
-          "Line": 0,
+          "Line": 15,
           "Col": 0,
-          "Offset": 0
+          "Offset": 233
         }
       }
     }

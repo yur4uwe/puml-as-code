@@ -167,7 +167,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	if !p.stream.AssertType(tokenizer.LPAREN) && !p.stream.AssertType(tokenizer.LBRACE) {
-		diag.Name = p.stream.ReadRawUntilNewline()
+		diag.Name = p.stream.ReadUntilNewline()
 		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
@@ -206,7 +206,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	if !p.stream.AssertType(tokenizer.LBRACE) {
-		diag.Name = p.stream.ReadRawUntilNewline()
+		diag.Name = p.stream.ReadUntilNewline()
 		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}

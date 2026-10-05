@@ -2,7 +2,6 @@
 package formatter
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -225,9 +224,6 @@ func (s *fState) emitRawSpan(span tokenizer.SourceSpan) {
 			currLine = append(currLine, inputSpan[i])
 		}
 	}
-
-	fmt.Println("Local line indents", localLineIndents)
-	fmt.Println("indent", s.getIndent())
 
 	for i, line := range inputLines {
 		if i == 0 {

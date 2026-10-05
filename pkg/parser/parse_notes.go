@@ -9,14 +9,20 @@ import (
 )
 
 func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error {
+	note.Kind = ast.NoteRelative
 	note.Direction = p.mapTokenToDirection(dirTok)
 	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
 		target, err := p.parseTargetRef(p.stream.Emit()) // consume target
 		if err != nil {
 			return err
 		}
-		if strings.ToLower(target.Entity) != "link" && relativeTok.Literal == "on" {
-			return NewParserError("Unexpected identifier for a note link target", relativeTok)
+		if relativeTok.Literal == "on" {
+			if strings.ToLower(target.Entity) != "link" {
+				return NewParserError("Unexpected identifier for a note link target", relativeTok)
+			}
+			note.Kind = ast.NoteLink
+		} else {
+			note.Kind = ast.NoteRelative
 		}
 		note.Target = &target
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
@@ -28,6 +34,7 @@ func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error
 
 func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) error {
 	note.Text = stringTok.Literal
+	note.Kind = ast.NoteInlineAlias
 	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return NewParserError("Expected alias keyword after note text", aliasTok)
 	}
@@ -44,6 +51,7 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 }
 
 func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
+	note.Kind = ast.NoteFloatingAlias
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
 		return NewParserError("Expected identifier after alias keyword", tok)
@@ -63,6 +71,7 @@ func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
 		return NewParserError("Expected 'link' after 'note on'", onTok)
 	}
 	note.Target = &ast.TargetRef{Entity: "link"}
+	note.Kind = ast.NoteLink
 	p.tryParseColor()
 	return p.parseNoteBody(note)
 }

@@ -199,12 +199,70 @@ const (
 	DirectionBottom
 )
 
+//go:generate enumer -type=NoteKind -transform=lower -trimprefix=Note -json
+type NoteKind int
+
+const (
+	NoteUnknown NoteKind = iota
+
+	// NoteInlineAlias represents a single-line note defined with a string literal and alias.
+	//
+	// Syntax:
+	//   note "Text" as <alias> [#color]
+	//
+	// Example:
+	//   note "Active connection" as N1
+	NoteInlineAlias
+
+	// NoteFloatingAlias represents a standalone multiline note block identified by an alias.
+	//
+	// Syntax:
+	//   note as <alias> [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note as N2
+	//     This is a floating note
+	//   end note
+	NoteFloatingAlias
+
+	// NoteRelative represents a note positioned relative to an entity (or previous statement).
+	//
+	// Syntax (single-line):
+	//   note <left|right|top|bottom> [of|on <target>] [#color] : <text>
+	//
+	// Syntax (multiline):
+	//   note <left|right|top|bottom> [of|on <target>] [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note left of User : Authenticated via OAuth
+	NoteRelative
+
+	// NoteLink represents a note attached to the preceding or active relationship link.
+	//
+	// Syntax (single-line):
+	//   note on link [#color] : <text>
+	//
+	// Syntax (multiline):
+	//   note on link [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note on link : TLS Encrypted
+	NoteLink
+)
+
 type Note struct {
+	Kind       NoteKind      `json:",omitempty"`
 	Text       string        `json:",omitempty"`
 	Direction  DirectionKind `json:",omitempty"`
-	Target     *TargetRef
-	Color      string `json:",omitempty"`
-	Identifier string `json:",omitempty"`
+	Target     *TargetRef    `json:",omitempty"`
+	Color      string        `json:",omitempty"`
+	Identifier string        `json:",omitempty"`
 	BaseNode
 }
 

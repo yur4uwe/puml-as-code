@@ -418,47 +418,12 @@ func (ts *TokenStream) collectUntilNewline(emitter func() Token) []Token {
 }
 
 func (ts *TokenStream) ReadUntilNewline() string {
-	toks := ts.collectUntilNewline(ts.EmitRaw)
+	toks := ts.ConsumeUntilType(NEWLINE)
 	if len(toks) == 0 {
 		return ""
 	}
 
-	var filtered []Token
-	for _, tok := range toks {
-		if tok.Type == COMMENT {
-			break
-		}
-		if tok.Type == NEWLINE || tok.Type == EOF {
-			continue
-		}
-		filtered = append(filtered, tok)
-	}
-
-	return strings.TrimSpace(ts.TokensToString(filtered))
-}
-
-func (ts *TokenStream) ReadRawUntilNewline() string {
-	toks := ts.collectUntilNewline(ts.EmitRaw)
-	if len(toks) == 0 {
-		return ""
-	}
-
-	var collected []Token
-	for _, tok := range toks {
-		if tok.Type == NEWLINE || tok.Type == EOF {
-			continue
-		}
-		collected = append(collected, tok)
-	}
-
-	if len(collected) == 0 {
-		return ""
-	}
-
-	start := collected[0].Span.Start.Offset
-	end := ts.PeekRawTokenAt(0).Span.Start.Offset
-	str := string(ts.lexer.input[start:end])
-	return strings.TrimSpace(str)
+	return ts.SliceInputEnclosingTokens(toks...)
 }
 
 // ReadBlock assumes that end tokens are first in the line
@@ -492,7 +457,7 @@ func (ts *TokenStream) SliceInput(start, end uint) string {
 	return string(ts.lexer.input[start:end])
 }
 
-func (ts *TokenStream) SliceInputBetweenTokens(toks ...Token) string {
+func (ts *TokenStream) SliceInputEnclosingTokens(toks ...Token) string {
 	span, ok := TokenSliceSpan(toks)
 	if !ok {
 		return ""
