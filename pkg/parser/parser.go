@@ -180,48 +180,28 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.EXCLAMATION {
-		stmt, err := p.parseDirective(tok)
-		if err != nil {
-			return nil, err
-		}
-		return stmt, nil
+		return p.parseDirective(tok)
 	}
 
 	if p.HasArrowOnLine() {
-		rel, err := p.parseRelationship(tok)
-		if err != nil {
-			return nil, err
-		}
-		return rel, nil
+		return p.parseRelationship(tok)
 	}
 
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		stmt, err := p.parseLayoutStatement(tok, nil)
-		if err != nil {
-			return nil, err
-		}
-		return stmt, nil
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		nextKW := keyword.Classify(nextTok.Literal)
 		if nextKW == keyword.Header || nextKW == keyword.Footer || nextKW == keyword.Legend || nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			stmt, err := p.parseLayoutStatement(actualKwTok, &tok)
-			if err != nil {
-				return nil, err
-			}
-			return stmt, nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		}
 		return nil, NewParserError("Unexpected direction keyword in container", tok)
 	case keyword.Caption, keyword.Sprite:
-		stmt, err := p.parseUnhandled(tok)
-		if err != nil {
-			return nil, err
-		}
-		return stmt, nil
+		return p.parseUnhandled(tok)
 	case keyword.Class,
 		keyword.Interface,
 		keyword.Struct,
@@ -234,11 +214,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Protocol,
 		keyword.Entity:
 		// Class-like Entities
-		ent, err := p.parseEntity(tok)
-		if err != nil {
-			return nil, err
-		}
-		return ent, nil
+		return p.parseEntity(tok)
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -249,29 +225,17 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		cont, err := p.parseContainer(tok)
-		if err != nil {
-			return nil, err
-		}
-		return cont, nil
+		return p.parseContainer(tok)
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
 		return nil, NewParserError("unimplemented entity keyword handling", tok)
 	// Special Keywords
 	case keyword.Note:
-		note, err := p.parseNote(tok)
-		if err != nil {
-			return nil, err
-		}
-		return note, nil
+		return p.parseNote(tok)
 	}
 
 	switch tok.Type {
 	case tokenizer.IDENTIFIER:
-		stmt, err := p.parseInlineMember(tok)
-		if err != nil {
-			return nil, err
-		}
-		return stmt, nil
+		return p.parseInlineMember(tok)
 	default:
 		return nil, nil
 	}

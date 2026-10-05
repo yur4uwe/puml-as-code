@@ -127,6 +127,8 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		return ast.DiagramBound{}, fmt.Errorf("expected @ at diagram bounds start, got %s", atTok.Type)
 	}
 
+	m := p.Mark(atTok)
+
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
 		return ast.DiagramBound{}, fmt.Errorf("expected identifier at diagram bounds, got %s", tok.Type)
@@ -160,11 +162,13 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		}
 		diag.IsStart = false
 		diag.Type = typ
+		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
 
 	if !p.stream.AssertType(tokenizer.LPAREN) && !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.Name = p.stream.ReadRawUntilNewline()
+		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
 
@@ -203,6 +207,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 
 	if !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.Name = p.stream.ReadRawUntilNewline()
+		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
 
@@ -242,6 +247,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		return diag, fmt.Errorf("expected newline after diagram bounds")
 	}
 
+	diag.NodeSpan = p.Span(m)
 	return diag, nil
 }
 

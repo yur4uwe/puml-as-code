@@ -19,9 +19,9 @@ type Member interface {
 }
 
 type BaseNode struct {
-	NodeSpan       tokenizer.SourceSpan `json:",omitempty"`
-	LeadingTrivia  []tokenizer.Token    `json:",omitempty"`
-	TrailingTrivia []tokenizer.Token    `json:",omitempty"`
+	NodeSpan       tokenizer.SourceSpan
+	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
+	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
 func (bn BaseNode) GetLeadingTrivia() []tokenizer.Token  { return bn.LeadingTrivia }

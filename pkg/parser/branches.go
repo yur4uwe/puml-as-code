@@ -546,6 +546,7 @@ outer:
 }
 
 func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
+	m := p.Mark(tok)
 	containerClass := keyword.Classify(tok.Literal)
 	container := ast.Container{
 		Kind: p.mapKeywordToContainerKind(containerClass),
@@ -616,6 +617,8 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 		}
 		container.Statements = append(container.Statements, stmt)
 	}
+
+	container.NodeSpan = p.Span(m)
 
 	p.stream.EmitCommentToks()
 	if closingTrivia := p.stream.DumpCollectedTrivia(); len(closingTrivia) > 0 {
