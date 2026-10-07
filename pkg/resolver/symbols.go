@@ -35,7 +35,7 @@ func classifyHead(arrow rune) HeadKind {
 type SymbolTable struct {
 	Entities      []*EntitySymbol
 	Relationships []*RelationshipSymbol
-	Notes         []*ast.Note // Floating or unlinked notes
+	Notes         []*ast.InlineNote // Floating or unlinked notes
 
 	// Lookup by identifier, alias, or qualified name
 	lookup map[string]*EntitySymbol
@@ -121,8 +121,8 @@ type EntitySymbol struct {
 	FQN         string
 	PackagePath []string
 	AST         *ast.Entity
-	Notes       []*ast.Note
-	MemberNotes map[string][]*ast.Note
+	Notes       []*ast.InlineNote
+	MemberNotes map[string][]*ast.InlineNote
 }
 
 func FQN(name string, pkgPath []string) string {
@@ -147,7 +147,7 @@ type RelationshipSymbol struct {
 	SourceMult ast.Cardinality
 	TargetMult ast.Cardinality
 	Type       ast.RelationType
-	Notes      []*ast.Note // Notes on the relationship/link
+	Notes      []*ast.InlineNote // Notes on the relationship/link
 }
 
 func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship, pkgPath []string) (*RelationshipSymbol, error) {
@@ -248,11 +248,11 @@ func createImplicitEntity(ref ast.TargetRef, pkgPath []string) *EntitySymbol {
 	return implicitEntity
 }
 
-func attachNote(tbl *SymbolTable, noteRef, noteTargetRef ast.TargetRef, note *ast.Note, noteLookup map[string]*ast.Note, pkgPath []string) {
+func attachNote(tbl *SymbolTable, noteRef, noteTargetRef ast.TargetRef, note *ast.InlineNote, noteLookup map[string]*ast.InlineNote, pkgPath []string) {
 	noteTarget := tbl.FindOrCreateByRef(noteTargetRef, pkgPath)
 	if noteTargetRef.Member != "" {
 		if noteTarget.MemberNotes == nil {
-			noteTarget.MemberNotes = make(map[string][]*ast.Note)
+			noteTarget.MemberNotes = make(map[string][]*ast.InlineNote)
 		}
 		noteTarget.MemberNotes[noteTargetRef.Member] = append(noteTarget.MemberNotes[noteTargetRef.Member], note)
 	} else {
@@ -290,7 +290,7 @@ func mergeEntity(target *ast.Entity, incoming *ast.Entity) error {
 	return nil
 }
 
-func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) error {
+func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.InlineNote, namedNotes *[]*ast.InlineNote) error {
 	var prevRelationship *RelationshipSymbol
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
@@ -313,41 +313,49 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 			if err := resolveStatements(tbl, s.Statements, childPkgPath, noteLookup, namedNotes); err != nil {
 				return err
 			}
-		case ast.Note:
+		case ast.InlineNote, ast.BlockNote:
+			var note ast.InlineNote
+			switch n := s.(type) {
+			case ast.InlineNote:
+				note = n
+			case ast.BlockNote:
+				note = ast.InlineNote(n)
+			}
+
 			// get rid of the link notes
-			if s.Target != nil && s.Target.Entity == "link" {
+			if note.Target != nil && note.Target.Entity == "link" {
 				if prevRelationship == nil {
-					return fmt.Errorf("no relationship found for link note %s", s.Text)
+					return fmt.Errorf("no relationship found for link note %s", note.Text)
 				}
-				prevRelationship.Notes = append(prevRelationship.Notes, &s)
+				prevRelationship.Notes = append(prevRelationship.Notes, &note)
 				continue
 			}
 
 			// get rid of the referenced notes
-			if s.Identifier != "" {
-				noteLookup[s.Identifier] = &s
-				*namedNotes = append(*namedNotes, &s)
+			if note.Identifier != "" {
+				noteLookup[note.Identifier] = &note
+				*namedNotes = append(*namedNotes, &note)
 				continue
 			}
 
 			// get rid of targeted notes
-			if s.Target != nil {
-				target := tbl.LookupByRef(*s.Target, pkgPath)
+			if note.Target != nil {
+				target := tbl.LookupByRef(*note.Target, pkgPath)
 				if target == nil {
-					return fmt.Errorf("no entity found for targeted note %v", s)
+					return fmt.Errorf("no entity found for targeted note %v", note)
 				}
-				if s.Target.Member != "" {
+				if note.Target.Member != "" {
 					if target.MemberNotes == nil {
-						target.MemberNotes = make(map[string][]*ast.Note)
+						target.MemberNotes = make(map[string][]*ast.InlineNote)
 					}
-					target.MemberNotes[s.Target.Member] = append(target.MemberNotes[s.Target.Member], &s)
+					target.MemberNotes[note.Target.Member] = append(target.MemberNotes[note.Target.Member], &note)
 					continue
 				}
-				target.Notes = append(target.Notes, &s)
+				target.Notes = append(target.Notes, &note)
 				continue
 			}
 
-			tbl.Notes = append(tbl.Notes, &s)
+			tbl.Notes = append(tbl.Notes, &note)
 		case ast.Relationship:
 			rel, err := newRelationshipSymbol(tbl, &s, pkgPath)
 			if err != nil {
@@ -374,8 +382,8 @@ func ResolveSymbols(diagram *ast.Diagram) (*SymbolTable, error) {
 	tbl := &SymbolTable{
 		lookup: map[string]*EntitySymbol{},
 	}
-	noteLookup := map[string]*ast.Note{}
-	var namedNotes []*ast.Note
+	noteLookup := map[string]*ast.InlineNote{}
+	var namedNotes []*ast.InlineNote
 	err := resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
 	if err != nil {
 		return nil, err

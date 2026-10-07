@@ -93,7 +93,7 @@ func (GoCodeGenerator) GenerateFromClassDiagram(tbl *resolver.SymbolTable) ([]*G
 			}
 		} else {
 			targetView := getRootOrFirstView(viewMap)
-			nv := toNotesView([]*ast.Note{note})
+			nv := toNotesView([]*ast.InlineNote{note})
 			targetView.FileNotes = append(targetView.FileNotes, nv.Notes...)
 		}
 	}

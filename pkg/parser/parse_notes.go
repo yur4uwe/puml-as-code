@@ -8,7 +8,21 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error {
+func (p *Parser) finishInline(mark Mark, n ast.InlineNote) (ast.InlineNote, error) {
+	n.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
+	n.TrailingTrivia = append(n.TrailingTrivia, p.stream.DumpCollectedTrivia()...)
+	return n, nil
+}
+
+func (p *Parser) finishBlock(mark Mark, n ast.BlockNote) (ast.BlockNote, error) {
+	n.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
+	n.TrailingTrivia = append(n.TrailingTrivia, p.stream.DumpCollectedTrivia()...)
+	return n, nil
+}
+
+func (p *Parser) parseRelativeOrLinkNoteHeader(note *ast.InlineNote, dirTok tokenizer.Token) error {
 	note.Kind = ast.NoteRelative
 	note.Direction = p.mapTokenToDirection(dirTok)
 	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
@@ -29,12 +43,12 @@ func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error
 		return NewParserError(tok, "Unexpected identifier after direction")
 	}
 	p.tryParseColor()
-	return p.parseNoteBody(note)
+	return nil
 }
 
-func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) error {
+func (p *Parser) parseInlineIdentNoteHeader(note *ast.InlineNote, stringTok tokenizer.Token) error {
 	note.Text = stringTok.Literal
-	note.Kind = ast.NoteInlineAlias
+	note.Kind = ast.NoteAlias
 	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
 		return NewParserError(aliasTok, "Expected alias keyword after note text")
 	}
@@ -50,20 +64,21 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 	return nil
 }
 
-func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
-	note.Kind = ast.NoteFloatingAlias
+func (p *Parser) parseMultilineAliasNoteHeader(note *ast.BlockNote) error {
+	note.Kind = ast.NoteAlias
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
 		return NewParserError(tok, "Expected identifier after alias keyword")
 	}
+	note.Identifier = tok.Literal
 	p.tryParseColor()
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		return NewParserError(tok, "Expected newline after alias keyword")
 	}
-	return p.parseNoteBody(note)
+	return nil
 }
 
-func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
+func (p *Parser) parseLinkNoteHeader(note *ast.InlineNote, onTok tokenizer.Token) error {
 	if onTok.Literal != "on" {
 		return NewParserError(onTok, "Unexpected identifier after 'note'")
 	}
@@ -73,26 +88,27 @@ func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
 	note.Target = &ast.TargetRef{Entity: "link"}
 	note.Kind = ast.NoteLink
 	p.tryParseColor()
-	return p.parseNoteBody(note)
+	return nil
 }
 
-func (p *Parser) parseNoteBody(note *ast.Note) error {
+func (p *Parser) parseNoteBodyAndFinish(mark Mark, note ast.InlineNote) (ast.Statement, error) {
 	tok := p.stream.PeekTokenAt(0)
 	switch tok.Type {
 	case tokenizer.COLON:
 		p.stream.Emit()
 		note.Text = p.stream.ReadUntilNewline()
-		return nil
+		return p.finishInline(mark, note)
 	case tokenizer.NEWLINE:
 		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
 		body, err := p.stream.ConsumeTextBlock("end", "note")
 		if err != nil {
-			return err
+			return nil, err
 		}
-		note.Text = body
-		return nil
+		bn := ast.BlockNote(note)
+		bn.Text = body
+		return p.finishBlock(mark, bn)
 	default:
 		p.stream.Emit()
-		return NewParserError(tok, "Expected ':' or newline after note definition")
+		return nil, NewParserError(tok, "Expected ':' or newline after note definition")
 	}
 }

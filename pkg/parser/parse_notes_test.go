@@ -14,7 +14,7 @@ func TestParseNote(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string
-		want        *ast.Note
+		want        ast.Statement
 		expectErr   bool
 		errContains string
 	}{
@@ -22,7 +22,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note left with colon",
 			input: "note left : some note text\n",
-			want: &ast.Note{
+			want: ast.InlineNote{
 				Kind:      ast.NoteRelative,
 				Text:      "some note text",
 				Direction: ast.DirectionLeft,
@@ -31,7 +31,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note right of target with colon",
 			input: "note right of MyClass : some note text\n",
-			want: &ast.Note{
+			want: ast.InlineNote{
 				Kind:      ast.NoteRelative,
 				Text:      "some note text",
 				Direction: ast.DirectionRight,
@@ -41,7 +41,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note top of target with color and colon",
 			input: "note top of MyClass #green : some note text\n",
-			want: &ast.Note{
+			want: ast.InlineNote{
 				Kind:      ast.NoteRelative,
 				Text:      "some note text",
 				Direction: ast.DirectionTop,
@@ -51,7 +51,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note bottom on link with colon",
 			input: "note bottom on link : some note text\n",
-			want: &ast.Note{
+			want: ast.InlineNote{
 				Kind:      ast.NoteLink,
 				Text:      "some note text",
 				Direction: ast.DirectionBottom,
@@ -61,7 +61,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note left with multiline",
 			input: "note left\nsome note text\nend note\n",
-			want: &ast.Note{
+			want: ast.BlockNote{
 				Kind:      ast.NoteRelative,
 				Text:      "some note text",
 				Direction: ast.DirectionLeft,
@@ -70,7 +70,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "relative note left of target multiline",
 			input: "note left of MyClass\nsome note text\nend note",
-			want: &ast.Note{
+			want: ast.BlockNote{
 				Kind:      ast.NoteRelative,
 				Text:      "some note text",
 				Direction: ast.DirectionLeft,
@@ -100,8 +100,8 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "inline alias note",
 			input: `note "some note text" as N1`,
-			want: &ast.Note{
-				Kind:       ast.NoteInlineAlias,
+			want: ast.InlineNote{
+				Kind:       ast.NoteAlias,
 				Text:       "some note text",
 				Identifier: "N1",
 			},
@@ -109,8 +109,8 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "inline alias note with color",
 			input: `note "some note text" as N1 #blue`,
-			want: &ast.Note{
-				Kind:       ast.NoteInlineAlias,
+			want: ast.InlineNote{
+				Kind:       ast.NoteAlias,
 				Text:       "some note text",
 				Identifier: "N1",
 			},
@@ -150,9 +150,10 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "multiline alias note with newline",
 			input: "note as N1\nsome note text\nend note",
-			want: &ast.Note{
-				Kind: ast.NoteFloatingAlias,
-				Text: "some note text",
+			want: ast.BlockNote{
+				Kind:       ast.NoteAlias,
+				Identifier: "N1",
+				Text:       "some note text",
 			},
 		},
 
@@ -160,7 +161,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "link note on link with colon",
 			input: "note on link : some note text\n",
-			want: &ast.Note{
+			want: ast.InlineNote{
 				Kind:   ast.NoteLink,
 				Text:   "some note text",
 				Target: &ast.TargetRef{Entity: "link"},
@@ -169,7 +170,7 @@ func TestParseNote(t *testing.T) {
 		{
 			name:  "link note on link multiline",
 			input: "note on link\nsome note text\nend note",
-			want: &ast.Note{
+			want: ast.BlockNote{
 				Kind:   ast.NoteLink,
 				Text:   "some note text",
 				Target: &ast.TargetRef{Entity: "link"},
@@ -220,7 +221,7 @@ func TestParseNote(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				assertASTEqual(t, *tc.want, note)
+				assertASTEqual(t, tc.want, note)
 			}
 		})
 	}

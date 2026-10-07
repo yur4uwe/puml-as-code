@@ -122,8 +122,10 @@ func (s *fState) prettyPrint(stmt ast.Statement) {
 		s.printContainer(st)
 	case ast.Relationship:
 		s.printRelationship(st)
-	case ast.Note:
-		s.printNote(st)
+	case ast.InlineNote:
+		s.printInlineNote(st)
+	case ast.BlockNote:
+		s.printBlockNote(st)
 	case ast.StyleDeclaration:
 		s.printStyleDeclaration(st)
 	case ast.StyleRule:

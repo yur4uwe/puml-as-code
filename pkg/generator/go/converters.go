@@ -335,7 +335,7 @@ func toMethodView(owner *resolver.EntitySymbol, method *dialect.GoMethod, fileVi
 	}
 }
 
-func toNotesView(note []*ast.Note) NotesView {
+func toNotesView(note []*ast.InlineNote) NotesView {
 	var notes []string
 	for _, n := range note {
 		raw := strings.TrimSpace(n.Text)

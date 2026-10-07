@@ -4,10 +4,70 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
-func (s *fState) printNote(note ast.Note) {
+func (s *fState) printInlineNote(note ast.InlineNote) {
 	s.buf.WriteString("note ")
+	switch note.Kind {
+	case ast.NoteAlias:
+		s.buf.WriteByte('"')
+		s.buf.WriteString(note.Text)
+		s.buf.WriteByte('"')
+		s.buf.WriteString(" as ")
+		s.buf.WriteString(note.Identifier)
+	case ast.NoteRelative:
+		s.buf.WriteString(note.Direction.String())
+		if note.Target != nil {
+			s.buf.WriteString(" of ")
+			s.buf.WriteString(note.Target.FQN())
+		}
+	case ast.NoteLink:
+		if note.Direction != ast.DirectionUnknown {
+			s.buf.WriteString(note.Direction.String())
+			s.buf.WriteByte(' ')
+		}
+		s.buf.WriteString("on link")
+	default:
+		panic("unreachable")
+	}
+	if note.Color != "" {
+		s.buf.WriteByte(' ')
+		s.buf.WriteString(note.Color)
+	}
+	if note.Kind != ast.NoteAlias {
+		s.buf.WriteString(" : ")
+		s.buf.WriteString(note.Text)
+	}
+	s.buf.WriteString("\n")
+}
+
+func (s *fState) printBlockNote(note ast.BlockNote) {
+	s.buf.WriteString("note ")
+	switch note.Kind {
+	case ast.NoteAlias:
+		s.buf.WriteString("as ")
+		s.buf.WriteString(note.Identifier)
+	case ast.NoteRelative:
+		s.buf.WriteString(note.Direction.String())
+		if note.Target != nil {
+			s.buf.WriteString(" of ")
+			s.buf.WriteString(note.Target.FQN())
+		}
+	case ast.NoteLink:
+		if note.Direction != ast.DirectionUnknown {
+			s.buf.WriteString(note.Direction.String())
+			s.buf.WriteByte(' ')
+		}
+		s.buf.WriteString("on link")
+	default:
+		panic("unreachable")
+	}
+	if note.Color != "" {
+		s.buf.WriteByte(' ')
+		s.buf.WriteString(note.Color)
+	}
+	s.buf.WriteString("\n")
 	s.buf.WriteString(note.Text)
 	s.buf.WriteString("\n")
+	s.buf.WriteString("end note\n")
 }
 
 func (s *fState) printDiagramBound(bound ast.DiagramBound) {

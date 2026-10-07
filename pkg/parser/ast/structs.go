@@ -1,6 +1,10 @@
 package ast
 
-import "yur4uwe/pac/pkg/tokenizer"
+import (
+	"strings"
+
+	"yur4uwe/pac/pkg/tokenizer"
+)
 
 type Node interface {
 	Span() tokenizer.SourceSpan
@@ -126,6 +130,25 @@ type TargetRef struct {
 	Member      string   `json:",omitempty"`
 }
 
+func (t TargetRef) FQN() string {
+	if len(t.PackagePath) == 0 {
+		return t.Entity
+	}
+	var sb strings.Builder
+	sb.WriteString(t.PackagePath[0])
+	for _, pkg := range t.PackagePath[1:] {
+		sb.WriteString(".")
+		sb.WriteString(pkg)
+	}
+	sb.WriteString(".")
+	sb.WriteString(t.Entity)
+	if t.Member != "" {
+		sb.WriteString("::")
+		sb.WriteString(t.Member)
+	}
+	return sb.String()
+}
+
 type Relationship struct {
 	LHS       TargetRef
 	RHS       TargetRef
@@ -205,27 +228,19 @@ type NoteKind int
 const (
 	NoteUnknown NoteKind = iota
 
-	// NoteInlineAlias represents a single-line note defined with a string literal and alias.
+	// NoteInlineAlias represents a note defined with a string literal and alias.
 	//
-	// Syntax:
+	// Syntax (single-line):
 	//   note "Text" as <alias> [#color]
 	//
-	// Example:
-	//   note "Active connection" as N1
-	NoteInlineAlias
-
-	// NoteFloatingAlias represents a standalone multiline note block identified by an alias.
-	//
-	// Syntax:
+	// Syntax (multiline):
 	//   note as <alias> [#color]
 	//     <text>
 	//   end note
 	//
 	// Example:
-	//   note as N2
-	//     This is a floating note
-	//   end note
-	NoteFloatingAlias
+	//   note "Active connection" as N1
+	NoteAlias
 
 	// NoteRelative represents a note positioned relative to an entity (or previous statement).
 	//
@@ -256,7 +271,7 @@ const (
 	NoteLink
 )
 
-type Note struct {
+type underlyingNote struct {
 	Kind       NoteKind      `json:",omitempty"`
 	Text       string        `json:",omitempty"`
 	Direction  DirectionKind `json:",omitempty"`
@@ -266,9 +281,17 @@ type Note struct {
 	BaseNode
 }
 
-var _ Statement = Note{}
+type InlineNote underlyingNote
 
-func (n Note) StatementNode() Statement { return n }
+var _ Statement = InlineNote{}
+
+func (in InlineNote) StatementNode() Statement { return in }
+
+type BlockNote underlyingNote
+
+var _ Statement = BlockNote{}
+
+func (bn BlockNote) StatementNode() Statement { return bn }
 
 type BoundOption struct {
 	Key   string `json:",omitempty"`
@@ -325,4 +348,3 @@ func (d DiagramBound) GetParam(key string) (string, bool) {
 	}
 	return "", false
 }
-
