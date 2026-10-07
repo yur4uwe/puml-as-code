@@ -26,10 +26,11 @@ type IncludeDirective struct {
 var _ Statement = IncludeDirective{}
 
 type ScaleCommand struct {
-	Scale  float64 `json:",omitempty"`
-	Width  int     `json:",omitempty"` // PlantUML allows "scale 200 width"
-	Height int     `json:",omitempty"`
-	IsMax  bool    // PlantUML also allows "scale max 200 width"
+	IsMax bool
+	Lhs   string `json:",omitempty"` // "1", "2", "200"
+	Sep   string `json:",omitempty"` // "", ".", "/", "*", "x"
+	Rhs   string `json:",omitempty"` // "5", "3", "100"; empty when Sep is empty
+	Unit  string `json:",omitempty"` // "", "width", "height"
 	BaseNode
 }
 

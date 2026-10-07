@@ -62,77 +62,78 @@ func (s *fState) formatStatement(stmt ast.Statement) {
 func (s *fState) prettyPrint(stmt ast.Statement) {
 	switch st := stmt.(type) {
 	case ast.DiagramBound:
-		if st.IsStart {
-			s.buf.WriteString("@start")
-		} else {
-			s.buf.WriteString("@end")
-		}
-		s.buf.WriteString(st.Type)
-		if st.ID != "" {
-			s.buf.WriteString("(")
-			s.buf.WriteString(st.ID)
-			s.buf.WriteString(")")
-		}
-		if st.IsStart {
-			s.buf.WriteString("\n")
-		}
+		s.printDiagramBound(st)
 	case ast.TextBlock:
+		mapBlockAlignments := func(va, ha string) string {
+			alignment := ""
+			if va != "" {
+				alignment = va
+			}
+			if ha != "" {
+				if alignment != "" {
+					alignment += " "
+				}
+				alignment += ha
+			}
+			return alignment
+		}
+		mapBlockKind := func(k ast.TextBlockKind) string {
+			switch k {
+			case ast.BlockLegend:
+				return "legend"
+			case ast.BlockHeader:
+				return "header"
+			case ast.BlockFooter:
+				return "footer"
+			case ast.BlockTitle:
+				return "title"
+			default:
+				panic("unreachable")
+			}
+		}
 		newlineIdx := strings.IndexByte(st.Text, '\n')
 		if newlineIdx == -1 {
-			if st.VerticalAlignment != "" {
-				s.buf.WriteString(st.VerticalAlignment)
-				s.buf.WriteString(" ")
+			alignments := mapBlockAlignments(st.VerticalAlignment, st.HorizontalAlignment)
+			if alignments != "" {
+				s.buf.WriteString(alignments)
+				s.buf.WriteByte(' ')
 			}
-			if st.HorizontalAlignment != "" {
-				s.buf.WriteString(st.HorizontalAlignment)
-				s.buf.WriteString(" ")
+			kind := mapBlockKind(st.Kind)
+			s.buf.WriteString(kind)
+			s.buf.WriteByte(' ')
+		} else {
+			kind := mapBlockKind(st.Kind)
+			alignments := mapBlockAlignments(st.VerticalAlignment, st.HorizontalAlignment)
+			if alignments != "" {
+				s.buf.WriteString(kind)
+				s.buf.WriteByte(' ')
 			}
-			switch st.Kind {
-			case ast.BlockLegend:
-				s.buf.WriteString("legend ")
-			case ast.BlockHeader:
-				s.buf.WriteString("header ")
-			case ast.BlockFooter:
-				s.buf.WriteString("footer ")
-			case ast.BlockTitle:
-				s.buf.WriteString("title ")
-			}
-			s.buf.WriteString(st.Text)
-			s.buf.WriteString("\n")
-			return
+			s.buf.WriteString(alignments)
+			s.buf.WriteByte('\n')
 		}
 
-		switch st.Kind {
-		case ast.BlockLegend:
-			s.buf.WriteString("legend ")
-		case ast.BlockHeader:
-			s.buf.WriteString("header ")
-		case ast.BlockFooter:
-			s.buf.WriteString("footer ")
-		case ast.BlockTitle:
-			s.buf.WriteString("title ")
-		}
-		if st.VerticalAlignment != "" {
-			s.buf.WriteString(st.VerticalAlignment)
-			s.buf.WriteString(" ")
-		}
-		if st.HorizontalAlignment != "" {
-			s.buf.WriteString(st.HorizontalAlignment)
-			s.buf.WriteString(" ")
-		}
 		s.buf.WriteString(st.Text)
 		s.buf.WriteString("\n")
 	case ast.UnhandledStatement:
 		s.emitRawSpan(st.NodeSpan)
 	case ast.Entity:
+		s.printEntity(st)
 	case ast.Container:
+		s.printContainer(st)
 	case ast.Relationship:
+		s.printRelationship(st)
 	case ast.Note:
+		s.printNote(st)
 	case ast.StyleDeclaration:
+		s.printStyleDeclaration(st)
 	case ast.StyleRule:
+		s.printStyleRule(st)
 	case ast.StyleBlock:
+		s.printStyleBlock(st)
 	case ast.SkinparamSetting:
+		s.printSkinparamSetting(st)
 	case ast.SkinparamBlock:
+		s.printSkinparamBlock(st)
 	case ast.GenericCommand:
 		s.buf.WriteString(st.Name)
 		s.buf.WriteString(" ")
@@ -157,6 +158,7 @@ func (s *fState) prettyPrint(stmt ast.Statement) {
 		}
 		s.buf.WriteString("\n")
 	case ast.ScaleCommand:
+		s.printScaleCommand(st)
 	case ast.VisibilityCommand:
 		switch st.Kind {
 		case ast.VisibilityCMDHide:
