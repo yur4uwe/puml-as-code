@@ -18,7 +18,7 @@ func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error
 		}
 		if relativeTok.Literal == "on" {
 			if strings.ToLower(target.Entity) != "link" {
-				return NewParserError("Unexpected identifier for a note link target", relativeTok)
+				return NewParserError(relativeTok, "Unexpected identifier for a note link target")
 			}
 			note.Kind = ast.NoteLink
 		} else {
@@ -26,7 +26,7 @@ func (p *Parser) parseRelativeNote(note *ast.Note, dirTok tokenizer.Token) error
 		}
 		note.Target = &target
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
-		return NewParserError("Unexpected identifier after direction", tok)
+		return NewParserError(tok, "Unexpected identifier after direction")
 	}
 	p.tryParseColor()
 	return p.parseNoteBody(note)
@@ -36,16 +36,16 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 	note.Text = stringTok.Literal
 	note.Kind = ast.NoteInlineAlias
 	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
-		return NewParserError("Expected alias keyword after note text", aliasTok)
+		return NewParserError(aliasTok, "Expected alias keyword after note text")
 	}
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
-		return NewParserError("Expected identifier after alias keyword", tok)
+		return NewParserError(tok, "Expected identifier after alias keyword")
 	}
 	note.Identifier = tok.Literal
 	p.tryParseColor()
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
-		return NewParserError("Unexpected tokens after inline alias note", p.stream.PeekTokenAt(0))
+		return NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after inline alias note")
 	}
 	return nil
 }
@@ -54,21 +54,21 @@ func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
 	note.Kind = ast.NoteFloatingAlias
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
-		return NewParserError("Expected identifier after alias keyword", tok)
+		return NewParserError(tok, "Expected identifier after alias keyword")
 	}
 	p.tryParseColor()
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
-		return NewParserError("Expected newline after alias keyword", tok)
+		return NewParserError(tok, "Expected newline after alias keyword")
 	}
 	return p.parseNoteBody(note)
 }
 
 func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
 	if onTok.Literal != "on" {
-		return NewParserError("Unexpected identifier after 'note'", onTok)
+		return NewParserError(onTok, "Unexpected identifier after 'note'")
 	}
 	if _, ok := p.stream.TryConsume(amb(tokenizer.IDENTIFIER, "link")); !ok {
-		return NewParserError("Expected 'link' after 'note on'", onTok)
+		return NewParserError(onTok, "Expected 'link' after 'note on'")
 	}
 	note.Target = &ast.TargetRef{Entity: "link"}
 	note.Kind = ast.NoteLink
@@ -93,6 +93,6 @@ func (p *Parser) parseNoteBody(note *ast.Note) error {
 		return nil
 	default:
 		p.stream.Emit()
-		return NewParserError("Expected ':' or newline after note definition", tok)
+		return NewParserError(tok, "Expected ':' or newline after note definition")
 	}
 }

@@ -66,7 +66,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				if blockNum == -1 {
 					return nil, errors.New("no diagrams found")
 				}
-				return nil, WrapParserError(fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1), tokenizer.Token{})
+				return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
 			}
 
 			blockNum++
@@ -75,7 +75,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			if err != nil {
 				return nil, err
 			} else if !startBound.IsStart {
-				return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected diagram start marker")
 			}
 
 			if p.TargetID == "" {
@@ -111,10 +111,10 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				return nil, err
 			}
 			if endBound.IsStart {
-				return nil, NewParserError("Unexpected diagram end marker", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Unexpected diagram end marker")
 			}
 			if endBound.Type != startBound.Type {
-				return nil, NewParserError("Types of starting and ending markers don't match", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Types of starting and ending markers don't match")
 			}
 			endBound.LeadingTrivia = boundLeading
 			p.stream.EmitCommentToks()
@@ -128,7 +128,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			if p.IsBoundless {
 				break
 			}
-			return p.ast, WrapParserError(tokenizer.ErrUnexpectedEOF, tok)
+			return p.ast, WrapParserError(tok, tokenizer.ErrUnexpectedEOF)
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
 			// If the newline is relevant it will be consumed
@@ -163,7 +163,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			continue
 		}
 
-		return nil, NewParserError("Unexpected token", tok)
+		return nil, NewParserError(tok, "Unexpected token")
 	}
 
 	if p.TargetID == "" {
@@ -199,7 +199,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 			actualKwTok := p.stream.Emit()
 			return p.parseLayoutStatement(actualKwTok, &tok)
 		}
-		return nil, NewParserError("Unexpected direction keyword in container", tok)
+		return nil, NewParserError(tok, "Unexpected direction keyword in container")
 	case keyword.Caption, keyword.Sprite:
 		return p.parseUnhandled(tok)
 	case keyword.Class,
@@ -227,7 +227,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Node:
 		return p.parseContainer(tok)
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
-		return nil, NewParserError("unimplemented entity keyword handling", tok)
+		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
 		return p.parseNote(tok)
@@ -276,7 +276,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 			actualKwTok := p.stream.Emit()
 			return p.parseLayoutStatement(actualKwTok, &tok)
 		} else {
-			return nil, NewParserError("Unexpected token after direction", tok)
+			return nil, NewParserError(tok, "Unexpected token after direction")
 		}
 	case keyword.Set:
 		return p.parseSetDirective(tok)

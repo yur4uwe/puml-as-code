@@ -26,7 +26,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 		if !p.stream.AssertType(tokenizer.LBRACE) {
 			nameTok := p.stream.Emit()
 			if nameTok.Type == tokenizer.NEWLINE || nameTok.Type == tokenizer.EOF {
-				return nil, NewParserError("Expected target or parameter after skinparam", nameTok)
+				return nil, NewParserError(nameTok, "Expected target or parameter after skinparam")
 			}
 			name = nameTok.Literal
 		}
@@ -37,7 +37,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 	stereo, err := p.tryReadStereotype()
 	if errors.Is(err, tokenizer.ErrUnexpectedEOF) {
 		// EOF will be the next token
-		return nil, WrapParserError(err, p.stream.PeekTokenAt(0))
+		return nil, WrapParserError(p.stream.PeekTokenAt(0), err)
 	}
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); ok {
@@ -80,7 +80,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 			name += nameContinues.Literal
 			prevTokEnd = nextTok.Span.End.Offset
 		default:
-			return nil, NewParserError("Unexpected token in skinparam block", nextTok)
+			return nil, NewParserError(nextTok, "Unexpected token in skinparam block")
 		}
 	}
 
@@ -111,7 +111,7 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) error {
 		case tokenizer.NEWLINE:
 			continue
 		case tokenizer.EOF:
-			return NewParserError("Unexpected EOF in skinparam block", tok)
+			return NewParserError(tok, "Unexpected EOF in skinparam block")
 		case tokenizer.SEMICOLON:
 			continue
 		case tokenizer.EXCLAMATION:
@@ -144,7 +144,7 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 			unamb(tokenizer.RANGLE),
 		},
 	) {
-		return nil, NewParserError("Expected <style> opening tag", startTok)
+		return nil, NewParserError(startTok, "Expected <style> opening tag")
 	}
 	p.stream.Emit() // consume 'style'
 	p.stream.Emit() // consume '>'
@@ -165,7 +165,7 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 		case tokenizer.NEWLINE, tokenizer.SEMICOLON:
 			continue
 		case tokenizer.EOF:
-			return nil, NewParserError("Unexpected EOF in style block", tok)
+			return nil, NewParserError(tok, "Unexpected EOF in style block")
 		case tokenizer.EXCLAMATION:
 			stmnt, err = p.parseDirective(tok)
 		default:
@@ -199,7 +199,7 @@ func (p *Parser) getSelectors(startTok tokenizer.Token) ([]string, error) {
 	for _, part := range strings.Split(headerText, ",") {
 		trimmed := strings.TrimSpace(part)
 		if trimmed == "" {
-			return nil, NewParserError("Empty selector in style rule", toks[0])
+			return nil, NewParserError(toks[0], "Empty selector in style rule")
 		}
 		selectors = append(selectors, trimmed)
 	}
@@ -221,7 +221,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 	}
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
-		return currentRule, NewParserError("Expected opening brace after style rule", p.stream.PeekTokenAt(0))
+		return currentRule, NewParserError(p.stream.PeekTokenAt(0), "Expected opening brace after style rule")
 	}
 
 	for !p.isStyleTagEnd() && !p.stream.AssertType(tokenizer.RBRACE) && !p.stream.AssertType(tokenizer.EOF) {
@@ -250,14 +250,14 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 
 		// By elimination: it is a style declaration
 		if tok.Type != tokenizer.IDENTIFIER {
-			return currentRule, NewParserError("Expected style property name or rule selector", tok)
+			return currentRule, NewParserError(tok, "Expected style property name or rule selector")
 		}
 
 		p.stream.TryConsumeType(tokenizer.COLON)
 		leadingTrivia := p.stream.DumpCollectedTrivia()
 		toks := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE)
 		if len(toks) == 0 {
-			return currentRule, NewParserError("Expected value after style declaration", p.stream.PeekRawTokenAt(0))
+			return currentRule, NewParserError(p.stream.PeekRawTokenAt(0), "Expected value after style declaration")
 		}
 
 		val := p.stream.SliceInputEnclosingTokens(toks...)
@@ -282,7 +282,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 	}
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.RBRACE); !ok {
-		return currentRule, NewParserError("Expected closing brace '}' after style rule", p.stream.PeekTokenAt(0))
+		return currentRule, NewParserError(p.stream.PeekTokenAt(0), "Expected closing brace '}' after style rule")
 	}
 
 	currentRule.NodeSpan = p.Span(m)

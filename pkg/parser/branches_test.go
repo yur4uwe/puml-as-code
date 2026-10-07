@@ -71,7 +71,7 @@ func TestParseEntity(t *testing.T) {
 			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
-				Color:      "FF0000",
+				Color:      "#FF0000",
 			},
 		},
 		{
@@ -93,7 +93,7 @@ func TestParseEntity(t *testing.T) {
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: "Database",
-				Color:      "FF0000",
+				Color:      "#FF0000",
 			},
 		},
 		{
@@ -1041,7 +1041,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
-				Color:      "green",
+				Color:      "#green",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1148,7 +1148,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Kind:       ast.ContainerPackage,
 				Identifier: "mypkg",
-				Color:      "red",
+				Color:      "#red",
 				Statements: []ast.Statement{
 					ast.Entity{
 						Identifier: "A",

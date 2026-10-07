@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -13,7 +12,7 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 
 	kw := FindUnhandledKeyword(tok.Literal)
 	if kw == nil {
-		return nil, NewParserError("Unexpected unhandled keyword", tok)
+		return nil, NewParserError(tok, "Unexpected unhandled keyword")
 	}
 
 	if kw.Closer != "" {
@@ -66,10 +65,10 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 
 	for {
 		if p.stream.AssertType(tokenizer.EOF) {
-			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kw.Keyword), startTok)
+			return nil, NewParserErrorf(startTok, "unterminated block statement for %s", kw.Keyword)
 		}
 		if p.stream.AssertType(tokenizer.AT) && strings.HasPrefix(strings.ToLower(p.stream.PeekTokenAt(1).Literal), "end") {
-			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kw.Keyword), startTok)
+			return nil, NewParserErrorf(startTok, "unterminated block statement for %s", kw.Keyword)
 		}
 
 		lineToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
@@ -86,7 +85,7 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 			case tokenizer.RBRACE:
 				braceDepth--
 				if braceDepth < 0 {
-					return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s (hit enclosing scope delimiter)", kw.Keyword), startTok)
+					return nil, NewParserErrorf(startTok, "unterminated block statement for %s (hit enclosing scope delimiter)", kw.Keyword)
 				}
 			}
 		}

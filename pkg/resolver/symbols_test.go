@@ -151,7 +151,7 @@ class Service {
 	require.NotNil(t, svc)
 	require.NotNil(t, svc.AST)
 	require.Equal(t, "API", svc.AST.Stereotype)
-	require.Equal(t, "red", svc.AST.Color)
+	require.Equal(t, "#red", svc.AST.Color)
 	require.Len(t, svc.AST.Members, 4, "expected members from both class bodies to be merged")
 }
 
@@ -290,4 +290,3 @@ package domain {
 	require.Equal(t, "domain.UserService", tbl.Relationships[1].Source.FQN)
 	require.Equal(t, "domain.ImplicitStore", tbl.Relationships[1].Target.FQN)
 }
-

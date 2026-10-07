@@ -23,10 +23,14 @@ func (e parserError) Unwrap() error {
 	return e.Err
 }
 
-func NewParserError(message string, tok tokenizer.Token) error {
+func NewParserError(tok tokenizer.Token, message string) error {
 	return parserError{Err: errors.New(message), Tok: tok}
 }
 
-func WrapParserError(err error, tok tokenizer.Token) error {
+func NewParserErrorf(tok tokenizer.Token, format string, args ...any) error {
+	return parserError{Err: fmt.Errorf(format, args...), Tok: tok}
+}
+
+func WrapParserError(tok tokenizer.Token, err error) error {
 	return parserError{Err: err, Tok: tok}
 }

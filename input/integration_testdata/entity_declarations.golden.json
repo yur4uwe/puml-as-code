@@ -117,7 +117,7 @@
       "Kind": "interface",
       "Stereotype": "API",
       "Generic": "T",
-      "Color": "lightblue",
+      "Color": "#lightblue",
       "Members": [
         {
           "Name": "Process",

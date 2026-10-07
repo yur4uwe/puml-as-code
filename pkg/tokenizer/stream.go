@@ -97,18 +97,19 @@ func (ts *TokenStream) PeekRawTokenAt(idx int) Token {
 	for len(ts.buffer) <= idx {
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
-		if tok.Type == EOF {
-			ts.eofEmitCount++
-			if ts.eofEmitCount > maxConsecutiveEOF {
-				panic(fmt.Sprintf(
-					"tokenizer: possible infinite loop detected: emitted EOF %d times (at %s)",
-					ts.eofEmitCount, ts.lexer.getPos(),
-				))
-			}
-			break
-		} else {
+		if tok.Type != EOF {
 			ts.eofEmitCount = 0
+			continue
 		}
+
+		ts.eofEmitCount++
+		if ts.eofEmitCount > maxConsecutiveEOF {
+			panic(fmt.Sprintf(
+				"tokenizer: possible infinite loop detected: emitted EOF %d times (at %s)",
+				ts.eofEmitCount, ts.lexer.getPos(),
+			))
+		}
+		break
 	}
 	if idx < len(ts.buffer) {
 		return ts.buffer[idx]

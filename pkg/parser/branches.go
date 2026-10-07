@@ -72,7 +72,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 
 	for _, token := range expectedSeq {
 		if _, ok := p.stream.TryConsume(token); !ok {
-			return cmd, NewParserError("Unexpected diagram direction modifier", token)
+			return cmd, NewParserError(token, "Unexpected diagram direction modifier")
 		}
 	}
 	switch tok.Literal {
@@ -82,7 +82,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (ast.DirectionCommand, 
 		cmd.Direction = ast.TopToBottomDirection
 	}
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
-		return cmd, NewParserError("Unexpected tokens after direction command", p.stream.PeekTokenAt(0))
+		return cmd, NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after direction command")
 	}
 	cmd.NodeSpan = p.Span(mark)
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
@@ -93,11 +93,11 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 	startMark := p.Mark(tok1)
 	directiveNameTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
-		return nil, NewParserError("Expected directive name", p.stream.PeekTokenAt(0))
+		return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected directive name")
 	}
 
 	if directiveNameTok.Span.Start.Offset != tok1.Span.Start.Offset+1 {
-		return nil, NewParserError("Expected directive name right after !", directiveNameTok)
+		return nil, NewParserError(directiveNameTok, "Expected directive name right after !")
 	}
 
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
@@ -117,7 +117,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirectiv
 	case "include_once", "include":
 		kind = ast.IncludeOnce
 	default:
-		return ast.IncludeDirective{}, NewParserError("Unknown include directive", tok)
+		return ast.IncludeDirective{}, NewParserError(tok, "Unknown include directive")
 	}
 
 	mark := p.Mark(tok)
@@ -180,34 +180,34 @@ func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (ast.ScaleCommand, er
 	isOp1Dec := isDecimalFloat(op1)
 
 	if !isOp1Int && !isOp1Dec {
-		return cmd, NewParserError("Expected number after scale", startTok)
+		return cmd, NewParserError(startTok, "Expected number after scale")
 	}
 
 	// Max constraints
 	if cmd.IsMax {
 		if isOp1Dec {
-			return cmd, NewParserError("Cannot use decimals with 'max'", startTok)
+			return cmd, NewParserError(startTok, "Cannot use decimals with 'max'")
 		}
 		if sep == "/" {
-			return cmd, NewParserError("Cannot use fractions with 'max'", startTok)
+			return cmd, NewParserError(startTok, "Cannot use fractions with 'max'")
 		}
 		if sep == "" && unit == "" {
-			return cmd, NewParserError("Cannot use numbers with 'max' without a unit or box", startTok)
+			return cmd, NewParserError(startTok, "Cannot use numbers with 'max' without a unit or box")
 		}
 	}
 
 	// Decimal constraints
 	if isOp1Dec && sep != "" {
-		return cmd, NewParserError("Cannot use decimals with separators ('*', 'x', '/')", startTok)
+		return cmd, NewParserError(startTok, "Cannot use decimals with separators ('*', 'x', '/')")
 	}
 
 	// Binary separator constraints (*, x, /)
 	if sep != "" {
 		if unit != "" {
-			return cmd, NewParserError("Cannot specify unit with a box or fraction", startTok)
+			return cmd, NewParserError(startTok, "Cannot specify unit with a box or fraction")
 		}
 		if !isDecimalInt(op2) {
-			return cmd, NewParserError("Expected integer after separator", startTok)
+			return cmd, NewParserError(startTok, "Expected integer after separator")
 		}
 	}
 
@@ -260,23 +260,23 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 	switch tok.Type {
 	case tokenizer.NUMBER:
 		if strings.ContainsAny(tok.Literal, "exob") {
-			return cmd, NewParserError("Cannot use non-decimal or scientific integer for scale", tok)
+			return cmd, NewParserError(tok, "Cannot use non-decimal or scientific integer for scale")
 		}
 	case tokenizer.DOT:
 		// .5 case
 		numTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 		if !ok {
-			return cmd, NewParserError("Expected number after scale leading dot", numTok)
+			return cmd, NewParserError(numTok, "Expected number after scale leading dot")
 		}
 		if strings.ContainsAny(numTok.Literal, ".exob") {
-			return cmd, NewParserError("Cannot use non-decimal integer for shorthand float", numTok)
+			return cmd, NewParserError(numTok, "Cannot use non-decimal integer for shorthand float")
 		}
 		cmd.Lhs = "." + numTok.Literal
 		if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
-			return cmd, NewParserError("Expected scale to end after fractional scale", p.stream.PeekTokenAt(0))
+			return cmd, NewParserError(p.stream.PeekTokenAt(0), "Expected scale to end after fractional scale")
 		}
 		if cmd.IsMax {
-			return cmd, NewParserError("Cannot use fractions with 'max'", tok)
+			return cmd, NewParserError(tok, "Cannot use fractions with 'max'")
 		}
 		cmd.NodeSpan = p.Span(mark)
 		p.stream.EmitCommentToks()
@@ -286,7 +286,7 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		// Try to handle 200x300 which is tokenized as an IDENTIFIER
 		if strings.Contains(tok.Literal, "x") && !strings.HasSuffix(tok.Literal, "x") && !strings.HasPrefix(tok.Literal, "x") {
 			if err := divideSingleTok(tok.Literal, "x"); err != nil {
-				return cmd, WrapParserError(err, tok)
+				return cmd, WrapParserError(tok, err)
 			}
 			cmd.NodeSpan = p.Span(mark)
 			p.stream.EmitCommentToks()
@@ -297,23 +297,21 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		if before, ok := strings.CutSuffix(tok.Literal, "x"); ok {
 			widthStr := before
 			if widthStr == "" || strings.ContainsAny(widthStr, ".exob") {
-				return cmd, NewParserError("Cannot use non-decimal integer for width of a box", tok)
+				return cmd, NewParserError(tok, "Cannot use non-decimal integer for width of a box")
 			}
 			if _, err := strconv.Atoi(widthStr); err != nil {
-				return cmd, NewParserError("Expected width in a box to be an integer", tok)
+				return cmd, NewParserError(tok, "Expected width in a box to be an integer")
 			}
 
 			heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 			if !ok {
-				return cmd, NewParserError("Expected height after 'x' in a box",
-					p.stream.PeekTokenAt(0))
+				return cmd, NewParserError(p.stream.PeekTokenAt(0), "Expected height after 'x' in a box")
 			}
 			if strings.ContainsAny(heightTok.Literal, ".exob") {
-				return cmd, NewParserError("Cannot use non-decimal integer for height of a box",
-					heightTok)
+				return cmd, NewParserError(heightTok, "Cannot use non-decimal integer for height of a box")
 			}
 			if _, err := strconv.Atoi(heightTok.Literal); err != nil {
-				return cmd, NewParserError("Invalid height for the box", heightTok)
+				return cmd, NewParserError(heightTok, "Invalid height for the box")
 			}
 
 			cmd.Lhs = widthStr
@@ -325,9 +323,9 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 			return cmd, nil
 		}
 
-		return cmd, NewParserError("Expected number after scale", tok)
+		return cmd, NewParserError(tok, "Expected number after scale")
 	default:
-		return cmd, NewParserError("Expected number after scale", p.stream.PeekTokenAt(0))
+		return cmd, NewParserError(p.stream.PeekTokenAt(0), "Expected number after scale")
 	}
 
 	valueLit := tok.Literal
@@ -339,22 +337,22 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 
 	setBox := func(sep string) error {
 		if !isInt {
-			return NewParserError("Expected width in a box to be an integer", tok)
+			return NewParserError(tok, "Expected width in a box to be an integer")
 		}
 		if strings.ContainsAny(valueLit, ".exob") {
-			return NewParserError("Cannot use non-decimal integer for width of a box", valueTok)
+			return NewParserError(valueTok, "Cannot use non-decimal integer for width of a box")
 		}
 		cmd.Lhs = valueLit
 		cmd.Sep = sep
 		heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
 		if !ok {
-			return NewParserError(fmt.Sprintf("Expected height after '%s' in a box", sep), p.stream.PeekTokenAt(0))
+			return NewParserErrorf(p.stream.PeekTokenAt(0), "Expected height after '%s' in a box", sep)
 		}
 		if strings.ContainsAny(heightTok.Literal, ".exob") {
-			return NewParserError("Cannot use non-decimal integer for height of a box", heightTok)
+			return NewParserError(heightTok, "Cannot use non-decimal integer for height of box")
 		}
 		if _, err := strconv.Atoi(heightTok.Literal); err != nil {
-			return NewParserError("Invalid height for the box", heightTok)
+			return NewParserError(heightTok, "Invalid height for the box")
 		}
 		cmd.Rhs = heightTok.Literal
 		return nil
@@ -366,13 +364,13 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		switch tok.Literal {
 		case "width":
 			if strings.ContainsAny(valueLit, "exob") {
-				return cmd, NewParserError("Cannot use non-decimal or scientific integer for width of a box", valueTok)
+				return cmd, NewParserError(valueTok, "Cannot use non-decimal or scientific integer for width of a box")
 			}
 			cmd.Lhs = valueLit
 			cmd.Unit = tok.Literal
 		case "height":
 			if strings.ContainsAny(valueLit, "exob") {
-				return cmd, NewParserError("Cannot use non-decimal or scientific integer for height of a box", valueTok)
+				return cmd, NewParserError(valueTok, "Cannot use non-decimal or scientific integer for height of a box")
 			}
 			cmd.Lhs = valueLit
 			cmd.Unit = tok.Literal
@@ -383,17 +381,17 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		default:
 			after, ok := strings.CutPrefix(tok.Literal, "x")
 			if !ok {
-				return cmd, NewParserError(fmt.Sprintf("Unexpected identifier: %s", tok.Literal), tok)
+				return cmd, NewParserErrorf(tok, "Unexpected identifier: %s", tok.Literal)
 			}
 			heightStr := after
 			if heightStr == "" || strings.ContainsAny(heightStr, ".exob") {
-				return cmd, NewParserError("Cannot use non-decimal integer for height of a box", tok)
+				return cmd, NewParserError(tok, "Cannot use non-decimal integer for height of a box")
 			}
 			if _, err := strconv.Atoi(heightStr); err != nil {
-				return cmd, NewParserError("Invalid height for the box", tok)
+				return cmd, NewParserError(tok, "Invalid height for the box")
 			}
 			if !isInt || strings.ContainsAny(valueLit, ".exob") {
-				return cmd, NewParserError("Expected width in a box to be an integer", valueTok)
+				return cmd, NewParserError(valueTok, "Expected width in a box to be an integer")
 			}
 
 			cmd.Lhs = valueLit
@@ -412,26 +410,26 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		// EOF handling is a special case for a test case
 		// valueLit is either a bare integer or a float
 		if !isFloat {
-			return cmd, NewParserError("Expected number after scale", tok)
+			return cmd, NewParserError(tok, "Expected number after scale")
 		}
 
 		if cmd.IsMax {
-			return cmd, NewParserError("Cannot use numbers with 'max' without a unit (width/height) or a box", tok)
+			return cmd, NewParserError(tok, "Cannot use numbers with 'max' without a unit (width/height) or a box")
 		}
 
 		if isFloat && !isInt {
 			if err := divideSingleTok(valueLit, "."); err != nil {
-				return cmd, WrapParserError(err, tok)
+				return cmd, WrapParserError(tok, err)
 			}
 		} else {
 			cmd.Lhs = valueLit
 		}
 	default:
-		return cmd, NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok)
+		return cmd, NewParserErrorf(tok, "Unexpected token: %s(%s)", tok.Type.String(), tok.Literal)
 	}
 
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
-		return cmd, NewParserError("Unexpected tokens after scale command", p.stream.PeekTokenAt(0))
+		return cmd, NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after scale command")
 	}
 	cmd.NodeSpan = p.Span(mark)
 	p.stream.EmitCommentToks()
@@ -443,13 +441,13 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 	switch nameOrAlias.Type {
 	case tokenizer.STRING:
 		if ent.Alias != "" {
-			return nil, NewParserError("Entity alias already set", nameOrAlias)
+			return nil, NewParserError(nameOrAlias, "Entity alias already set")
 		}
 		ent.Alias = nameOrAlias.Literal
 		return nil, nil
 	case tokenizer.IDENTIFIER:
 		if ent.Identifier != "" {
-			return nil, NewParserError("Entity name already set", nameOrAlias)
+			return nil, NewParserError(nameOrAlias, "Entity name already set")
 		}
 		if _, ok := p.stream.TryConsumePackageSeparator(); !ok {
 			ent.Identifier = nameOrAlias.Literal
@@ -459,7 +457,7 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 		for {
 			tok := p.stream.Emit()
 			if tok.Type != tokenizer.IDENTIFIER {
-				return nil, NewParserError("Expected identifier after package separator", tok)
+				return nil, NewParserError(tok, "Expected identifier after package separator")
 			}
 			ent.Identifier = tok.Literal
 
@@ -470,7 +468,7 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 		}
 		return pkgPath, nil
 	default:
-		return nil, NewParserError("Expected token for entity identifier or alias", nameOrAlias)
+		return nil, NewParserError(nameOrAlias, "Expected token for entity identifier or alias")
 	}
 }
 
@@ -624,7 +622,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 		// We encountered a comment
 		// We should retry the whole loop
 	default:
-		return nil, NewParserError("Unexpected token in entity body", tok)
+		return nil, NewParserError(tok, "Unexpected token in entity body")
 	}
 	return p.parseFieldOrMethod(nil, vis, tok, leadingTrivia)
 }
@@ -708,10 +706,7 @@ outer:
 	span := p.Span(m)
 
 	if mustBeField && mustBeMethod {
-		return nil, NewParserError(
-			"Cannot be field and method at the same time",
-			entryTok,
-		)
+		return nil, NewParserError(entryTok, "Cannot be field and method at the same time")
 	}
 
 	isMethod := mustBeMethod || (!mustBeField && containsLParen)
@@ -774,7 +769,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
 		if _, ok = p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
-			return container, NewParserError("Expected container body to end", p.stream.PeekTokenAt(0))
+			return container, NewParserError(p.stream.PeekTokenAt(0), "Expected container body to end")
 		}
 		container.TrailingTrivia = p.stream.DumpCollectedTrivia()
 		return p.wrapImplicitPackageContainers(container), nil
@@ -799,7 +794,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (ast.Container, error) {
 			return container, err
 		}
 		if stmt == nil {
-			return container, NewParserError("Expected a statement in a container body", tok)
+			return container, NewParserError(tok, "Expected a statement in a container body")
 		}
 		container.Statements = append(container.Statements, stmt)
 	}
@@ -875,7 +870,7 @@ func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error
 		return tok, nil
 	}
 	if tok.Type != tokenizer.IDENTIFIER {
-		return tokenizer.Token{}, NewParserError("Expected identifier for container name", tok)
+		return tokenizer.Token{}, NewParserError(tok, "Expected identifier for container name")
 	}
 
 	var sb strings.Builder
@@ -893,7 +888,7 @@ func (p *Parser) parseContinerIdent(tok tokenizer.Token) (tokenizer.Token, error
 			continue
 		}
 		if lastTok.Type == tokenizer.IDENTIFIER && tok.Type == tokenizer.IDENTIFIER {
-			return tokenizer.Token{}, NewParserError("Expected container name to be a single identifier", tok)
+			return tokenizer.Token{}, NewParserError(tok, "Expected container name to be a single identifier")
 		}
 		switch tok.Type {
 		case tokenizer.LBRACE, tokenizer.LANGLE, tokenizer.HASH, tokenizer.NEWLINE, tokenizer.DOLLAR:
@@ -935,7 +930,7 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 	case tokenizer.IDENTIFIER:
 		return rhs.Literal, lhs.Literal, nil
 	}
-	return "", "", NewParserError("Invalid container alias and identifier combination", lhs)
+	return "", "", NewParserError(lhs, "Invalid container alias and identifier combination")
 }
 
 func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
@@ -960,7 +955,7 @@ func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
 		case keyword.Alias:
 			err = p.parseMultilineAliasNote(&note)
 		default:
-			return note, WrapParserError(fmt.Errorf("expected direction, string, note position or alias after 'note', got %s", class.String()), tok)
+			return note, NewParserErrorf(tok, "expected direction, string, note position or alias after 'note', got %s", class.String())
 		}
 	}
 	note.NodeSpan = p.Span(mark)
@@ -1043,13 +1038,13 @@ func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error)
 				paramToks := p.stream.ConsumeUntilType(tokenizer.RPAREN, tokenizer.NEWLINE, tokenizer.EOF)
 				sb.WriteString(p.stream.TokensToString(paramToks))
 				if _, ok := p.stream.TryConsumeType(tokenizer.RPAREN); !ok {
-					return ref, NewParserError("Expected ')' closing method signature in target ref", p.stream.PeekTokenAt(0))
+					return ref, NewParserError(p.stream.PeekTokenAt(0), "Expected ')' closing method signature in target ref")
 				}
 				sb.WriteString(")")
 			}
 			ref.Member = sb.String()
 		default:
-			return ref, NewParserError("Expected member identifier or string after '::'", tok)
+			return ref, NewParserError(tok, "Expected member identifier or string after '::'")
 		}
 	}
 
@@ -1070,7 +1065,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return rel, WrapParserError(err, multTok)
+			return rel, WrapParserError(multTok, err)
 		}
 	}
 
@@ -1079,12 +1074,12 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return rel, WrapParserError(err, multTok)
+			return rel, WrapParserError(multTok, err)
 		}
 	}
 
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
-		return rel, NewParserError("Expected identifier or string after relationship", p.stream.PeekTokenAt(0))
+		return rel, NewParserError(p.stream.PeekTokenAt(0), "Expected identifier or string after relationship")
 	}
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
 	if err != nil {
@@ -1104,7 +1099,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (ast.Relation
 		p.stream.Emit()
 		rel.Label = p.stream.ReadUntilNewline()
 	default:
-		return rel, NewParserError("Expected newline or colon after relationship", endingToken)
+		return rel, NewParserError(endingToken, "Expected newline or colon after relationship")
 	}
 
 	rel.TrailingTrivia = p.stream.DumpCollectedTrivia()
@@ -1131,14 +1126,14 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	case tokenizer.IDENTIFIER:
 		// special case for 'x' and 'o' in relationship
 		if tok.Literal != "x" && tok.Literal != "o" {
-			return NewParserError("Unexpected identifier in relationship definition", tok)
+			return NewParserError(tok, "Unexpected identifier in relationship definition")
 		}
 		fallthrough
 	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
 		rel.LArrow = rune(tok.Literal[0])
 	case tokenizer.DOT, tokenizer.DASH: // so that encountering them doesn't cause an error
 	default:
-		return NewParserError("Unexpected token at the start of relationship definition", tok)
+		return NewParserError(tok, "Unexpected token at the start of relationship definition")
 	}
 
 	if tok.Type != tokenizer.DOT && tok.Type != tokenizer.DASH {
@@ -1169,7 +1164,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			rel.TypeLHS = ast.RelationInheritance
 		}
 	default:
-		return NewParserError("Unexpected token as the relationship body", tok)
+		return NewParserError(tok, "Unexpected token as the relationship body")
 	}
 	var ok bool
 	rel.Body = rune(tok.Literal[0])
@@ -1178,16 +1173,16 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			continue
 		} else if tok, ok = p.stream.TryConsumeType(oppositeBodyTokType); ok {
 			// Simply convenient error message
-			return NewParserError("Different body type runes in relationship", tok)
+			return NewParserError(tok, "Different body type runes in relationship")
 		}
 		if !p.stream.AssertType(tokenizer.LBRACKET) && !p.stream.AssertKW(keyword.Direction) {
 			break
 		} else if sawAttrs || sawDirection {
-			return NewParserError("Cannot separate direction and attributes with a body token", tok)
+			return NewParserError(tok, "Cannot separate direction and attributes with a body token")
 		}
 
 		if isLolipop {
-			return NewParserError("Lolipop interface cannot contain attributes or direction", tok)
+			return NewParserError(tok, "Lolipop interface cannot contain attributes or direction")
 		}
 
 		// We check these cases in order to be able to assert this squence:
@@ -1211,7 +1206,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					case "down", "d", "do":
 						dir = ast.DirectionBottom
 					default:
-						return NewParserError("Unexpected direction in relationship", tok)
+						return NewParserError(tok, "Unexpected direction in relationship")
 					}
 					rel.Direction = dir
 				}
@@ -1225,10 +1220,10 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					for tok = p.stream.Emit(); tok.Type != tokenizer.RBRACKET; tok = p.stream.Emit() {
 						switch tok.Type {
 						case tokenizer.EOF, tokenizer.NEWLINE:
-							return NewParserError("Unexpected break in relationship attribute container", tok)
+							return NewParserError(tok, "Unexpected break in relationship attribute container")
 						case tokenizer.COMMA:
 							if attrSB.Len() == 0 {
-								return NewParserError("Unexpected comma in relationship attribute container", tok)
+								return NewParserError(tok, "Unexpected comma in relationship attribute container")
 							}
 							rel.Attrs = append(rel.Attrs, attrSB.String())
 							attrSB.Reset()
@@ -1250,7 +1245,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 
 		// consume trailing arrow body rune
 		if tok, ok = p.stream.TryConsumeType(bodyTokType); !ok {
-			return NewParserError("Unexpected token in body relationship definition", tok)
+			return NewParserError(tok, "Unexpected token in body relationship definition")
 		}
 	}
 
@@ -1260,7 +1255,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		// should only be encountered on --|> case as the end of the relationship
 		p.stream.Emit()
 		if _, ok := p.stream.TryConsumeType(tokenizer.RANGLE); !ok {
-			return NewParserError("Expected '|>' after relationship", tok)
+			return NewParserError(tok, "Expected '|>' after relationship")
 		}
 		switch rel.Body {
 		case '-':
@@ -1284,10 +1279,10 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	// lolipop interface
 	case tokenizer.LPAREN:
 		if sawDirection || sawAttrs {
-			return NewParserError("Lolipop interface cannot contain direction or attributes", tok)
+			return NewParserError(tok, "Lolipop interface cannot contain direction or attributes")
 		}
 		if isLolipop {
-			return NewParserError("Cannot have double headed lolipop relationship", tok)
+			return NewParserError(tok, "Cannot have double headed lolipop relationship")
 		}
 		p.stream.Emit()
 		p.stream.MustConsumeType(tokenizer.RPAREN)
@@ -1310,7 +1305,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			p.stream.Emit()
 			rel.RArrow = rune(tok.Literal[0])
 		default:
-			return NewParserError("Unexpected identifier in relationship definition", tok)
+			return NewParserError(tok, "Unexpected identifier in relationship definition")
 		}
 	case tokenizer.HASH, tokenizer.PLUS, tokenizer.CARET:
 		p.stream.Emit()
@@ -1322,7 +1317,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		}
 	}
 	if rel.Body == 0 {
-		return NewParserError("Missing body in the relationship", tok)
+		return NewParserError(tok, "Missing body in the relationship")
 	}
 	return nil
 }
@@ -1497,7 +1492,7 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	}
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
-		return nil, NewParserError("Expected ':' after entity identifier for inline member declaration", p.stream.PeekTokenAt(0))
+		return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected ':' after entity identifier for inline member declaration")
 	}
 
 	entryTok := p.stream.PeekTokenAt(0)
@@ -1559,14 +1554,14 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 	// Process prefix alignment if provided (e.g. "left header", "center footer")
 	if prefixAlignment != nil {
 		if blockKind == ast.BlockTitle {
-			return nil, NewParserError("Title alignment not supported", *prefixAlignment)
+			return nil, NewParserError(*prefixAlignment, "Title alignment not supported")
 		}
 		h, v, isAlign := parseLayoutAlignmentToken(*prefixAlignment, blockKind)
 		if !isAlign {
 			if strings.EqualFold(prefixAlignment.Literal, "top") || strings.EqualFold(prefixAlignment.Literal, "bottom") {
-				return nil, NewParserError("Vertical alignment only supported for legend", *prefixAlignment)
+				return nil, NewParserError(*prefixAlignment, "Vertical alignment only supported for legend")
 			}
-			return nil, NewParserError("Invalid alignment", *prefixAlignment)
+			return nil, NewParserError(*prefixAlignment, "Invalid alignment")
 		}
 		block.HorizontalAlignment = h
 		block.VerticalAlignment = v
@@ -1584,16 +1579,16 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		}
 		if h != "" {
 			if block.HorizontalAlignment != "" {
-				return nil, NewParserError("Horizontal alignment already set", peekTok)
+				return nil, NewParserError(peekTok, "Horizontal alignment already set")
 			}
 			block.HorizontalAlignment = h
 			p.stream.Emit()
 		} else if v != "" {
 			if block.VerticalAlignment != "" {
-				return nil, NewParserError("Vertical alignment already set", peekTok)
+				return nil, NewParserError(peekTok, "Vertical alignment already set")
 			}
 			if blockKind != ast.BlockLegend {
-				return nil, NewParserError("Vertical alignment only supported for legend", peekTok)
+				return nil, NewParserError(peekTok, "Vertical alignment only supported for legend")
 			}
 			block.VerticalAlignment = v
 			p.stream.Emit()
@@ -1609,9 +1604,9 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		body, err = p.stream.ConsumeTextBlock("end", kwTok.Literal)
 		if err != nil {
 			if errors.Is(err, tokenizer.ErrScopeDelimiterHit) {
-				return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s (hit enclosing scope delimiter)", kwTok.Literal), kwTok)
+				return nil, NewParserErrorf(kwTok, "unterminated block statement for %s (hit enclosing scope delimiter)", kwTok.Literal)
 			}
-			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kwTok.Literal), kwTok)
+			return nil, NewParserErrorf(kwTok, "unterminated block statement for %s", kwTok.Literal)
 		}
 	} else {
 		// --- SINGLE-LINE INLINE FORM ---
