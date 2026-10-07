@@ -4,7 +4,7 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "UnhandledStatements",
+      "TrailingName": "UnhandledStatements",
       "NodeSpan": {
         "Start": {
           "Line": 0,

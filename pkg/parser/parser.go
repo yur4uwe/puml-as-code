@@ -99,7 +99,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		}
 
 		p.ast.Statements = append(p.ast.Statements, startBound)
-		p.ast.Name = startBound.Name
+		p.ast.Name = startBound.DiagramName()
 	}
 
 	for {

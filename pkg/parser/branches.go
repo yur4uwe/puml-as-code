@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"slices"
+	"strconv"
 	"strings"
-	"unicode"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
@@ -147,164 +147,82 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (ast.IncludeDirectiv
 	return dir, nil
 }
 
+func (p *Parser) extractScaleTokens() (lhs, sep, rhs, unit string, err error) {
+	return "", "", "", "", nil
+}
+
 func isDecimalInt(s string) bool {
-	if s == "" || strings.ContainsAny(s, ".exobEXOB") {
-		return false
-	}
-	for _, r := range s {
-		if !unicode.IsDigit(r) {
-			return false
-		}
-	}
-	return true
+	return strings.ContainsAny(s, ".exob")
 }
 
 func isDecimalFloat(s string) bool {
-	if s == "" || strings.ContainsAny(s, "exobEXOB") {
-		return false
-	}
-	dotCount := 0
-	digitCount := 0
-	for _, r := range s {
-		if r == '.' {
-			dotCount++
-		} else if unicode.IsDigit(r) {
-			digitCount++
-		} else {
-			return false
-		}
-	}
-	return dotCount == 1 && digitCount > 0
+	return strings.ContainsAny(s, "exob")
 }
 
-func (p *Parser) extractScaleTokens() (lhs, sep, rhs, unit string, err error) {
-	if p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
-		return "", "", "", "", fmt.Errorf("expected number after scale")
+func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (ast.ScaleCommand, error) {
+	mark := p.Mark(startTok)
+	cmd := ast.ScaleCommand{
+		BaseNode: ast.BaseNode{
+			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+		},
+	}
+	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
+		cmd.IsMax = true
 	}
 
-	toks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.EOF)
-	if len(toks) == 0 {
-		return "", "", "", "", fmt.Errorf("expected number after scale")
+	op1, sep, op2, unit, err := p.extractScaleTokens()
+	if err != nil {
+		return cmd, err
 	}
 
-	for _, t := range toks {
-		if t.Type == tokenizer.ILLEGAL {
-			return "", "", "", "", fmt.Errorf("%s", t.Literal)
+	// Step 2: Validate against State Machine rules
+	isOp1Int := isDecimalInt(op1)
+	isOp1Dec := isDecimalFloat(op1)
+
+	if !isOp1Int && !isOp1Dec {
+		return cmd, NewParserError("Expected number after scale", startTok)
+	}
+
+	// Max constraints
+	if cmd.IsMax {
+		if isOp1Dec {
+			return cmd, NewParserError("Cannot use decimals with 'max'", startTok)
 		}
-	}
-
-	// Check for trailing unit (width / height)
-	lastTok := toks[len(toks)-1]
-	if lastTok.Type == tokenizer.IDENTIFIER && (lastTok.Literal == "width" || lastTok.Literal == "height") {
-		unit = lastTok.Literal
-		toks = toks[:len(toks)-1]
-		if len(toks) == 0 {
-			return "", "", "", "", fmt.Errorf("expected number before unit")
+		if sep == "/" {
+			return cmd, NewParserError("Cannot use fractions with 'max'", startTok)
 		}
-	}
-
-	// Reject non-decimal/scientific characters in remaining tokens (excluding 'x' as separator)
-	for _, t := range toks {
-		lit := t.Literal
-		switch t.Type {
-		case tokenizer.IDENTIFIER:
-			// 'x' can only appear as separator or part of fused box like "200x100", "200x", "x100"
-			cleanLit := strings.ReplaceAll(lit, "x", "")
-			cleanLit = strings.ReplaceAll(cleanLit, "X", "")
-			if strings.ContainsAny(cleanLit, "eobEOB") {
-				return "", "", "", "", fmt.Errorf("cannot use non-decimal integer: %s", lit)
-			}
-		case tokenizer.NUMBER:
-			if strings.ContainsAny(lit, "exobEXOB") {
-				return "", "", "", "", fmt.Errorf("cannot use non-decimal or scientific number: %s", lit)
-			}
+		if sep == "" && unit == "" {
+			return cmd, NewParserError("Cannot use numbers with 'max' without a unit or box", startTok)
 		}
 	}
 
-	// Match token patterns
-	switch len(toks) {
-	case 1:
-		t := toks[0]
-		switch t.Type {
-		case tokenizer.DOT:
-			return "", "", "", "", fmt.Errorf("dangling decimal point")
-		case tokenizer.NUMBER:
-			// Decimal factor with digits on both sides (e.g. "1.5", "1.50")
-			if strings.Contains(t.Literal, ".") && !strings.HasPrefix(t.Literal, ".") && !strings.HasSuffix(t.Literal, ".") && unit == "" {
-				parts := strings.Split(t.Literal, ".")
-				lhs, sep, rhs = parts[0], ".", parts[1]
-			} else {
-				// Bare int ("200"), shorthand decimal (".5", "1."), or decimal with unit ("1.5 height")
-				lhs = t.Literal
-			}
-		case tokenizer.IDENTIFIER:
-			// Could be fused box "200x100"
-			if strings.Contains(t.Literal, "x") && !strings.HasPrefix(t.Literal, "x") && !strings.HasSuffix(t.Literal, "x") {
-				parts := strings.Split(t.Literal, "x")
-				if len(parts) == 2 && isDecimalInt(parts[0]) && isDecimalInt(parts[1]) {
-					lhs, sep, rhs = parts[0], "x", parts[1]
-					break
-				}
-			}
-			return "", "", "", "", fmt.Errorf("unexpected identifier: %s", t.Literal)
-		default:
-			return "", "", "", "", fmt.Errorf("unexpected token: %s", t.Literal)
-		}
-
-	case 2:
-		if toks[0].Type == tokenizer.DOT && toks[1].Type == tokenizer.NUMBER {
-			// Pattern ".5" -> [DOT, NUMBER]
-			lhs = "." + toks[1].Literal
-		} else if toks[0].Type == tokenizer.NUMBER && toks[1].Type == tokenizer.DOT {
-			// Pattern "1." -> [NUMBER, DOT]
-			lhs = toks[0].Literal + "."
-		} else if toks[0].Type == tokenizer.IDENTIFIER && strings.HasSuffix(toks[0].Literal, "x") && toks[1].Type == tokenizer.NUMBER {
-			// Pattern "200x 100"
-			widthPart := strings.TrimSuffix(toks[0].Literal, "x")
-			if !isDecimalInt(widthPart) {
-				return "", "", "", "", fmt.Errorf("expected width in a box to be an integer")
-			}
-			lhs, sep, rhs = widthPart, "x", toks[1].Literal
-		} else if toks[0].Type == tokenizer.NUMBER && toks[1].Type == tokenizer.IDENTIFIER && strings.HasPrefix(toks[1].Literal, "x") {
-			// Pattern "200 x100"
-			heightPart := strings.TrimPrefix(toks[1].Literal, "x")
-			if !isDecimalInt(heightPart) {
-				return "", "", "", "", fmt.Errorf("expected height in a box to be an integer")
-			}
-			lhs, sep, rhs = toks[0].Literal, "x", heightPart
-		} else if toks[1].Type == tokenizer.SLASH {
-			return "", "", "", "", fmt.Errorf("dangling slash")
-		} else if toks[1].Type == tokenizer.ASTERISK || (toks[1].Type == tokenizer.IDENTIFIER && toks[1].Literal == "x") {
-			return "", "", "", "", fmt.Errorf("dangling box separator")
-		} else {
-			return "", "", "", "", fmt.Errorf("unexpected token sequence: %s %s", toks[0].Literal, toks[1].Literal)
-		}
-
-	case 3:
-		// Pattern "200 * 100", "200 x 100", "2 / 3"
-		mid := toks[1]
-		var midSep string
-		if mid.Type == tokenizer.ASTERISK {
-			midSep = "*"
-		} else if mid.Type == tokenizer.SLASH {
-			midSep = "/"
-		} else if mid.Type == tokenizer.IDENTIFIER && mid.Literal == "x" {
-			midSep = "x"
-		} else {
-			return "", "", "", "", fmt.Errorf("unexpected separator: %s", mid.Literal)
-		}
-
-		if toks[0].Type != tokenizer.NUMBER || toks[2].Type != tokenizer.NUMBER {
-			return "", "", "", "", fmt.Errorf("expected numbers around separator '%s'", midSep)
-		}
-
-		lhs, sep, rhs = toks[0].Literal, midSep, toks[2].Literal
-
-	default:
-		return "", "", "", "", fmt.Errorf("too many tokens in scale command")
+	// Decimal constraints
+	if isOp1Dec && sep != "" {
+		return cmd, NewParserError("Cannot use decimals with separators ('*', 'x', '/')", startTok)
 	}
 
-	return lhs, sep, rhs, unit, nil
+	// Binary separator constraints (*, x, /)
+	if sep != "" {
+		if unit != "" {
+			return cmd, NewParserError("Cannot specify unit with a box or fraction", startTok)
+		}
+		if !isDecimalInt(op2) {
+			return cmd, NewParserError("Expected integer after separator", startTok)
+		}
+	}
+
+	// Step 3: Populate AST
+	if sep == "." { // e.g. "1.5" factor
+		parts := strings.Split(op1, ".")
+		cmd.Lhs, cmd.Sep, cmd.Rhs = parts[0], ".", parts[1]
+	} else {
+		cmd.Lhs, cmd.Sep, cmd.Rhs, cmd.Unit = op1, sep, op2, unit
+	}
+
+	cmd.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
+	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
+	return cmd, nil
 }
 
 func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) {
@@ -318,49 +236,203 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		cmd.IsMax = true
 	}
 
-	lhs, sep, rhs, unit, err := p.extractScaleTokens()
-	if err != nil {
-		return cmd, WrapParserError(err, startTok)
+	divideSingleTok := func(lit, sep string) error {
+		if !strings.Contains(lit, sep) {
+			return fmt.Errorf("expected number after scale")
+		}
+		parts := strings.Split(lit, sep)
+		if len(parts) != 2 {
+			return fmt.Errorf("expected two parts after '%s'", sep)
+		}
+		_, errW := strconv.Atoi(parts[0])
+		_, errH := strconv.Atoi(parts[1])
+		if errW != nil || errH != nil {
+			return fmt.Errorf("expected width and height to be integers")
+		}
+		cmd.Lhs = parts[0]
+		cmd.Rhs = parts[1]
+		cmd.Sep = sep
+		return nil
+	}
+	var isInt, isFloat bool
+
+	tok := p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.NUMBER:
+		if strings.ContainsAny(tok.Literal, "exob") {
+			return cmd, NewParserError("Cannot use non-decimal or scientific integer for scale", tok)
+		}
+	case tokenizer.DOT:
+		// .5 case
+		numTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+		if !ok {
+			return cmd, NewParserError("Expected number after scale leading dot", numTok)
+		}
+		if strings.ContainsAny(numTok.Literal, ".exob") {
+			return cmd, NewParserError("Cannot use non-decimal integer for shorthand float", numTok)
+		}
+		cmd.Lhs = "." + numTok.Literal
+		if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
+			return cmd, NewParserError("Expected scale to end after fractional scale", p.stream.PeekTokenAt(0))
+		}
+		if cmd.IsMax {
+			return cmd, NewParserError("Cannot use fractions with 'max'", tok)
+		}
+		cmd.NodeSpan = p.Span(mark)
+		p.stream.EmitCommentToks()
+		cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		return cmd, nil
+	case tokenizer.IDENTIFIER:
+		// Try to handle 200x300 which is tokenized as an IDENTIFIER
+		if strings.Contains(tok.Literal, "x") && !strings.HasSuffix(tok.Literal, "x") && !strings.HasPrefix(tok.Literal, "x") {
+			if err := divideSingleTok(tok.Literal, "x"); err != nil {
+				return cmd, WrapParserError(err, tok)
+			}
+			cmd.NodeSpan = p.Span(mark)
+			p.stream.EmitCommentToks()
+			cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
+			return cmd, nil
+		}
+
+		if before, ok := strings.CutSuffix(tok.Literal, "x"); ok {
+			widthStr := before
+			if widthStr == "" || strings.ContainsAny(widthStr, ".exob") {
+				return cmd, NewParserError("Cannot use non-decimal integer for width of a box", tok)
+			}
+			if _, err := strconv.Atoi(widthStr); err != nil {
+				return cmd, NewParserError("Expected width in a box to be an integer", tok)
+			}
+
+			heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+			if !ok {
+				return cmd, NewParserError("Expected height after 'x' in a box",
+					p.stream.PeekTokenAt(0))
+			}
+			if strings.ContainsAny(heightTok.Literal, ".exob") {
+				return cmd, NewParserError("Cannot use non-decimal integer for height of a box",
+					heightTok)
+			}
+			if _, err := strconv.Atoi(heightTok.Literal); err != nil {
+				return cmd, NewParserError("Invalid height for the box", heightTok)
+			}
+
+			cmd.Lhs = widthStr
+			cmd.Sep = "x"
+			cmd.Rhs = heightTok.Literal
+			cmd.NodeSpan = p.Span(mark)
+			p.stream.EmitCommentToks()
+			cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
+			return cmd, nil
+		}
+
+		return cmd, NewParserError("Expected number after scale", tok)
+	default:
+		return cmd, NewParserError("Expected number after scale", p.stream.PeekTokenAt(0))
 	}
 
-	isLhsInt := isDecimalInt(lhs)
-	isLhsDec := isDecimalFloat(lhs)
-
-	if !isLhsInt && !isLhsDec {
-		return cmd, NewParserError("Expected number after scale", startTok)
+	valueLit := tok.Literal
+	valueTok := tok
+	if valueFloat, err := strconv.ParseFloat(valueLit, 64); err == nil {
+		isFloat = true
+		_, isInt = toInteger(valueFloat)
 	}
 
-	// Max constraints
-	if cmd.IsMax {
-		if sep == "." || isLhsDec {
-			return cmd, NewParserError("Cannot use decimals with 'max'", startTok)
+	setBox := func(sep string) error {
+		if !isInt {
+			return NewParserError("Expected width in a box to be an integer", tok)
 		}
-		if sep == "/" {
-			return cmd, NewParserError("Cannot use fractions with 'max'", startTok)
+		if strings.ContainsAny(valueLit, ".exob") {
+			return NewParserError("Cannot use non-decimal integer for width of a box", valueTok)
 		}
-		if sep == "" && unit == "" {
-			return cmd, NewParserError("Cannot use numbers with 'max' without a unit or box", startTok)
+		cmd.Lhs = valueLit
+		cmd.Sep = sep
+		heightTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+		if !ok {
+			return NewParserError(fmt.Sprintf("Expected height after '%s' in a box", sep), p.stream.PeekTokenAt(0))
 		}
+		if strings.ContainsAny(heightTok.Literal, ".exob") {
+			return NewParserError("Cannot use non-decimal integer for height of a box", heightTok)
+		}
+		if _, err := strconv.Atoi(heightTok.Literal); err != nil {
+			return NewParserError("Invalid height for the box", heightTok)
+		}
+		cmd.Rhs = heightTok.Literal
+		return nil
 	}
 
-	// Binary separator constraints (*, x, /)
-	if sep == "*" || sep == "x" || sep == "/" {
-		if unit != "" {
-			return cmd, NewParserError("Cannot specify unit with a box or fraction", startTok)
+	tok = p.stream.Emit()
+	switch tok.Type {
+	case tokenizer.IDENTIFIER:
+		switch tok.Literal {
+		case "width":
+			if strings.ContainsAny(valueLit, "exob") {
+				return cmd, NewParserError("Cannot use non-decimal or scientific integer for width of a box", valueTok)
+			}
+			cmd.Lhs = valueLit
+			cmd.Unit = tok.Literal
+		case "height":
+			if strings.ContainsAny(valueLit, "exob") {
+				return cmd, NewParserError("Cannot use non-decimal or scientific integer for height of a box", valueTok)
+			}
+			cmd.Lhs = valueLit
+			cmd.Unit = tok.Literal
+		case "x":
+			if err := setBox("x"); err != nil {
+				return cmd, err
+			}
+		default:
+			after, ok := strings.CutPrefix(tok.Literal, "x")
+			if !ok {
+				return cmd, NewParserError(fmt.Sprintf("Unexpected identifier: %s", tok.Literal), tok)
+			}
+			heightStr := after
+			if heightStr == "" || strings.ContainsAny(heightStr, ".exob") {
+				return cmd, NewParserError("Cannot use non-decimal integer for height of a box", tok)
+			}
+			if _, err := strconv.Atoi(heightStr); err != nil {
+				return cmd, NewParserError("Invalid height for the box", tok)
+			}
+			if !isInt || strings.ContainsAny(valueLit, ".exob") {
+				return cmd, NewParserError("Expected width in a box to be an integer", valueTok)
+			}
+
+			cmd.Lhs = valueLit
+			cmd.Sep = "x"
+			cmd.Rhs = heightStr
 		}
-		if !isLhsInt {
-			return cmd, NewParserError("Expected integer width before separator", startTok)
+	case tokenizer.ASTERISK:
+		if err := setBox("*"); err != nil {
+			return cmd, err
 		}
-		if !isDecimalInt(rhs) {
-			return cmd, NewParserError("Expected integer after separator", startTok)
+	case tokenizer.SLASH:
+		if err := setBox("/"); err != nil {
+			return cmd, err
 		}
+	case tokenizer.NEWLINE, tokenizer.EOF:
+		// EOF handling is a special case for a test case
+		// valueLit is either a bare integer or a float
+		if !isFloat {
+			return cmd, NewParserError("Expected number after scale", tok)
+		}
+
+		if cmd.IsMax {
+			return cmd, NewParserError("Cannot use numbers with 'max' without a unit (width/height) or a box", tok)
+		}
+
+		if isFloat && !isInt {
+			if err := divideSingleTok(valueLit, "."); err != nil {
+				return cmd, WrapParserError(err, tok)
+			}
+		} else {
+			cmd.Lhs = valueLit
+		}
+	default:
+		return cmd, NewParserError(fmt.Sprintf("Unexpected token: %s(%s)", tok.Type.String(), tok.Literal), tok)
 	}
 
-	cmd.Lhs = lhs
-	cmd.Sep = sep
-	cmd.Rhs = rhs
-	cmd.Unit = unit
-
+	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
+		return cmd, NewParserError("Unexpected tokens after scale command", p.stream.PeekTokenAt(0))
+	}
 	cmd.NodeSpan = p.Span(mark)
 	p.stream.EmitCommentToks()
 	cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()

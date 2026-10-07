@@ -4,7 +4,7 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "VisibilityAndTags",
+      "TrailingName": "VisibilityAndTags",
       "NodeSpan": {
         "Start": {
           "Line": 0,

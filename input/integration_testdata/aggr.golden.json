@@ -4,7 +4,7 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "Aggregation",
+      "TrailingName": "Aggregation",
       "NodeSpan": {
         "Start": {
           "Line": 0,

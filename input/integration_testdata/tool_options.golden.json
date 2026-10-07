@@ -6,7 +6,13 @@
       "IsStart": true,
       "Type": "uml",
       "ID": "main_diagram",
-      "Name": "diagram.png",
+      "Params": [
+        {
+          "Key": "id",
+          "Value": "main_diagram"
+        }
+      ],
+      "TrailingName": "diagram.png",
       "NodeSpan": {
         "Start": {
           "Line": 0,

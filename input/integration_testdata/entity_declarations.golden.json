@@ -4,7 +4,7 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "EntityDeclarations",
+      "TrailingName": "EntityDeclarations",
       "NodeSpan": {
         "Start": {
           "Line": 2,

@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -71,13 +72,16 @@ func TestTryReadClassSeparator(t *testing.T) {
 
 func TestReadDiagramBounds(t *testing.T) {
 	tt := []struct {
-		name             string
-		input            string
-		expectedKvps     map[string]string
-		expectError      bool
-		expectedFilename string
-		expectedType     string
-		expectedID       string
+		name                 string
+		input                string
+		expectError          bool
+		expectedFilename     string
+		expectedTrailingName string
+		expectedCaption      string
+		expectedToolOptions  []ast.BoundOption
+		expectedParams       []ast.BoundOption
+		expectedType         string
+		expectedID           string
 	}{
 		{
 			name:         "Default case",
@@ -85,23 +89,31 @@ func TestReadDiagramBounds(t *testing.T) {
 			expectedType: "uml",
 		},
 		{
-			name:             "With filename",
-			input:            "@startuml filename.puml\n@enduml",
-			expectedFilename: "filename.puml",
-			expectedType:     "uml",
+			name:                 "With filename",
+			input:                "@startuml filename.puml\n@enduml",
+			expectedFilename:     "filename.puml",
+			expectedTrailingName: "filename.puml",
+			expectedType:         "uml",
 		},
 		{
 			name:         "With tag",
 			input:        "@startuml(id=tag)\n@enduml",
 			expectedType: "uml",
 			expectedID:   "tag",
+			expectedParams: []ast.BoundOption{
+				{Key: "id", Value: "tag"},
+			},
 		},
 		{
-			name:             "With filename and tag",
-			input:            "@startuml(id=tag) filename.puml\n@enduml",
-			expectedFilename: "filename.puml",
-			expectedType:     "uml",
-			expectedID:       "tag",
+			name:                 "With filename and tag",
+			input:                "@startuml(id=tag) filename.puml\n@enduml",
+			expectedFilename:     "filename.puml",
+			expectedTrailingName: "filename.puml",
+			expectedType:         "uml",
+			expectedID:           "tag",
+			expectedParams: []ast.BoundOption{
+				{Key: "id", Value: "tag"},
+			},
 		},
 		{
 			name:             "filename using tool options",
@@ -113,19 +125,17 @@ func TestReadDiagramBounds(t *testing.T) {
 			name:             "filename and caption using tool options",
 			input:            "@startuml{filename.puml, foo bar}\n@enduml",
 			expectedFilename: "filename.puml",
+			expectedCaption:  "foo bar",
 			expectedType:     "uml",
-			expectedKvps: map[string]string{
-				"caption": "foo bar",
-			},
 		},
 		{
 			name:             "kvp parsing",
 			input:            "@startuml{filename.puml, foo bar, key=value}\n@enduml",
 			expectedFilename: "filename.puml",
+			expectedCaption:  "foo bar",
 			expectedType:     "uml",
-			expectedKvps: map[string]string{
-				"caption": "foo bar",
-				"key":     "value",
+			expectedToolOptions: []ast.BoundOption{
+				{Key: "key", Value: "value"},
 			},
 		},
 		{
@@ -133,19 +143,22 @@ func TestReadDiagramBounds(t *testing.T) {
 			input:            "@startuml{filename.puml, key=value}\n@enduml",
 			expectedFilename: "filename.puml",
 			expectedType:     "uml",
-			expectedKvps: map[string]string{
-				"key": "value",
+			expectedToolOptions: []ast.BoundOption{
+				{Key: "key", Value: "value"},
 			},
 		},
 		{
 			name:             "Tools and id parsing simulatenously",
 			input:            "@startuml(id=tag){filename.puml, foo bar, key=value}\n@enduml",
 			expectedFilename: "filename.puml",
+			expectedCaption:  "foo bar",
 			expectedType:     "uml",
 			expectedID:       "tag",
-			expectedKvps: map[string]string{
-				"caption": "foo bar",
-				"key":     "value",
+			expectedParams: []ast.BoundOption{
+				{Key: "id", Value: "tag"},
+			},
+			expectedToolOptions: []ast.BoundOption{
+				{Key: "key", Value: "value"},
 			},
 		},
 		{
@@ -173,14 +186,25 @@ func TestReadDiagramBounds(t *testing.T) {
 			require.True(t, b.IsStart)
 			require.Equal(t, tc.expectedType, b.Type)
 
-			if tc.expectedKvps != nil {
-				require.Equal(t, tc.expectedKvps, b.Opts)
-			}
 			if tc.expectedFilename != "" {
-				require.Equal(t, tc.expectedFilename, b.Name)
+				require.Equal(t, tc.expectedFilename, b.DiagramName())
+			}
+			if tc.expectedTrailingName != "" {
+				require.Equal(t, tc.expectedTrailingName, b.TrailingName)
 			}
 			if tc.expectedID != "" {
 				require.Equal(t, tc.expectedID, b.ID)
+			}
+			if tc.expectedCaption != "" {
+				require.NotNil(t, b.Tools)
+				require.Equal(t, tc.expectedCaption, b.Tools.Caption)
+			}
+			if tc.expectedToolOptions != nil {
+				require.NotNil(t, b.Tools)
+				require.Equal(t, tc.expectedToolOptions, b.Tools.Options)
+			}
+			if tc.expectedParams != nil {
+				require.Equal(t, tc.expectedParams, b.Params)
 			}
 
 			p.stream.TryConsumeType(tokenizer.NEWLINE)

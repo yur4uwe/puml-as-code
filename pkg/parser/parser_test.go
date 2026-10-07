@@ -7,7 +7,7 @@ import (
 	"yur4uwe/pac/pkg/parser/dialect"
 )
 
-func TestParseTitle(t *testing.T) {
+func TestParseDiagramBounds(t *testing.T) {
 	tests := []struct {
 		name        string
 		input       string

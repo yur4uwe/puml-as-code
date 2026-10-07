@@ -4,7 +4,7 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "TargetRefs",
+      "TrailingName": "TargetRefs",
       "NodeSpan": {
         "Start": {
           "Line": 0,

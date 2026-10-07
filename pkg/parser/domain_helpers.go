@@ -139,9 +139,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		return ast.DiagramBound{}, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start' or 'end'")
 	}
 
-	diag := ast.DiagramBound{
-		Opts: make(map[string]string),
-	}
+	diag := ast.DiagramBound{}
 
 	possibleBounds := []string{
 		"uml",
@@ -167,35 +165,42 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	if !p.stream.AssertType(tokenizer.LPAREN) && !p.stream.AssertType(tokenizer.LBRACE) {
-		diag.Name = p.stream.ReadUntilNewline()
+		diag.TrailingName = p.stream.ReadUntilNewline()
 		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
 
-	readKvp := func() error {
+	readKvp := func() (ast.BoundOption, error) {
 		keyTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
-			return fmt.Errorf("expected a key")
+			return ast.BoundOption{}, fmt.Errorf("expected a key")
 		}
 		if _, ok := p.stream.TryConsumeType(tokenizer.EQUALS); !ok {
-			return fmt.Errorf("expected = after key")
+			return ast.BoundOption{}, fmt.Errorf("expected = after key")
 		}
 		valTok := p.stream.Emit()
-		if keyTok.Literal == "id" {
-			diag.ID = valTok.Literal
-		} else if _, ok := diag.Opts[keyTok.Literal]; ok {
-			return fmt.Errorf("duplicate key in diagram bounds: %s", keyTok.Literal)
-		} else {
-			diag.Opts[keyTok.Literal] = valTok.Literal
-		}
-		return nil
+		return ast.BoundOption{
+			Key:   keyTok.Literal,
+			Value: valTok.Literal,
+		}, nil
 	}
 
 	if _, consumed := p.stream.TryConsumeType(tokenizer.LPAREN); consumed {
+		seenParams := make(map[string]bool)
 		for !p.stream.AssertType(tokenizer.RPAREN) && !p.stream.AssertType(tokenizer.EOF) && !p.stream.AssertType(tokenizer.NEWLINE) {
-			if err := readKvp(); err != nil {
+			param, err := readKvp()
+			if err != nil {
 				return diag, err
 			}
+			if seenParams[param.Key] {
+				return diag, fmt.Errorf("duplicate key in diagram bounds: %s", param.Key)
+			}
+			seenParams[param.Key] = true
+			if param.Key == "id" {
+				diag.ID = param.Value
+			}
+			diag.Params = append(diag.Params, param)
+
 			if _, ok := p.stream.TryConsumeType(tokenizer.COMMA); !ok {
 				break
 			}
@@ -206,7 +211,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 	}
 
 	if !p.stream.AssertType(tokenizer.LBRACE) {
-		diag.Name = p.stream.ReadUntilNewline()
+		diag.TrailingName = p.stream.ReadUntilNewline()
 		diag.NodeSpan = p.Span(m)
 		return diag, nil
 	}
@@ -216,7 +221,9 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		if p.stream.AssertType(tokenizer.EOF) || p.stream.AssertType(tokenizer.NEWLINE) {
 			return diag, fmt.Errorf("unexpected EOF or newline")
 		}
-		diag.Name = p.stream.TokensToString(tokens)
+		tools := &ast.BoundToolOptions{
+			File: p.stream.TokensToString(tokens),
+		}
 
 		if p.stream.PeekTokenAt(2).Type != tokenizer.EQUALS {
 			p.stream.TryConsumeType(tokenizer.COMMA)
@@ -224,19 +231,27 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 			if p.stream.AssertType(tokenizer.EOF) || p.stream.AssertType(tokenizer.NEWLINE) {
 				return diag, fmt.Errorf("unexpected EOF or newline")
 			}
-			diag.Opts["caption"] = p.stream.TokensToString(captionTokens)
+			tools.Caption = p.stream.TokensToString(captionTokens)
 		}
 
+		seenOpts := make(map[string]bool)
 		for p.stream.AssertType(tokenizer.COMMA) {
 			p.stream.TryConsumeType(tokenizer.COMMA)
-			if err := readKvp(); err != nil {
+			opt, err := readKvp()
+			if err != nil {
 				return diag, err
 			}
+			if seenOpts[opt.Key] {
+				return diag, fmt.Errorf("duplicate key in diagram bounds: %s", opt.Key)
+			}
+			seenOpts[opt.Key] = true
+			tools.Options = append(tools.Options, opt)
 		}
 
 		if _, ok := p.stream.TryConsumeType(tokenizer.RBRACE); !ok {
 			return diag, fmt.Errorf("expected } at end of diagram bounds options")
 		}
+		diag.Tools = tools
 	}
 
 	if p.stream.AssertType(tokenizer.LPAREN) {
