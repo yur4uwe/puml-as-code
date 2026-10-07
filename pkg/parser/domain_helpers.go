@@ -170,7 +170,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		return diag, nil
 	}
 
-	readKvp := func() (ast.BoundOption, error) {
+	readKvp := func(blockOpener, blockTerminator tokenizer.TokenType) (ast.BoundOption, error) {
 		keyTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
 			return ast.BoundOption{}, fmt.Errorf("expected a key")
@@ -178,17 +178,41 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		if _, ok := p.stream.TryConsumeType(tokenizer.EQUALS); !ok {
 			return ast.BoundOption{}, fmt.Errorf("expected = after key")
 		}
-		valTok := p.stream.Emit()
-		return ast.BoundOption{
-			Key:   keyTok.Literal,
-			Value: valTok.Literal,
-		}, nil
+		opt := ast.BoundOption{
+			Key: keyTok.Literal,
+		}
+
+		toks := []tokenizer.Token{}
+		depth := 0
+	collectorLoop:
+		for {
+			tok := p.stream.PeekRawTokenAt(0)
+			switch tok.Type {
+			case blockOpener:
+				depth++
+			case blockTerminator:
+				if depth == 0 {
+					break collectorLoop
+				}
+				depth--
+			case tokenizer.COMMA:
+				if depth == 0 {
+					break collectorLoop
+				}
+			case tokenizer.EOF, tokenizer.NEWLINE:
+				// prevent infinite loops on unclosed input
+				break collectorLoop
+			}
+			toks = append(toks, p.stream.Emit())
+		}
+		opt.Value = p.stream.SliceInputEnclosingTokens(toks...)
+		return opt, nil
 	}
 
 	if _, consumed := p.stream.TryConsumeType(tokenizer.LPAREN); consumed {
 		seenParams := make(map[string]bool)
 		for !p.stream.AssertType(tokenizer.RPAREN) && !p.stream.AssertType(tokenizer.EOF) && !p.stream.AssertType(tokenizer.NEWLINE) {
-			param, err := readKvp()
+			param, err := readKvp(tokenizer.LPAREN, tokenizer.RPAREN)
 			if err != nil {
 				return diag, err
 			}
@@ -237,7 +261,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		seenOpts := make(map[string]bool)
 		for p.stream.AssertType(tokenizer.COMMA) {
 			p.stream.TryConsumeType(tokenizer.COMMA)
-			opt, err := readKvp()
+			opt, err := readKvp(tokenizer.LBRACE, tokenizer.RBRACE)
 			if err != nil {
 				return diag, err
 			}

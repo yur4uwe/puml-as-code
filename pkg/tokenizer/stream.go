@@ -9,6 +9,8 @@ import (
 	"yur4uwe/pac/pkg/parser/keyword"
 )
 
+const maxConsecutiveEOF = 25
+
 type UnexpectedTokenError struct {
 	Expected Token
 	Found    Token
@@ -30,6 +32,7 @@ type TokenStream struct {
 	rawModeTerminator   []rune
 	PackageSeparator    string
 	lastNonNewlineToken Token
+	eofEmitCount        int
 }
 
 func NewTokenStream(input string) *TokenStream {
@@ -95,7 +98,16 @@ func (ts *TokenStream) PeekRawTokenAt(idx int) Token {
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
 		if tok.Type == EOF {
+			ts.eofEmitCount++
+			if ts.eofEmitCount > maxConsecutiveEOF {
+				panic(fmt.Sprintf(
+					"tokenizer: possible infinite loop detected: emitted EOF %d times (at %s)",
+					ts.eofEmitCount, ts.lexer.getPos(),
+				))
+			}
 			break
+		} else {
+			ts.eofEmitCount = 0
 		}
 	}
 	if idx < len(ts.buffer) {
@@ -173,6 +185,8 @@ func (ts *TokenStream) Attach(sink TokenSink) func() {
 	}
 }
 
+// TokensToString is DEPRECATED as it can distort the original source
+// Use SliceInputEnclosingTokens instead
 func (ts *TokenStream) TokensToString(toks []Token) string {
 	if len(toks) == 0 {
 		return ""
@@ -392,7 +406,7 @@ func (ts *TokenStream) ReadBetween(start, end []Token) (string, error) {
 		collected = append(collected, ts.Emit())
 	}
 
-	res := ts.TokensToString(collected)
+	res := ts.SliceInputEnclosingTokens(collected...)
 
 	// Consume end markers
 	for range end {

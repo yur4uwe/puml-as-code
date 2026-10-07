@@ -974,11 +974,11 @@ func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
 }
 
 func (p *Parser) tryParseColor() string {
-	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); !ok {
+	if !p.stream.AssertType(tokenizer.HASH) {
 		return ""
 	}
 	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON, tokenizer.LBRACE)
-	return p.stream.TokensToString(tokens)
+	return p.stream.SliceInputEnclosingTokens(tokens...)
 }
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
