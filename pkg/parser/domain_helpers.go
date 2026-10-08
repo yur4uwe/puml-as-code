@@ -28,7 +28,6 @@ func (p *Parser) tryReadGeneric() (string, error) {
 }
 
 func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
-	var start, end []tokenizer.Token
 	var sepChar rune
 	sepTokType := p.stream.PeekTokenAt(0).Type
 	switch sepTokType {

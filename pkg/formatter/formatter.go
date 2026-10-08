@@ -2,6 +2,7 @@
 package formatter
 
 import (
+	"fmt"
 	"strings"
 	"unicode"
 
@@ -36,33 +37,41 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 		source: []rune(src),
 		buf:    strings.Builder{},
 		indent: opt.IndentSize,
+
+		packageSeparator: ".",
 	}
 
-	for _, stmt := range tree.Statements {
-		state.formatStatement(stmt)
+	for _, node := range tree.Statements {
+		formatNode(state, node)
 	}
 
 	return state.buf.String(), nil
 }
 
-func (s *formatterState) formatStatement(stmt ast.Statement) {
-	for _, comment := range stmt.GetLeadingTrivia() {
+func formatNode(s *formatterState, node ast.Node) {
+	for _, comment := range node.GetLeadingTrivia() {
 		// Check leading trivia for pragmas
 		if strings.Contains(comment.Literal, "pac:fmt:off") {
 			s.disabled = true
 		} else if strings.Contains(comment.Literal, "pac:fmt:on") {
 			s.disabled = false
 		}
-		s.emitComment(comment)
+		s.emitTrivia(comment)
+		s.buf.WriteByte('\n')
 	}
 
 	if s.disabled {
-		s.emitRawSpan(stmt.Span())
+		s.emitRawSpan(node.Span())
 	} else {
-		s.prettyPrint(stmt)
+		switch node := node.(type) {
+		case ast.Statement:
+			s.formatStatement(node)
+		case ast.Member:
+			s.formatMember(node)
+		}
 	}
 
-	s.emitBlockEndTrivia(stmt)
+	s.emitBlockEndTrivia(node)
 	s.buf.WriteString("\n")
 }
 
@@ -71,15 +80,26 @@ func (s *formatterState) formatMember(member ast.Member) {
 	case ast.ClassSeparator:
 		printClassSeparator(s, mem)
 	case ast.Field:
-		s.emitWithIndent(mem.String())
+		s.writeIndent()
+		for _, modifier := range mem.FieldModifiers() {
+			fmt.Fprintf(&s.buf, "{%s} ", modifier)
+		}
+		s.buf.WriteString(mem.FieldVisibility().String())
+		s.buf.WriteString(mem.String())
 	case ast.Method:
-		s.emitWithIndent(mem.String())
+		s.writeIndent()
+		for _, modifier := range mem.MethodModifiers() {
+			fmt.Fprintf(&s.buf, "{%s} ", modifier)
+		}
+		s.buf.WriteString(mem.MethodVisibility().String())
+		s.buf.WriteString(mem.String())
 	default:
 		panic("unreachable")
 	}
+	s.emitBlockEndTrivia(member)
 }
 
-func (s *formatterState) prettyPrint(stmt ast.Statement) {
+func (s *formatterState) formatStatement(stmt ast.Statement) {
 	switch st := stmt.(type) {
 	case ast.DiagramBound:
 		printDiagramBound(s, st)
@@ -141,7 +161,6 @@ func (s *formatterState) prettyPrint(stmt ast.Statement) {
 			s.buf.WriteString("restore ")
 		}
 		s.buf.WriteString(st.Target)
-		s.buf.WriteString("\n")
 	case ast.SetCommand:
 		if st.Key == "separator" {
 			s.packageSeparator = st.Value
@@ -155,7 +174,7 @@ func (s *formatterState) prettyPrint(stmt ast.Statement) {
 		case ast.LeftToRightDirection:
 			s.buf.WriteString("left to right")
 		case ast.TopToBottomDirection:
-			s.buf.WriteString("top to leftbottom")
+			s.buf.WriteString("top to bottom")
 		}
 		s.buf.WriteString(" direction")
 	default:
@@ -204,7 +223,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	for i, line := range inputLines {
 		if i == 0 {
 			s.buf.WriteString(string(line))
-			s.buf.WriteRune('\n')
+			if len(inputLines) > 1 {
+				s.buf.WriteRune('\n')
+			}
 			continue
 		}
 
@@ -212,6 +233,8 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 		currTab := strings.Repeat(" ", sourceIndent)
 		s.buf.WriteString(currTab)
 		s.buf.WriteString(string(line))
-		s.buf.WriteRune('\n')
+		if i < len(inputLines)-1 {
+			s.buf.WriteRune('\n')
+		}
 	}
 }

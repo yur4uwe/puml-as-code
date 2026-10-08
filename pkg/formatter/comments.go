@@ -5,24 +5,26 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (s *formatterState) emitComment(comment tokenizer.Token) {
-	s.emitRawSpan(comment.Span)
+func (s *formatterState) emitTrivia(trivia tokenizer.Token) {
+	s.emitRawSpan(trivia.Span)
 }
 
-func (s *formatterState) emitBlockStartTrivia(block ast.Statement) {
-	for _, comment := range block.GetTrailingTrivia() {
-		if comment.Span.Start.Line == block.Span().Start.Line {
-			s.emitComment(comment)
+func (s *formatterState) emitBlockStartTrivia(block ast.Node) {
+	for _, trivia := range block.GetTrailingTrivia() {
+		if trivia.Span.Start.Line == block.Span().Start.Line {
+			s.buf.WriteByte(' ')
+			s.emitTrivia(trivia)
 		}
 	}
 }
 
-func (s *formatterState) emitBlockEndTrivia(block ast.Statement) {
-	for _, comment := range block.GetTrailingTrivia() {
+func (s *formatterState) emitBlockEndTrivia(block ast.Node) {
+	for _, trivia := range block.GetTrailingTrivia() {
 		// To account for blocked statements
 		// only emit trailing trivia on the same line as the end of the statement
-		if comment.Span.Start.Line != block.Span().Start.Line {
-			s.emitComment(comment)
+		if trivia.Span.Start.Line != block.Span().Start.Line {
+			s.buf.WriteByte(' ')
+			s.emitTrivia(trivia)
 		}
 	}
 }

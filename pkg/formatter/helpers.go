@@ -23,7 +23,7 @@ func (s *formatterState) targetFQN(target ast.TargetRef) string {
 func (s *formatterState) formatBlockStatements(stmts []ast.Statement) {
 	s.onNewLevel(func() {
 		for _, stmt := range stmts {
-			s.formatStatement(stmt)
+			formatNode(s, stmt)
 		}
 	})
 }
@@ -31,7 +31,7 @@ func (s *formatterState) formatBlockStatements(stmts []ast.Statement) {
 func (s *formatterState) formatBlockMembers(members []ast.Member) {
 	s.onNewLevel(func() {
 		for _, member := range members {
-			s.formatMember(member)
+			formatNode(s, member)
 		}
 	})
 }

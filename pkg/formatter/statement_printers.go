@@ -2,6 +2,7 @@ package formatter
 
 import (
 	"strings"
+
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
@@ -236,29 +237,28 @@ func printEntity(s *formatterState, ent ast.Entity) {
 	s.buf.WriteString(" ")
 	if ent.Alias != "" {
 		s.buf.WriteString(ent.Alias)
-		s.buf.WriteString("as ")
+		s.buf.WriteString(" as ")
 	}
 	s.buf.WriteString(ent.Identifier)
 	if ent.Generic != "" {
-		s.buf.WriteString("<")
+		s.buf.WriteString(" <")
 		s.buf.WriteString(ent.Generic)
-		s.buf.WriteString("> ")
+		s.buf.WriteString(">")
 	}
 	if ent.Stereotype != "" {
-		s.buf.WriteString("<<")
+		s.buf.WriteString(" <<")
 		s.buf.WriteString(ent.Stereotype)
-		s.buf.WriteString(">> ")
+		s.buf.WriteString(">>")
 	}
 	for _, tag := range ent.Tags {
-		s.buf.WriteString("$")
+		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
-		s.buf.WriteString(" ")
 	}
 	if ent.Color != "" {
-		s.buf.WriteString(ent.Color)
 		s.buf.WriteString(" ")
+		s.buf.WriteString(ent.Color)
 	}
-	s.buf.WriteString("{")
+	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(ent)
 	s.buf.WriteByte('\n')
 
@@ -288,23 +288,25 @@ func printContainer(s *formatterState, cont ast.Container) {
 		s.buf.WriteString(" as ")
 	}
 	s.buf.WriteString(cont.Identifier)
-	s.buf.WriteString(" ")
 	if cont.Stereotype != "" {
-		s.buf.WriteString("<<")
+		s.buf.WriteString(" <<")
 		s.buf.WriteString(cont.Stereotype)
-		s.buf.WriteString(">> ")
+		s.buf.WriteString(">>")
 	}
 	// For 0 tags either way nothing is printed
 	for _, tag := range cont.Tags {
-		s.buf.WriteString("$")
+		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
-		s.buf.WriteString(" ")
 	}
 	if cont.Color != "" {
-		s.buf.WriteString(cont.Color)
 		s.buf.WriteString(" ")
+		s.buf.WriteString(cont.Color)
 	}
-	s.buf.WriteString("{")
+	if len(cont.Statements) == 0 {
+		s.emitBlockStartTrivia(cont)
+		return
+	}
+	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
 
@@ -326,6 +328,13 @@ func printRelationship(s *formatterState, rel ast.Relationship) {
 	lbrCount = rel.BodyCount / 2
 	rbrCount = rel.BodyCount - lbrCount
 
+	switch rel.LArrow {
+	case '<', '}', 'o', 'x', '*', '+', '^', '#':
+		s.buf.WriteRune(rel.LArrow)
+	case '|':
+		s.buf.WriteString("<|")
+	default:
+	}
 	for range lbrCount {
 		s.buf.WriteRune(rel.Body)
 	}
@@ -346,6 +355,13 @@ func printRelationship(s *formatterState, rel ast.Relationship) {
 	for range rbrCount {
 		s.buf.WriteRune(rel.Body)
 	}
+	switch rel.RArrow {
+	case '>', '{', 'o', 'x', '*', '+', '^', '#':
+		s.buf.WriteRune(rel.RArrow)
+	case '|':
+		s.buf.WriteString("|>")
+	default:
+	}
 
 	s.buf.WriteString(" ")
 	if rel.MultRHS != ast.UnknownCardinality {
@@ -357,7 +373,6 @@ func printRelationship(s *formatterState, rel ast.Relationship) {
 		s.buf.WriteString(" : ")
 		s.buf.WriteString(rel.Label)
 	}
-	s.buf.WriteByte('\n')
 }
 
 func printTextBlock(s *formatterState, block ast.TextBlock) {
