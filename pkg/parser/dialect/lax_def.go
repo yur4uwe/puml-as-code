@@ -29,6 +29,10 @@ func (l *LaxField) MemberNode() ast.Member {
 	return l
 }
 
+func (l *LaxField) String() string {
+	return l.Text
+}
+
 var _ ast.Field = (*LaxField)(nil)
 
 type LaxMethod struct {
@@ -56,6 +60,10 @@ func (l *LaxMethod) MethodName() string {
 // MethodVisibility implements [ast.Method].
 func (l *LaxMethod) MethodVisibility() ast.VisibilityKind {
 	return l.Visibility
+}
+
+func (l *LaxMethod) String() string {
+	return l.Text
 }
 
 var _ ast.Method = (*LaxMethod)(nil)

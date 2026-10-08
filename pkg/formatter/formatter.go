@@ -67,13 +67,15 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 }
 
 func (s *formatterState) formatMember(member ast.Member) {
-	switch member.(type) {
+	switch mem := member.(type) {
 	case ast.ClassSeparator:
-		printClassSeparator(s, member)
+		printClassSeparator(s, mem)
 	case ast.Field:
-		printField(s, member)
+		s.emitWithIndent(mem.String())
 	case ast.Method:
-		printMethod(s, member)
+		s.emitWithIndent(mem.String())
+	default:
+		panic("unreachable")
 	}
 }
 

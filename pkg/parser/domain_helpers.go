@@ -30,54 +30,63 @@ func (p *Parser) tryReadGeneric() (string, error) {
 func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	var start, end []tokenizer.Token
 	var sepChar rune
-	switch p.stream.PeekTokenAt(0).Type {
+	sepTokType := p.stream.PeekTokenAt(0).Type
+	switch sepTokType {
 	case tokenizer.DASH:
-		start = []tokenizer.Token{{Type: tokenizer.DASH}, {Type: tokenizer.DASH}}
-		end = []tokenizer.Token{{Type: tokenizer.DASH}, {Type: tokenizer.DASH}}
 		sepChar = '-'
 	case tokenizer.DOT:
-		start = []tokenizer.Token{{Type: tokenizer.DOT}, {Type: tokenizer.DOT}}
-		end = []tokenizer.Token{{Type: tokenizer.DOT}, {Type: tokenizer.DOT}}
 		sepChar = '.'
 	case tokenizer.EQUALS:
-		start = []tokenizer.Token{{Type: tokenizer.EQUALS}, {Type: tokenizer.EQUALS}}
-		end = []tokenizer.Token{{Type: tokenizer.EQUALS}, {Type: tokenizer.EQUALS}}
 		sepChar = '='
 	case tokenizer.UNDERSCORE:
-		start = []tokenizer.Token{{Type: tokenizer.UNDERSCORE}, {Type: tokenizer.UNDERSCORE}}
-		end = []tokenizer.Token{{Type: tokenizer.UNDERSCORE}, {Type: tokenizer.UNDERSCORE}}
 		sepChar = '_'
 	default:
 		return ast.ClassSeparator{}, fmt.Errorf("unexpected class separator")
 	}
 
 	sep := ast.ClassSeparator{
+		Type: sepChar,
 		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
 
-	mark := p.Mark(p.stream.PeekTokenAt(0))
+	lastTok := p.stream.PeekTokenAt(0)
+	m := p.Mark(lastTok)
+	for lastTok.Type == sepTokType {
+		p.stream.Emit()
+		sep.TypeCount++
+		lastTok = p.stream.PeekTokenAt(0)
+	}
 
-	if p.stream.AssertSeq(append(start, tokenizer.Token{Type: tokenizer.NEWLINE})) {
-		sep.Type = sepChar
-		// AssertSeq CAN come across some trailing trivia
+	if lastTok.Type == tokenizer.NEWLINE {
+		sep.NodeSpan = p.Span(m)
+		p.stream.EmitCommentToks()
 		sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
-		sep.NodeSpan = p.Span(mark)
 		return sep, nil
 	}
 
-	str, err := p.stream.ReadBetween(start, end)
-	if err != nil {
-		return sep, err
+	mark := p.Mark(p.stream.PeekTokenAt(0))
+
+	labelToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, sepTokType)
+	if p.stream.AssertType(tokenizer.NEWLINE) {
+		return sep, fmt.Errorf("unexpected newline after label in a class separator")
 	}
+
+	lastTok = p.stream.PeekTokenAt(0)
+	for lastTok.Type == sepTokType {
+		p.stream.Emit()
+		sep.TypeCount++
+		lastTok = p.stream.PeekTokenAt(0)
+	}
+
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		return sep, fmt.Errorf("unexpected tokens after class separator")
 	}
 	sep.NodeSpan = p.Span(mark)
 	p.stream.EmitCommentToks()
 	sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
-	sep.Label = str
+	sep.Label = p.stream.SliceInputEnclosingTokens(labelToks...)
 	sep.Type = sepChar
 	return sep, nil
 }

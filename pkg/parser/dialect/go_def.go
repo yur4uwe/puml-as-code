@@ -138,7 +138,7 @@ func (g *GoField) MemberNode() ast.Member {
 }
 
 func (g *GoField) String() string {
-	return ""
+	return g.Name + " " + g.Type.String()
 }
 
 var _ ast.Field = (*GoField)(nil)
@@ -219,7 +219,7 @@ func (g *GoMethod) Signature() string {
 }
 
 func (g *GoMethod) String() string {
-	return ""
+	return g.Name + g.Signature()
 }
 
 var _ ast.Method = (*GoMethod)(nil)
