@@ -138,14 +138,6 @@ func (p *Parser) isStyleTagEnd() bool {
 }
 
 func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error) {
-	if !p.stream.AssertSeq(
-		[]tokenizer.Token{
-			amb(tokenizer.IDENTIFIER, "style"),
-			unamb(tokenizer.RANGLE),
-		},
-	) {
-		return nil, NewParserError(startTok, "Expected <style> opening tag")
-	}
 	p.stream.Emit() // consume 'style'
 	p.stream.Emit() // consume '>'
 
@@ -196,7 +188,7 @@ func (p *Parser) getSelectors(startTok tokenizer.Token) ([]string, error) {
 	headerText := p.stream.SliceInputEnclosingTokens(toks...)
 
 	var selectors []string
-	for _, part := range strings.Split(headerText, ",") {
+	for part := range strings.SplitSeq(headerText, ",") {
 		trimmed := strings.TrimSpace(part)
 		if trimmed == "" {
 			return nil, NewParserError(toks[0], "Empty selector in style rule")

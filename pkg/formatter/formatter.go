@@ -11,23 +11,31 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-type fState struct {
+type formatterState struct {
 	source   []rune
 	buf      strings.Builder
 	disabled bool
 	tabDepth int
 	indent   int
+
+	// recollected from the AST
+	packageSeparator string
 }
 
-func Format(src string) (string, error) {
+func Format(src string, opts ...FormatOptions) (string, error) {
+	var opt FormatOptions
+	if len(opts) == 0 {
+		opt = DefaultFormatOptions()
+	}
 	tree, err := parser.NewParser(dialect.LaxDialect{}).Parse(src)
 	if err != nil {
 		return "", err
 	}
 
-	state := &fState{
+	state := &formatterState{
 		source: []rune(src),
 		buf:    strings.Builder{},
+		indent: opt.IndentSize,
 	}
 
 	for _, stmt := range tree.Statements {
@@ -37,7 +45,7 @@ func Format(src string) (string, error) {
 	return state.buf.String(), nil
 }
 
-func (s *fState) formatStatement(stmt ast.Statement) {
+func (s *formatterState) formatStatement(stmt ast.Statement) {
 	for _, comment := range stmt.GetLeadingTrivia() {
 		// Check leading trivia for pragmas
 		if strings.Contains(comment.Literal, "pac:fmt:off") {
@@ -54,86 +62,48 @@ func (s *fState) formatStatement(stmt ast.Statement) {
 		s.prettyPrint(stmt)
 	}
 
-	for _, comment := range stmt.GetTrailingTrivia() {
-		s.emitComment(comment)
+	s.emitBlockEndTrivia(stmt)
+	s.buf.WriteString("\n")
+}
+
+func (s *formatterState) formatMember(member ast.Member) {
+	switch member.(type) {
+	case ast.ClassSeparator:
+		printClassSeparator(s, member)
+	case ast.Field:
+		printField(s, member)
+	case ast.Method:
+		printMethod(s, member)
 	}
 }
 
-func (s *fState) prettyPrint(stmt ast.Statement) {
+func (s *formatterState) prettyPrint(stmt ast.Statement) {
 	switch st := stmt.(type) {
 	case ast.DiagramBound:
-		s.printDiagramBound(st)
+		printDiagramBound(s, st)
 	case ast.TextBlock:
-		mapBlockAlignments := func(va, ha string) string {
-			alignment := ""
-			if va != "" {
-				alignment = va
-			}
-			if ha != "" {
-				if alignment != "" {
-					alignment += " "
-				}
-				alignment += ha
-			}
-			return alignment
-		}
-		mapBlockKind := func(k ast.TextBlockKind) string {
-			switch k {
-			case ast.BlockLegend:
-				return "legend"
-			case ast.BlockHeader:
-				return "header"
-			case ast.BlockFooter:
-				return "footer"
-			case ast.BlockTitle:
-				return "title"
-			default:
-				panic("unreachable")
-			}
-		}
-		newlineIdx := strings.IndexByte(st.Text, '\n')
-		if newlineIdx == -1 {
-			alignments := mapBlockAlignments(st.VerticalAlignment, st.HorizontalAlignment)
-			if alignments != "" {
-				s.buf.WriteString(alignments)
-				s.buf.WriteByte(' ')
-			}
-			kind := mapBlockKind(st.Kind)
-			s.buf.WriteString(kind)
-			s.buf.WriteByte(' ')
-		} else {
-			kind := mapBlockKind(st.Kind)
-			alignments := mapBlockAlignments(st.VerticalAlignment, st.HorizontalAlignment)
-			if alignments != "" {
-				s.buf.WriteString(kind)
-				s.buf.WriteByte(' ')
-			}
-			s.buf.WriteString(alignments)
-			s.buf.WriteByte('\n')
-		}
-
-		s.buf.WriteString(st.Text)
-		s.buf.WriteString("\n")
+		printTextBlock(s, st)
 	case ast.UnhandledStatement:
 		s.emitRawSpan(st.NodeSpan)
 	case ast.Entity:
-		s.printEntity(st)
+		printEntity(s, st)
 	case ast.Container:
-		s.printContainer(st)
+		printContainer(s, st)
 	case ast.Relationship:
-		s.printRelationship(st)
+		printRelationship(s, st)
 	case ast.Note:
-		s.printNote(st)
+		printNote(s, st)
 	case ast.StyleDeclaration:
-		s.printStyleDeclaration(st)
+		// To emit semicolons or not, that is the question
+		s.emitWithIndent(st.Property + ": " + st.Value)
 	case ast.StyleRule:
-		s.printStyleRule(st)
+		printStyleRule(s, st)
 	case ast.StyleBlock:
-		s.printStyleBlock(st)
+		printStyleBlock(s, st)
 	case ast.SkinparamSetting:
-		s.printSkinparamSetting(st)
+		printSkinparamSetting(s, st)
 	case ast.SkinparamBlock:
-		s.printSkinparamBlock(st)
+		printSkinparamBlock(s, st)
 	case ast.GenericCommand:
 		s.buf.WriteString(st.Name)
 		s.buf.WriteString(" ")
@@ -143,7 +113,6 @@ func (s *fState) prettyPrint(stmt ast.Statement) {
 			}
 			s.buf.WriteString(arg)
 		}
-		s.buf.WriteString("\n")
 	case ast.IncludeDirective:
 		switch st.Kind {
 		case ast.IncludeOnce:
@@ -156,9 +125,8 @@ func (s *fState) prettyPrint(stmt ast.Statement) {
 			s.buf.WriteString("!")
 			s.buf.WriteString(st.Tag)
 		}
-		s.buf.WriteString("\n")
 	case ast.ScaleCommand:
-		s.printScaleCommand(st)
+		printScaleCommand(s, st)
 	case ast.VisibilityCommand:
 		switch st.Kind {
 		case ast.VisibilityCMDHide:
@@ -173,23 +141,27 @@ func (s *fState) prettyPrint(stmt ast.Statement) {
 		s.buf.WriteString(st.Target)
 		s.buf.WriteString("\n")
 	case ast.SetCommand:
+		if st.Key == "separator" {
+			s.packageSeparator = st.Value
+		}
+		s.emitWithIndent("set ")
 		s.buf.WriteString(st.Key)
 		s.buf.WriteString(" ")
 		s.buf.WriteString(st.Value)
-		s.buf.WriteString("\n")
 	case ast.DirectionCommand:
 		switch st.Direction {
 		case ast.LeftToRightDirection:
-			s.buf.WriteString("left to right\n")
+			s.buf.WriteString("left to right")
 		case ast.TopToBottomDirection:
-			s.buf.WriteString("top to bottom\n")
+			s.buf.WriteString("top to leftbottom")
 		}
+		s.buf.WriteString(" direction")
 	default:
 		panic("unimplemented")
 	}
 }
 
-func (s *fState) emitRawSpan(span tokenizer.SourceSpan) {
+func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	// find the previous newline to calculate original indent
 	// it will help us find relative indents
 	var origIdent uint = 0
@@ -240,12 +212,4 @@ func (s *fState) emitRawSpan(span tokenizer.SourceSpan) {
 		s.buf.WriteString(string(line))
 		s.buf.WriteRune('\n')
 	}
-}
-
-func (s *fState) getIndent() int {
-	return s.indent * s.tabDepth
-}
-
-func (s *fState) emitComment(comment tokenizer.Token) {
-	s.emitRawSpan(comment.Span)
 }

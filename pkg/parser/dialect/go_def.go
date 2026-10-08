@@ -137,10 +137,11 @@ func (g *GoField) MemberNode() ast.Member {
 	return g
 }
 
-var (
-	_ ast.Field  = (*GoField)(nil)
-	_ ast.Member = (*GoField)(nil)
-)
+func (g *GoField) String() string {
+	return ""
+}
+
+var _ ast.Field = (*GoField)(nil)
 
 // GoMethod is the Go-specific implementation of [ast.Method].
 // ReturnType uses GoParameter to support both named (e error) and
@@ -217,10 +218,11 @@ func (g *GoMethod) Signature() string {
 	return sb.String()
 }
 
-var (
-	_ ast.Method = (*GoMethod)(nil)
-	_ ast.Member = (*GoMethod)(nil)
-)
+func (g *GoMethod) String() string {
+	return ""
+}
+
+var _ ast.Method = (*GoMethod)(nil)
 
 type GoDialect struct{}
 

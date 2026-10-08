@@ -1170,6 +1170,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	rel.Body = rune(tok.Literal[0])
 	for tok.Type != tokenizer.EOF && tok.Type != tokenizer.NEWLINE {
 		if tok, ok = p.stream.TryConsumeType(bodyTokType); ok {
+			rel.BodyCount++
 			continue
 		} else if tok, ok = p.stream.TryConsumeType(oppositeBodyTokType); ok {
 			// Simply convenient error message

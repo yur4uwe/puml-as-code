@@ -1,7 +1,7 @@
 package ast
 
 import (
-	"strings"
+	"fmt"
 
 	"yur4uwe/pac/pkg/tokenizer"
 )
@@ -130,20 +130,6 @@ type TargetRef struct {
 	Member      string   `json:",omitempty"`
 }
 
-func (t TargetRef) FQN() string {
-	var sb strings.Builder
-	for _, pkg := range t.PackagePath {
-		sb.WriteString(pkg)
-		sb.WriteByte('.')
-	}
-	sb.WriteString(t.Entity)
-	if t.Member != "" {
-		sb.WriteString("::")
-		sb.WriteString(t.Member)
-	}
-	return sb.String()
-}
-
 type Relationship struct {
 	LHS       TargetRef
 	RHS       TargetRef
@@ -156,6 +142,7 @@ type Relationship struct {
 
 	// Arrow itself
 	Body           rune // '-', '.'
+	BodyCount      int
 	LArrow, RArrow rune `json:",omitempty"`
 	// Special case for left/righ arrow rune of relationship:
 	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
@@ -176,7 +163,8 @@ type ClassSeparator struct {
 	// Optional label text
 	Label string `json:",omitempty"`
 	// Separator type. One of "-", "=", ".", "_"
-	Type rune
+	Type      rune
+	TypeCount int
 	BaseNode
 }
 
@@ -187,6 +175,7 @@ func (cs ClassSeparator) MemberNode() Member {
 }
 
 type Field interface {
+	fmt.Stringer
 	Member
 	FieldName() string
 	FieldModifiers() []string
@@ -194,6 +183,7 @@ type Field interface {
 }
 
 type Method interface {
+	fmt.Stringer
 	Member
 	MethodName() string
 	MethodModifiers() []string
