@@ -1,10 +1,24 @@
 package formatter
 
 import (
+	"strings"
+
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
-func (s *fState) printInlineNote(note ast.InlineNote) {
+func (s *fState) printNote(note ast.Note) {
+	isMultiline := strings.Contains(note.Text, "\n")
+	// Anstract limit where note is too long to be inline
+	isTooLong := len(note.Text) > 60
+
+	if isMultiline || isTooLong {
+		s.printBlockNote(note)
+	} else {
+		s.printInlineNote(note)
+	}
+}
+
+func (s *fState) printInlineNote(note ast.Note) {
 	s.buf.WriteString("note ")
 	switch note.Kind {
 	case ast.NoteAlias:
@@ -13,7 +27,7 @@ func (s *fState) printInlineNote(note ast.InlineNote) {
 		s.buf.WriteByte('"')
 		s.buf.WriteString(" as ")
 		s.buf.WriteString(note.Identifier)
-	case ast.NoteRelative:
+	case ast.NoteTargeted:
 		s.buf.WriteString(note.Direction.String())
 		if note.Target != nil {
 			s.buf.WriteString(" of ")
@@ -39,13 +53,13 @@ func (s *fState) printInlineNote(note ast.InlineNote) {
 	s.buf.WriteString("\n")
 }
 
-func (s *fState) printBlockNote(note ast.BlockNote) {
+func (s *fState) printBlockNote(note ast.Note) {
 	s.buf.WriteString("note ")
 	switch note.Kind {
 	case ast.NoteAlias:
 		s.buf.WriteString("as ")
 		s.buf.WriteString(note.Identifier)
-	case ast.NoteRelative:
+	case ast.NoteTargeted:
 		s.buf.WriteString(note.Direction.String())
 		if note.Target != nil {
 			s.buf.WriteString(" of ")

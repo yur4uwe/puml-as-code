@@ -933,50 +933,39 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 	return "", "", NewParserError(lhs, "Invalid container alias and identifier combination")
 }
 
-func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
 	mark := p.Mark(startTok)
-	note := ast.InlineNote{
+	// tok is a keyword 'note'
+	note := ast.Note{
 		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
 		},
 	}
 	tok := p.stream.Emit()
+	var err error
 	if tok.Type == tokenizer.STRING {
-		if err := p.parseInlineIdentNoteHeader(&note, tok); err != nil {
-			return nil, err
+		err = p.parseInlineIdentNote(&note, tok)
+	} else {
+		class := keyword.Classify(tok.Literal)
+		switch class {
+		case keyword.Direction:
+			err = p.parseDirectedNote(&note, tok)
+		case keyword.Position:
+			err = p.parseLinkNote(&note, tok)
+		case keyword.Alias:
+			err = p.parseMultilineAliasNote(&note)
+		default:
+			return note, NewParserErrorf(tok, "expected direction, string, note position or alias after 'note', got %s", class.String())
 		}
-		return p.finishInline(mark, note)
 	}
-
-	class := keyword.Classify(tok.Literal)
-	switch class {
-	case keyword.Alias:
-		bn := ast.BlockNote(note)
-		if err := p.parseMultilineAliasNoteHeader(&bn); err != nil {
-			return nil, err
-		}
-		body, err := p.stream.ConsumeTextBlock("end", "note")
-		if err != nil {
-			return nil, err
-		}
-		bn.Text = body
-		return p.finishBlock(mark, bn)
-
-	case keyword.Direction:
-		if err := p.parseRelativeOrLinkNoteHeader(&note, tok); err != nil {
-			return nil, err
-		}
-		return p.parseNoteBodyAndFinish(mark, note)
-
-	case keyword.Position:
-		if err := p.parseLinkNoteHeader(&note, tok); err != nil {
-			return nil, err
-		}
-		return p.parseNoteBodyAndFinish(mark, note)
-
-	default:
-		return nil, NewParserErrorf(tok, "expected direction, string, note position or alias after 'note', got %s", class.String())
+	note.NodeSpan = p.Span(mark)
+	p.stream.EmitCommentToks()
+	closingTrivia := p.stream.DumpCollectedTrivia()
+	note.TrailingTrivia = append(note.TrailingTrivia, closingTrivia...)
+	if err != nil {
+		return note, err
 	}
+	return note, nil
 }
 
 func (p *Parser) tryParseColor() string {

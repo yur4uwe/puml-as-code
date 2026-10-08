@@ -131,16 +131,11 @@ type TargetRef struct {
 }
 
 func (t TargetRef) FQN() string {
-	if len(t.PackagePath) == 0 {
-		return t.Entity
-	}
 	var sb strings.Builder
-	sb.WriteString(t.PackagePath[0])
-	for _, pkg := range t.PackagePath[1:] {
-		sb.WriteString(".")
+	for _, pkg := range t.PackagePath {
 		sb.WriteString(pkg)
+		sb.WriteByte('.')
 	}
-	sb.WriteString(".")
 	sb.WriteString(t.Entity)
 	if t.Member != "" {
 		sb.WriteString("::")
@@ -228,10 +223,13 @@ type NoteKind int
 const (
 	NoteUnknown NoteKind = iota
 
-	// NoteInlineAlias represents a note defined with a string literal and alias.
+	// NoteInlineAlias represents a note defined with a text string and alias.
 	//
 	// Syntax (single-line):
 	//   note "Text" as <alias> [#color]
+	//
+	// Example:
+	//   note "Active connection" as N1
 	//
 	// Syntax (multiline):
 	//   note as <alias> [#color]
@@ -239,22 +237,25 @@ const (
 	//   end note
 	//
 	// Example:
-	//   note "Active connection" as N1
+	//   note as N2
+	//     This is a floating note
+	//   end note
+	//
 	NoteAlias
 
-	// NoteRelative represents a note positioned relative to an entity (or previous statement).
+	// NoteTargeted represents a note positioned relative to an entity (or previous statement).
 	//
 	// Syntax (single-line):
-	//   note <left|right|top|bottom> [of|on <target>] [#color] : <text>
+	//   note <left|right|top|bottom> [of <target>] [#color] : <text>
 	//
 	// Syntax (multiline):
-	//   note <left|right|top|bottom> [of|on <target>] [#color]
+	//   note <left|right|top|bottom> [of <target>] [#color]
 	//     <text>
 	//   end note
 	//
 	// Example:
 	//   note left of User : Authenticated via OAuth
-	NoteRelative
+	NoteTargeted
 
 	// NoteLink represents a note attached to the preceding or active relationship link.
 	//
@@ -271,7 +272,7 @@ const (
 	NoteLink
 )
 
-type underlyingNote struct {
+type Note struct {
 	Kind       NoteKind      `json:",omitempty"`
 	Text       string        `json:",omitempty"`
 	Direction  DirectionKind `json:",omitempty"`
@@ -281,17 +282,9 @@ type underlyingNote struct {
 	BaseNode
 }
 
-type InlineNote underlyingNote
+var _ Statement = Note{}
 
-var _ Statement = InlineNote{}
-
-func (in InlineNote) StatementNode() Statement { return in }
-
-type BlockNote underlyingNote
-
-var _ Statement = BlockNote{}
-
-func (bn BlockNote) StatementNode() Statement { return bn }
+func (n Note) StatementNode() Statement { return n }
 
 type BoundOption struct {
 	Key   string `json:",omitempty"`
