@@ -7,6 +7,10 @@ func (s *formatterState) getIndent() int {
 }
 
 func (s *formatterState) writeIndent() {
+	if s.useTabs {
+		s.buf.WriteString(strings.Repeat("\t", s.tabDepth))
+		return
+	}
 	s.buf.WriteString(strings.Repeat(" ", s.indent*s.tabDepth))
 }
 

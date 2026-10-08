@@ -29,7 +29,9 @@ func (p *Parser) parseDirectedNote(note *ast.Note, dirTok tokenizer.Token) error
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
 		return NewParserError(tok, "Unexpected identifier after direction")
 	}
-	p.tryParseColor()
+	if color := p.tryParseColor(); color != "" {
+		note.Color = color
+	}
 	return p.parseNoteBody(note)
 }
 
@@ -44,7 +46,9 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 		return NewParserError(tok, "Expected identifier after alias keyword")
 	}
 	note.Identifier = tok.Literal
-	p.tryParseColor()
+	if color := p.tryParseColor(); color != "" {
+		note.Color = color
+	}
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		return NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after inline alias note")
 	}
@@ -57,7 +61,10 @@ func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
 	if !ok {
 		return NewParserError(tok, "Expected identifier after alias keyword")
 	}
-	p.tryParseColor()
+	note.Identifier = tok.Literal
+	if color := p.tryParseColor(); color != "" {
+		note.Color = color
+	}
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		return NewParserError(tok, "Expected newline after alias keyword")
 	}
@@ -73,7 +80,9 @@ func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
 	}
 	note.Target = &ast.TargetRef{Entity: "link"}
 	note.Kind = ast.NoteLink
-	p.tryParseColor()
+	if color := p.tryParseColor(); color != "" {
+		note.Color = color
+	}
 	return p.parseNoteBody(note)
 }
 

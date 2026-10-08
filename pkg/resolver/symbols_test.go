@@ -52,7 +52,7 @@ User --> Order
 	require.NotNil(t, user)
 	require.Equal(t, "User", user.FQN)
 	require.NotNil(t, user.AST)
-	require.Equal(t, "User Entity", user.AST.Alias)
+	require.Equal(t, "\"User Entity\"", user.AST.Alias)
 	require.Equal(t, "User", user.AST.Identifier)
 
 	require.Len(t, tbl.Relationships, 1)

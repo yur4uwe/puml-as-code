@@ -38,91 +38,117 @@ func (c *FmtCommand) Run(args []string) error {
 		return err
 	}
 
-	wrapErr := func(err error) error {
+	opts := formatter.FormatOptions{
+		IndentSize: c.indentSize,
+		UseTabs:    c.useTabs,
+	}
+
+	for _, file := range flagSet.Args() {
+		if err := c.processFile(file, opts); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *FmtCommand) processFile(file string, opts formatter.FormatOptions) error {
+	content, info, err := validateAndReadFile(file, c.write)
+	if err != nil {
+		return fmt.Errorf("cannot format file: %w", err)
+	}
+	if info.Size() == 0 {
+		return nil
+	}
+
+	formatted, err := formatter.Format(content, opts)
+	if err != nil {
 		return fmt.Errorf("cannot format file: %w", err)
 	}
 
-	files := flagSet.Args()
-	for _, file := range files {
-		fileInfo, err := os.Stat(file)
-		if err != nil {
-			return wrapErr(err)
+	if c.check {
+		if formatted != content {
+			return fmt.Errorf("file %s is not formatted", file)
 		}
-
-		if fileInfo.IsDir() {
-			return fmt.Errorf("cannot format file: %s is a directory", file)
-		}
-
-		// files larger than 10MB are not supported
-		if fileInfo.Size() >= 10*1024*1024 {
-			return errors.New("cannot format file: file size is too large")
-		} else if fileInfo.Size() == 0 {
-			return nil // Nothing to format
-		}
-
-		fm := fileInfo.Mode()
-		if !fm.IsRegular() {
-			return fmt.Errorf("cannot format file: %s is not a regular file", file)
-		}
-
-		if c.write && (fm.Perm()&0o200 == 0) {
-			return fmt.Errorf("cannot format file: %s is read-only", file)
-		}
-
-		fileReader, err := os.Open(file)
-		if err != nil {
-			return wrapErr(err)
-		}
-
-		// Peek first 512 bytes for a NULL byte
-		buf := make([]byte, 512)
-		n, _ := fileReader.Read(buf)
-		if bytes.IndexByte(buf[:n], 0) != -1 || !utf8.Valid(buf[:n]) {
-			return fmt.Errorf("cannot format file: %s appears to be a binary file", file)
-		}
-
-		// Reset the position
-		fileReader.Seek(0, 0)
-
-		// Read the whole file
-		content, err := io.ReadAll(fileReader)
-		if err != nil {
-			return wrapErr(err)
-		}
-
-		formatted, err := formatter.Format(string(content))
-		if err != nil {
-			return fmt.Errorf("cannot format file: %w", err)
-		}
-
-		if c.write {
-			tmpFReader, err := os.CreateTemp(filepath.Dir(file), ".pac-tmp-*")
-			if err != nil {
-				return wrapErr(err)
-			}
-
-			io.Copy(tmpFReader, strings.NewReader(formatted))
-			err = tmpFReader.Sync()
-			if err != nil {
-				return wrapErr(err)
-			}
-
-			err = os.Chmod(tmpFReader.Name(), fm.Perm())
-			if err != nil {
-				return wrapErr(err)
-			}
-			err = os.Rename(tmpFReader.Name(), file)
-			if err != nil {
-				return wrapErr(err)
-			}
-
-			tmpFReader.Close()
-		} else {
-			fmt.Println(formatted)
-		}
-
-		fileReader.Close()
+		return nil
 	}
 
+	if c.write {
+		if err := writeAtomic(file, formatted, info.Mode().Perm()); err != nil {
+			return fmt.Errorf("cannot format file: %w", err)
+		}
+		return nil
+	}
+
+	fmt.Print(formatted)
 	return nil
+}
+
+func validateAndReadFile(file string, isWrite bool) (string, os.FileInfo, error) {
+	info, err := os.Stat(file)
+	if err != nil {
+		return "", nil, err
+	}
+	if info.IsDir() {
+		return "", nil, fmt.Errorf("%s is a directory", file)
+	}
+	if !info.Mode().IsRegular() {
+		return "", nil, fmt.Errorf("%s is not a regular file", file)
+	}
+	if info.Size() >= 10*1024*1024 {
+		return "", nil, errors.New("file size is too large")
+	}
+	if info.Size() == 0 {
+		return "", info, nil
+	}
+	if isWrite && (info.Mode().Perm()&0o200 == 0) {
+		return "", nil, fmt.Errorf("%s is read-only", file)
+	}
+
+	f, err := os.Open(file)
+	if err != nil {
+		return "", nil, err
+	}
+	defer f.Close()
+
+	buf := make([]byte, 512)
+	n, _ := f.Read(buf)
+	if bytes.IndexByte(buf[:n], 0) != -1 || !utf8.Valid(buf[:n]) {
+		return "", nil, fmt.Errorf("%s appears to be a binary file", file)
+	}
+
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		return "", nil, err
+	}
+
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return "", nil, err
+	}
+	return string(data), info, nil
+}
+
+func writeAtomic(file string, content string, perm os.FileMode) error {
+	tmp, err := os.CreateTemp(filepath.Dir(file), ".pac-tmp-*")
+	if err != nil {
+		return err
+	}
+	tmpName := tmp.Name()
+	defer os.Remove(tmpName)
+
+	if _, err := io.Copy(tmp, strings.NewReader(content)); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Sync(); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := os.Chmod(tmpName, perm); err != nil {
+		tmp.Close()
+		return err
+	}
+	if err := tmp.Close(); err != nil {
+		return err
+	}
+	return os.Rename(tmpName, file)
 }

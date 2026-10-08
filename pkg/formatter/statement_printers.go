@@ -1,6 +1,7 @@
 package formatter
 
 import (
+	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -18,15 +19,16 @@ func printNote(s *formatterState, note ast.Note) {
 	}
 }
 
-func printInlineNote(s *formatterState, note ast.Note) {
-	s.buf.WriteString("note ")
+func printNoteHeader(s *formatterState, note ast.Note, isBlock bool) {
+	s.emitWithIndent("note ")
 	switch note.Kind {
 	case ast.NoteAlias:
-		s.buf.WriteByte('"')
-		s.buf.WriteString(note.Text)
-		s.buf.WriteByte('"')
-		s.buf.WriteString(" as ")
-		s.buf.WriteString(note.Identifier)
+		if isBlock {
+			s.buf.WriteString("as ")
+			s.buf.WriteString(note.Identifier)
+		} else {
+			fmt.Fprintf(&s.buf, "%q as %s", note.Text, note.Identifier)
+		}
 	case ast.NoteTargeted:
 		s.buf.WriteString(note.Direction.String())
 		if note.Target != nil {
@@ -45,43 +47,25 @@ func printInlineNote(s *formatterState, note ast.Note) {
 	if note.Color != "" {
 		s.buf.WriteByte(' ')
 		s.buf.WriteString(note.Color)
-	}
-	if note.Kind != ast.NoteAlias {
-		s.buf.WriteString(" : ")
-		s.buf.WriteString(note.Text)
 	}
 }
 
+func printInlineNote(s *formatterState, note ast.Note) {
+	printNoteHeader(s, note, false)
+	if note.Kind == ast.NoteAlias {
+		return
+	}
+	s.buf.WriteString(" : ")
+	s.buf.WriteString(note.Text)
+}
+
 func printBlockNote(s *formatterState, note ast.Note) {
-	s.buf.WriteString("note ")
-	switch note.Kind {
-	case ast.NoteAlias:
-		s.buf.WriteString("as ")
-		s.buf.WriteString(note.Identifier)
-	case ast.NoteTargeted:
-		s.buf.WriteString(note.Direction.String())
-		if note.Target != nil {
-			s.buf.WriteString(" of ")
-			s.buf.WriteString(s.targetFQN(*note.Target))
-		}
-	case ast.NoteLink:
-		if note.Direction != ast.DirectionUnknown {
-			s.buf.WriteString(note.Direction.String())
-			s.buf.WriteByte(' ')
-		}
-		s.buf.WriteString("on link")
-	default:
-		panic("unreachable")
-	}
-	if note.Color != "" {
-		s.buf.WriteByte(' ')
-		s.buf.WriteString(note.Color)
-	}
+	printNoteHeader(s, note, true)
 	s.emitBlockStartTrivia(note)
 	s.buf.WriteString("\n")
 	s.buf.WriteString(note.Text)
 	s.buf.WriteString("\n")
-	s.buf.WriteString("end note")
+	s.emitWithIndent("end note")
 }
 
 func printDiagramBound(s *formatterState, bound ast.DiagramBound) {
@@ -130,30 +114,34 @@ func printDiagramBound(s *formatterState, bound ast.DiagramBound) {
 }
 
 func printScaleCommand(s *formatterState, scaleCmd ast.ScaleCommand) {
-	s.buf.WriteString("scale ")
+	s.emitWithIndent("scale ")
 	if scaleCmd.IsMax {
 		s.buf.WriteString("max ")
 	}
 	s.buf.WriteString(scaleCmd.Lhs)
 	if scaleCmd.Sep != "" {
 		if scaleCmd.Sep != "." {
-			s.buf.WriteString(" ")
-		}
-		s.buf.WriteString(scaleCmd.Sep)
-		if scaleCmd.Sep != "." {
-			s.buf.WriteString(" ")
+			s.buf.WriteByte(' ')
+			s.buf.WriteString(scaleCmd.Sep)
+			s.buf.WriteByte(' ')
+		} else {
+			s.buf.WriteString(scaleCmd.Sep)
 		}
 		s.buf.WriteString(scaleCmd.Rhs)
 	}
 	if scaleCmd.Unit != "" {
-		s.buf.WriteString(" ")
+		s.buf.WriteByte(' ')
 		s.buf.WriteString(scaleCmd.Unit)
 	}
 }
 
 func printSkinparamBlock(s *formatterState, block ast.SkinparamBlock) {
-	s.emitWithIndent(block.Keyword)
-	s.buf.WriteByte(' ')
+	if block.Keyword != "" {
+		s.emitWithIndent(block.Keyword)
+		s.buf.WriteByte(' ')
+	} else {
+		s.writeIndent()
+	}
 	if block.Name != "" {
 		s.buf.WriteString(block.Name)
 		s.buf.WriteByte(' ')
@@ -189,13 +177,13 @@ func printSkinparamSetting(s *formatterState, setting ast.SkinparamSetting) {
 }
 
 func printStyleBlock(s *formatterState, block ast.StyleBlock) {
-	s.buf.WriteString("<style>")
+	s.emitWithIndent("<style>")
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
 	s.formatBlockStatements(block.Statements)
 
-	s.buf.WriteString("\n</style>")
+	s.emitWithIndent("</style>")
 }
 
 func printStyleRule(s *formatterState, block ast.StyleRule) {
@@ -221,7 +209,9 @@ func printEntity(s *formatterState, ent ast.Entity) {
 		// Foo : Bar()
 		s.emitWithIndent(ent.Identifier)
 		s.buf.WriteString(" : ")
-		s.formatBlockMembers(ent.Members)
+		for _, mem := range ent.Members {
+			s.formatMember(mem)
+		}
 		return
 	}
 
@@ -269,25 +259,43 @@ func printEntity(s *formatterState, ent ast.Entity) {
 	}
 }
 
+func unwrapImplicitContainer(cont ast.Container) ([]string, ast.Statement) {
+	pkgPath := []string{cont.Identifier}
+	curr := cont
+	for len(curr.Statements) == 1 {
+		if innerCont, ok := curr.Statements[0].(ast.Container); ok && innerCont.Kind == ast.ContainerUnknown {
+			pkgPath = append(pkgPath, innerCont.Identifier)
+			curr = innerCont
+		} else {
+			return pkgPath, curr.Statements[0]
+		}
+	}
+	if len(curr.Statements) > 0 {
+		return pkgPath, curr.Statements[0]
+	}
+	return pkgPath, nil
+}
+
 func printContainer(s *formatterState, cont ast.Container) {
 	if cont.Kind == ast.ContainerUnknown {
-		// This is an implicit container either created by:
-		// class pack.Foo { ... }
-		// Or
-		// pack.Foo : Bar()
-		s.emitWithIndent(cont.Identifier)
-		s.buf.WriteString(".")
-		s.formatBlockStatements(cont.Statements)
-		return
+		pkgPath, innerStmt := unwrapImplicitContainer(cont)
+		if innerEnt, ok := innerStmt.(ast.Entity); ok {
+			innerEnt.Identifier = strings.Join(pkgPath, s.packageSeparator) + s.packageSeparator + innerEnt.Identifier
+			printEntity(s, innerEnt)
+			return
+		}
 	}
 
 	s.emitWithIndent(cont.Kind.String())
-	s.buf.WriteString(" ")
 	if cont.Alias != "" {
+		s.buf.WriteString(" ")
 		s.buf.WriteString(cont.Alias)
 		s.buf.WriteString(" as ")
+		s.buf.WriteString(cont.Identifier)
+	} else if cont.Identifier != "" {
+		s.buf.WriteString(" ")
+		s.buf.WriteString(cont.Identifier)
 	}
-	s.buf.WriteString(cont.Identifier)
 	if cont.Stereotype != "" {
 		s.buf.WriteString(" <<")
 		s.buf.WriteString(cont.Stereotype)
@@ -302,10 +310,6 @@ func printContainer(s *formatterState, cont ast.Container) {
 		s.buf.WriteString(" ")
 		s.buf.WriteString(cont.Color)
 	}
-	if len(cont.Statements) == 0 {
-		s.emitBlockStartTrivia(cont)
-		return
-	}
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
@@ -319,53 +323,43 @@ func printContainer(s *formatterState, cont ast.Container) {
 
 func printRelationship(s *formatterState, rel ast.Relationship) {
 	s.emitWithIndent(s.targetFQN(rel.LHS))
-	s.buf.WriteString(" ")
-	if rel.MultLHS != ast.UnknownCardinality {
-		s.buf.WriteString(rel.MultLHS.String())
+	if rel.MultLHS.Raw != "" {
+		fmt.Fprintf(&s.buf, " %q", rel.MultLHS.Raw)
 	}
 	s.buf.WriteString(" ")
-	var lbrCount, rbrCount int
-	lbrCount = rel.BodyCount / 2
-	rbrCount = rel.BodyCount - lbrCount
+	lbrCount := rel.BodyCount / 2
+	rbrCount := rel.BodyCount - lbrCount
 
 	switch rel.LArrow {
 	case '<', '}', 'o', 'x', '*', '+', '^', '#':
 		s.buf.WriteRune(rel.LArrow)
 	case '|':
 		s.buf.WriteString("<|")
-	default:
 	}
-	for range lbrCount {
-		s.buf.WriteRune(rel.Body)
-	}
+	s.buf.WriteString(strings.Repeat(string(rel.Body), lbrCount))
 	if rel.Direction != ast.DirectionUnknown {
-		s.buf.WriteString(rel.Direction.String())
+		s.buf.WriteString(arrowDirection(rel.Direction))
 	}
 	if len(rel.Attrs) > 0 {
-		s.buf.WriteString("[")
+		s.buf.WriteByte('[')
 		for i, attr := range rel.Attrs {
 			if i > 0 {
-				s.buf.WriteString(",")
+				s.buf.WriteByte(',')
 			}
 			s.buf.WriteString(attr)
 		}
-		s.buf.WriteString("]")
+		s.buf.WriteByte(']')
 	}
-
-	for range rbrCount {
-		s.buf.WriteRune(rel.Body)
-	}
+	s.buf.WriteString(strings.Repeat(string(rel.Body), rbrCount))
 	switch rel.RArrow {
 	case '>', '{', 'o', 'x', '*', '+', '^', '#':
 		s.buf.WriteRune(rel.RArrow)
 	case '|':
 		s.buf.WriteString("|>")
-	default:
 	}
 
-	s.buf.WriteString(" ")
-	if rel.MultRHS != ast.UnknownCardinality {
-		s.buf.WriteString(rel.MultRHS.String())
+	if rel.MultRHS.Raw != "" {
+		fmt.Fprintf(&s.buf, " %q", rel.MultRHS.Raw)
 	}
 	s.buf.WriteString(" ")
 	s.buf.WriteString(s.targetFQN(rel.RHS))
@@ -376,53 +370,99 @@ func printRelationship(s *formatterState, rel ast.Relationship) {
 }
 
 func printTextBlock(s *formatterState, block ast.TextBlock) {
-	mapBlockAlignments := func(va, ha string) string {
-		alignment := ""
-		if va != "" {
-			alignment = va
-		}
-		if ha != "" {
-			if alignment != "" {
-				alignment += " "
-			}
-			alignment += ha
-		}
-		return alignment
+	var kind string
+	switch block.Kind {
+	case ast.BlockLegend:
+		kind = "legend"
+	case ast.BlockHeader:
+		kind = "header"
+	case ast.BlockFooter:
+		kind = "footer"
+	case ast.BlockTitle:
+		kind = "title"
+	default:
+		panic("unreachable")
 	}
-	mapBlockKind := func(k ast.TextBlockKind) string {
-		switch k {
-		case ast.BlockLegend:
-			return "legend"
-		case ast.BlockHeader:
-			return "header"
-		case ast.BlockFooter:
-			return "footer"
-		case ast.BlockTitle:
-			return "title"
-		default:
-			panic("unreachable")
-		}
-	}
-	newlineIdx := strings.IndexByte(block.Text, '\n')
-	if newlineIdx == -1 {
-		alignments := mapBlockAlignments(block.VerticalAlignment, block.HorizontalAlignment)
+
+	isMultiline := strings.Contains(block.Text, "\n")
+	isBlock := isMultiline || len(block.Text) > 60
+
+	alignments := strings.TrimSpace(block.VerticalAlignment + " " + block.HorizontalAlignment)
+
+	if !isBlock {
 		if alignments != "" {
 			s.buf.WriteString(alignments)
 			s.buf.WriteByte(' ')
 		}
-		kind := mapBlockKind(block.Kind)
 		s.buf.WriteString(kind)
 		s.buf.WriteByte(' ')
 	} else {
-		kind := mapBlockKind(block.Kind)
-		alignments := mapBlockAlignments(block.VerticalAlignment, block.HorizontalAlignment)
+		s.buf.WriteString(kind)
 		if alignments != "" {
-			s.buf.WriteString(kind)
 			s.buf.WriteByte(' ')
+			s.buf.WriteString(alignments)
 		}
-		s.buf.WriteString(alignments)
 		s.buf.WriteByte('\n')
 	}
 
 	s.buf.WriteString(block.Text)
+
+	if isBlock {
+		fmt.Fprintf(&s.buf, "\nend %s", kind)
+	}
+}
+
+func printGenericCommand(s *formatterState, st ast.GenericCommand) {
+	s.emitWithIndent(st.Name)
+	for _, arg := range st.Args {
+		s.buf.WriteByte(' ')
+		s.buf.WriteString(arg)
+	}
+}
+
+func printIncludeDirective(s *formatterState, st ast.IncludeDirective) {
+	switch st.Kind {
+	case ast.IncludeOnce:
+		s.emitWithIndent("!include ")
+	case ast.IncludeMany:
+		s.emitWithIndent("!include_many ")
+	}
+	s.buf.WriteString(st.Path)
+	if st.Tag != "" {
+		s.buf.WriteByte('!')
+		s.buf.WriteString(st.Tag)
+	}
+}
+
+func printVisibilityCommand(s *formatterState, st ast.VisibilityCommand) {
+	switch st.Kind {
+	case ast.VisibilityCMDHide:
+		s.emitWithIndent("hide ")
+	case ast.VisibilityCMDShow:
+		s.emitWithIndent("show ")
+	case ast.VisibilityCMDRemove:
+		s.emitWithIndent("remove ")
+	case ast.VisibilityCMDRestore:
+		s.emitWithIndent("restore ")
+	}
+	s.buf.WriteString(st.Target)
+}
+
+func printSetCommand(s *formatterState, st ast.SetCommand) {
+	if st.Key == "separator" {
+		s.packageSeparator = st.Value
+	}
+	s.emitWithIndent("set ")
+	s.buf.WriteString(st.Key)
+	s.buf.WriteByte(' ')
+	s.buf.WriteString(st.Value)
+}
+
+func printDirectionCommand(s *formatterState, st ast.DirectionCommand) {
+	switch st.Direction {
+	case ast.LeftToRightDirection:
+		s.emitWithIndent("left to right direction")
+	case ast.TopToBottomDirection:
+		s.emitWithIndent("top to bottom direction")
+	}
 }

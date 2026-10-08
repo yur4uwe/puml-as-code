@@ -35,3 +35,33 @@ func (s *formatterState) formatBlockMembers(members []ast.Member) {
 		}
 	})
 }
+
+func visibilitySymbol(v ast.VisibilityKind) string {
+	switch v {
+	case ast.VisibilityPublic:
+		return "+"
+	case ast.VisibilityPrivate:
+		return "-"
+	case ast.VisibilityProtected:
+		return "#"
+	case ast.VisibilityPackage:
+		return "~"
+	default:
+		return ""
+	}
+}
+
+func arrowDirection(d ast.DirectionKind) string {
+	switch d {
+	case ast.DirectionTop:
+		return "up"
+	case ast.DirectionBottom:
+		return "down"
+	case ast.DirectionLeft:
+		return "left"
+	case ast.DirectionRight:
+		return "right"
+	default:
+		return ""
+	}
+}

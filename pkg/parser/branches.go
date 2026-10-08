@@ -424,6 +424,10 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (ast.ScaleCommand, error) 
 		} else {
 			cmd.Lhs = valueLit
 		}
+		cmd.NodeSpan = p.Span(mark)
+		p.stream.EmitCommentToks()
+		cmd.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		return cmd, nil
 	default:
 		return cmd, NewParserErrorf(tok, "Unexpected token: %s(%s)", tok.Type.String(), tok.Literal)
 	}
@@ -443,7 +447,7 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) (
 		if ent.Alias != "" {
 			return nil, NewParserError(nameOrAlias, "Entity alias already set")
 		}
-		ent.Alias = nameOrAlias.Literal
+		ent.Alias = p.stream.SliceInputEnclosingTokens(nameOrAlias)
 		return nil, nil
 	case tokenizer.IDENTIFIER:
 		if ent.Identifier != "" {
@@ -915,20 +919,31 @@ func (p *Parser) parseContainerIdentAndAlias() (string, string, error) {
 		return "", "", err
 	}
 	if _, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
+		if lhs.Type == tokenizer.STRING {
+			return "", p.stream.SliceInputEnclosingTokens(lhs), nil
+		}
 		return "", lhs.Literal, nil
 	}
 	rhs, err := p.parseContinerIdent(p.stream.Emit())
 	if err != nil {
 		return "", "", err
 	}
+	lhsStr := lhs.Literal
+	if lhs.Type == tokenizer.STRING {
+		lhsStr = p.stream.SliceInputEnclosingTokens(lhs)
+	}
+	rhsStr := rhs.Literal
+	if rhs.Type == tokenizer.STRING {
+		rhsStr = p.stream.SliceInputEnclosingTokens(rhs)
+	}
 	if lhs.Type == rhs.Type {
-		return lhs.Literal, rhs.Literal, nil
+		return lhsStr, rhsStr, nil
 	}
 	switch lhs.Type {
 	case tokenizer.STRING:
-		return lhs.Literal, rhs.Literal, nil
+		return lhsStr, rhsStr, nil
 	case tokenizer.IDENTIFIER:
-		return rhs.Literal, lhs.Literal, nil
+		return rhsStr, lhsStr, nil
 	}
 	return "", "", NewParserError(lhs, "Invalid container alias and identifier combination")
 }

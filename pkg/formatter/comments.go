@@ -19,10 +19,10 @@ func (s *formatterState) emitBlockStartTrivia(block ast.Node) {
 }
 
 func (s *formatterState) emitBlockEndTrivia(block ast.Node) {
+	isBlock := block.Span().Start.Line != block.Span().End.Line
 	for _, trivia := range block.GetTrailingTrivia() {
-		// To account for blocked statements
-		// only emit trailing trivia on the same line as the end of the statement
-		if trivia.Span.Start.Line != block.Span().Start.Line {
+		sameLine := trivia.Span.Start.Line == block.Span().Start.Line
+		if isBlock != sameLine {
 			s.buf.WriteByte(' ')
 			s.emitTrivia(trivia)
 		}

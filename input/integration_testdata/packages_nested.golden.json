@@ -20,7 +20,7 @@
     },
     {
       "Identifier": "core",
-      "Alias": "Core Domain",
+      "Alias": "\"Core Domain\"",
       "Kind": "package",
       "Statements": [
         {
@@ -152,7 +152,7 @@
       }
     },
     {
-      "Identifier": "Storage",
+      "Identifier": "\"Storage\"",
       "Kind": "folder",
       "Statements": [
         {

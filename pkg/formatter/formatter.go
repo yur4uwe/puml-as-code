@@ -2,7 +2,6 @@
 package formatter
 
 import (
-	"fmt"
 	"strings"
 	"unicode"
 
@@ -18,6 +17,7 @@ type formatterState struct {
 	disabled bool
 	tabDepth int
 	indent   int
+	useTabs  bool
 
 	// recollected from the AST
 	packageSeparator string
@@ -27,6 +27,8 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 	var opt FormatOptions
 	if len(opts) == 0 {
 		opt = DefaultFormatOptions()
+	} else {
+		opt = opts[0]
 	}
 	tree, err := parser.NewParser(dialect.LaxDialect{}).Parse(src)
 	if err != nil {
@@ -34,9 +36,10 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 	}
 
 	state := &formatterState{
-		source: []rune(src),
-		buf:    strings.Builder{},
-		indent: opt.IndentSize,
+		source:  []rune(src),
+		buf:     strings.Builder{},
+		indent:  opt.IndentSize,
+		useTabs: opt.UseTabs,
 
 		packageSeparator: ".",
 	}
@@ -49,7 +52,11 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 }
 
 func formatNode(s *formatterState, node ast.Node) {
-	for _, comment := range node.GetLeadingTrivia() {
+	leadingTrivia := node.GetLeadingTrivia()
+	if len(leadingTrivia) == 0 {
+		leadingTrivia = getImplicitLeadingTrivia(node)
+	}
+	for _, comment := range leadingTrivia {
 		// Check leading trivia for pragmas
 		if strings.Contains(comment.Literal, "pac:fmt:off") {
 			s.disabled = true
@@ -75,24 +82,31 @@ func formatNode(s *formatterState, node ast.Node) {
 	s.buf.WriteString("\n")
 }
 
+func getImplicitLeadingTrivia(node ast.Node) []tokenizer.Token {
+	switch n := node.(type) {
+	case ast.Entity:
+		if n.Kind == ast.EntityUnknown && len(n.Members) > 0 {
+			return n.Members[0].GetLeadingTrivia()
+		}
+	case ast.Container:
+		if n.Kind == ast.ContainerUnknown {
+			_, innerStmt := unwrapImplicitContainer(n)
+			if innerEnt, ok := innerStmt.(ast.Entity); ok && innerEnt.Kind == ast.EntityUnknown && len(innerEnt.Members) > 0 {
+				return innerEnt.Members[0].GetLeadingTrivia()
+			}
+		}
+	}
+	return nil
+}
+
 func (s *formatterState) formatMember(member ast.Member) {
 	switch mem := member.(type) {
 	case ast.ClassSeparator:
 		printClassSeparator(s, mem)
 	case ast.Field:
-		s.writeIndent()
-		for _, modifier := range mem.FieldModifiers() {
-			fmt.Fprintf(&s.buf, "{%s} ", modifier)
-		}
-		s.buf.WriteString(mem.FieldVisibility().String())
-		s.buf.WriteString(mem.String())
+		printField(s, mem)
 	case ast.Method:
-		s.writeIndent()
-		for _, modifier := range mem.MethodModifiers() {
-			fmt.Fprintf(&s.buf, "{%s} ", modifier)
-		}
-		s.buf.WriteString(mem.MethodVisibility().String())
-		s.buf.WriteString(mem.String())
+		printMethod(s, mem)
 	default:
 		panic("unreachable")
 	}
@@ -116,8 +130,9 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 	case ast.Note:
 		printNote(s, st)
 	case ast.StyleDeclaration:
-		// To emit semicolons or not, that is the question
-		s.emitWithIndent(st.Property + ": " + st.Value)
+		s.emitWithIndent(st.Property)
+		s.buf.WriteString(": ")
+		s.buf.WriteString(st.Value)
 	case ast.StyleRule:
 		printStyleRule(s, st)
 	case ast.StyleBlock:
@@ -127,83 +142,48 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 	case ast.SkinparamBlock:
 		printSkinparamBlock(s, st)
 	case ast.GenericCommand:
-		s.buf.WriteString(st.Name)
-		s.buf.WriteString(" ")
-		for i, arg := range st.Args {
-			if i > 0 {
-				s.buf.WriteString(" ")
-			}
-			s.buf.WriteString(arg)
-		}
+		printGenericCommand(s, st)
 	case ast.IncludeDirective:
-		switch st.Kind {
-		case ast.IncludeOnce:
-			s.buf.WriteString("!include ")
-		case ast.IncludeMany:
-			s.buf.WriteString("!include_many ")
-		}
-		s.buf.WriteString(st.Path)
-		if st.Tag != "" {
-			s.buf.WriteString("!")
-			s.buf.WriteString(st.Tag)
-		}
+		printIncludeDirective(s, st)
 	case ast.ScaleCommand:
 		printScaleCommand(s, st)
 	case ast.VisibilityCommand:
-		switch st.Kind {
-		case ast.VisibilityCMDHide:
-			s.buf.WriteString("hide ")
-		case ast.VisibilityCMDShow:
-			s.buf.WriteString("show ")
-		case ast.VisibilityCMDRemove:
-			s.buf.WriteString("remove ")
-		case ast.VisibilityCMDRestore:
-			s.buf.WriteString("restore ")
-		}
-		s.buf.WriteString(st.Target)
+		printVisibilityCommand(s, st)
 	case ast.SetCommand:
-		if st.Key == "separator" {
-			s.packageSeparator = st.Value
-		}
-		s.emitWithIndent("set ")
-		s.buf.WriteString(st.Key)
-		s.buf.WriteString(" ")
-		s.buf.WriteString(st.Value)
+		printSetCommand(s, st)
 	case ast.DirectionCommand:
-		switch st.Direction {
-		case ast.LeftToRightDirection:
-			s.buf.WriteString("left to right")
-		case ast.TopToBottomDirection:
-			s.buf.WriteString("top to bottom")
-		}
-		s.buf.WriteString(" direction")
+		printDirectionCommand(s, st)
 	default:
 		panic("unimplemented")
 	}
 }
 
 func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
-	// find the previous newline to calculate original indent
-	// it will help us find relative indents
-	var origIdent uint = 0
-	for i := span.Start.Offset; i > 0; i-- {
-		if s.source[i] == '\n' {
-			break
-		} else {
-			// Can be buggy if the source contains tabs
-			// or other non-whitespace characters
-			origIdent++
+	// Find the previous newline to calculate original indent for relative indentation
+	var origIndent uint
+	if span.Start.Offset > 0 {
+		isLeading := true
+		for i := int(span.Start.Offset) - 1; i >= 0; i-- {
+			if s.source[i] == '\n' {
+				break
+			}
+			if !unicode.IsSpace(s.source[i]) {
+				isLeading = false
+				break
+			}
+			origIndent++
+		}
+		if !isLeading {
+			origIndent = 0
 		}
 	}
-	if origIdent == span.Start.Offset {
-		// Simply impossible for a successfully parsed file
-		panic("impossible")
-	}
+
 	inputSpan := s.source[span.Start.Offset : span.End.Offset+1]
-	inputLines := [][]rune{}
-	localLineIndents := []int{}
+	var inputLines [][]rune
+	var localLineIndents []int
 	var currLine []rune
 	currLineIndent := 0
+
 	for i, r := range inputSpan {
 		if len(currLine) == 0 && unicode.IsSpace(r) {
 			currLineIndent++
@@ -212,9 +192,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 
 		if inputSpan[i] == '\n' || i == len(inputSpan)-1 {
 			inputLines = append(inputLines, currLine)
-			localLineIndents = append(localLineIndents, currLineIndent-int(origIdent)+1)
+			localLineIndents = append(localLineIndents, currLineIndent-int(origIndent))
 			currLineIndent = 0
-			currLine = []rune{}
+			currLine = nil
 		} else {
 			currLine = append(currLine, inputSpan[i])
 		}
@@ -222,6 +202,7 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 
 	for i, line := range inputLines {
 		if i == 0 {
+			s.writeIndent()
 			s.buf.WriteString(string(line))
 			if len(inputLines) > 1 {
 				s.buf.WriteRune('\n')
@@ -229,8 +210,13 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 			continue
 		}
 
-		sourceIndent := max(s.getIndent()+localLineIndents[i], 0)
-		currTab := strings.Repeat(" ", sourceIndent)
+		var currTab string
+		if s.useTabs {
+			currTab = strings.Repeat("\t", s.tabDepth)
+		} else {
+			sourceIndent := max(s.getIndent()+localLineIndents[i], 0)
+			currTab = strings.Repeat(" ", sourceIndent)
+		}
 		s.buf.WriteString(currTab)
 		s.buf.WriteString(string(line))
 		if i < len(inputLines)-1 {

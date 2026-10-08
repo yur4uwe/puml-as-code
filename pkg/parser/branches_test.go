@@ -43,7 +43,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: ast.Entity{
 				Identifier: "MyClass",
-				Alias:      "MC",
+				Alias:      "\"MC\"",
 				Kind:       ast.EntityClass,
 			},
 		},
@@ -89,7 +89,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: ast.Entity{
 				Identifier: "MyClass",
-				Alias:      "MC",
+				Alias:      "\"MC\"",
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: "Database",
@@ -1055,7 +1055,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: ast.Container{
 				Identifier: "mypkg",
-				Alias:      "My Package",
+				Alias:      "\"My Package\"",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1065,7 +1065,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: ast.Container{
 				Identifier: "mypkg",
-				Alias:      "My Package",
+				Alias:      "\"My Package\"",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1343,7 +1343,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
-				Alias:      "My Namespace",
+				Alias:      "\"My Namespace\"",
 				Stereotype: "API",
 			},
 		},

@@ -33,7 +33,6 @@ func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tok
 
 func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []tokenizer.Token) (ast.Statement, error) {
 	lineToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
-	p.stream.TryConsumeType(tokenizer.NEWLINE)
 
 	endTok := startTok
 	if len(lineToks) > 0 {
@@ -44,6 +43,7 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 	span := tokenizer.SpanEnclosing(startTok, endTok)
 
 	p.stream.EmitCommentToks()
+	p.stream.TryConsumeType(tokenizer.NEWLINE)
 	return ast.UnhandledStatement{
 		Raw: text,
 		BaseNode: ast.BaseNode{
@@ -94,6 +94,7 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 			depth--
 			if depth == 0 {
 				endTok = lineToks[len(lineToks)-1]
+				p.stream.EmitCommentToks()
 				p.stream.TryConsumeType(tokenizer.NEWLINE)
 				break
 			}
@@ -107,7 +108,6 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
 	span := tokenizer.SpanEnclosing(startTok, endTok)
 
-	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
 		Raw: text,
 		BaseNode: ast.BaseNode{

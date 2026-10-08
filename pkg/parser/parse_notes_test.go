@@ -46,6 +46,7 @@ func TestParseNote(t *testing.T) {
 				Text:      "some note text",
 				Direction: ast.DirectionTop,
 				Target:    &ast.TargetRef{Entity: "MyClass"},
+				Color:     "#green",
 			},
 		},
 		{
@@ -113,6 +114,7 @@ func TestParseNote(t *testing.T) {
 				Kind:       ast.NoteAlias,
 				Text:       "some note text",
 				Identifier: "N1",
+				Color:      "#blue",
 			},
 		},
 		{
@@ -151,8 +153,9 @@ func TestParseNote(t *testing.T) {
 			name:  "multiline alias note with newline",
 			input: "note as N1\nsome note text\nend note",
 			want: &ast.Note{
-				Kind: ast.NoteAlias,
-				Text: "some note text",
+				Kind:       ast.NoteAlias,
+				Text:       "some note text",
+				Identifier: "N1",
 			},
 		},
 
