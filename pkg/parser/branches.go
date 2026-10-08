@@ -1144,6 +1144,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	var oppositeBodyTokType tokenizer.TokenType
 	switch bodyTokType {
 	case tokenizer.DOT:
+		rel.BodyCount = 1
 		oppositeBodyTokType = tokenizer.DASH
 		switch rel.LArrow {
 		case '<':
@@ -1152,6 +1153,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			rel.TypeLHS = ast.RelationRealization
 		}
 	case tokenizer.DASH:
+		rel.BodyCount = 1
 		oppositeBodyTokType = tokenizer.DOT
 		switch rel.LArrow {
 		case '<':
@@ -1247,6 +1249,8 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		// consume trailing arrow body rune
 		if tok, ok = p.stream.TryConsumeType(bodyTokType); !ok {
 			return NewParserError(tok, "Unexpected token in body relationship definition")
+		} else {
+			rel.BodyCount++
 		}
 	}
 

@@ -189,6 +189,7 @@
         {
           "Label": "Non-default values",
           "Type": 45,
+          "TypeCount": 4,
           "NodeSpan": {
             "Start": {
               "Line": 16,

@@ -103,8 +103,8 @@ func (g GoDialect) parseType(toks []tokenizer.Token) (*GoTypeRef, error) {
 		return nil, err
 	}
 	if consumed != len(toks) {
-		return nil, fmt.Errorf("%w: unexpected trailing tokens in type",
-			ErrParsingDialect)
+		return nil, fmt.Errorf("%w: unexpected trailing tokens in type: %v",
+			ErrParsingDialect, toks)
 	}
 	return ref, nil
 }

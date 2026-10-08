@@ -197,6 +197,7 @@
       "MultLHS": null,
       "MultRHS": null,
       "Body": 45,
+      "BodyCount": 2,
       "RArrow": 62,
       "Label": "connects",
       "NodeSpan": {
@@ -391,6 +392,7 @@
       "MultLHS": null,
       "MultRHS": null,
       "Body": 45,
+      "BodyCount": 2,
       "RArrow": 62,
       "Label": "authenticates",
       "NodeSpan": {
