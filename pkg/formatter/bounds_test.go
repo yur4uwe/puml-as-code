@@ -6,18 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFormatDiagramBounds(t *testing.T) {
+func TestFormatDiagramBounds_Canonical(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name  string
+		input string
 	}{
 		{
 			name: "Bare diagram bounds",
 			input: `@startuml
-@enduml
-`,
-			expected: `@startuml
 @enduml
 `,
 		},
@@ -26,16 +22,10 @@ func TestFormatDiagramBounds(t *testing.T) {
 			input: `@startuml my_diagram.puml
 @enduml
 `,
-			expected: `@startuml my_diagram.puml
-@enduml
-`,
 		},
 		{
 			name: "With ID param",
 			input: `@startuml(id=CORE)
-@enduml
-`,
-			expected: `@startuml(id=CORE)
 @enduml
 `,
 		},
@@ -44,16 +34,10 @@ func TestFormatDiagramBounds(t *testing.T) {
 			input: `@startuml(id=CORE, env=prod)
 @enduml
 `,
-			expected: `@startuml(id=CORE, env=prod)
-@enduml
-`,
 		},
 		{
 			name: "With ID param and trailing filename",
 			input: `@startuml(id=CORE) diagram.png
-@enduml
-`,
-			expected: `@startuml(id=CORE) diagram.png
 @enduml
 `,
 		},
@@ -62,16 +46,10 @@ func TestFormatDiagramBounds(t *testing.T) {
 			input: `@startuml{filename.puml}
 @enduml
 `,
-			expected: `@startuml{filename.puml}
-@enduml
-`,
 		},
 		{
 			name: "Tool options with filename and caption",
 			input: `@startuml{filename.puml, Overview Diagram}
-@enduml
-`,
-			expected: `@startuml{filename.puml, Overview Diagram}
 @enduml
 `,
 		},
@@ -80,25 +58,16 @@ func TestFormatDiagramBounds(t *testing.T) {
 			input: `@startuml{filename.puml, width=5cm}
 @enduml
 `,
-			expected: `@startuml{filename.puml, width=5cm}
-@enduml
-`,
 		},
 		{
 			name: "Tool options with filename, caption, and options",
 			input: `@startuml{filename.puml, Overview Diagram, width=5cm}
 @enduml
 `,
-			expected: `@startuml{filename.puml, Overview Diagram, width=5cm}
-@enduml
-`,
 		},
 		{
 			name: "ID in parentheses followed by tool options",
 			input: `@startuml(id=AUTH){filename.puml, Overview Diagram, width=5cm}
-@enduml
-`,
-			expected: `@startuml(id=AUTH){filename.puml, Overview Diagram, width=5cm}
 @enduml
 `,
 		},
@@ -108,7 +77,12 @@ func TestFormatDiagramBounds(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			formatted, err := Format(tt.input)
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, formatted)
+			require.Equal(t, tt.input, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.input, formattedAgain)
 		})
 	}
 }

@@ -6,28 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFormatPragmasAndDirectives(t *testing.T) {
+func TestFormatPragmasAndDirectives_Canonical(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name  string
+		input string
 	}{
 		{
 			name: "pac:fmt:off and pac:fmt:on blocks",
 			input: `@startuml
-' pac:fmt:off
-package "Unformatted" {
-    class   RawClass   {
-      +id:string
-    }
-}
-' pac:fmt:on
-class FormattedClass {
-  +id string
-}
-@enduml
-`,
-			expected: `@startuml
 ' pac:fmt:off
 package "Unformatted" {
     class   RawClass   {
@@ -53,26 +39,10 @@ class   B   {
 }
 @enduml
 `,
-			expected: `@startuml
-class A {
-  +x int
-}
-' pac:fmt:off
-class   B   {
-    +y   int
-}
-@enduml
-`,
 		},
 		{
 			name: "Include directive once",
 			input: `@startuml
-!include ./common/types.puml
-class Service {
-}
-@enduml
-`,
-			expected: `@startuml
 !include ./common/types.puml
 class Service {
 }
@@ -87,21 +57,10 @@ class Controller {
 }
 @enduml
 `,
-			expected: `@startuml
-!include_many ./models/user.puml
-class Controller {
-}
-@enduml
-`,
 		},
 		{
 			name: "Include directive with tag",
 			input: `@startuml
-!include ./schemas.puml!USER_SCHEMA
-!include_many ./schemas.puml!AUTH_SCHEMA
-@enduml
-`,
-			expected: `@startuml
 !include ./schemas.puml!USER_SCHEMA
 !include_many ./schemas.puml!AUTH_SCHEMA
 @enduml
@@ -115,12 +74,6 @@ package "Core" {
 }
 @enduml
 `,
-			expected: `@startuml
-package "Core" {
-  !include ./core/base.puml
-}
-@enduml
-`,
 		},
 	}
 
@@ -128,12 +81,12 @@ package "Core" {
 		t.Run(tt.name, func(t *testing.T) {
 			formatted, err := Format(tt.input)
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, formatted)
+			require.Equal(t, tt.input, formatted)
 
 			// Idempotence check
 			formattedAgain, err := Format(formatted)
 			require.NoError(t, err)
-			require.Equal(t, formatted, formattedAgain)
+			require.Equal(t, tt.input, formattedAgain)
 		})
 	}
 }

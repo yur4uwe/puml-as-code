@@ -6,23 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFormatCommands(t *testing.T) {
+func TestFormatCommands_Canonical(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name  string
+		input string
 	}{
 		{
 			name: "Scale commands",
 			input: `@startuml
-scale 1.5
-scale 200 width
-scale 300 height
-scale 200 * 100
-scale max 1024 width
-@enduml
-`,
-			expected: `@startuml
 scale 1.5
 scale 200 width
 scale 300 height
@@ -40,13 +31,6 @@ remove @unlinked
 restore Component
 @enduml
 `,
-			expected: `@startuml
-hide empty members
-show class methods
-remove @unlinked
-restore Component
-@enduml
-`,
 		},
 		{
 			name: "Direction commands",
@@ -55,23 +39,10 @@ left to right direction
 top to bottom direction
 @enduml
 `,
-			expected: `@startuml
-left to right direction
-top to bottom direction
-@enduml
-`,
 		},
 		{
-			name: "Text blocks (title, header, footer, legend)",
+			name: "Single-line text blocks (title, header, footer, legend)",
 			input: `@startuml
-title My Architecture Diagram
-header Project Documentation
-footer Confidential - Page %page% of %lastpage%
-center header Centered Header
-legend This is the diagram legend.
-@enduml
-`,
-			expected: `@startuml
 title My Architecture Diagram
 header Project Documentation
 footer Confidential - Page %page% of %lastpage%
@@ -81,31 +52,8 @@ legend This is the diagram legend.
 `,
 		},
 		{
-			name: "Text blocks (title, header, footer, legend)",
+			name: "Multiline text blocks (title, header, footer, legend)",
 			input: `@startuml
-title
-My Architecture diagram
-with extensive title details
-end title
-header
-Project Documentation
-that spans multiple lines
-end header
-footer
-Confidential
-Page %page% of %lastpage%
-end footer
-center header
-Centered Header
-That is multiline too
-end header
-legend
-This is the diagram legend.
-described in multiple lines
-end legend
-@enduml
-`,
-			expected: `@startuml
 title
 My Architecture diagram
 with extensive title details
@@ -135,12 +83,12 @@ end legend
 		t.Run(tt.name, func(t *testing.T) {
 			formatted, err := Format(tt.input)
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, formatted)
+			require.Equal(t, tt.input, formatted)
 
 			// Idempotence
 			formattedAgain, err := Format(formatted)
 			require.NoError(t, err)
-			require.Equal(t, formatted, formattedAgain)
+			require.Equal(t, tt.input, formattedAgain)
 		})
 	}
 }

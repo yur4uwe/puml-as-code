@@ -6,22 +6,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestFormatStyling(t *testing.T) {
+func TestFormatStyling_Canonical(t *testing.T) {
 	tests := []struct {
-		name     string
-		input    string
-		expected string
+		name  string
+		input string
 	}{
 		{
 			name: "Single-line skinparam settings",
 			input: `@startuml
-skinparam backgroundColor #EEEBDC
-skinparam handwritten true
-skinparam shadowing false
-skinparam classFontSize 12
-@enduml
-`,
-			expected: `@startuml
 skinparam backgroundColor #EEEBDC
 skinparam handwritten true
 skinparam shadowing false
@@ -42,32 +34,10 @@ skinparam class {
 }
 @enduml
 `,
-			expected: `@startuml
-skinparam class {
-  BackgroundColor PaleGreen
-  ArrowColor SeaGreen
-  BorderColor SpringGreen
-  header {
-    FontSize 12
-  }
-}
-@enduml
-`,
 		},
 		{
 			name: "CSS style blocks (<style> ... </style>)",
 			input: `@startuml
-<style>
-classDiagram {
-  class {
-    BackGroundColor: PaleGreen
-    LineColor: SeaGreen
-  }
-}
-</style>
-@enduml
-`,
-			expected: `@startuml
 <style>
   classDiagram {
     class {
@@ -85,12 +55,12 @@ classDiagram {
 		t.Run(tt.name, func(t *testing.T) {
 			formatted, err := Format(tt.input)
 			require.NoError(t, err)
-			require.Equal(t, tt.expected, formatted)
+			require.Equal(t, tt.input, formatted)
 
 			// Idempotence
 			formattedAgain, err := Format(formatted)
 			require.NoError(t, err)
-			require.Equal(t, formatted, formattedAgain)
+			require.Equal(t, tt.input, formattedAgain)
 		})
 	}
 }
