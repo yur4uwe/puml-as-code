@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -36,7 +37,7 @@ func TestFmtCommand_StdoutMode(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "diagram.puml")
 	unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
-	err := os.WriteFile(filePath, []byte(unformatted), 0644)
+	err := os.WriteFile(filePath, []byte(unformatted), 0o644)
 	require.NoError(t, err)
 
 	cmd := &FmtCommand{}
@@ -58,7 +59,7 @@ func TestFmtCommand_InPlaceWriteMode(t *testing.T) {
 	tempDir := t.TempDir()
 	filePath := filepath.Join(tempDir, "diagram.puml")
 	unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
-	err := os.WriteFile(filePath, []byte(unformatted), 0644)
+	err := os.WriteFile(filePath, []byte(unformatted), 0o644)
 	require.NoError(t, err)
 
 	cmd := &FmtCommand{}
@@ -73,7 +74,9 @@ func TestFmtCommand_InPlaceWriteMode(t *testing.T) {
 	// File permissions must be 0644
 	info, err := os.Stat(filePath)
 	require.NoError(t, err)
-	require.Equal(t, os.FileMode(0644), info.Mode().Perm())
+	if runtime.GOOS != "windows" {
+		require.Equal(t, os.FileMode(0o644), info.Mode().Perm())
+	}
 
 	// No leftover temporary files in directory
 	entries, err := os.ReadDir(tempDir)
@@ -88,7 +91,7 @@ func TestFmtCommand_CheckMode(t *testing.T) {
 	t.Run("unformatted file returns error", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "unformatted.puml")
 		unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
-		err := os.WriteFile(filePath, []byte(unformatted), 0644)
+		err := os.WriteFile(filePath, []byte(unformatted), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -105,7 +108,7 @@ func TestFmtCommand_CheckMode(t *testing.T) {
 	t.Run("formatted file returns nil", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "formatted.puml")
 		formatted := "@startuml\nclass User {\n  +id string\n}\n@enduml\n"
-		err := os.WriteFile(filePath, []byte(formatted), 0644)
+		err := os.WriteFile(filePath, []byte(formatted), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -120,7 +123,7 @@ func TestFmtCommand_FlagPropagation(t *testing.T) {
 	t.Run("custom indent-size", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "indent.puml")
 		unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
-		err := os.WriteFile(filePath, []byte(unformatted), 0644)
+		err := os.WriteFile(filePath, []byte(unformatted), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -136,7 +139,7 @@ func TestFmtCommand_FlagPropagation(t *testing.T) {
 	t.Run("use-tabs", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "tabs.puml")
 		unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
-		err := os.WriteFile(filePath, []byte(unformatted), 0644)
+		err := os.WriteFile(filePath, []byte(unformatted), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -155,9 +158,9 @@ func TestFmtCommand_MultipleFiles(t *testing.T) {
 	f1 := filepath.Join(tempDir, "f1.puml")
 	f2 := filepath.Join(tempDir, "f2.puml")
 
-	err := os.WriteFile(f1, []byte("@startuml\nclass A {\n+x int\n}\n@enduml\n"), 0644)
+	err := os.WriteFile(f1, []byte("@startuml\nclass A {\n+x int\n}\n@enduml\n"), 0o644)
 	require.NoError(t, err)
-	err = os.WriteFile(f2, []byte("@startuml\nclass B {\n+y int\n}\n@enduml\n"), 0644)
+	err = os.WriteFile(f2, []byte("@startuml\nclass B {\n+y int\n}\n@enduml\n"), 0o644)
 	require.NoError(t, err)
 
 	cmd := &FmtCommand{}
@@ -178,7 +181,7 @@ func TestFmtCommand_Safeguards(t *testing.T) {
 
 	t.Run("directory input", func(t *testing.T) {
 		subDir := filepath.Join(tempDir, "subdir")
-		err := os.Mkdir(subDir, 0755)
+		err := os.Mkdir(subDir, 0o755)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -195,7 +198,7 @@ func TestFmtCommand_Safeguards(t *testing.T) {
 
 	t.Run("read-only file with write flag", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "readonly.puml")
-		err := os.WriteFile(filePath, []byte("@startuml\n@enduml\n"), 0400)
+		err := os.WriteFile(filePath, []byte("@startuml\n@enduml\n"), 0o400)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -206,7 +209,7 @@ func TestFmtCommand_Safeguards(t *testing.T) {
 
 	t.Run("binary file with null byte", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "binary.bin")
-		err := os.WriteFile(filePath, []byte("@startuml\x00class A\n@enduml"), 0644)
+		err := os.WriteFile(filePath, []byte("@startuml\x00class A\n@enduml"), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -217,7 +220,7 @@ func TestFmtCommand_Safeguards(t *testing.T) {
 
 	t.Run("binary file with invalid utf-8", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "invalid_utf8.puml")
-		err := os.WriteFile(filePath, []byte{0xff, 0xfe, 0xfd}, 0644)
+		err := os.WriteFile(filePath, []byte{0xff, 0xfe, 0xfd}, 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
@@ -228,7 +231,7 @@ func TestFmtCommand_Safeguards(t *testing.T) {
 
 	t.Run("empty file (0-byte)", func(t *testing.T) {
 		filePath := filepath.Join(tempDir, "empty.puml")
-		err := os.WriteFile(filePath, []byte(""), 0644)
+		err := os.WriteFile(filePath, []byte(""), 0o644)
 		require.NoError(t, err)
 
 		cmd := &FmtCommand{}
