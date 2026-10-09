@@ -12,6 +12,14 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
+func unamb(tok tokenizer.TokenType) tokenizer.Token {
+	return tokenizer.Token{Type: tok}
+}
+
+func amb(tok tokenizer.TokenType, literal string) tokenizer.Token {
+	return tokenizer.Token{Type: tok, Literal: literal}
+}
+
 type Parser struct {
 	ast         *ast.Diagram
 	stream      *tokenizer.TokenStream
@@ -118,7 +126,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			}
 			endBound.LeadingTrivia = boundLeading
 			p.stream.EmitCommentToks()
-			endBound.TrailingTrivia = p.stream.DumpCollectedTrivia()
+			endBound = ast.WithMetadata(endBound, endBound.NodeSpan, p.stream.DumpCollectedTrivia())
 			p.ast.Statements = append(p.ast.Statements, endBound)
 			break
 		}
@@ -137,7 +145,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		}
 
 		// Here tokens that are first in line are handled
-		// Parsing shuld be constructed to result in a single statement per iteration
+		// Parsing must be constructed to result in a single statement per iteration
+		// and to have NEWLINE at the head of the token stream that ends the statement
 
 		// Imports via !include
 		// Styles via <style>
@@ -145,11 +154,15 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
+		mark := p.Mark(tok)
+
 		stmt, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
 		if stmt != nil {
+			p.stream.EmitCommentToks()
+			stmt = ast.WithMetadata(stmt, p.Span(mark), p.stream.DumpCollectedTrivia())
 			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}
@@ -159,6 +172,8 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			return nil, err
 		}
 		if stmt != nil {
+			p.stream.EmitCommentToks()
+			stmt = ast.WithMetadata(stmt, p.Span(mark), p.stream.DumpCollectedTrivia())
 			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}

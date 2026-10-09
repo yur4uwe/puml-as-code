@@ -40,16 +40,11 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SpanEnclosing(startTok, endTok)
 
-	p.stream.EmitCommentToks()
-	p.stream.TryConsumeType(tokenizer.NEWLINE)
 	return ast.UnhandledStatement{
 		Raw: text,
 		BaseNode: ast.BaseNode{
-			NodeSpan:       span,
-			LeadingTrivia:  leadingTrivia,
-			TrailingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: leadingTrivia,
 		},
 	}, nil
 }
@@ -94,8 +89,6 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 			depth--
 			if depth == 0 {
 				endTok = lineToks[len(lineToks)-1]
-				p.stream.EmitCommentToks()
-				p.stream.TryConsumeType(tokenizer.NEWLINE)
 				break
 			}
 		} else if kw.Nestable && isMatchingOpener(lineToks, kw.Keyword) {
@@ -106,14 +99,11 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SpanEnclosing(startTok, endTok)
 
 	return ast.UnhandledStatement{
 		Raw: text,
 		BaseNode: ast.BaseNode{
-			NodeSpan:       span,
-			LeadingTrivia:  leadingTrivia,
-			TrailingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: leadingTrivia,
 		},
 	}, nil
 }

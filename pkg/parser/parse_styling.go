@@ -55,11 +55,8 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 		if err != nil {
 			return nil, err
 		}
-		block.NodeSpan = p.Span(mark)
 		p.stream.EmitCommentToks()
-		p.stream.TryConsumeType(tokenizer.NEWLINE)
-		block.TrailingTrivia = append(block.TrailingTrivia, p.stream.DumpCollectedTrivia()...)
-		return block, nil
+		return ast.WithMetadata(block, p.Span(mark), p.stream.DumpCollectedTrivia()), nil
 	}
 
 	// read contiguous tokens as a key
@@ -86,19 +83,14 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.
 
 	toks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.SEMICOLON)
 	value := p.stream.SliceInputEnclosingTokens(toks...)
-	span := p.Span(mark)
 	p.stream.TryConsumeType(tokenizer.SEMICOLON)
-	p.stream.EmitCommentToks()
-	p.stream.TryConsumeType(tokenizer.NEWLINE)
 	return ast.SkinparamSetting{
 		Keyword:    keyword,
 		Name:       name,
 		Value:      value,
 		Stereotype: stereo,
 		BaseNode: ast.BaseNode{
-			NodeSpan:       span,
-			LeadingTrivia:  leadingTrivia,
-			TrailingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: leadingTrivia,
 		},
 	}, nil
 }
@@ -107,6 +99,7 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) error {
 	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
 		var member ast.Statement
 		var err error
+		memberMark := p.Mark(tok)
 		switch tok.Type {
 		case tokenizer.NEWLINE:
 			continue
@@ -122,6 +115,8 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) error {
 		if err != nil {
 			return err
 		}
+		p.stream.EmitCommentToks()
+		member = ast.WithMetadata(member, p.Span(memberMark), p.stream.DumpCollectedTrivia())
 		block.Statements = append(block.Statements, member)
 	}
 
@@ -141,8 +136,6 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 	p.stream.Emit() // consume 'style'
 	p.stream.Emit() // consume '>'
 
-	m := p.Mark(startTok)
-
 	styleBlock := ast.StyleBlock{
 		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
@@ -153,6 +146,7 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 		var stmnt ast.Statement
 		var err error
 		tok := p.stream.Emit()
+		ruleMark := p.Mark(tok)
 		switch tok.Type {
 		case tokenizer.NEWLINE, tokenizer.SEMICOLON:
 			continue
@@ -167,6 +161,8 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 		if err != nil {
 			return nil, err
 		}
+		p.stream.EmitCommentToks()
+		stmnt = ast.WithMetadata(stmnt, p.Span(ruleMark), p.stream.DumpCollectedTrivia())
 		styleBlock.Statements = append(styleBlock.Statements, stmnt)
 	}
 
@@ -175,9 +171,6 @@ func (p *Parser) parseStyleBlock(startTok tokenizer.Token) (ast.Statement, error
 		p.stream.Emit()
 	}
 
-	styleBlock.NodeSpan = p.Span(m)
-	p.stream.EmitCommentToks()
-	styleBlock.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return styleBlock, nil
 }
 
@@ -199,7 +192,6 @@ func (p *Parser) getSelectors(startTok tokenizer.Token) ([]string, error) {
 }
 
 func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error) {
-	m := p.Mark(startTok)
 	currentRule := ast.StyleRule{
 		BaseNode: ast.BaseNode{
 			LeadingTrivia: p.stream.DumpCollectedTrivia(),
@@ -245,6 +237,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 			return currentRule, NewParserError(tok, "Expected style property name or rule selector")
 		}
 
+		declMark := p.Mark(tok)
 		p.stream.TryConsumeType(tokenizer.COLON)
 		leadingTrivia := p.stream.DumpCollectedTrivia()
 		toks := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE)
@@ -253,33 +246,22 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (ast.StyleRule, error)
 		}
 
 		val := p.stream.SliceInputEnclosingTokens(toks...)
-		semicolonTok, hasSemicolon := p.stream.TryConsumeType(tokenizer.SEMICOLON)
-		var span tokenizer.SourceSpan
-		if hasSemicolon {
-			span = tokenizer.SpanEnclosing(tok, semicolonTok)
-		} else {
-			span = tokenizer.SpanEnclosing(tok, toks[len(toks)-1])
-		}
+		p.stream.TryConsumeType(tokenizer.SEMICOLON)
 		p.stream.EmitCommentToks()
 		declaration := ast.StyleDeclaration{
 			BaseNode: ast.BaseNode{
-				NodeSpan:       span,
-				LeadingTrivia:  leadingTrivia,
-				TrailingTrivia: p.stream.DumpCollectedTrivia(),
+				LeadingTrivia: leadingTrivia,
 			},
 			Property: tok.Literal,
 			Value:    val,
 		}
-		currentRule.Statements = append(currentRule.Statements, declaration)
+		currentRule.Statements = append(currentRule.Statements, ast.WithMetadata(declaration, p.Span(declMark), p.stream.DumpCollectedTrivia()))
 	}
 
 	if _, ok := p.stream.TryConsumeType(tokenizer.RBRACE); !ok {
 		return currentRule, NewParserError(p.stream.PeekTokenAt(0), "Expected closing brace '}' after style rule")
 	}
 
-	currentRule.NodeSpan = p.Span(m)
-	p.stream.EmitCommentToks()
-	currentRule.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	return currentRule, nil
 }
 

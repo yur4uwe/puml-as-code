@@ -52,7 +52,6 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	}
 
 	lastTok := sepTok
-	m := p.Mark(lastTok)
 	// non-consuming lookahead
 	for i := 0; ; i++ {
 		lastTok = p.stream.PeekTokenAt(i)
@@ -71,9 +70,6 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	}
 
 	if lastTok.Type == tokenizer.NEWLINE {
-		sep.NodeSpan = p.Span(m)
-		p.stream.EmitCommentToks()
-		sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
 		return sep, nil
 	}
 
@@ -106,9 +102,6 @@ func (p *Parser) tryReadClassSeparator() (ast.ClassSeparator, error) {
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		return sep, fmt.Errorf("unexpected tokens after class separator")
 	}
-	sep.NodeSpan = p.Span(m)
-	p.stream.EmitCommentToks()
-	sep.TrailingTrivia = p.stream.DumpCollectedTrivia()
 	sep.Label = p.stream.SliceInputEnclosingTokens(labelToks...)
 	sep.Type = sepChar
 	return sep, nil
@@ -192,14 +185,12 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		}
 		diag.IsStart = false
 		diag.Type = typ
-		diag.NodeSpan = p.Span(m)
-		return diag, nil
+		return ast.WithMetadata(diag, p.Span(m), nil), nil
 	}
 
 	if !p.stream.AssertType(tokenizer.LPAREN) && !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.TrailingName = p.stream.ReadUntilNewline()
-		diag.NodeSpan = p.Span(m)
-		return diag, nil
+		return ast.WithMetadata(diag, p.Span(m), nil), nil
 	}
 
 	readKvp := func(blockOpener, blockTerminator tokenizer.TokenType) (ast.BoundOption, error) {
@@ -268,8 +259,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 
 	if !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.TrailingName = p.stream.ReadUntilNewline()
-		diag.NodeSpan = p.Span(m)
-		return diag, nil
+		return ast.WithMetadata(diag, p.Span(m), nil), nil
 	}
 
 	if _, consumed := p.stream.TryConsumeType(tokenizer.LBRACE); consumed {
@@ -318,8 +308,7 @@ func (p *Parser) readDiagramBounds() (ast.DiagramBound, error) {
 		return diag, fmt.Errorf("expected newline after diagram bounds")
 	}
 
-	diag.NodeSpan = p.Span(m)
-	return diag, nil
+	return ast.WithMetadata(diag, p.Span(m), nil), nil
 }
 
 type Mark struct {

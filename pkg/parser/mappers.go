@@ -6,22 +6,6 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func unamb(tok tokenizer.TokenType) tokenizer.Token {
-	return tokenizer.Token{Type: tok}
-}
-
-func amb(tok tokenizer.TokenType, literal string) tokenizer.Token {
-	return tokenizer.Token{Type: tok, Literal: literal}
-}
-
-func toInteger(f float64) (int, bool) {
-	i := int(f)
-	if float64(i) == f {
-		return i, true
-	}
-	return 0, false
-}
-
 func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
 	kw := keyword.Classify(tok.Literal)
 	if _, ok := p.stream.TryConsumeKW(keyword.Class); kw == keyword.Abstract && ok {

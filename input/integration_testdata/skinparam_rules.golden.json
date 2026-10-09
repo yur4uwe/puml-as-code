@@ -135,16 +135,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "Run",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "error"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 12,
@@ -156,6 +146,19 @@
               "Col": 0,
               "Offset": 223
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Run",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "error"
+                }
+              }
+            ]
           }
         }
       ]

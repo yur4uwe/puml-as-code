@@ -125,12 +125,6 @@
           "Kind": "class",
           "Members": [
             {
-              "Name": "id",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              },
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 9,
@@ -160,7 +154,16 @@
                     }
                   }
                 }
-              ]
+              ],
+              "Visibility": "public",
+              "Modifiers": null,
+              "Field": {
+                "Name": "id",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
             }
           ]
         }
@@ -281,16 +284,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "Process",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "error"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 17,
@@ -302,6 +295,19 @@
               "Col": 0,
               "Offset": 626
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Process",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "error"
+                }
+              }
+            ]
           }
         }
       ]
@@ -328,8 +334,8 @@
         },
         "End": {
           "Line": 22,
-          "Col": 16,
-          "Offset": 804
+          "Col": 26,
+          "Offset": 814
         }
       },
       "LeadingTrivia": [
@@ -346,6 +352,24 @@
               "Line": 22,
               "Col": 0,
               "Offset": 788
+            }
+          }
+        }
+      ],
+      "TrailingTrivia": [
+        {
+          "Type": "COMMENT",
+          "Literal": "Trailing comment for relationship",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 27,
+              "Offset": 815
+            },
+            "End": {
+              "Line": 23,
+              "Col": 0,
+              "Offset": 850
             }
           }
         }
@@ -367,22 +391,6 @@
         }
       },
       "LeadingTrivia": [
-        {
-          "Type": "COMMENT",
-          "Literal": "Trailing comment for relationship",
-          "Span": {
-            "Start": {
-              "Line": 22,
-              "Col": 27,
-              "Offset": 815
-            },
-            "End": {
-              "Line": 23,
-              "Col": 0,
-              "Offset": 850
-            }
-          }
-        },
         {
           "Type": "COMMENT",
           "Literal": "Leading comment for diagram end",

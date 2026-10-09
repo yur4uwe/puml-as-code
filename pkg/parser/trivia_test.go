@@ -86,8 +86,8 @@ class Example {
 	require.Len(t, exampleEntity.Members, 3, "Expected 3 members: field, separator, method")
 
 	// 1. Field
-	field, ok := exampleEntity.Members[0].(*dialect.GoField)
-	require.True(t, ok, "Expected GoField")
+	field, ok := exampleEntity.Members[0].(ast.FieldDeclaration)
+	require.True(t, ok, "Expected FieldDeclaration")
 	require.NotEmpty(t, field.LeadingTrivia, "Expected leading trivia on field")
 	require.Contains(t, field.LeadingTrivia[0].Literal, "Field leading comment")
 	require.NotEmpty(t, field.TrailingTrivia, "Expected trailing trivia on field")
@@ -99,8 +99,8 @@ class Example {
 	require.Equal(t, "Methods", sep.Label)
 
 	// 3. Method
-	method, ok := exampleEntity.Members[2].(*dialect.GoMethod)
-	require.True(t, ok, "Expected GoMethod")
+	method, ok := exampleEntity.Members[2].(ast.MethodDeclaration)
+	require.True(t, ok, "Expected MethodDeclaration")
 	require.NotEmpty(t, method.LeadingTrivia, "Expected leading trivia on method")
 	require.Contains(t, method.LeadingTrivia[0].Literal, "Method leading comment")
 	require.NotEmpty(t, method.TrailingTrivia, "Expected trailing trivia on method")
@@ -139,7 +139,7 @@ class User { /' open comment 1 '/ /' open comment 2 '/
 
 	// Field should have 2 trailing comments on the same line
 	require.Len(t, userEntity.Members, 1)
-	field, ok := userEntity.Members[0].(*dialect.GoField)
+	field, ok := userEntity.Members[0].(ast.FieldDeclaration)
 	require.True(t, ok)
 	require.Len(t, field.TrailingTrivia, 2)
 	require.Contains(t, field.TrailingTrivia[0].Literal, "field comment 1")

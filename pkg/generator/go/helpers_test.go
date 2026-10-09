@@ -369,70 +369,78 @@ func TestVisibilityMapping(t *testing.T) {
 	}
 
 	t.Run("field visibility", func(t *testing.T) {
-		fPublic := toFieldView(owner, &dialect.GoField{
-			Name:       "id",
-			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+		fPublic := toFieldView(owner, ast.FieldDeclaration{
 			Visibility: ast.VisibilityPublic,
+		}, &dialect.GoField{
+			Name: "id",
+			Type: &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
 		}, &FileView{})
 		require.Equal(t, "Id", fPublic.Name)
 		require.Empty(t, fPublic.TrailingTrivia)
 
-		fPrivate := toFieldView(owner, &dialect.GoField{
-			Name:       "password",
-			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+		fPrivate := toFieldView(owner, ast.FieldDeclaration{
 			Visibility: ast.VisibilityPrivate,
+		}, &dialect.GoField{
+			Name: "password",
+			Type: &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
 		}, &FileView{})
 		require.Equal(t, "password", fPrivate.Name)
 		require.Equal(t, []string{"private"}, fPrivate.TrailingTrivia)
 
-		fProtected := toFieldView(owner, &dialect.GoField{
-			Name:       "token",
-			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+		fProtected := toFieldView(owner, ast.FieldDeclaration{
 			Visibility: ast.VisibilityProtected,
+		}, &dialect.GoField{
+			Name: "token",
+			Type: &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
 		}, &FileView{})
 		require.Equal(t, "token", fProtected.Name)
 		require.Equal(t, []string{"protected"}, fProtected.TrailingTrivia)
 
-		fPackage := toFieldView(owner, &dialect.GoField{
-			Name:       "internalState",
-			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
+		fPackage := toFieldView(owner, ast.FieldDeclaration{
 			Visibility: ast.VisibilityPackage,
+		}, &dialect.GoField{
+			Name: "internalState",
+			Type: &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
 		}, &FileView{})
 		require.Equal(t, "internalState", fPackage.Name)
 		require.Empty(t, fPackage.TrailingTrivia)
 
-		fPrivateWithComment := toFieldView(owner, &dialect.GoField{
-			Name:       "secret",
-			Type:       &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
-			Visibility: ast.VisibilityPrivate,
+		fPrivateWithComment := toFieldView(owner, ast.FieldDeclaration{
 			BaseNode: ast.BaseNode{
 				TrailingTrivia: []tokenizer.Token{
 					{Literal: "must be encrypted", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
 				},
 			},
+			Visibility: ast.VisibilityPrivate,
+		}, &dialect.GoField{
+			Name: "secret",
+			Type: &dialect.GoTypeRef{Typ: dialect.KindNamed, Name: "string"},
 		}, &FileView{})
 		require.Equal(t, "secret", fPrivateWithComment.Name)
 		require.Equal(t, []string{"private; must be encrypted"}, fPrivateWithComment.TrailingTrivia)
 	})
 
 	t.Run("method visibility", func(t *testing.T) {
-		mPublic := toMethodView(owner, &dialect.GoMethod{
-			Name:       "login",
+		mPublic := toMethodView(owner, ast.MethodDeclaration{
 			Visibility: ast.VisibilityPublic,
+		}, &dialect.GoMethod{
+			Name: "login",
 		}, &FileView{})
 		require.Equal(t, "Login", mPublic.Name)
 		require.Empty(t, mPublic.TrailingTrivia)
 
-		mProtected := toMethodView(owner, &dialect.GoMethod{
-			Name:       "validate",
+		mProtected := toMethodView(owner, ast.MethodDeclaration{
 			Visibility: ast.VisibilityProtected,
+		}, &dialect.GoMethod{
+			Name: "validate",
 		}, &FileView{})
 		require.Equal(t, "validate", mProtected.Name)
 		require.Equal(t, []string{"protected"}, mProtected.TrailingTrivia)
 
-		mPrivate := toMethodView(owner, &dialect.GoMethod{
-			Name:       "hashPassword",
+		mPrivate := toMethodView(owner, ast.MethodDeclaration{
 			Visibility: ast.VisibilityPrivate,
+		}, &dialect.GoMethod{
+			Name: "hashPassword",
 		}, &FileView{})
 		require.Equal(t, "hashPassword", mPrivate.Name)
 		require.Equal(t, []string{"private"}, mPrivate.TrailingTrivia)

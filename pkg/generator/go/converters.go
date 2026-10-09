@@ -46,8 +46,12 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
 		switch member := member.(type) {
-		case *dialect.GoField:
-			fv := toFieldView(ent, member, fileView)
+		case ast.FieldDeclaration:
+			goField, ok := member.Field.(*dialect.GoField)
+			if !ok {
+				continue
+			}
+			fv := toFieldView(ent, member, goField, fileView)
 			if len(pendingSeparators) > 0 {
 				fv.LeadingTrivia = append(pendingSeparators, fv.LeadingTrivia...)
 				pendingSeparators = nil
@@ -57,8 +61,12 @@ func toStructView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, fileVie
 			} else {
 				view.Fields = append(view.Fields, fv)
 			}
-		case *dialect.GoMethod:
-			mv := toMethodView(ent, member, fileView)
+		case ast.MethodDeclaration:
+			goMethod, ok := member.Method.(*dialect.GoMethod)
+			if !ok {
+				continue
+			}
+			mv := toMethodView(ent, member, goMethod, fileView)
 			if len(pendingSeparators) > 0 {
 				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
 				pendingSeparators = nil
@@ -150,8 +158,12 @@ func toInterfaceView(tbl *resolver.SymbolTable, ent *resolver.EntitySymbol, file
 	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
 		switch m := member.(type) {
-		case *dialect.GoMethod:
-			mv := toMethodView(ent, m, fileView)
+		case ast.MethodDeclaration:
+			goMethod, ok := m.Method.(*dialect.GoMethod)
+			if !ok {
+				continue
+			}
+			mv := toMethodView(ent, m, goMethod, fileView)
 			if len(pendingSeparators) > 0 {
 				mv.LeadingTrivia = append(pendingSeparators, mv.LeadingTrivia...)
 				pendingSeparators = nil
@@ -202,7 +214,11 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 	var pendingSeparators []string
 	for _, member := range ent.AST.Members {
 		switch m := member.(type) {
-		case *dialect.GoField:
+		case ast.FieldDeclaration:
+			goField, ok := m.Field.(*dialect.GoField)
+			if !ok {
+				continue
+			}
 			trivia := toTriviaView(m.BaseNode)
 			if len(pendingSeparators) > 0 {
 				trivia.LeadingTrivia = append(pendingSeparators, trivia.LeadingTrivia...)
@@ -215,14 +231,14 @@ func toEnumView(ent *resolver.EntitySymbol) EnumView {
 				fmt.Sprintf(
 					"%s%s",
 					view.Name,
-					ensureUpperFirst(m.Name),
+					ensureUpperFirst(goField.Name),
 				),
 				m.Visibility,
 			)
 
 			caseView := EnumCaseView{
 				Name:       caseName,
-				NotesView:  toNotesView(ent.MemberNotes[m.Name]),
+				NotesView:  toNotesView(ent.MemberNotes[goField.Name]),
 				TriviaView: trivia,
 			}
 			view.Cases = append(view.Cases, caseView)
@@ -306,29 +322,29 @@ func attachVisibilityComment(trivia *TriviaView, vis ast.VisibilityKind) {
 	}
 }
 
-func toFieldView(owner *resolver.EntitySymbol, field *dialect.GoField, fileView *FileView) FieldView {
+func toFieldView(owner *resolver.EntitySymbol, decl ast.FieldDeclaration, field *dialect.GoField, fileView *FileView) FieldView {
 	collectImports(field.Type, fileView)
-	trivia := toTriviaView(field.BaseNode)
-	attachVisibilityComment(&trivia, field.Visibility)
+	trivia := toTriviaView(decl.BaseNode)
+	attachVisibilityComment(&trivia, decl.Visibility)
 	return FieldView{
-		Name:       ensureCorrectCase(owner.AST.Identifier, field.Name, field.Visibility),
+		Name:       ensureCorrectCase(owner.AST.Identifier, field.Name, decl.Visibility),
 		Type:       field.Type.String(),
 		TriviaView: trivia,
 		NotesView:  toNotesView(owner.MemberNotes[field.Name]),
 	}
 }
 
-func toMethodView(owner *resolver.EntitySymbol, method *dialect.GoMethod, fileView *FileView) MethodView {
+func toMethodView(owner *resolver.EntitySymbol, decl ast.MethodDeclaration, method *dialect.GoMethod, fileView *FileView) MethodView {
 	for _, param := range method.Parameters {
 		collectImports(param.Type, fileView)
 	}
 	for _, ret := range method.ReturnType {
 		collectImports(ret.Type, fileView)
 	}
-	trivia := toTriviaView(method.BaseNode)
-	attachVisibilityComment(&trivia, method.Visibility)
+	trivia := toTriviaView(decl.BaseNode)
+	attachVisibilityComment(&trivia, decl.Visibility)
 	return MethodView{
-		Name:       ensureCorrectCase(owner.AST.Identifier, method.Name, method.Visibility),
+		Name:       ensureCorrectCase(owner.AST.Identifier, method.Name, decl.Visibility),
 		Signature:  method.Signature(),
 		TriviaView: trivia,
 		NotesView:  toNotesView(owner.MemberNotes[method.Name]),

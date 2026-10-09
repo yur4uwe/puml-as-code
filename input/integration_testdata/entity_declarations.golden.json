@@ -35,12 +35,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "id",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 5,
@@ -52,15 +46,18 @@
               "Col": 0,
               "Offset": 73
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "id",
+            "Type": {
+              "Typ": "named",
+              "Name": "string"
+            }
           }
         },
         {
-          "Name": "name",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 6,
@@ -72,19 +69,18 @@
               "Col": 0,
               "Offset": 88
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "name",
+            "Type": {
+              "Typ": "named",
+              "Name": "string"
+            }
           }
         },
         {
-          "Name": "GetEmail",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 7,
@@ -96,6 +92,19 @@
               "Col": 0,
               "Offset": 109
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "GetEmail",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
+            ]
           }
         }
       ]
@@ -120,25 +129,6 @@
       "Color": "#lightblue",
       "Members": [
         {
-          "Name": "Process",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "error"
-              }
-            }
-          ],
-          "Parameters": [
-            {
-              "Name": "item",
-              "Type": {
-                "Typ": "named",
-                "Name": "T"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 11,
@@ -150,6 +140,28 @@
               "Col": 0,
               "Offset": 179
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Process",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "error"
+                }
+              }
+            ],
+            "Parameters": [
+              {
+                "Name": "item",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "T"
+                }
+              }
+            ]
           }
         }
       ]
@@ -171,8 +183,6 @@
       "Kind": "enum",
       "Members": [
         {
-          "Name": "Inactive",
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 15,
@@ -184,6 +194,11 @@
               "Col": 0,
               "Offset": 208
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "Inactive"
           }
         },
         {
@@ -204,8 +219,6 @@
           }
         },
         {
-          "Name": "Active",
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 17,
@@ -217,11 +230,14 @@
               "Col": 0,
               "Offset": 245
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "Active"
           }
         },
         {
-          "Name": "Pending",
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 18,
@@ -233,6 +249,11 @@
               "Col": 0,
               "Offset": 256
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "Pending"
           }
         }
       ]
@@ -240,25 +261,19 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 22,
+          "Col": 1,
+          "Offset": 293
         },
         "End": {
-          "Line": 0,
+          "Line": 23,
           "Col": 0,
-          "Offset": 0
+          "Offset": 308
         }
       },
       "Identifier": "User",
       "Members": [
         {
-          "Name": "age",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 22,
@@ -288,37 +303,35 @@
                 }
               }
             }
-          ]
+          ],
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "age",
+            "Type": {
+              "Typ": "named",
+              "Name": "int"
+            }
+          }
         }
       ]
     },
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 23,
+          "Col": 1,
+          "Offset": 309
         },
         "End": {
-          "Line": 0,
+          "Line": 24,
           "Col": 0,
-          "Offset": 0
+          "Offset": 332
         }
       },
       "Identifier": "User",
       "Members": [
         {
-          "Name": "SetAge",
-          "Parameters": [
-            {
-              "Name": "age",
-              "Type": {
-                "Typ": "named",
-                "Name": "int"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 23,
@@ -330,6 +343,20 @@
               "Col": 0,
               "Offset": 332
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "SetAge",
+            "Parameters": [
+              {
+                "Name": "age",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "int"
+                }
+              }
+            ]
           }
         }
       ]
@@ -337,21 +364,19 @@
     {
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 24,
+          "Col": 1,
+          "Offset": 333
         },
         "End": {
-          "Line": 0,
+          "Line": 25,
           "Col": 0,
-          "Offset": 0
+          "Offset": 352
         }
       },
       "Identifier": "Service",
       "Members": [
         {
-          "Name": "Cancel",
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 24,
@@ -363,6 +388,11 @@
               "Col": 0,
               "Offset": 352
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Cancel"
           }
         }
       ]
@@ -389,12 +419,6 @@
               "Identifier": "Client",
               "Members": [
                 {
-                  "Name": "Timeout",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 27,
@@ -424,7 +448,16 @@
                         }
                       }
                     }
-                  ]
+                  ],
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "Timeout",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
+                    }
+                  }
                 }
               ]
             }
@@ -445,14 +478,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 27,
+          "Col": 1,
+          "Offset": 402
         },
         "End": {
-          "Line": 0,
+          "Line": 28,
           "Col": 0,
-          "Offset": 0
+          "Offset": 432
         }
       }
     },
@@ -478,31 +511,6 @@
               "Identifier": "Client",
               "Members": [
                 {
-                  "Name": "Do",
-                  "ReturnType": [
-                    {
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "Response"
-                      }
-                    },
-                    {
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "error"
-                      }
-                    }
-                  ],
-                  "Parameters": [
-                    {
-                      "Name": "req",
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "Request"
-                      }
-                    }
-                  ],
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 28,
@@ -514,6 +522,34 @@
                       "Col": 0,
                       "Offset": 485
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Method": {
+                    "Name": "Do",
+                    "ReturnType": [
+                      {
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "Response"
+                        }
+                      },
+                      {
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "error"
+                        }
+                      }
+                    ],
+                    "Parameters": [
+                      {
+                        "Name": "req",
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "Request"
+                        }
+                      }
+                    ]
                   }
                 }
               ]
@@ -535,14 +571,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 28,
+          "Col": 1,
+          "Offset": 433
         },
         "End": {
-          "Line": 0,
+          "Line": 29,
           "Col": 0,
-          "Offset": 0
+          "Offset": 485
         }
       }
     },

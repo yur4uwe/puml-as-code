@@ -43,26 +43,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 4,
-                  "Col": 1,
-                  "Offset": 39
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 9,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 121
+                  "Offset": 0
                 }
               },
               "Identifier": "Client",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "timeout",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 5,
@@ -74,19 +68,18 @@
                       "Col": 0,
                       "Offset": 77
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "timeout",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
+                    }
                   }
                 },
                 {
-                  "Name": "Do",
-                  "ReturnType": [
-                    {
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "error"
-                      }
-                    }
-                  ],
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 6,
@@ -98,28 +91,22 @@
                       "Col": 0,
                       "Offset": 91
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Method": {
+                    "Name": "Do",
+                    "ReturnType": [
+                      {
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "error"
+                        }
+                      }
+                    ]
                   }
                 },
                 {
-                  "Name": "Execute",
-                  "ReturnType": [
-                    {
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "bool"
-                      }
-                    }
-                  ],
-                  "Parameters": [
-                    {
-                      "Name": "req",
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "string"
-                      }
-                    }
-                  ],
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 7,
@@ -131,6 +118,28 @@
                       "Col": 0,
                       "Offset": 119
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Method": {
+                    "Name": "Execute",
+                    "ReturnType": [
+                      {
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "bool"
+                        }
+                      }
+                    ],
+                    "Parameters": [
+                      {
+                        "Name": "req",
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "string"
+                        }
+                      }
+                    ]
                   }
                 }
               ]
@@ -152,14 +161,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 4,
+          "Col": 1,
+          "Offset": 39
         },
         "End": {
-          "Line": 0,
+          "Line": 9,
           "Col": 0,
-          "Offset": 0
+          "Offset": 121
         }
       }
     },
@@ -172,26 +181,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 10,
-                  "Col": 1,
-                  "Offset": 123
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 14,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 177
+                  "Offset": 0
                 }
               },
               "Identifier": "Server",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "port",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 11,
@@ -203,19 +206,18 @@
                       "Col": 0,
                       "Offset": 158
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "port",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
+                    }
                   }
                 },
                 {
-                  "Name": "Serve",
-                  "ReturnType": [
-                    {
-                      "Type": {
-                        "Typ": "named",
-                        "Name": "error"
-                      }
-                    }
-                  ],
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 12,
@@ -227,6 +229,19 @@
                       "Col": 0,
                       "Offset": 175
                     }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Method": {
+                    "Name": "Serve",
+                    "ReturnType": [
+                      {
+                        "Type": {
+                          "Typ": "named",
+                          "Name": "error"
+                        }
+                      }
+                    ]
                   }
                 }
               ]
@@ -248,14 +263,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 10,
+          "Col": 1,
+          "Offset": 123
         },
         "End": {
-          "Line": 0,
+          "Line": 14,
           "Col": 0,
-          "Offset": 0
+          "Offset": 177
         }
       }
     },
@@ -288,9 +303,9 @@
           "Offset": 179
         },
         "End": {
-          "Line": 15,
-          "Col": 35,
-          "Offset": 213
+          "Line": 16,
+          "Col": 0,
+          "Offset": 224
         }
       }
     },
@@ -325,9 +340,9 @@
           "Offset": 225
         },
         "End": {
-          "Line": 16,
-          "Col": 50,
-          "Offset": 274
+          "Line": 17,
+          "Col": 0,
+          "Offset": 281
         }
       }
     },
@@ -362,9 +377,9 @@
           "Offset": 282
         },
         "End": {
-          "Line": 17,
-          "Col": 46,
-          "Offset": 327
+          "Line": 18,
+          "Col": 0,
+          "Offset": 337
         }
       }
     },

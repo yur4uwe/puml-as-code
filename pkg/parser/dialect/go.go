@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"strconv"
 
-	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoField, error) {
+func (g GoDialect) parseField(toks []tokenizer.Token) (*GoField, error) {
 	if len(toks) == 0 {
 		return nil, fmt.Errorf("%w: expected at least one token", ErrParsingDialect)
 	}
@@ -17,19 +16,8 @@ func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoF
 		return nil, fmt.Errorf("%w: expected identifier for a field name, got %s", ErrParsingDialect, toks[0].Type.String())
 	}
 
-	if opts == nil {
-		opts = &MemberOptions{}
-	}
-
 	field := &GoField{
-		Name:       toks[0].Literal,
-		Visibility: opts.Visibility,
-		Modifiers:  opts.Modifiers,
-		BaseNode: ast.BaseNode{
-			NodeSpan:       opts.MemberSpan,
-			LeadingTrivia:  opts.LeadingTrivia,
-			TrailingTrivia: opts.TrailingTrivia,
-		},
+		Name: toks[0].Literal,
 	}
 
 	// allow sketch-grade definitions
@@ -47,7 +35,7 @@ func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoF
 	return field, nil
 }
 
-func (g GoDialect) parseMethod(toks []tokenizer.Token, opts *MemberOptions) (*GoMethod, error) {
+func (g GoDialect) parseMethod(toks []tokenizer.Token) (*GoMethod, error) {
 	// expects this structure (no 'func' keyword, no receiver):
 	// <name> '(' <params>? ')' <returns>?
 	if len(toks) < 3 {
@@ -87,13 +75,6 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, opts *MemberOptions) (*Go
 		Name:       methodName,
 		ReturnType: returns,
 		Parameters: params,
-		Modifiers:  opts.Modifiers,
-		Visibility: opts.Visibility,
-		BaseNode: ast.BaseNode{
-			NodeSpan:       opts.MemberSpan,
-			LeadingTrivia:  opts.LeadingTrivia,
-			TrailingTrivia: opts.TrailingTrivia,
-		},
 	}, nil
 }
 
@@ -212,7 +193,7 @@ func (g GoDialect) parseParamList(toks []tokenizer.Token) ([]GoParameter, error)
 			sameTypeAmount++
 			continue
 		}
-		field, err := g.parseField(chunk, &MemberOptions{Visibility: ast.VisibilityUnknown})
+		field, err := g.parseField(chunk)
 		if err != nil {
 			return nil, fmt.Errorf("parsing parameter: %w", err)
 		}
@@ -292,8 +273,7 @@ func (g GoDialect) parseReturnList(toks []tokenizer.Token) ([]GoParameter, error
 				sameTypeAmount++
 				continue
 			}
-			// Parse as name + type (reuse parseField logic)
-			field, err := g.parseField(chunk, nil)
+			field, err := g.parseField(chunk)
 			if err != nil {
 				return nil, err
 			}

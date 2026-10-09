@@ -117,12 +117,12 @@ func nodeEndLine(node ast.Node) int {
 }
 
 func isFieldMember(m ast.Member) bool {
-	_, ok := m.(ast.Field)
+	_, ok := m.(ast.FieldDeclaration)
 	return ok
 }
 
 func isMethodMember(m ast.Member) bool {
-	_, ok := m.(ast.Method)
+	_, ok := m.(ast.MethodDeclaration)
 	return ok
 }
 

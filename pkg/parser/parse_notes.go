@@ -8,6 +8,36 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
+func (p *Parser) parseNote(startTok tokenizer.Token) (ast.Note, error) {
+	// tok is a keyword 'note'
+	note := ast.Note{
+		BaseNode: ast.BaseNode{
+			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+		},
+	}
+	tok := p.stream.Emit()
+	var err error
+	if tok.Type == tokenizer.STRING {
+		err = p.parseInlineIdentNote(&note, tok)
+	} else {
+		class := keyword.Classify(tok.Literal)
+		switch class {
+		case keyword.Direction:
+			err = p.parseDirectedNote(&note, tok)
+		case keyword.Position:
+			err = p.parseLinkNote(&note, tok)
+		case keyword.Alias:
+			err = p.parseMultilineAliasNote(&note)
+		default:
+			return note, NewParserErrorf(tok, "expected direction, string, note position or alias after 'note', got %s", class.String())
+		}
+	}
+	if err != nil {
+		return note, err
+	}
+	return note, nil
+}
+
 // parseDirectedNote can resolve into either a NoteTargeted or NoteLink.
 func (p *Parser) parseDirectedNote(note *ast.Note, dirTok tokenizer.Token) error {
 	note.Kind = ast.NoteTargeted

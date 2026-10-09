@@ -40,12 +40,6 @@
           "Kind": "class",
           "Members": [
             {
-              "Name": "id",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              },
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 4,
@@ -57,15 +51,18 @@
                   "Col": 0,
                   "Offset": 87
                 }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Field": {
+                "Name": "id",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
               }
             },
             {
-              "Name": "name",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              },
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 5,
@@ -76,6 +73,15 @@
                   "Line": 6,
                   "Col": 0,
                   "Offset": 104
+                }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Field": {
+                "Name": "name",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
                 }
               }
             }
@@ -116,12 +122,6 @@
           "Kind": "class",
           "Members": [
             {
-              "Name": "connection",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              },
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 11,
@@ -132,6 +132,15 @@
                   "Line": 12,
                   "Col": 0,
                   "Offset": 171
+                }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Field": {
+                "Name": "connection",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
                 }
               }
             }
@@ -176,12 +185,6 @@
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "capacity",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 18,
@@ -192,6 +195,15 @@
                       "Line": 19,
                       "Col": 0,
                       "Offset": 250
+                    }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "capacity",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
                     }
                   }
                 }
@@ -246,9 +258,9 @@
           "Offset": 264
         },
         "End": {
-          "Line": 23,
-          "Col": 18,
-          "Offset": 281
+          "Line": 24,
+          "Col": 0,
+          "Offset": 292
         }
       }
     },

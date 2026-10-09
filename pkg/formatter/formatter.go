@@ -111,9 +111,9 @@ func (s *formatterState) formatMember(member ast.Member) {
 	switch mem := member.(type) {
 	case ast.ClassSeparator:
 		printClassSeparator(s, mem)
-	case ast.Field:
+	case ast.FieldDeclaration:
 		printField(s, mem)
-	case ast.Method:
+	case ast.MethodDeclaration:
 		printMethod(s, mem)
 	default:
 		panic("unreachable")

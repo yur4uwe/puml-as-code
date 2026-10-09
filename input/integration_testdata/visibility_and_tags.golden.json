@@ -136,12 +136,6 @@
       ],
       "Members": [
         {
-          "Name": "id",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 10,
@@ -153,15 +147,18 @@
               "Col": 0,
               "Offset": 191
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "id",
+            "Type": {
+              "Typ": "named",
+              "Name": "string"
+            }
           }
         },
         {
-          "Name": "name",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 11,
@@ -172,6 +169,15 @@
               "Line": 12,
               "Col": 0,
               "Offset": 206
+            }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "name",
+            "Type": {
+              "Typ": "named",
+              "Name": "string"
             }
           }
         }
@@ -198,16 +204,6 @@
       ],
       "Members": [
         {
-          "Name": "Charge",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "error"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 15,
@@ -219,6 +215,19 @@
               "Col": 0,
               "Offset": 271
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Charge",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "error"
+                }
+              }
+            ]
           }
         }
       ]
@@ -243,8 +252,6 @@
       ],
       "Members": [
         {
-          "Name": "HelperFunc",
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 19,
@@ -256,6 +263,11 @@
               "Col": 0,
               "Offset": 323
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "HelperFunc"
           }
         }
       ]
@@ -287,8 +299,6 @@
           ],
           "Members": [
             {
-              "Name": "Route",
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 24,
@@ -300,6 +310,11 @@
                   "Col": 0,
                   "Offset": 390
                 }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Method": {
+                "Name": "Route"
               }
             }
           ]

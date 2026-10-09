@@ -176,19 +176,37 @@ func (cs ClassSeparator) MemberNode() Member {
 
 type Field interface {
 	fmt.Stringer
-	Member
 	FieldName() string
-	FieldModifiers() []string
-	FieldVisibility() VisibilityKind
 }
 
 type Method interface {
 	fmt.Stringer
-	Member
 	MethodName() string
-	MethodModifiers() []string
-	MethodVisibility() VisibilityKind
 }
+
+type FieldDeclaration struct {
+	BaseNode
+	Visibility VisibilityKind
+	Modifiers  []string
+	Field      Field
+}
+
+var _ Member = FieldDeclaration{}
+
+func (fd FieldDeclaration) MemberNode() Member { return fd }
+func (fd FieldDeclaration) FieldName() string  { return fd.Field.FieldName() }
+
+type MethodDeclaration struct {
+	BaseNode
+	Visibility VisibilityKind
+	Modifiers  []string
+	Method     Method
+}
+
+var _ Member = MethodDeclaration{}
+
+func (md MethodDeclaration) MemberNode() Member { return md }
+func (md MethodDeclaration) MethodName() string  { return md.Method.MethodName() }
 
 type Diagram struct {
 	Name       string      `json:",omitempty"`

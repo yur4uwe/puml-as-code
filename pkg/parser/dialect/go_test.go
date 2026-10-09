@@ -3,7 +3,6 @@ package dialect
 import (
 	"testing"
 
-	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
@@ -123,7 +122,7 @@ func TestGoDialect_ParseField(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			field, err := g.ParseField(toks, &MemberOptions{Visibility: ast.VisibilityUnknown})
+			field, err := g.ParseField(toks)
 			if tt.expectError {
 				require.Error(t, err)
 				return
@@ -349,7 +348,7 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			toks := tokenize(tt.input)
-			method, err := g.ParseMethod(toks, &MemberOptions{Visibility: ast.VisibilityUnknown})
+			method, err := g.ParseMethod(toks)
 			if tt.expectError {
 				require.Error(t, err)
 				return

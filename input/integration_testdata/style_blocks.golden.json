@@ -118,16 +118,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "Execute",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "bool"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 11,
@@ -139,6 +129,19 @@
               "Col": 0,
               "Offset": 148
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Execute",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "bool"
+                }
+              }
+            ]
           }
         }
       ]

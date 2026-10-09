@@ -375,12 +375,6 @@
           "Kind": "class",
           "Members": [
             {
-              "Name": "Token",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              },
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 55,
@@ -392,28 +386,18 @@
                   "Col": 0,
                   "Offset": 1057
                 }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Field": {
+                "Name": "Token",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
               }
             },
             {
-              "Name": "Authenticate",
-              "ReturnType": [
-                {
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "bool"
-                  }
-                }
-              ],
-              "Parameters": [
-                {
-                  "Name": "user",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "string"
-                  }
-                }
-              ],
-              "Visibility": "public",
               "NodeSpan": {
                 "Start": {
                   "Line": 56,
@@ -425,6 +409,28 @@
                   "Col": 0,
                   "Offset": 1093
                 }
+              },
+              "Visibility": "public",
+              "Modifiers": null,
+              "Method": {
+                "Name": "Authenticate",
+                "ReturnType": [
+                  {
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "bool"
+                    }
+                  }
+                ],
+                "Parameters": [
+                  {
+                    "Name": "user",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "string"
+                    }
+                  }
+                ]
               }
             }
           ]
@@ -460,25 +466,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "FindUser",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "bool"
-              }
-            }
-          ],
-          "Parameters": [
-            {
-              "Name": "id",
-              "Type": {
-                "Typ": "named",
-                "Name": "string"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 61,
@@ -490,6 +477,28 @@
               "Col": 0,
               "Offset": 1146
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "FindUser",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "bool"
+                }
+              }
+            ],
+            "Parameters": [
+              {
+                "Name": "id",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
+            ]
           }
         }
       ]
@@ -515,9 +524,9 @@
           "Offset": 1150
         },
         "End": {
-          "Line": 64,
-          "Col": 26,
-          "Offset": 1175
+          "Line": 65,
+          "Col": 0,
+          "Offset": 1185
         }
       }
     },

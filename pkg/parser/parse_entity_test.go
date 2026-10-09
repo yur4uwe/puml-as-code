@@ -1,0 +1,588 @@
+package parser
+
+import (
+	"testing"
+
+	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer"
+
+	"github.com/stretchr/testify/require"
+)
+
+func TestParseEntity(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		kwType    keyword.KeywordKind
+		want      ast.Statement
+		expectErr bool
+	}{
+		{
+			name:   "simple class",
+			input:  "class MyClass",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+			},
+		},
+		{
+			name:   "abstract class",
+			input:  "abstract class MyAbstractClass",
+			kwType: keyword.Abstract,
+			want: ast.Entity{
+				Identifier: "MyAbstractClass",
+				Kind:       ast.EntityAbstractClass,
+			},
+		},
+		{
+			name:   "class with alias",
+			input:  "class MyClass as \"MC\"",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Alias:      "\"MC\"",
+				Kind:       ast.EntityClass,
+			},
+		},
+		{
+			name:      "class with invalid alias (not a string)",
+			input:     "class MyClass as MC",
+			kwType:    keyword.Class,
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:   "class with stereotype",
+			input:  "class MyClass <<Service>>",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+				Stereotype: "Service",
+			},
+		},
+		{
+			name:   "class with color",
+			input:  "class MyClass #FF0000",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+				Color:      "#FF0000",
+			},
+		},
+		{
+			name:   "class with empty body",
+			input:  "class MyClass {\n}",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+			},
+		},
+		{
+			name:   "class def with all modifiers",
+			input:  "class MyClass as \"MC\" <T> <<Database>> #FF0000",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Alias:      "\"MC\"",
+				Kind:       ast.EntityClass,
+				Generic:    "T",
+				Stereotype: "Database",
+				Color:      "#FF0000",
+			},
+		},
+		{
+			name:   "class with field member",
+			input:  "class MyClass {\n  +field int\n}",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+				Members: []ast.Member{
+					ast.FieldDeclaration{
+						Visibility: ast.VisibilityPublic,
+						Field: &dialect.GoField{
+							Name: "field",
+							Type: dialect.NamedRef("int"),
+						},
+					},
+				},
+			},
+		},
+		{
+			name:   "class with package separator",
+			input:  "class net.http.Client\n",
+			kwType: keyword.Class,
+			want: ast.Container{
+				Identifier: "net",
+				Statements: []ast.Statement{
+					ast.Container{
+						Identifier: "http",
+						Statements: []ast.Statement{
+							ast.Entity{
+								Identifier: "Client",
+								Kind:       ast.EntityClass,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name:      "invalid alias",
+			input:     "class MyClass as",
+			kwType:    keyword.Class,
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:      "unclosed stereotype",
+			input:     "class MyClass <<Stereo",
+			kwType:    keyword.Class,
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:      "unclosed body",
+			input:     "class MyClass {",
+			kwType:    keyword.Class,
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:      "invalid member inside body",
+			input:     "class MyClass {\n  name : invalid\n}",
+			kwType:    keyword.Class,
+			want:      nil,
+			expectErr: true,
+		},
+		{
+			name:   "sketch field inside body",
+			input:  "class MyClass {\n  untypedField\n}",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "MyClass",
+				Kind:       ast.EntityClass,
+				Members: []ast.Member{
+					ast.FieldDeclaration{
+						Field: &dialect.GoField{
+							Name: "untypedField",
+							Type: nil,
+						},
+					},
+				},
+			},
+		},
+		{
+			name:   "class with generic",
+			input:  "class List<T>",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "List",
+				Kind:       ast.EntityClass,
+				Generic:    "T",
+			},
+		},
+		{
+			name:   "class with multiple generics",
+			input:  "class Map<K, V>",
+			kwType: keyword.Class,
+			want: ast.Entity{
+				Identifier: "Map",
+				Kind:       ast.EntityClass,
+				Generic:    "K, V",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
+
+			got, err := p.parseEntity(tok)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assertASTEqual(t, tc.want, got)
+			}
+		})
+	}
+}
+
+func TestParseFieldOrMethod(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		entryType   tokenizer.TokenType
+		initialName string
+		want        ast.Member
+		expectErr   bool
+	}{
+		// Terminate fields with a newline because
+		// parser will only stop collection when it sees a newline
+		{
+			name:        "simple field",
+			input:       "name int\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want: ast.FieldDeclaration{
+				Field: &dialect.GoField{
+					Name: "name",
+					Type: dialect.NamedRef("int"),
+				},
+			},
+		},
+		{
+			name:        "pointer field",
+			input:       "name *MyType\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want: ast.FieldDeclaration{
+				Field: &dialect.GoField{
+					Name: "name",
+					Type: dialect.PointerTo(dialect.NamedRef("MyType")),
+				},
+			},
+		},
+		{
+			name:        "slice field",
+			input:       "name []int\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want: ast.FieldDeclaration{
+				Field: &dialect.GoField{
+					Name: "name",
+					Type: dialect.SliceOf(dialect.NamedRef("int")),
+				},
+			},
+		},
+		{
+			name:        "simple method",
+			input:       "Method()\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "Method",
+			want: ast.MethodDeclaration{
+				Method: &dialect.GoMethod{
+					Name: "Method",
+				},
+			},
+		},
+		{
+			name:        "method with parameters and return",
+			input:       "Method(a int) error\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "Method",
+			want: ast.MethodDeclaration{
+				Method: &dialect.GoMethod{
+					Name: "Method",
+					Parameters: []dialect.GoParameter{
+						{Name: "a", Type: dialect.NamedRef("int")},
+					},
+					ReturnType: []dialect.GoParameter{
+						{Type: dialect.NamedRef("error")},
+					},
+				},
+			},
+		},
+		{
+			name:        "method defined as method modifier but no params",
+			input:       "{method} Method()\n",
+			entryType:   tokenizer.LBRACE,
+			initialName: "",
+			want: ast.MethodDeclaration{
+				Modifiers: []string{"method"},
+				Method: &dialect.GoMethod{
+					Name: "Method",
+				},
+			},
+		},
+		{
+			name:        "both field and method modifiers",
+			input:       "{field} {method} Name()\n",
+			entryType:   tokenizer.LBRACE,
+			initialName: "",
+			want:        nil,
+			expectErr:   true,
+		},
+		{
+			name:        "sketch field without type",
+			input:       "name\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want: ast.FieldDeclaration{
+				Field: &dialect.GoField{
+					Name: "name",
+					Type: nil,
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name:        "invalid field (invalid syntax)",
+			input:       "name : int\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "name",
+			want:        nil,
+			expectErr:   true,
+		},
+		{
+			name:        "invalid method (unclosed param parenthesis)",
+			input:       "Method(a int\n",
+			entryType:   tokenizer.IDENTIFIER,
+			initialName: "Method",
+			want:        nil,
+			expectErr:   true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+			}
+
+			var entryTok tokenizer.Token
+			var mod *string
+			vis := ast.VisibilityUnknown
+
+			if tc.entryType == tokenizer.LBRACE {
+				m, err := p.tryReadModifier()
+				require.NoError(t, err)
+				mod = &m
+				entryTok = tokenizer.Token{Type: tokenizer.LBRACE}
+			} else {
+				entryTok = p.stream.Emit()
+				require.Equal(t, tc.entryType, entryTok.Type)
+				if entryTok.Type == tokenizer.IDENTIFIER {
+					require.Equal(t, tc.initialName, entryTok.Literal)
+				}
+			}
+
+			got, err := p.parseFieldOrMethod(mod, vis, entryTok, nil)
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assertASTEqual(t, tc.want, got)
+			}
+		})
+	}
+}
+
+func TestParseEntityMember(t *testing.T) {
+	tt := []struct {
+		name      string
+		input     string
+		want      ast.Member
+		expectErr bool
+	}{
+		{
+			name:  "class separator dots",
+			input: ".. separator ..",
+			want: ast.ClassSeparator{
+				Label:     "separator",
+				Type:      '.',
+				TypeCount: 4,
+			},
+		},
+		{
+			name:  "class separator hyphens",
+			input: "-- section --",
+			want: ast.ClassSeparator{
+				Label:     "section",
+				Type:      '-',
+				TypeCount: 4,
+			},
+		},
+		{
+			name:  "public field member",
+			input: "+field int\n",
+			want: ast.FieldDeclaration{
+				Visibility: ast.VisibilityPublic,
+				Field: &dialect.GoField{
+					Name: "field",
+					Type: dialect.NamedRef("int"),
+				},
+			},
+		},
+		{
+			name:  "private method member",
+			input: "-Method()\n",
+			want: ast.MethodDeclaration{
+				Visibility: ast.VisibilityPrivate,
+				Method: &dialect.GoMethod{
+					Name: "Method",
+				},
+			},
+		},
+		{
+			name:  "field with modifier",
+			input: "{field} myField int\n",
+			want: ast.FieldDeclaration{
+				Modifiers: []string{"field"},
+				Field: &dialect.GoField{
+					Name: "myField",
+					Type: dialect.NamedRef("int"),
+				},
+			},
+		},
+		{
+			name:      "unclosed modifier",
+			input:     "{field myField int",
+			expectErr: true,
+		},
+		{
+			name:      "unexpected token in body",
+			input:     "@invalid",
+			expectErr: true,
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+			}
+			got, err := p.parseEntityMember()
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assertASTEqual(t, tc.want, got)
+			}
+		})
+	}
+}
+
+func TestParseInlineMember(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		wantEntity     string
+		wantMethod     bool
+		wantField      bool
+		wantModifiers  []string
+		wantVisibility ast.VisibilityKind
+		wantMember     func(t *testing.T, member ast.Member)
+	}{
+		{
+			name:           "field with visibility",
+			input:          "Foo : +id string\n",
+			wantEntity:     "Foo",
+			wantField:      true,
+			wantVisibility: ast.VisibilityPublic,
+		},
+		{
+			name:           "method with visibility and params",
+			input:          "Foo : +DoWork(ctx Context) error\n",
+			wantEntity:     "Foo",
+			wantMethod:     true,
+			wantVisibility: ast.VisibilityPublic,
+		},
+		{
+			name:       "field with static modifier",
+			input:      "Foo : {static} count int\n",
+			wantEntity: "Foo",
+			wantField:  true,
+			wantModifiers: []string{
+				"static",
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			for tok.Type == tokenizer.NEWLINE {
+				tok = p.stream.Emit()
+			}
+			got, err := p.parseInlineMember(tok)
+			require.NoError(t, err)
+			ent, ok := got.(ast.Entity)
+			require.True(t, ok)
+			require.Equal(t, tc.wantEntity, ent.Identifier)
+			require.Len(t, ent.Members, 1)
+			if tc.wantMethod {
+				method, ok := ent.Members[0].(ast.MethodDeclaration)
+				require.True(t, ok)
+				require.Equal(t, tc.wantModifiers, method.Modifiers)
+				require.Equal(t, tc.wantVisibility, method.Visibility)
+			} else {
+				field, ok := ent.Members[0].(ast.FieldDeclaration)
+				require.True(t, ok)
+				require.Equal(t, tc.wantModifiers, field.Modifiers)
+				require.Equal(t, tc.wantVisibility, field.Visibility)
+			}
+		})
+	}
+}
+
+func TestParseEntityAndContainerTags(t *testing.T) {
+	tests := []struct {
+		name       string
+		input      string
+		wantStereo string
+		wantTags   []string
+	}{
+		{
+			name:       "pre-stereotype tags",
+			input:      "class Foo $tag1 $tag2 <<stereo>>\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"tag1", "tag2"},
+		},
+		{
+			name:       "post-stereotype tags",
+			input:      "class Foo <<stereo>> $tag3\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"tag3"},
+		},
+		{
+			name:       "precedence: pre-stereotype tags override post-stereotype tags",
+			input:      "class Foo $pre <<stereo>> $post\n",
+			wantStereo: "stereo",
+			wantTags:   []string{"pre"},
+		},
+		{
+			name:       "standalone tag without stereotype",
+			input:      "class Foo $alone\n",
+			wantStereo: "",
+			wantTags:   []string{"alone"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
+			ent, ok := got.(ast.Entity)
+			require.True(t, ok)
+			require.Equal(t, tc.wantStereo, ent.Stereotype)
+			require.Equal(t, tc.wantTags, ent.Tags)
+		})
+	}
+}
+

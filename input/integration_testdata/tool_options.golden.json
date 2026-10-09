@@ -61,16 +61,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "Index",
-          "ReturnType": [
-            {
-              "Type": {
-                "Typ": "named",
-                "Name": "void"
-              }
-            }
-          ],
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 4,
@@ -82,6 +72,19 @@
               "Col": 0,
               "Offset": 109
             }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Method": {
+            "Name": "Index",
+            "ReturnType": [
+              {
+                "Type": {
+                  "Typ": "named",
+                  "Name": "void"
+                }
+              }
+            ]
           }
         }
       ]

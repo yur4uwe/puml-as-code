@@ -20,30 +20,16 @@ func (l LaxDialect) Name() string {
 }
 
 // ParseField implements [Dialect].
-func (l LaxDialect) ParseField(toks []tokenizer.Token, options *MemberOptions) (ast.Field, error) {
+func (l LaxDialect) ParseField(toks []tokenizer.Token) (ast.Field, error) {
 	return &LaxField{
-		Text:       StringifyTokenSlice(toks),
-		Modifiers:  options.Modifiers,
-		Visibility: options.Visibility,
-		BaseNode: ast.BaseNode{
-			NodeSpan:       options.MemberSpan,
-			LeadingTrivia:  options.LeadingTrivia,
-			TrailingTrivia: options.TrailingTrivia,
-		},
+		Text: StringifyTokenSlice(toks),
 	}, nil
 }
 
 // ParseMethod implements [Dialect].
-func (l LaxDialect) ParseMethod(toks []tokenizer.Token, options *MemberOptions) (ast.Method, error) {
+func (l LaxDialect) ParseMethod(toks []tokenizer.Token) (ast.Method, error) {
 	return &LaxMethod{
-		Text:       StringifyTokenSlice(toks),
-		Modifiers:  options.Modifiers,
-		Visibility: options.Visibility,
-		BaseNode: ast.BaseNode{
-			NodeSpan:       options.MemberSpan,
-			LeadingTrivia:  options.LeadingTrivia,
-			TrailingTrivia: options.TrailingTrivia,
-		},
+		Text: StringifyTokenSlice(toks),
 	}, nil
 }
 

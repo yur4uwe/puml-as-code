@@ -43,26 +43,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 4,
-                  "Col": 1,
-                  "Offset": 45
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 7,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 85
+                  "Offset": 0
                 }
               },
               "Identifier": "Client",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "timeout",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 5,
@@ -73,6 +67,15 @@
                       "Line": 6,
                       "Col": 0,
                       "Offset": 83
+                    }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "timeout",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
                     }
                   }
                 }
@@ -95,14 +98,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 4,
+          "Col": 1,
+          "Offset": 45
         },
         "End": {
-          "Line": 0,
+          "Line": 7,
           "Col": 0,
-          "Offset": 0
+          "Offset": 85
         }
       }
     },
@@ -115,26 +118,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 8,
-                  "Col": 1,
-                  "Offset": 87
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 11,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 124
+                  "Offset": 0
                 }
               },
               "Identifier": "Server",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "port",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "int"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 9,
@@ -145,6 +142,15 @@
                       "Line": 10,
                       "Col": 0,
                       "Offset": 122
+                    }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "port",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "int"
                     }
                   }
                 }
@@ -167,14 +173,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 8,
+          "Col": 1,
+          "Offset": 87
         },
         "End": {
-          "Line": 0,
+          "Line": 11,
           "Col": 0,
-          "Offset": 0
+          "Offset": 124
         }
       }
     },
@@ -207,9 +213,9 @@
           "Offset": 126
         },
         "End": {
-          "Line": 12,
-          "Col": 36,
-          "Offset": 161
+          "Line": 13,
+          "Col": 0,
+          "Offset": 172
         }
       }
     },
@@ -238,26 +244,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 16,
-                  "Col": 1,
-                  "Offset": 192
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 19,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 239
+                  "Offset": 0
                 }
               },
               "Identifier": "Provider",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "token",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "string"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 17,
@@ -268,6 +268,15 @@
                       "Line": 18,
                       "Col": 0,
                       "Offset": 237
+                    }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "token",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "string"
                     }
                   }
                 }
@@ -290,14 +299,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 16,
+          "Col": 1,
+          "Offset": 192
         },
         "End": {
-          "Line": 0,
+          "Line": 19,
           "Col": 0,
-          "Offset": 0
+          "Offset": 239
         }
       }
     },
@@ -310,26 +319,20 @@
             {
               "NodeSpan": {
                 "Start": {
-                  "Line": 20,
-                  "Col": 1,
-                  "Offset": 241
+                  "Line": 0,
+                  "Col": 0,
+                  "Offset": 0
                 },
                 "End": {
-                  "Line": 23,
+                  "Line": 0,
                   "Col": 0,
-                  "Offset": 283
+                  "Offset": 0
                 }
               },
               "Identifier": "Client",
               "Kind": "class",
               "Members": [
                 {
-                  "Name": "id",
-                  "Type": {
-                    "Typ": "named",
-                    "Name": "string"
-                  },
-                  "Visibility": "public",
                   "NodeSpan": {
                     "Start": {
                       "Line": 21,
@@ -340,6 +343,15 @@
                       "Line": 22,
                       "Col": 0,
                       "Offset": 281
+                    }
+                  },
+                  "Visibility": "public",
+                  "Modifiers": null,
+                  "Field": {
+                    "Name": "id",
+                    "Type": {
+                      "Typ": "named",
+                      "Name": "string"
                     }
                   }
                 }
@@ -362,14 +374,14 @@
       ],
       "NodeSpan": {
         "Start": {
-          "Line": 0,
-          "Col": 0,
-          "Offset": 0
+          "Line": 20,
+          "Col": 1,
+          "Offset": 241
         },
         "End": {
-          "Line": 0,
+          "Line": 23,
           "Col": 0,
-          "Offset": 0
+          "Offset": 283
         }
       }
     },
@@ -402,9 +414,9 @@
           "Offset": 285
         },
         "End": {
-          "Line": 24,
-          "Col": 46,
-          "Offset": 330
+          "Line": 25,
+          "Col": 0,
+          "Offset": 346
         }
       }
     },

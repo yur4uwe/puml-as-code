@@ -110,31 +110,13 @@ type GoParameter struct {
 // GoField is the Go-specific implementation of [ast.Field].
 // Consumers should type-assert from ast.Field to access Type.
 type GoField struct {
-	Name       string             `json:",omitempty"`
-	Type       *GoTypeRef         `json:",omitempty"`
-	Visibility ast.VisibilityKind `json:",omitempty"`
-	Modifiers  []string           `json:",omitempty"`
-	ast.BaseNode
-}
-
-// FieldModifiers implements [ast.Field].
-func (g *GoField) FieldModifiers() []string {
-	return g.Modifiers
+	Name string     `json:",omitempty"`
+	Type *GoTypeRef `json:",omitempty"`
 }
 
 // FieldName implements [ast.Field].
 func (g *GoField) FieldName() string {
 	return g.Name
-}
-
-// FieldVisibility implements [ast.Field].
-func (g *GoField) FieldVisibility() ast.VisibilityKind {
-	return g.Visibility
-}
-
-// MemberNode implements [ast.Field].
-func (g *GoField) MemberNode() ast.Member {
-	return g
 }
 
 func (g *GoField) String() string {
@@ -148,32 +130,14 @@ var _ ast.Field = (*GoField)(nil)
 // unnamed (error) return values. Consumers should type-assert from
 // ast.Method to access Parameters and ReturnType.
 type GoMethod struct {
-	Name       string             `json:",omitempty"`
-	ReturnType []GoParameter      `json:",omitempty"` // Named returns have Name set, unnamed have Name empty
-	Parameters []GoParameter      `json:",omitempty"`
-	Modifiers  []string           `json:",omitempty"`
-	Visibility ast.VisibilityKind `json:",omitempty"`
-	ast.BaseNode
-}
-
-// MemberNode implements [ast.Method].
-func (g *GoMethod) MemberNode() ast.Member {
-	return g
-}
-
-// MethodModifiers implements [ast.Method].
-func (g *GoMethod) MethodModifiers() []string {
-	return g.Modifiers
+	Name       string        `json:",omitempty"`
+	ReturnType []GoParameter `json:",omitempty"` // Named returns have Name set, unnamed have Name empty
+	Parameters []GoParameter `json:",omitempty"`
 }
 
 // MethodName implements [ast.Method].
 func (g *GoMethod) MethodName() string {
 	return g.Name
-}
-
-// MethodVisibility implements [ast.Method].
-func (g *GoMethod) MethodVisibility() ast.VisibilityKind {
-	return g.Visibility
 }
 
 func (g *GoMethod) Signature() string {

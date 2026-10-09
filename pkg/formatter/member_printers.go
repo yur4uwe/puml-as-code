@@ -21,20 +21,20 @@ func printClassSeparator(s *formatterState, sep ast.ClassSeparator) {
 	s.buf.WriteString(strings.Repeat(string(sep.Type), rightCount))
 }
 
-func printField(s *formatterState, field ast.Field) {
+func printField(s *formatterState, field ast.FieldDeclaration) {
 	s.writeIndent()
-	for _, modifier := range field.FieldModifiers() {
+	for _, modifier := range field.Modifiers {
 		fmt.Fprintf(&s.buf, "{%s} ", modifier)
 	}
-	s.buf.WriteString(visibilitySymbol(field.FieldVisibility()))
-	s.buf.WriteString(field.String())
+	s.buf.WriteString(visibilitySymbol(field.Visibility))
+	s.buf.WriteString(field.Field.String())
 }
 
-func printMethod(s *formatterState, method ast.Method) {
+func printMethod(s *formatterState, method ast.MethodDeclaration) {
 	s.writeIndent()
-	for _, modifier := range method.MethodModifiers() {
+	for _, modifier := range method.Modifiers {
 		fmt.Fprintf(&s.buf, "{%s} ", modifier)
 	}
-	s.buf.WriteString(visibilitySymbol(method.MethodVisibility()))
-	s.buf.WriteString(method.String())
+	s.buf.WriteString(visibilitySymbol(method.Visibility))
+	s.buf.WriteString(method.Method.String())
 }

@@ -35,12 +35,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "name",
-          "Type": {
-            "Typ": "named",
-            "Name": "string"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 3,
@@ -51,6 +45,15 @@
               "Line": 4,
               "Col": 0,
               "Offset": 50
+            }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "name",
+            "Type": {
+              "Typ": "named",
+              "Name": "string"
             }
           }
         }
@@ -73,12 +76,6 @@
       "Kind": "class",
       "Members": [
         {
-          "Name": "number",
-          "Type": {
-            "Typ": "named",
-            "Name": "int"
-          },
-          "Visibility": "public",
           "NodeSpan": {
             "Start": {
               "Line": 6,
@@ -89,6 +86,15 @@
               "Line": 7,
               "Col": 0,
               "Offset": 81
+            }
+          },
+          "Visibility": "public",
+          "Modifiers": null,
+          "Field": {
+            "Name": "number",
+            "Type": {
+              "Typ": "named",
+              "Name": "int"
             }
           }
         }
@@ -123,9 +129,9 @@
           "Offset": 85
         },
         "End": {
-          "Line": 9,
-          "Col": 27,
-          "Offset": 111
+          "Line": 10,
+          "Col": 0,
+          "Offset": 125
         }
       }
     },
