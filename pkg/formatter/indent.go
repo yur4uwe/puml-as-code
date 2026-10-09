@@ -23,6 +23,11 @@ func (s *formatterState) emitWithIndent(str string) {
 
 func (s *formatterState) onNewLevel(f func()) {
 	s.tabDepth++
-	defer func() { s.tabDepth-- }()
+	savedLast := s.lastNode
+	s.lastNode = nil
+	defer func() {
+		s.tabDepth--
+		s.lastNode = savedLast
+	}()
 	f()
 }

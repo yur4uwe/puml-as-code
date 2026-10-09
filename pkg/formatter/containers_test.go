@@ -31,22 +31,27 @@ namespace Core {
   class Entity {
   }
 }
+
 together {
   class A {
   }
+
   class B {
   }
 }
+
 folder "Storage" {
   node Server {
     database DB {
     }
   }
 }
+
 cloud AWS {
   rectangle Gateway {
   }
 }
+
 frame AppFrame {
 }
 @enduml
@@ -66,9 +71,11 @@ package "Core Domain" as core <<Domain>> $backend #lightgreen {
 			name: "Custom package separator with set separator .",
 			input: `@startuml
 set separator .
+
 class net.http.Client {
   +Timeout int
 }
+
 class net.http.Server {
   +Port int
 }
@@ -79,9 +86,11 @@ class net.http.Server {
 			name: "Custom package separator with set separator ::",
 			input: `@startuml
 set separator ::
+
 class std::vector {
   +size() int
 }
+
 class std::string {
   +length() int
 }

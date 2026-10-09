@@ -594,6 +594,8 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 	var err error
 
 	// Modifiers and separators precede the switch to not mistake -- separator and '-' for visibility
+	// PLAN: rewrite the class separator to use the same logic as members,
+	// just make them assert on extracted token slice
 	if member, err = p.tryReadClassSeparator(); err == nil {
 		return member, nil
 	}

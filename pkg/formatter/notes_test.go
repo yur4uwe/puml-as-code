@@ -16,6 +16,7 @@ func TestFormatNotes_Canonical(t *testing.T) {
 			input: `@startuml
 class User {
 }
+
 note left of User : Authenticated via OAuth
 note right of User #yellow : Warning: Deprecated
 note top of User : Top note
@@ -40,11 +41,13 @@ note as N2
 This is a multiline
 floating note.
 end note
+
 note left of User
 Detailed user instructions:
 1. Register
 2. Verify email
 end note
+
 note on link #cyan
 Communication channel
 is encrypted.
@@ -58,6 +61,7 @@ end note
 package "Auth" {
   class Session {
   }
+
   note right of Session : Session expires in 24h
 }
 @enduml
@@ -96,6 +100,7 @@ note   left   of   User   #yellow   :   Warning: Deprecated
 			expected: `@startuml
 class User {
 }
+
 note left of User #yellow : Warning: Deprecated
 @enduml
 `,
@@ -127,6 +132,7 @@ note right of Session : Session expires in 24h
 package "Auth" {
   class Session {
   }
+
   note right of Session : Session expires in 24h
 }
 @enduml

@@ -11,6 +11,7 @@ func TestFormatOptions(t *testing.T) {
 package "Core" {
   class User {
     +id string
+
     +GetName() string
   }
 }
@@ -22,6 +23,7 @@ package "Core" {
 package "Core" {
   class User {
     +id string
+
     +GetName() string
   }
 }
@@ -37,6 +39,7 @@ package "Core" {
 package "Core" {
     class User {
         +id string
+
         +GetName() string
     }
 }
@@ -59,7 +62,7 @@ package "Core" {
 	})
 
 	t.Run("Use tabs indentation", func(t *testing.T) {
-		expected := "@startuml\npackage \"Core\" {\n\tclass User {\n\t\t+id string\n\t\t+GetName() string\n\t}\n}\n@enduml\n"
+		expected := "@startuml\npackage \"Core\" {\n\tclass User {\n\t\t+id string\n\n\t\t+GetName() string\n\t}\n}\n@enduml\n"
 		formatted, err := Format(input, FormatOptions{
 			UseTabs: true,
 		})

@@ -19,6 +19,8 @@ type formatterState struct {
 	indent   int
 	useTabs  bool
 
+	lastNode ast.Node
+
 	// recollected from the AST
 	packageSeparator string
 }
@@ -52,6 +54,10 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 }
 
 func formatNode(s *formatterState, node ast.Node) {
+	if s.lastNode != nil && needsBlankLine(s.lastNode, node) {
+		s.buf.WriteByte('\n')
+	}
+
 	leadingTrivia := node.GetLeadingTrivia()
 	if len(leadingTrivia) == 0 {
 		leadingTrivia = getImplicitLeadingTrivia(node)
@@ -80,6 +86,8 @@ func formatNode(s *formatterState, node ast.Node) {
 
 	s.emitBlockEndTrivia(node)
 	s.buf.WriteString("\n")
+
+	s.lastNode = node
 }
 
 func getImplicitLeadingTrivia(node ast.Node) []tokenizer.Token {

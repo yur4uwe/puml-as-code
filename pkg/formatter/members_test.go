@@ -19,6 +19,7 @@ class VisibilityDemo {
   -privateField int
   #protectedField bool
   ~packageField byte
+
   +PublicMethod()
   -privateMethod()
   #protectedMethod()
@@ -32,8 +33,9 @@ class VisibilityDemo {
 			input: `@startuml
 class ModifierDemo {
   {static} +DefaultTimeout int
-  {abstract} +Execute() error
   {static} -instance ModifierDemo
+
+  {abstract} +Execute() error
 }
 @enduml
 `,
@@ -54,18 +56,31 @@ class ServiceDemo {
 			input: `@startuml
 class SeparatorDemo {
   +id string
+
   --
+
   +active bool
+
   -- Status Section --
+
   +status Status
+
   ==
+
   == Methods ==
+
   +Run()
+
   ..
+
   .. Events ..
+
   +OnError()
+
   __
+
   __ Internal __
+
   -internalKey string
 }
 @enduml
@@ -105,6 +120,7 @@ class ModifierDemo {
 			expected: `@startuml
 class ModifierDemo {
   {static} +DefaultTimeout int
+
   {abstract} +Execute() error
 }
 @enduml
@@ -142,10 +158,40 @@ class SeparatorDemo {
 			expected: `@startuml
 class SeparatorDemo {
   +id string
+
   -- Status Section --
+
   +status Status
+
   == Methods ==
+
   +Run()
+}
+@enduml
+`,
+		},
+		{
+			name: "Interleaved fields and methods separated by blank lines",
+			input: `@startuml
+class User {
+  +id string
+  +SetID(id string)
+  +name string
+  +GetDisplayName() string
+  +Validate() error
+}
+@enduml
+`,
+			expected: `@startuml
+class User {
+  +id string
+
+  +SetID(id string)
+
+  +name string
+
+  +GetDisplayName() string
+  +Validate() error
 }
 @enduml
 `,

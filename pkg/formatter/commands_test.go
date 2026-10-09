@@ -58,18 +58,22 @@ title
 My Architecture diagram
 with extensive title details
 end title
+
 header
 Project Documentation
 that spans multiple lines
 end header
+
 footer
 Confidential
 Page %page% of %lastpage%
 end footer
+
 header center
 Centered Header
 That is multiline too
 end header
+
 legend
 This is the diagram legend.
 described in multiple lines

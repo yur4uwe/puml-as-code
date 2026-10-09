@@ -20,6 +20,7 @@ package "Unformatted" {
       +id:string
     }
 }
+
 ' pac:fmt:on
 class FormattedClass {
   +id string
@@ -33,6 +34,7 @@ class FormattedClass {
 class A {
   +x int
 }
+
 ' pac:fmt:off
 class   B   {
     +y   int
@@ -44,6 +46,7 @@ class   B   {
 			name: "Include directive once",
 			input: `@startuml
 !include ./common/types.puml
+
 class Service {
 }
 @enduml
@@ -53,6 +56,7 @@ class Service {
 			name: "Include many directive",
 			input: `@startuml
 !include_many ./models/user.puml
+
 class Controller {
 }
 @enduml

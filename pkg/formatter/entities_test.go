@@ -16,8 +16,10 @@ func TestFormatEntities_Canonical(t *testing.T) {
 			input: `@startuml
 class User {
 }
+
 interface Repository {
 }
+
 enum Status {
 }
 @enduml
@@ -28,6 +30,7 @@ enum Status {
 			input: `@startuml
 abstract class BaseEntity {
 }
+
 entity AuditRecord {
 }
 @enduml
@@ -55,6 +58,7 @@ class "Custom User Service" as UserService {
 			input: `@startuml
 class User {
 }
+
 User : +id string
 User : +GetName() string
 @enduml
@@ -67,15 +71,19 @@ struct Point {
   +x int
   +y int
 }
+
 protocol Printable {
   +Print()
 }
+
 record Person {
   +name string
 }
+
 exception NotFoundError {
   +msg string
 }
+
 dataclass Config {
   +env string
 }
@@ -116,6 +124,7 @@ class User {
 			expected: `@startuml
 class User {
   +id string
+
   +GetName() string
 }
 @enduml
@@ -148,6 +157,7 @@ User   :   +GetName() string
 			expected: `@startuml
 class User {
 }
+
 User : +id string
 User : +GetName() string
 @enduml

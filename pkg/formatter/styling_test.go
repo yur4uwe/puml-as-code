@@ -28,6 +28,7 @@ skinparam class {
   BackgroundColor PaleGreen
   ArrowColor SeaGreen
   BorderColor SpringGreen
+
   header {
     FontSize 12
   }
