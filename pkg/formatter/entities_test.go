@@ -97,3 +97,74 @@ dataclass Config {
 		})
 	}
 }
+
+func TestFormatEntities_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Unindented entity body members",
+			input: `@startuml
+class User {
++id string
++GetName() string
+}
+@enduml
+`,
+			expected: `@startuml
+class User {
+  +id string
+  +GetName() string
+}
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in entity signature",
+			input: `@startuml
+class   Container   <T>   <<Generic>>   $core   $model   #lightblue   {
+  +items T[]
+}
+@enduml
+`,
+			expected: `@startuml
+class Container <T> <<Generic>> $core $model #lightblue {
+  +items T[]
+}
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in inline entity member declarations",
+			input: `@startuml
+class User {
+}
+User   :   +id string
+User   :   +GetName() string
+@enduml
+`,
+			expected: `@startuml
+class User {
+}
+User : +id string
+User : +GetName() string
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

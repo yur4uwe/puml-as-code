@@ -92,3 +92,77 @@ end legend
 		})
 	}
 }
+
+func TestFormatCommands_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Scale commands with irregular spacing",
+			input: `@startuml
+scale   max   1024   width
+scale   200   *   100
+scale   1.5
+@enduml
+`,
+			expected: `@startuml
+scale max 1024 width
+scale 200 * 100
+scale 1.5
+@enduml
+`,
+		},
+		{
+			name: "Set command with irregular spacing",
+			input: `@startuml
+set    separator    ::
+@enduml
+`,
+			expected: `@startuml
+set separator ::
+@enduml
+`,
+		},
+		{
+			name: "Direction commands with irregular spacing",
+			input: `@startuml
+left    to    right    direction
+top    to    bottom    direction
+@enduml
+`,
+			expected: `@startuml
+left to right direction
+top to bottom direction
+@enduml
+`,
+		},
+		{
+			name: "Single-line title with irregular spacing",
+			input: `@startuml
+title    My Architecture Diagram
+legend    Important diagram notes
+@enduml
+`,
+			expected: `@startuml
+title My Architecture Diagram
+legend Important diagram notes
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

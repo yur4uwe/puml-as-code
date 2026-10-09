@@ -103,3 +103,65 @@ class std::string {
 		})
 	}
 }
+
+func TestFormatContainers_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Zero indentation in nested packages and entities",
+			input: `@startuml
+package "Outer" {
+package "Inner" {
+class Service {
++Run()
+}
+}
+}
+@enduml
+`,
+			expected: `@startuml
+package "Outer" {
+  package "Inner" {
+    class Service {
+      +Run()
+    }
+  }
+}
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in package signature",
+			input: `@startuml
+package   "Core Domain"   as   core   <<Domain>>   $backend   #lightgreen   {
+  class Model {
+  }
+}
+@enduml
+`,
+			expected: `@startuml
+package "Core Domain" as core <<Domain>> $backend #lightgreen {
+  class Model {
+  }
+}
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

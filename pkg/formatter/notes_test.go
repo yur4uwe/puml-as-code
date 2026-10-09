@@ -78,3 +78,72 @@ package "Auth" {
 		})
 	}
 }
+
+func TestFormatNotes_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Irregular spacing in targeted note",
+			input: `@startuml
+class User {
+}
+note   left   of   User   #yellow   :   Warning: Deprecated
+@enduml
+`,
+			expected: `@startuml
+class User {
+}
+note left of User #yellow : Warning: Deprecated
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in note on link",
+			input: `@startuml
+A --> B
+note   left   on   link   :   Verified
+@enduml
+`,
+			expected: `@startuml
+A --> B
+note left on link : Verified
+@enduml
+`,
+		},
+		{
+			name: "Unindented note inside container",
+			input: `@startuml
+package "Auth" {
+  class Session {
+  }
+note right of Session : Session expires in 24h
+}
+@enduml
+`,
+			expected: `@startuml
+package "Auth" {
+  class Session {
+  }
+  note right of Session : Session expires in 24h
+}
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

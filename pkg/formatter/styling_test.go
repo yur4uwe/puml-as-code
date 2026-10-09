@@ -64,3 +64,67 @@ skinparam class {
 		})
 	}
 }
+
+func TestFormatStyling_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Unindented CSS style blocks and rules",
+			input: `@startuml
+<style>
+classDiagram {
+class {
+BackGroundColor: PaleGreen
+LineColor: SeaGreen
+}
+}
+</style>
+@enduml
+`,
+			expected: `@startuml
+<style>
+  classDiagram {
+    class {
+      BackGroundColor: PaleGreen
+      LineColor: SeaGreen
+    }
+  }
+</style>
+@enduml
+`,
+		},
+		{
+			name: "Unindented skinparam blocks with irregular header spacing",
+			input: `@startuml
+skinparam    class    {
+BackgroundColor PaleGreen
+ArrowColor SeaGreen
+}
+@enduml
+`,
+			expected: `@startuml
+skinparam class {
+  BackgroundColor PaleGreen
+  ArrowColor SeaGreen
+}
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

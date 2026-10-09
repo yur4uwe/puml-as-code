@@ -90,3 +90,51 @@ package "Core" {
 		})
 	}
 }
+
+func TestFormatPragmasAndDirectives_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Unindented include inside container",
+			input: `@startuml
+package "Core" {
+!include ./core/base.puml
+}
+@enduml
+`,
+			expected: `@startuml
+package "Core" {
+  !include ./core/base.puml
+}
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in include directive",
+			input: `@startuml
+!include_many   ./models/user.puml
+@enduml
+`,
+			expected: `@startuml
+!include_many ./models/user.puml
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence check
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

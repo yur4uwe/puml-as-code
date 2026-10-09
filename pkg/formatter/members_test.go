@@ -86,3 +86,82 @@ class SeparatorDemo {
 		})
 	}
 }
+
+func TestFormatMembers_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Modifiers with internal spaces and irregular member spacing",
+			input: `@startuml
+class ModifierDemo {
+  { static }   +DefaultTimeout int
+  { abstract }   +Execute() error
+}
+@enduml
+`,
+			expected: `@startuml
+class ModifierDemo {
+  {static} +DefaultTimeout int
+  {abstract} +Execute() error
+}
+@enduml
+`,
+		},
+		{
+			name: "Method parameters and return types with irregular spacing",
+			input: `@startuml
+class ServiceDemo {
+  +Process( id string , count int ) ( Result , error )
+  +Execute( ctx Context )
+}
+@enduml
+`,
+			expected: `@startuml
+class ServiceDemo {
+  +Process(id string, count int) (Result, error)
+  +Execute(ctx Context)
+}
+@enduml
+`,
+		},
+		{
+			name: "Separators with irregular spaces around labels",
+			input: `@startuml
+class SeparatorDemo {
+  +id string
+  --   Status Section   --
+  +status Status
+  ==   Methods   ==
+  +Run()
+}
+@enduml
+`,
+			expected: `@startuml
+class SeparatorDemo {
+  +id string
+  -- Status Section --
+  +status Status
+  == Methods ==
+  +Run()
+}
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}

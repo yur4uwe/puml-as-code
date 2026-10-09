@@ -86,3 +86,61 @@ func TestFormatDiagramBounds_Canonical(t *testing.T) {
 		})
 	}
 }
+
+func TestFormatDiagramBounds_Irregular(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		expected string
+	}{
+		{
+			name: "Irregular spacing in ID parentheses",
+			input: `@startuml ( id = CORE )
+@enduml
+`,
+			expected: `@startuml(id=CORE)
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in multiple params",
+			input: `@startuml ( id = CORE ,   env = prod )
+@enduml
+`,
+			expected: `@startuml(id=CORE, env=prod)
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in tool options",
+			input: `@startuml {  filename.puml  ,   Overview Diagram  ,   width=5cm  }
+@enduml
+`,
+			expected: `@startuml{filename.puml, Overview Diagram, width=5cm}
+@enduml
+`,
+		},
+		{
+			name: "Excessive whitespace before trailing filename",
+			input: `@startuml    my_diagram.puml
+@enduml
+`,
+			expected: `@startuml my_diagram.puml
+@enduml
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			formatted, err := Format(tt.input)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formatted)
+
+			// Idempotence
+			formattedAgain, err := Format(formatted)
+			require.NoError(t, err)
+			require.Equal(t, tt.expected, formattedAgain)
+		})
+	}
+}
