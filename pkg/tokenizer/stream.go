@@ -9,6 +9,8 @@ import (
 	"yur4uwe/pac/pkg/parser/keyword"
 )
 
+const maxConsecutiveEOF = 25
+
 type UnexpectedTokenError struct {
 	Expected Token
 	Found    Token
@@ -23,12 +25,14 @@ func unexpectedTokenError(expected Token, found Token) error {
 }
 
 type TokenStream struct {
-	lexer             *Lexer
-	collectedTrivia   []Token
-	buffer            []Token
-	sinks             []TokenSink
-	rawModeTerminator []rune
-	PackageSeparator  string
+	lexer               *Lexer
+	collectedTrivia     []Token
+	buffer              []Token
+	sinks               []TokenSink
+	rawModeTerminator   []rune
+	PackageSeparator    string
+	lastNonNewlineToken Token
+	eofEmitCount        int
 }
 
 func NewTokenStream(input string) *TokenStream {
@@ -93,9 +97,19 @@ func (ts *TokenStream) PeekRawTokenAt(idx int) Token {
 	for len(ts.buffer) <= idx {
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
-		if tok.Type == EOF {
-			break
+		if tok.Type != EOF {
+			ts.eofEmitCount = 0
+			continue
 		}
+
+		ts.eofEmitCount++
+		if ts.eofEmitCount > maxConsecutiveEOF {
+			panic(fmt.Sprintf(
+				"tokenizer: possible infinite loop detected: emitted EOF %d times (at %s)",
+				ts.eofEmitCount, ts.lexer.getPos(),
+			))
+		}
+		break
 	}
 	if idx < len(ts.buffer) {
 		return ts.buffer[idx]
@@ -139,6 +153,9 @@ func (ts *TokenStream) EmitRaw() Token {
 	for _, sink := range ts.sinks {
 		sink.Receive(tok)
 	}
+	if tok.Type != EOF && tok.Type != NEWLINE && tok.Type != COMMENT {
+		ts.lastNonNewlineToken = tok
+	}
 	return tok
 }
 
@@ -153,7 +170,7 @@ func (ts *TokenStream) DumpCollectedTrivia() []Token {
 // appending them to collected trivia.
 func (ts *TokenStream) EmitCommentToks() {
 	for ts.PeekRawTokenAt(0).Type == COMMENT {
-		ts.Emit()
+		ts.collectedTrivia = append(ts.collectedTrivia, ts.EmitRaw())
 	}
 }
 
@@ -169,6 +186,8 @@ func (ts *TokenStream) Attach(sink TokenSink) func() {
 	}
 }
 
+// TokensToString is DEPRECATED as it can distort the original source
+// Use SliceInputEnclosingTokens instead
 func (ts *TokenStream) TokensToString(toks []Token) string {
 	if len(toks) == 0 {
 		return ""
@@ -388,7 +407,7 @@ func (ts *TokenStream) ReadBetween(start, end []Token) (string, error) {
 		collected = append(collected, ts.Emit())
 	}
 
-	res := ts.TokensToString(collected)
+	res := ts.SliceInputEnclosingTokens(collected...)
 
 	// Consume end markers
 	for range end {
@@ -414,47 +433,12 @@ func (ts *TokenStream) collectUntilNewline(emitter func() Token) []Token {
 }
 
 func (ts *TokenStream) ReadUntilNewline() string {
-	toks := ts.collectUntilNewline(ts.EmitRaw)
+	toks := ts.ConsumeUntilType(NEWLINE)
 	if len(toks) == 0 {
 		return ""
 	}
 
-	var filtered []Token
-	for _, tok := range toks {
-		if tok.Type == COMMENT {
-			break
-		}
-		if tok.Type == NEWLINE || tok.Type == EOF {
-			continue
-		}
-		filtered = append(filtered, tok)
-	}
-
-	return strings.TrimSpace(ts.TokensToString(filtered))
-}
-
-func (ts *TokenStream) ReadRawUntilNewline() string {
-	toks := ts.collectUntilNewline(ts.EmitRaw)
-	if len(toks) == 0 {
-		return ""
-	}
-
-	var collected []Token
-	for _, tok := range toks {
-		if tok.Type == NEWLINE || tok.Type == EOF {
-			continue
-		}
-		collected = append(collected, tok)
-	}
-
-	if len(collected) == 0 {
-		return ""
-	}
-
-	start := collected[0].Span.Start.Offset
-	end := ts.PeekRawTokenAt(0).Span.Start.Offset
-	str := string(ts.lexer.input[start:end])
-	return strings.TrimSpace(str)
+	return ts.SliceInputEnclosingTokens(toks...)
 }
 
 // ReadBlock assumes that end tokens are first in the line
@@ -488,10 +472,14 @@ func (ts *TokenStream) SliceInput(start, end uint) string {
 	return string(ts.lexer.input[start:end])
 }
 
-func (ts *TokenStream) SliceInputBetweenTokens(toks ...Token) string {
+func (ts *TokenStream) SliceInputEnclosingTokens(toks ...Token) string {
 	span, ok := TokenSliceSpan(toks)
 	if !ok {
 		return ""
 	}
 	return ts.SliceInput(span.Start.Offset, span.End.Offset)
+}
+
+func (ts *TokenStream) LastSemanticToken() Token {
+	return ts.lastNonNewlineToken
 }

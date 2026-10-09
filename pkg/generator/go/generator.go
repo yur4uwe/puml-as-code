@@ -169,7 +169,7 @@ func getRootOrFirstView(viewMap map[string]*FileView) *FileView {
 
 func fillSourceStructByRel(view *StructView, rel *resolver.RelationshipSymbol, fileView *FileView) {
 	// i have not
-	trivia := toTriviaView(rel.AST.Trivia)
+	trivia := toTriviaView(rel.AST.BaseNode)
 	targetType := targetTypeName(rel.Source.PackagePath, rel.Target)
 	fieldName := ""
 	if customName, vis := reparseLabel(rel.AST.Label); customName != "" {

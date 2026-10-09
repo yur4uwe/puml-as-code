@@ -1,10 +1,10 @@
 @startuml Aggregation
 
 class Team {
-  +name: string
+  +name string
 }
 class Player {
-  +number: int
+  +number int
 }
 
 Team "1" o-- "0..*" Player : has players

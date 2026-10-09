@@ -4,14 +4,38 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "PackagesNested"
+      "TrailingName": "PackagesNested",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 1,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 1,
+          "Col": 0,
+          "Offset": 24
+        }
+      }
     },
     {
       "Identifier": "core",
-      "Alias": "Core Domain",
+      "Alias": "\"Core Domain\"",
       "Kind": "package",
       "Statements": [
         {
+          "NodeSpan": {
+            "Start": {
+              "Line": 3,
+              "Col": 3,
+              "Offset": 60
+            },
+            "End": {
+              "Line": 7,
+              "Col": 0,
+              "Offset": 108
+            }
+          },
           "Identifier": "User",
           "Kind": "class",
           "Members": [
@@ -21,7 +45,19 @@
                 "Typ": "named",
                 "Name": "string"
               },
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 4,
+                  "Col": 5,
+                  "Offset": 77
+                },
+                "End": {
+                  "Line": 5,
+                  "Col": 0,
+                  "Offset": 87
+                }
+              }
             },
             {
               "Name": "name",
@@ -29,17 +65,53 @@
                 "Typ": "named",
                 "Name": "string"
               },
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 5,
+                  "Col": 5,
+                  "Offset": 92
+                },
+                "End": {
+                  "Line": 6,
+                  "Col": 0,
+                  "Offset": 104
+                }
+              }
             }
           ]
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 26
+        },
+        "End": {
+          "Line": 8,
+          "Col": 0,
+          "Offset": 110
+        }
+      }
     },
     {
       "Identifier": "infra",
       "Kind": "namespace",
       "Statements": [
         {
+          "NodeSpan": {
+            "Start": {
+              "Line": 10,
+              "Col": 3,
+              "Offset": 132
+            },
+            "End": {
+              "Line": 13,
+              "Col": 0,
+              "Offset": 175
+            }
+          },
           "Identifier": "Database",
           "Kind": "class",
           "Members": [
@@ -49,14 +121,38 @@
                 "Typ": "named",
                 "Name": "string"
               },
-              "Visibility": "public"
+              "Visibility": "public",
+              "NodeSpan": {
+                "Start": {
+                  "Line": 11,
+                  "Col": 5,
+                  "Offset": 153
+                },
+                "End": {
+                  "Line": 12,
+                  "Col": 0,
+                  "Offset": 171
+                }
+              }
             }
           ]
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 9,
+          "Col": 1,
+          "Offset": 112
+        },
+        "End": {
+          "Line": 14,
+          "Col": 0,
+          "Offset": 177
+        }
+      }
     },
     {
-      "Identifier": "Storage",
+      "Identifier": "\"Storage\"",
       "Kind": "folder",
       "Statements": [
         {
@@ -64,6 +160,18 @@
           "Kind": "node",
           "Statements": [
             {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 17,
+                  "Col": 5,
+                  "Offset": 218
+                },
+                "End": {
+                  "Line": 20,
+                  "Col": 0,
+                  "Offset": 256
+                }
+              },
               "Identifier": "Disk",
               "Kind": "class",
               "Members": [
@@ -73,13 +181,49 @@
                     "Typ": "named",
                     "Name": "int"
                   },
-                  "Visibility": "public"
+                  "Visibility": "public",
+                  "NodeSpan": {
+                    "Start": {
+                      "Line": 18,
+                      "Col": 7,
+                      "Offset": 237
+                    },
+                    "End": {
+                      "Line": 19,
+                      "Col": 0,
+                      "Offset": 250
+                    }
+                  }
                 }
               ]
             }
-          ]
+          ],
+          "NodeSpan": {
+            "Start": {
+              "Line": 16,
+              "Col": 3,
+              "Offset": 200
+            },
+            "End": {
+              "Line": 21,
+              "Col": 0,
+              "Offset": 260
+            }
+          }
         }
-      ]
+      ],
+      "NodeSpan": {
+        "Start": {
+          "Line": 15,
+          "Col": 1,
+          "Offset": 179
+        },
+        "End": {
+          "Line": 22,
+          "Col": 0,
+          "Offset": 262
+        }
+      }
     },
     {
       "LHS": {
@@ -92,12 +236,37 @@
       "MultLHS": null,
       "MultRHS": null,
       "Body": 45,
+      "BodyCount": 2,
       "RArrow": 62,
-      "Label": "connects"
+      "Label": "connects",
+      "NodeSpan": {
+        "Start": {
+          "Line": 23,
+          "Col": 1,
+          "Offset": 264
+        },
+        "End": {
+          "Line": 23,
+          "Col": 18,
+          "Offset": 281
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 25,
+          "Col": 1,
+          "Offset": 294
+        },
+        "End": {
+          "Line": 26,
+          "Col": 0,
+          "Offset": 301
+        }
+      }
     }
   ]
 }

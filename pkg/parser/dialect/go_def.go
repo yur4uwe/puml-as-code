@@ -114,7 +114,7 @@ type GoField struct {
 	Type       *GoTypeRef         `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // FieldModifiers implements [ast.Field].
@@ -137,10 +137,11 @@ func (g *GoField) MemberNode() ast.Member {
 	return g
 }
 
-var (
-	_ ast.Field  = (*GoField)(nil)
-	_ ast.Member = (*GoField)(nil)
-)
+func (g *GoField) String() string {
+	return g.Name + " " + g.Type.String()
+}
+
+var _ ast.Field = (*GoField)(nil)
 
 // GoMethod is the Go-specific implementation of [ast.Method].
 // ReturnType uses GoParameter to support both named (e error) and
@@ -152,7 +153,7 @@ type GoMethod struct {
 	Parameters []GoParameter      `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // MemberNode implements [ast.Method].
@@ -217,10 +218,11 @@ func (g *GoMethod) Signature() string {
 	return sb.String()
 }
 
-var (
-	_ ast.Method = (*GoMethod)(nil)
-	_ ast.Member = (*GoMethod)(nil)
-)
+func (g *GoMethod) String() string {
+	return g.Name + g.Signature()
+}
+
+var _ ast.Method = (*GoMethod)(nil)
 
 type GoDialect struct{}
 

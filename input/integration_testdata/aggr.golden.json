@@ -4,9 +4,33 @@
     {
       "IsStart": true,
       "Type": "uml",
-      "Name": "Aggregation"
+      "TrailingName": "Aggregation",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 1,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 1,
+          "Col": 0,
+          "Offset": 21
+        }
+      }
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 23
+        },
+        "End": {
+          "Line": 5,
+          "Col": 0,
+          "Offset": 52
+        }
+      },
       "Identifier": "Team",
       "Kind": "class",
       "Members": [
@@ -16,11 +40,35 @@
             "Typ": "named",
             "Name": "string"
           },
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 3,
+              "Col": 3,
+              "Offset": 38
+            },
+            "End": {
+              "Line": 4,
+              "Col": 0,
+              "Offset": 50
+            }
+          }
         }
       ]
     },
     {
+      "NodeSpan": {
+        "Start": {
+          "Line": 5,
+          "Col": 1,
+          "Offset": 53
+        },
+        "End": {
+          "Line": 8,
+          "Col": 0,
+          "Offset": 83
+        }
+      },
       "Identifier": "Player",
       "Kind": "class",
       "Members": [
@@ -30,7 +78,19 @@
             "Typ": "named",
             "Name": "int"
           },
-          "Visibility": "public"
+          "Visibility": "public",
+          "NodeSpan": {
+            "Start": {
+              "Line": 6,
+              "Col": 3,
+              "Offset": 70
+            },
+            "End": {
+              "Line": 7,
+              "Col": 0,
+              "Offset": 81
+            }
+          }
         }
       ]
     },
@@ -53,12 +113,37 @@
         "Max": "*"
       },
       "Body": 45,
+      "BodyCount": 2,
       "LArrow": 111,
-      "Label": "has players"
+      "Label": "has players",
+      "NodeSpan": {
+        "Start": {
+          "Line": 9,
+          "Col": 1,
+          "Offset": 85
+        },
+        "End": {
+          "Line": 9,
+          "Col": 27,
+          "Offset": 111
+        }
+      }
     },
     {
       "IsStart": false,
-      "Type": "uml"
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 11,
+          "Col": 1,
+          "Offset": 127
+        },
+        "End": {
+          "Line": 11,
+          "Col": 8,
+          "Offset": 134
+        }
+      }
     }
   ]
 }

@@ -8,18 +8,18 @@ High-level implementation roadmap for extending `pac` into formatting, syntax hi
 
 Goal: Canonical, idempotent pretty-printer for PUML diagrams.
 
-- [ ] **1. Lossless AST & Trivia Hardening**
+- [x] **1. Lossless AST & Trivia Hardening**
   - Add `LaxDialect` (`pkg/parser/dialect/lax.go`): default dialect for formatting that captures arbitrary/sketch member syntax into `LaxField` / `LaxMethod` with raw tokens instead of rejecting non-Go syntax.
   - Add fallback node (`ast.UnhandledStatement`) to pass unhandled diagram lines without failing.
   - *Trivia normalization rule:* Mid-line comments (e.g. `A /' note '/ --> B`) are normalized to line-trailing comments. Idempotence is preserved: `Format(Format(S)) == Format(S)`.
-- [ ] **2. AST Pretty-Printer (`pkg/formatter`)**
+- [x] **2. AST Pretty-Printer (`pkg/formatter`)**
   - Canonical indentation (2 spaces) for blocks (`package`, `class`, `interface`).
   - Standardize relationship spacing (`Foo "1" *-- "0..*" Bar : label`).
   - Render leading/trailing comments from [`ast.Trivia`](file:///home/yur4uwe/Projects/puml-as-code/pkg/parser/ast/structs.go#L20-L27).
-- [ ] **3. Quality & Invariants**
+- [x] **3. Quality & Invariants**
   - **Idempotence Test:** `Format(Format(src)) == Format(src)`.
   - **AST Stability Test:** `Parse(src) == Parse(Format(src))`.
-- [ ] **4. CLI Integration (`cmd/pac`)**
+- [x] **4. CLI Integration (`cmd/pac`)**
   - Flags: `pac fmt <file.puml>` (stdout), `-w` (in-place write), `-check` (CI diff check).
 
 ## Track 2: Syntax Highlighting (Tree-sitter)

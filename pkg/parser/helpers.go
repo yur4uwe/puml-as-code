@@ -103,3 +103,18 @@ func (p *Parser) mapKeywordToContainerKind(kw keyword.KeywordKind) ast.Container
 		return ast.ContainerUnknown
 	}
 }
+
+func mapKwTokToTextBlockKind(kw keyword.KeywordKind) ast.TextBlockKind {
+	switch kw {
+	case keyword.Header:
+		return ast.BlockHeader
+	case keyword.Footer:
+		return ast.BlockFooter
+	case keyword.Legend:
+		return ast.BlockLegend
+	case keyword.Title:
+		return ast.BlockTitle
+	default:
+		return ast.BlockUnknown
+	}
+}

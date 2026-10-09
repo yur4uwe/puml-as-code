@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -13,7 +12,7 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 
 	kw := FindUnhandledKeyword(tok.Literal)
 	if kw == nil {
-		return nil, NewParserError("Unexpected unhandled keyword", tok)
+		return nil, NewParserError(tok, "Unexpected unhandled keyword")
 	}
 
 	if kw.Closer != "" {
@@ -34,7 +33,6 @@ func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tok
 
 func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []tokenizer.Token) (ast.Statement, error) {
 	lineToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
-	p.stream.TryConsumeType(tokenizer.NEWLINE)
 
 	endTok := startTok
 	if len(lineToks) > 0 {
@@ -42,16 +40,14 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SourceSpan{
-		Start: startTok.Span.Start,
-		End:   endTok.EndPos(),
-	}
+	span := tokenizer.SpanEnclosing(startTok, endTok)
 
 	p.stream.EmitCommentToks()
+	p.stream.TryConsumeType(tokenizer.NEWLINE)
 	return ast.UnhandledStatement{
-		Text: text,
-		Span: span,
-		Trivia: ast.Trivia{
+		Raw: text,
+		BaseNode: ast.BaseNode{
+			NodeSpan:       span,
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},
@@ -69,10 +65,10 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 
 	for {
 		if p.stream.AssertType(tokenizer.EOF) {
-			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kw.Keyword), startTok)
+			return nil, NewParserErrorf(startTok, "unterminated block statement for %s", kw.Keyword)
 		}
 		if p.stream.AssertType(tokenizer.AT) && strings.HasPrefix(strings.ToLower(p.stream.PeekTokenAt(1).Literal), "end") {
-			return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s", kw.Keyword), startTok)
+			return nil, NewParserErrorf(startTok, "unterminated block statement for %s", kw.Keyword)
 		}
 
 		lineToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
@@ -89,7 +85,7 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 			case tokenizer.RBRACE:
 				braceDepth--
 				if braceDepth < 0 {
-					return nil, NewParserError(fmt.Sprintf("unterminated block statement for %s (hit enclosing scope delimiter)", kw.Keyword), startTok)
+					return nil, NewParserErrorf(startTok, "unterminated block statement for %s (hit enclosing scope delimiter)", kw.Keyword)
 				}
 			}
 		}
@@ -98,6 +94,7 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 			depth--
 			if depth == 0 {
 				endTok = lineToks[len(lineToks)-1]
+				p.stream.EmitCommentToks()
 				p.stream.TryConsumeType(tokenizer.NEWLINE)
 				break
 			}
@@ -109,16 +106,12 @@ func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKey
 	}
 
 	text := p.stream.SliceInput(startTok.Span.Start.Offset, endTok.EndOffset())
-	span := tokenizer.SourceSpan{
-		Start: startTok.Span.Start,
-		End:   endTok.EndPos(),
-	}
+	span := tokenizer.SpanEnclosing(startTok, endTok)
 
-	p.stream.EmitCommentToks()
 	return ast.UnhandledStatement{
-		Text: text,
-		Span: span,
-		Trivia: ast.Trivia{
+		Raw: text,
+		BaseNode: ast.BaseNode{
+			NodeSpan:       span,
 			LeadingTrivia:  leadingTrivia,
 			TrailingTrivia: p.stream.DumpCollectedTrivia(),
 		},

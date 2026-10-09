@@ -24,7 +24,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "caption Figure 1: Architecture Overview", uh.Text)
+			require.Equal(t, "caption Figure 1: Architecture Overview", uh.Raw)
 		})
 
 		t.Run("bare caption without trailing tokens", func(t *testing.T) {
@@ -36,7 +36,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "caption", uh.Text)
+			require.Equal(t, "caption", uh.Raw)
 		})
 
 		t.Run("sprite single-line", func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "sprite $my_icon my_icon.png", uh.Text)
+			require.Equal(t, "sprite $my_icon my_icon.png", uh.Raw)
 		})
 	})
 
@@ -62,7 +62,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!define FOO(x) class x", uh.Text)
+			require.Equal(t, "!define FOO(x) class x", uh.Raw)
 		})
 
 		t.Run("!global directive", func(t *testing.T) {
@@ -74,7 +74,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!global $VAR = 42", uh.Text)
+			require.Equal(t, "!global $VAR = 42", uh.Raw)
 		})
 	})
 
@@ -88,7 +88,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!function $my_func($a)\n  !return $a + 1\n!endfunction", uh.Text)
+			require.Equal(t, "!function $my_func($a)\n  !return $a + 1\n!endfunction", uh.Raw)
 		})
 
 		t.Run("!procedure block", func(t *testing.T) {
@@ -100,7 +100,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!procedure $my_proc()\n  class GeneratedClass\n!endprocedure", uh.Text)
+			require.Equal(t, "!procedure $my_proc()\n  class GeneratedClass\n!endprocedure", uh.Raw)
 		})
 
 		t.Run("!definelong block", func(t *testing.T) {
@@ -112,7 +112,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!definelong MACRO_NAME\n  class InsideMacro\n!enddefinelong", uh.Text)
+			require.Equal(t, "!definelong MACRO_NAME\n  class InsideMacro\n!enddefinelong", uh.Raw)
 		})
 
 		t.Run("!while block", func(t *testing.T) {
@@ -124,7 +124,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!while ($val > 0)\n  class C\n!endwhile", uh.Text)
+			require.Equal(t, "!while ($val > 0)\n  class C\n!endwhile", uh.Raw)
 		})
 
 		t.Run("!foreach block", func(t *testing.T) {
@@ -136,7 +136,7 @@ func TestParseUnhandled(t *testing.T) {
 
 			uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 			require.True(t, ok)
-			require.Equal(t, "!foreach $item in $list\n  class Item\n!endfor", uh.Text)
+			require.Equal(t, "!foreach $item in $list\n  class Item\n!endfor", uh.Raw)
 		})
 	})
 
@@ -168,7 +168,7 @@ func TestParseUnhandled(t *testing.T) {
   !endif
   class ClassAfterInner
 !endif`
-		require.Equal(t, expected, uh.Text)
+		require.Equal(t, expected, uh.Raw)
 	})
 
 	t.Run("unterminated block errors", func(t *testing.T) {
@@ -217,11 +217,11 @@ func TestParseUnhandled(t *testing.T) {
 
 		uh1, ok := cont.Statements[0].(ast.UnhandledStatement)
 		require.True(t, ok)
-		require.Equal(t, "caption Figure in Package", uh1.Text)
+		require.Equal(t, "caption Figure in Package", uh1.Raw)
 
 		uh2, ok := cont.Statements[1].(ast.UnhandledStatement)
 		require.True(t, ok)
-		require.Equal(t, "sprite $icon icon.png", uh2.Text)
+		require.Equal(t, "sprite $icon icon.png", uh2.Raw)
 	})
 
 	t.Run("generic opener and closer pattern matching (non-directive and directive)", func(t *testing.T) {

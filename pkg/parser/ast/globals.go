@@ -1,9 +1,7 @@
 // Package ast contains the AST nodes for the parser.
 package ast
 
-import (
-	"yur4uwe/pac/pkg/tokenizer"
-)
+
 
 //go:generate enumer -type=TextBlockKind -transform=lower -json -trimprefix=Block
 type TextBlockKind int
@@ -25,7 +23,7 @@ type TextBlock struct {
 	VerticalAlignment   string
 	HorizontalAlignment string
 
-	Trivia
+	BaseNode
 }
 
 // StatementNode implements [Statement].
@@ -36,9 +34,8 @@ func (t TextBlock) StatementNode() Statement {
 var _ Statement = TextBlock{}
 
 type UnhandledStatement struct {
-	Text string
-	Span tokenizer.SourceSpan
-	Trivia
+	Raw string
+	BaseNode
 }
 
 // StatementNode implements [Statement].

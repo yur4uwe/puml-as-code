@@ -6,7 +6,7 @@ type LaxField struct {
 	Text       string             `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // FieldModifiers implements [ast.Field].
@@ -29,13 +29,17 @@ func (l *LaxField) MemberNode() ast.Member {
 	return l
 }
 
+func (l *LaxField) String() string {
+	return l.Text
+}
+
 var _ ast.Field = (*LaxField)(nil)
 
 type LaxMethod struct {
 	Text       string             `json:",omitempty"`
 	Modifiers  []string           `json:",omitempty"`
 	Visibility ast.VisibilityKind `json:",omitempty"`
-	ast.Trivia
+	ast.BaseNode
 }
 
 // MemberNode implements [ast.Method].
@@ -56,6 +60,10 @@ func (l *LaxMethod) MethodName() string {
 // MethodVisibility implements [ast.Method].
 func (l *LaxMethod) MethodVisibility() ast.VisibilityKind {
 	return l.Visibility
+}
+
+func (l *LaxMethod) String() string {
+	return l.Text
 }
 
 var _ ast.Method = (*LaxMethod)(nil)

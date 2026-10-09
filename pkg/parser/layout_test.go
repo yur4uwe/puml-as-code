@@ -2,6 +2,7 @@ package parser
 
 import (
 	"testing"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 
@@ -217,7 +218,7 @@ func TestParseLayoutDirectives(t *testing.T) {
 
 		uh, ok := diag.Statements[1].(ast.UnhandledStatement)
 		require.True(t, ok)
-		require.Equal(t, "caption Figure 1: Architecture Overview", uh.Text)
+		require.Equal(t, "caption Figure 1: Architecture Overview", uh.Raw)
 	})
 
 	t.Run("title single line and block", func(t *testing.T) {

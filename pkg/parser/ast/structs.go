@@ -1,29 +1,36 @@
 package ast
 
-import "yur4uwe/pac/pkg/tokenizer"
+import (
+	"fmt"
 
-type TriviaHolder interface {
+	"yur4uwe/pac/pkg/tokenizer"
+)
+
+type Node interface {
+	Span() tokenizer.SourceSpan
 	GetLeadingTrivia() []tokenizer.Token
 	GetTrailingTrivia() []tokenizer.Token
 }
 
 type Statement interface {
-	TriviaHolder
+	Node
 	StatementNode() Statement
 }
 
 type Member interface {
-	TriviaHolder
+	Node
 	MemberNode() Member
 }
 
-type Trivia struct {
+type BaseNode struct {
+	NodeSpan       tokenizer.SourceSpan
 	LeadingTrivia  []tokenizer.Token `json:",omitempty"`
 	TrailingTrivia []tokenizer.Token `json:",omitempty"`
 }
 
-func (t Trivia) GetLeadingTrivia() []tokenizer.Token  { return t.LeadingTrivia }
-func (t Trivia) GetTrailingTrivia() []tokenizer.Token { return t.TrailingTrivia }
+func (bn BaseNode) GetLeadingTrivia() []tokenizer.Token  { return bn.LeadingTrivia }
+func (bn BaseNode) GetTrailingTrivia() []tokenizer.Token { return bn.TrailingTrivia }
+func (bn BaseNode) Span() tokenizer.SourceSpan           { return bn.NodeSpan }
 
 //go:generate enumer -type=EntityKind -transform=lower -trimprefix=Entity -json
 type EntityKind int
@@ -67,7 +74,7 @@ func (k EntityKind) AllowsBody() bool {
 }
 
 type Entity struct {
-	Trivia
+	BaseNode
 	Identifier string     `json:",omitempty"`
 	Alias      string     `json:",omitempty"`
 	Kind       EntityKind `json:",omitempty"`
@@ -108,7 +115,7 @@ type Container struct {
 	Tags       []string      `json:",omitempty"`
 	Color      string        `json:",omitempty"`
 	Statements []Statement   `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = Container{}
@@ -135,6 +142,7 @@ type Relationship struct {
 
 	// Arrow itself
 	Body           rune // '-', '.'
+	BodyCount      int
 	LArrow, RArrow rune `json:",omitempty"`
 	// Special case for left/righ arrow rune of relationship:
 	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
@@ -142,7 +150,7 @@ type Relationship struct {
 
 	Label string   `json:",omitempty"`
 	Attrs []string `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = Relationship{}
@@ -155,8 +163,9 @@ type ClassSeparator struct {
 	// Optional label text
 	Label string `json:",omitempty"`
 	// Separator type. One of "-", "=", ".", "_"
-	Type rune
-	Trivia
+	Type      rune
+	TypeCount int
+	BaseNode
 }
 
 var _ Member = ClassSeparator{}
@@ -166,6 +175,7 @@ func (cs ClassSeparator) MemberNode() Member {
 }
 
 type Field interface {
+	fmt.Stringer
 	Member
 	FieldName() string
 	FieldModifiers() []string
@@ -173,6 +183,7 @@ type Field interface {
 }
 
 type Method interface {
+	fmt.Stringer
 	Member
 	MethodName() string
 	MethodModifiers() []string
@@ -196,30 +207,127 @@ const (
 	DirectionBottom
 )
 
+//go:generate enumer -type=NoteKind -transform=lower -trimprefix=Note -json
+type NoteKind int
+
+const (
+	NoteUnknown NoteKind = iota
+
+	// NoteInlineAlias represents a note defined with a text string and alias.
+	//
+	// Syntax (single-line):
+	//   note "Text" as <alias> [#color]
+	//
+	// Example:
+	//   note "Active connection" as N1
+	//
+	// Syntax (multiline):
+	//   note as <alias> [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note as N2
+	//     This is a floating note
+	//   end note
+	//
+	NoteAlias
+
+	// NoteTargeted represents a note positioned relative to an entity (or previous statement).
+	//
+	// Syntax (single-line):
+	//   note <left|right|top|bottom> [of <target>] [#color] : <text>
+	//
+	// Syntax (multiline):
+	//   note <left|right|top|bottom> [of <target>] [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note left of User : Authenticated via OAuth
+	NoteTargeted
+
+	// NoteLink represents a note attached to the preceding or active relationship link.
+	//
+	// Syntax (single-line):
+	//   note on link [#color] : <text>
+	//
+	// Syntax (multiline):
+	//   note on link [#color]
+	//     <text>
+	//   end note
+	//
+	// Example:
+	//   note on link : TLS Encrypted
+	NoteLink
+)
+
 type Note struct {
+	Kind       NoteKind      `json:",omitempty"`
 	Text       string        `json:",omitempty"`
 	Direction  DirectionKind `json:",omitempty"`
-	Target     *TargetRef
-	Color      string `json:",omitempty"`
-	Identifier string `json:",omitempty"`
-	Trivia
+	Target     *TargetRef    `json:",omitempty"`
+	Color      string        `json:",omitempty"`
+	Identifier string        `json:",omitempty"`
+	BaseNode
 }
 
 var _ Statement = Note{}
 
 func (n Note) StatementNode() Statement { return n }
 
+type BoundOption struct {
+	Key   string `json:",omitempty"`
+	Value string `json:",omitempty"`
+}
+
+type BoundToolOptions struct {
+	File    string        `json:",omitempty"`
+	Caption string        `json:",omitempty"`
+	Options []BoundOption `json:",omitempty"`
+}
+
+func (t BoundToolOptions) Get(key string) (string, bool) {
+	for _, opt := range t.Options {
+		if opt.Key == key {
+			return opt.Value, true
+		}
+	}
+	return "", false
+}
+
 type DiagramBound struct {
-	IsStart bool
-	Type    string            `json:",omitempty"`
-	ID      string            `json:",omitempty"`
-	Name    string            `json:",omitempty"`
-	Opts    map[string]string `json:",omitempty"`
-	Trivia
+	IsStart      bool
+	Type         string            `json:",omitempty"`
+	ID           string            `json:",omitempty"`
+	Params       []BoundOption     `json:",omitempty"`
+	Tools        *BoundToolOptions `json:",omitempty"`
+	TrailingName string            `json:",omitempty"`
+	BaseNode
 }
 
 var _ Statement = DiagramBound{}
 
 func (d DiagramBound) StatementNode() Statement {
 	return d
+}
+
+func (d DiagramBound) DiagramName() string {
+	if d.Tools != nil && d.Tools.File != "" {
+		return d.Tools.File
+	}
+	return d.TrailingName
+}
+
+func (d DiagramBound) Name() string {
+	return d.DiagramName()
+}
+
+func (d DiagramBound) GetParam(key string) (string, bool) {
+	for _, p := range d.Params {
+		if p.Key == key {
+			return p.Value, true
+		}
+	}
+	return "", false
 }

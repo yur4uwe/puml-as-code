@@ -35,6 +35,8 @@ func TestReadNumber(t *testing.T) {
 		{"Scientific", "1e10", "1e10", false},
 		{"ScientificNegative", "1.2e-5", "1.2e-5", false},
 		{"ScientificPositive", "1E+5", "1E+5", false},
+		{"LeadingDecimalPoint", ".123", ".123", false},
+		{"TrailingDecimalPoint", "123.", "123.", false},
 
 		// Error / Edge cases
 		{"MultipleDots", "1.2.3", "", true},

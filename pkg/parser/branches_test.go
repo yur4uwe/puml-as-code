@@ -43,7 +43,7 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: ast.Entity{
 				Identifier: "MyClass",
-				Alias:      "MC",
+				Alias:      "\"MC\"",
 				Kind:       ast.EntityClass,
 			},
 		},
@@ -71,7 +71,7 @@ func TestParseEntity(t *testing.T) {
 			want: ast.Entity{
 				Identifier: "MyClass",
 				Kind:       ast.EntityClass,
-				Color:      "FF0000",
+				Color:      "#FF0000",
 			},
 		},
 		{
@@ -89,11 +89,11 @@ func TestParseEntity(t *testing.T) {
 			kwType: keyword.Class,
 			want: ast.Entity{
 				Identifier: "MyClass",
-				Alias:      "MC",
+				Alias:      "\"MC\"",
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: "Database",
-				Color:      "FF0000",
+				Color:      "#FF0000",
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestParseEntity(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -357,7 +357,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -374,16 +374,18 @@ func TestParseEntityMember(t *testing.T) {
 			name:  "class separator dots",
 			input: ".. separator ..",
 			want: ast.ClassSeparator{
-				Label: "separator",
-				Type:  '.',
+				Label:     "separator",
+				Type:      '.',
+				TypeCount: 4,
 			},
 		},
 		{
 			name:  "class separator hyphens",
 			input: "-- section --",
 			want: ast.ClassSeparator{
-				Label: "section",
-				Type:  '-',
+				Label:     "section",
+				Type:      '-',
+				TypeCount: 4,
 			},
 		},
 		{
@@ -435,7 +437,7 @@ func TestParseEntityMember(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -453,106 +455,117 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "simple solid right arrow",
 			input: "-->",
 			want: &ast.Relationship{
-				Body:    '-',
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
 			name:  "simple solid right arrow short",
 			input: "->",
 			want: &ast.Relationship{
-				Body:    '-',
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 1,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
 			name:  "simple dotted right arrow",
 			input: "..>",
 			want: &ast.Relationship{
-				Body:    '.',
-				RArrow:  '>',
-				TypeRHS: ast.RelationDependency,
+				Body:      '.',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationDependency,
 			},
 		},
 		{
 			name:  "double-headed arrow solid",
 			input: "<-->",
 			want: &ast.Relationship{
-				LArrow:  '<',
-				Body:    '-',
-				RArrow:  '>',
-				TypeLHS: ast.RelationAssociation,
-				TypeRHS: ast.RelationAssociation,
+				LArrow:    '<',
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationAssociation,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
 			name:  "double-headed arrow dotted",
 			input: "<..>",
 			want: &ast.Relationship{
-				LArrow:  '<',
-				Body:    '.',
-				RArrow:  '>',
-				TypeLHS: ast.RelationDependency,
-				TypeRHS: ast.RelationDependency,
+				LArrow:    '<',
+				Body:      '.',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationDependency,
+				TypeRHS:   ast.RelationDependency,
 			},
 		},
 		{
 			name:  "left extension solid right arrow",
 			input: "<|-->",
 			want: &ast.Relationship{
-				LArrow:  '|',
-				Body:    '-',
-				RArrow:  '>',
-				TypeLHS: ast.RelationInheritance,
-				TypeRHS: ast.RelationAssociation,
+				LArrow:    '|',
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationInheritance,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
 			name:  "solid right extension arrow",
 			input: "--|>",
 			want: &ast.Relationship{
-				Body:    '-',
-				RArrow:  '|',
-				TypeRHS: ast.RelationInheritance,
+				Body:      '-',
+				RArrow:    '|',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationInheritance,
 			},
 		},
 		{
 			name:  "double extension solid",
 			input: "<|--|>",
 			want: &ast.Relationship{
-				LArrow:  '|',
-				Body:    '-',
-				RArrow:  '|',
-				TypeLHS: ast.RelationInheritance,
-				TypeRHS: ast.RelationInheritance,
+				LArrow:    '|',
+				Body:      '-',
+				RArrow:    '|',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationInheritance,
+				TypeRHS:   ast.RelationInheritance,
 			},
 		},
 		{
 			name:  "curly braces left/right",
 			input: "}--{",
 			want: &ast.Relationship{
-				LArrow: '}',
-				Body:   '-',
-				RArrow: '{',
+				LArrow:    '}',
+				Body:      '-',
+				RArrow:    '{',
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "curly braces dotted left/right",
 			input: "}..{",
 			want: &ast.Relationship{
-				LArrow: '}',
-				Body:   '.',
-				RArrow: '{',
+				LArrow:    '}',
+				Body:      '.',
+				RArrow:    '{',
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "lolipop right arrowhead",
 			input: "--()",
 			want: &ast.Relationship{
-				Body:   '-',
-				RArrow: '(',
+				Body:      '-',
+				RArrow:    '(',
+				BodyCount: 2,
 			},
 		},
 		{
@@ -568,58 +581,64 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "custom 'x' left/right",
 			input: "x--x",
 			want: &ast.Relationship{
-				LArrow: 'x',
-				Body:   '-',
-				RArrow: 'x',
+				LArrow:    'x',
+				Body:      '-',
+				RArrow:    'x',
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "custom 'o' left/right",
 			input: "o--o",
 			want: &ast.Relationship{
-				LArrow:  'o',
-				Body:    '-',
-				RArrow:  'o',
-				TypeLHS: ast.RelationAggregation,
-				TypeRHS: ast.RelationAggregation,
+				LArrow:    'o',
+				Body:      '-',
+				RArrow:    'o',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationAggregation,
+				TypeRHS:   ast.RelationAggregation,
 			},
 		},
 		{
 			name:  "asterisk left/right",
 			input: "*--*",
 			want: &ast.Relationship{
-				LArrow:  '*',
-				Body:    '-',
-				RArrow:  '*',
-				TypeLHS: ast.RelationComposition,
-				TypeRHS: ast.RelationComposition,
+				LArrow:    '*',
+				Body:      '-',
+				RArrow:    '*',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationComposition,
+				TypeRHS:   ast.RelationComposition,
 			},
 		},
 		{
 			name:  "plus left/right",
 			input: "+--+",
 			want: &ast.Relationship{
-				LArrow: '+',
-				Body:   '-',
-				RArrow: '+',
+				LArrow:    '+',
+				Body:      '-',
+				RArrow:    '+',
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "caret left/right",
 			input: "^--^",
 			want: &ast.Relationship{
-				LArrow: '^',
-				Body:   '-',
-				RArrow: '^',
+				LArrow:    '^',
+				Body:      '-',
+				RArrow:    '^',
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "hash left/right",
 			input: "#--#",
 			want: &ast.Relationship{
-				LArrow: '#',
-				Body:   '-',
-				RArrow: '#',
+				LArrow:    '#',
+				Body:      '-',
+				RArrow:    '#',
+				BodyCount: 2,
 			},
 		},
 		{
@@ -630,6 +649,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionLeft,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
@@ -640,6 +660,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionRight,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
@@ -650,6 +671,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionTop,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
@@ -660,26 +682,29 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionBottom,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "single attribute",
 			input: "-[foo]->",
 			want: &ast.Relationship{
-				Body:    '-',
-				Attrs:   []string{"foo"},
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				Attrs:     []string{"foo"},
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "multiple attributes",
 			input: "-[foo,bar]->",
 			want: &ast.Relationship{
-				Body:    '-',
-				Attrs:   []string{"foo", "bar"},
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				Attrs:     []string{"foo", "bar"},
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
@@ -691,6 +716,7 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionLeft,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
@@ -702,32 +728,46 @@ func TestParseArrowTokens(t *testing.T) {
 				Direction: ast.DirectionLeft,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "multitoken attributes",
 			input: "-[#foo,%bar]->",
 			want: &ast.Relationship{
-				Body:    '-',
-				Attrs:   []string{"#foo", "%bar"},
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				Attrs:     []string{"#foo", "%bar"},
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "no arrowheads solid",
 			input: "--",
 			want: &ast.Relationship{
-				Body:    '-',
-				TypeLHS: ast.RelationAssociation,
-				TypeRHS: ast.RelationAssociation,
+				Body:      '-',
+				TypeLHS:   ast.RelationAssociation,
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
 			},
 		},
 		{
 			name:  "no arrowheads dotted",
 			input: "..",
 			want: &ast.Relationship{
-				Body: '.',
+				Body:      '.',
+				BodyCount: 2,
+			},
+		},
+		{
+			name:  "preserve body count",
+			input: "----",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 4,
+				TypeLHS:   ast.RelationAssociation,
+				TypeRHS:   ast.RelationAssociation,
 			},
 		},
 		{
@@ -801,12 +841,20 @@ func TestParseArrowTokens(t *testing.T) {
 			input:       "-[foo",
 			expectErr:   true,
 			errContains: "Unexpected break in relationship attribute container",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
 		},
 		{
 			name:        "unclosed attributes at newline error",
 			input:       "-[foo\n",
 			expectErr:   true,
 			errContains: "Unexpected break in relationship attribute container",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
 		},
 		{
 			name:        "missing attribute (double comma)",
@@ -814,8 +862,9 @@ func TestParseArrowTokens(t *testing.T) {
 			expectErr:   true,
 			errContains: "Unexpected comma in relationship attribute container",
 			want: &ast.Relationship{
-				Body:  '-',
-				Attrs: []string{"foo"},
+				Body:      '-',
+				BodyCount: 1,
+				Attrs:     []string{"foo"},
 			},
 		},
 	}
@@ -854,68 +903,74 @@ func TestParseRelationship(t *testing.T) {
 			name:  "composition left-headed without right arrowhead",
 			input: "Car *-- Engine",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "Car"},
-				LArrow:  '*',
-				Body:    '-',
-				TypeLHS: ast.RelationComposition,
-				RHS:     ast.TargetRef{Entity: "Engine"},
+				LHS:       ast.TargetRef{Entity: "Car"},
+				LArrow:    '*',
+				Body:      '-',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationComposition,
+				RHS:       ast.TargetRef{Entity: "Engine"},
 			},
 		},
 		{
 			name:  "aggregation left-headed without right arrowhead",
 			input: "Car o-- Wheel",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "Car"},
-				LArrow:  'o',
-				Body:    '-',
-				TypeLHS: ast.RelationAggregation,
-				RHS:     ast.TargetRef{Entity: "Wheel"},
+				LHS:       ast.TargetRef{Entity: "Car"},
+				LArrow:    'o',
+				Body:      '-',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationAggregation,
+				RHS:       ast.TargetRef{Entity: "Wheel"},
 			},
 		},
 		{
 			name:  "inheritance left-headed without right arrowhead",
 			input: "Vehicle <|-- Car",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "Vehicle"},
-				LArrow:  '|',
-				Body:    '-',
-				TypeLHS: ast.RelationInheritance,
-				RHS:     ast.TargetRef{Entity: "Car"},
+				LHS:       ast.TargetRef{Entity: "Vehicle"},
+				LArrow:    '|',
+				Body:      '-',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationInheritance,
+				RHS:       ast.TargetRef{Entity: "Car"},
 			},
 		},
 		{
 			name:  "composition with multiplicity on target",
 			input: "Car *-- \"1..*\" Engine",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "Car"},
-				LArrow:  '*',
-				Body:    '-',
-				TypeLHS: ast.RelationComposition,
-				MultRHS: ast.Cardinality{Raw: "1..*", Min: 1, Max: -1},
-				RHS:     ast.TargetRef{Entity: "Engine"},
+				LHS:       ast.TargetRef{Entity: "Car"},
+				LArrow:    '*',
+				Body:      '-',
+				BodyCount: 2,
+				TypeLHS:   ast.RelationComposition,
+				MultRHS:   ast.Cardinality{Raw: "1..*", Min: 1, Max: -1},
+				RHS:       ast.TargetRef{Entity: "Engine"},
 			},
 		},
 		{
 			name:  "association with label",
 			input: "User --> Service : uses",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "User"},
-				Body:    '-',
-				RArrow:  '>',
-				TypeRHS: ast.RelationAssociation,
-				RHS:     ast.TargetRef{Entity: "Service"},
-				Label:   "uses",
+				LHS:       ast.TargetRef{Entity: "User"},
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       ast.TargetRef{Entity: "Service"},
+				Label:     "uses",
 			},
 		},
 		{
 			name:  "realization with right arrowhead",
 			input: "User ..|> Greeter",
 			want: ast.Relationship{
-				LHS:     ast.TargetRef{Entity: "User"},
-				Body:    '.',
-				RArrow:  '|',
-				TypeRHS: ast.RelationRealization,
-				RHS:     ast.TargetRef{Entity: "Greeter"},
+				LHS:       ast.TargetRef{Entity: "User"},
+				Body:      '.',
+				RArrow:    '|',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationRealization,
+				RHS:       ast.TargetRef{Entity: "Greeter"},
 			},
 		},
 	}
@@ -933,212 +988,7 @@ func TestParseRelationship(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, rel)
-			}
-		})
-	}
-}
-
-func TestParseNote(t *testing.T) {
-	tests := []struct {
-		name        string
-		input       string
-		want        *ast.Note
-		expectErr   bool
-		errContains string
-	}{
-		// --- Relative Notes (parseReltiveNote) ---
-		{
-			name:  "relative note left with colon",
-			input: "note left : some note text\n",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionLeft,
-			},
-		},
-		{
-			name:  "relative note right of target with colon",
-			input: "note right of MyClass : some note text\n",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionRight,
-				Target:    &ast.TargetRef{Entity: "MyClass"},
-			},
-		},
-		{
-			name:  "relative note top of target with color and colon",
-			input: "note top of MyClass #green : some note text\n",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionTop,
-				Target:    &ast.TargetRef{Entity: "MyClass"},
-			},
-		},
-		{
-			name:  "relative note bottom on link with colon",
-			input: "note bottom on link : some note text\n",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionBottom,
-				Target:    &ast.TargetRef{Entity: "link"},
-			},
-		},
-		{
-			name:  "relative note left with multiline",
-			input: "note left\nsome note text\nend note\n",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionLeft,
-			},
-		},
-		{
-			name:  "relative note left of target multiline",
-			input: "note left of MyClass\nsome note text\nend note",
-			want: &ast.Note{
-				Text:      "some note text",
-				Direction: ast.DirectionLeft,
-				Target:    &ast.TargetRef{Entity: "MyClass"},
-			},
-		},
-		{
-			name:        "relative note invalid identifier after direction",
-			input:       "note left invalid : text\n",
-			expectErr:   true,
-			errContains: "Unexpected identifier after direction",
-		},
-		{
-			name:        "relative note expected identifier for target",
-			input:       "note left of : text\n",
-			expectErr:   true,
-			errContains: "Expected ':' or newline after note definition",
-		},
-		{
-			name:        "relative note unexpected identifier for link target",
-			input:       "note left on MyClass : text",
-			expectErr:   true,
-			errContains: "Unexpected identifier for a note link target",
-		},
-
-		// --- Inline Alias Notes (parseInlineAliasNote) ---
-		{
-			name:  "inline alias note",
-			input: `note "some note text" as N1`,
-			want: &ast.Note{
-				Text:       "some note text",
-				Identifier: "N1",
-			},
-		},
-		{
-			name:  "inline alias note with color",
-			input: `note "some note text" as N1 #blue`,
-			want: &ast.Note{
-				Text:       "some note text",
-				Identifier: "N1",
-			},
-		},
-		{
-			name:        "inline alias note missing as",
-			input:       `note "some note text" N1`,
-			expectErr:   true,
-			errContains: "Expected alias keyword after note text",
-		},
-		{
-			name:        "inline alias note missing identifier",
-			input:       `note "some note text" as`,
-			expectErr:   true,
-			errContains: "Expected identifier after alias keyword",
-		},
-
-		// --- Multiline Alias Notes (parseMultilineAliasNote) ---
-		{
-			name:        "multiline alias note with colon (invalid)",
-			input:       "note as N1 : some note text",
-			expectErr:   true,
-			errContains: "Expected newline after alias keyword",
-		},
-		{
-			name:        "multiline alias note with colon and color (invalid)",
-			input:       "note as N1 #red : some note text",
-			expectErr:   true,
-			errContains: "Expected newline after alias keyword",
-		},
-		{
-			name:        "multiline alias note missing identifier",
-			input:       "note as",
-			expectErr:   true,
-			errContains: "Expected identifier after alias keyword",
-		},
-		{
-			name:  "multiline alias note with newline",
-			input: "note as N1\nsome note text\nend note",
-			want: &ast.Note{
-				Text: "some note text",
-			},
-		},
-
-		// --- Link Notes (parseLinkNote) ---
-		{
-			name:  "link note on link with colon",
-			input: "note on link : some note text\n",
-			want: &ast.Note{
-				Text:   "some note text",
-				Target: &ast.TargetRef{Entity: "link"},
-			},
-		},
-		{
-			name:  "link note on link multiline",
-			input: "note on link\nsome note text\nend note",
-			want: &ast.Note{
-				Text:   "some note text",
-				Target: &ast.TargetRef{Entity: "link"},
-			},
-		},
-		{
-			name:        "unexpected identifier after note",
-			input:       "note invalid link : text",
-			expectErr:   true,
-			errContains: "expected direction, string, note position or alias after 'note'",
-		},
-		{
-			name:        "link note expected link after note on",
-			input:       "note on invalid : text",
-			expectErr:   true,
-			errContains: "Expected 'link' after 'note on'",
-		},
-
-		// --- Generic Parser / parseNoteBody Errors ---
-		{
-			name:        "parseNote unexpected starting token",
-			input:       "note class : text",
-			expectErr:   true,
-			errContains: "expected direction, string, note position or alias after 'note'",
-		},
-		{
-			name:        "parseNoteBody unexpected body definition token",
-			input:       "note left class : text",
-			expectErr:   true,
-			errContains: "Unexpected identifier after direction",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			p := Parser{
-				stream: tokenizer.NewTokenStream(tc.input),
-				ast:    &ast.Diagram{},
-			}
-			tok := p.stream.Emit()
-			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal), "First token must be 'note' for test input: %q", tc.input)
-
-			note, err := p.parseNote()
-			if tc.expectErr {
-				require.Error(t, err)
-				if tc.errContains != "" {
-					require.Contains(t, err.Error(), tc.errContains)
-				}
-			} else {
-				require.NoError(t, err)
-				require.Equal(t, *tc.want, note)
+				assertASTEqual(t, tc.want, rel)
 			}
 		})
 	}
@@ -1205,7 +1055,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: ast.Container{
 				Identifier: "mypkg",
-				Alias:      "My Package",
+				Alias:      "\"My Package\"",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1215,7 +1065,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: ast.Container{
 				Identifier: "mypkg",
-				Alias:      "My Package",
+				Alias:      "\"My Package\"",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1246,7 +1096,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Identifier: "mypkg",
 				Stereotype: "Service",
-				Color:      "green",
+				Color:      "#green",
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -1272,11 +1122,12 @@ func TestParseContainer(t *testing.T) {
 						},
 					},
 					ast.Relationship{
-						LHS:     ast.TargetRef{Entity: "A"},
-						RHS:     ast.TargetRef{Entity: "B"},
-						Body:    '-',
-						RArrow:  '>',
-						TypeRHS: ast.RelationAssociation,
+						LHS:       ast.TargetRef{Entity: "A"},
+						RHS:       ast.TargetRef{Entity: "B"},
+						Body:      '-',
+						RArrow:    '>',
+						BodyCount: 1,
+						TypeRHS:   ast.RelationAssociation,
 					},
 				},
 			},
@@ -1294,11 +1145,12 @@ func TestParseContainer(t *testing.T) {
 						Kind:       ast.EntityClass,
 					},
 					ast.Relationship{
-						LHS:     ast.TargetRef{Entity: "folder"},
-						RHS:     ast.TargetRef{Entity: "p"},
-						Body:    '-',
-						RArrow:  '>',
-						TypeRHS: ast.RelationAssociation,
+						LHS:       ast.TargetRef{Entity: "folder"},
+						RHS:       ast.TargetRef{Entity: "p"},
+						Body:      '-',
+						BodyCount: 2,
+						RArrow:    '>',
+						TypeRHS:   ast.RelationAssociation,
 					},
 				},
 			},
@@ -1353,7 +1205,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Kind:       ast.ContainerPackage,
 				Identifier: "mypkg",
-				Color:      "red",
+				Color:      "#red",
 				Statements: []ast.Statement{
 					ast.Entity{
 						Identifier: "A",
@@ -1491,7 +1343,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
 				Identifier: "myns",
-				Alias:      "My Namespace",
+				Alias:      "\"My Namespace\"",
 				Stereotype: "API",
 			},
 		},
@@ -1515,7 +1367,7 @@ func TestParseContainer(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				require.Equal(t, tc.want, got)
+				assertASTEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -1694,6 +1546,146 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 			require.True(t, ok)
 			require.Equal(t, tc.wantStereo, ent.Stereotype)
 			require.Equal(t, tc.wantTags, ent.Tags)
+		})
+	}
+}
+
+func TestParseScaleCommand(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      ast.ScaleCommand
+		expectErr bool
+	}{
+		// bare integer factor
+		{
+			name:  "scale 200",
+			input: "scale 200",
+			want:  ast.ScaleCommand{Lhs: "200"},
+		},
+		// decimal factors, digits preserved verbatim
+		{
+			name:  "scale 1.5",
+			input: "scale 1.5",
+			want:  ast.ScaleCommand{Lhs: "1", Sep: ".", Rhs: "5"},
+		},
+		{
+			name:  "scale 1.50 keeps trailing zero",
+			input: "scale 1.50",
+			want:  ast.ScaleCommand{Lhs: "1", Sep: ".", Rhs: "50"},
+		},
+		{
+			name:  "scale 1.05 keeps leading zero",
+			input: "scale 1.05",
+			want:  ast.ScaleCommand{Lhs: "1", Sep: ".", Rhs: "05"},
+		},
+		// fraction factor
+		{
+			name:  "scale 2/3",
+			input: "scale 2/3",
+			want:  ast.ScaleCommand{Lhs: "2", Sep: "/", Rhs: "3"},
+		},
+		// single dimension
+		{
+			name:  "scale 200 width",
+			input: "scale 200 width",
+			want:  ast.ScaleCommand{Lhs: "200", Unit: "width"},
+		},
+		{
+			name:  "scale 200 height",
+			input: "scale 200 height",
+			want:  ast.ScaleCommand{Lhs: "200", Unit: "height"},
+		},
+		// boxes, both separators
+		{
+			name:  "scale 200*100",
+			input: "scale 200*100",
+			want:  ast.ScaleCommand{Lhs: "200", Sep: "*", Rhs: "100"},
+		},
+		{
+			name:  "scale 200x100",
+			input: "scale 200x100",
+			want:  ast.ScaleCommand{Lhs: "200", Sep: "x", Rhs: "100"},
+		},
+		// scale with 'x' box edge cases
+		{
+			name:  "scale 200x 100",
+			input: "scale 200x 100",
+			want:  ast.ScaleCommand{Lhs: "200", Sep: "x", Rhs: "100"},
+		},
+		{
+			name:  "scale 200 x100",
+			input: "scale 200 x100",
+			want:  ast.ScaleCommand{Lhs: "200", Sep: "x", Rhs: "100"},
+		},
+		// max variants
+		{
+			name:  "scale max 300*200",
+			input: "scale max 300*200",
+			want:  ast.ScaleCommand{IsMax: true, Lhs: "300", Sep: "*", Rhs: "200"},
+		},
+		{
+			name:  "scale max 300x200",
+			input: "scale max 300x200",
+			want:  ast.ScaleCommand{IsMax: true, Lhs: "300", Sep: "x", Rhs: "200"},
+		},
+		{
+			name:  "scale max 1024 width",
+			input: "scale max 1024 width",
+			want:  ast.ScaleCommand{IsMax: true, Lhs: "1024", Unit: "width"},
+		},
+		{
+			name:  "scale max 800 height",
+			input: "scale max 800 height",
+			want:  ast.ScaleCommand{IsMax: true, Lhs: "800", Unit: "height"},
+		},
+		// whitespace tolerance
+		{
+			name:  "extra spaces",
+			input: "scale   max   1024   width",
+			want:  ast.ScaleCommand{IsMax: true, Lhs: "1024", Unit: "width"},
+		},
+		{name: "leading dot", input: "scale .5", want: ast.ScaleCommand{Lhs: ".5"}},
+		{name: "trailing dot", input: "scale 1.", want: ast.ScaleCommand{Lhs: "1."}},
+		{name: "trailing dot unit", input: "scale 1. width", want: ast.ScaleCommand{Lhs: "1.", Unit: "width"}},
+		{name: "decimal unit", input: "scale 1.5 height", want: ast.ScaleCommand{Lhs: "1.5", Unit: "height"}},
+		{name: "leading zeros", input: "scale 007", want: ast.ScaleCommand{Lhs: "007"}},
+		{name: "zero width", input: "scale 0 width", want: ast.ScaleCommand{Lhs: "0", Unit: "width"}},
+		{name: "spaced box", input: "scale 200 * 100", want: ast.ScaleCommand{Lhs: "200", Sep: "*", Rhs: "100"}},
+
+		// errors
+		{name: "no operand", input: "scale", expectErr: true},
+		{name: "max without operand", input: "scale max", expectErr: true},
+		{name: "non-numeric", input: "scale abc", expectErr: true},
+		{name: "unknown unit", input: "scale 200 depth", expectErr: true},
+		{name: "box with unit", input: "scale 200*100 width", expectErr: true},
+		{name: "dangling decimal point", input: "scale .", expectErr: true},
+		{name: "dangling slash", input: "scale 2/", expectErr: true},
+		{name: "dangling box separator", input: "scale 200*", expectErr: true},
+		{name: "two decimal points", input: "scale 1.2.3", expectErr: true},
+		{name: "mixed separators", input: "scale 2/3*4", expectErr: true},
+		{name: "hex", input: "scale 0x10", expectErr: true},
+		{name: "scientific", input: "scale 1e3", expectErr: true},
+		{name: "binary", input: "scale 0b11 width", expectErr: true},
+		{name: "max integer", input: "scale max 200", expectErr: true},
+		{name: "max decimal", input: "scale max 1.5", expectErr: true},
+		{name: "fraction unit", input: "scale 2/3 width", expectErr: true},
+		{name: "box unit", input: "scale 200*100 width", expectErr: true},
+		{name: "dot only", input: "scale .", expectErr: true},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream: tokenizer.NewTokenStream(tc.input),
+			}
+			got, err := p.parseScale(p.stream.Emit())
+			if tc.expectErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+				assertASTEqual(t, tc.want, got)
+			}
 		})
 	}
 }

@@ -3,7 +3,7 @@ package ast
 type GenericCommand struct {
 	Name string   `json:",omitempty"`
 	Args []string `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = GenericCommand{}
@@ -20,17 +20,18 @@ type IncludeDirective struct {
 	Path string      `json:",omitempty"`
 	Tag  string      `json:",omitempty"`
 	Kind IncludeKind `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = IncludeDirective{}
 
 type ScaleCommand struct {
-	Scale  float64 `json:",omitempty"`
-	Width  int     `json:",omitempty"` // PlantUML allows "scale 200 width"
-	Height int     `json:",omitempty"`
-	IsMax  bool    // PlantUML also allows "scale max 200 width"
-	Trivia
+	IsMax bool
+	Lhs   string `json:",omitempty"` // "1", "2", "200"
+	Sep   string `json:",omitempty"` // "", ".", "/", "*", "x"
+	Rhs   string `json:",omitempty"` // "5", "3", "100"; empty when Sep is empty
+	Unit  string `json:",omitempty"` // "", "width", "height"
+	BaseNode
 }
 
 var _ Statement = ScaleCommand{}
@@ -49,7 +50,7 @@ const (
 type VisibilityCommand struct {
 	Kind   VisibilityCommandKind `json:",omitempty"` // Hide, Show, Remove, Restore
 	Target string                `json:",omitempty"` // "empty members", "class Name", "circle", etc.
-	Trivia
+	BaseNode
 }
 
 var _ Statement = VisibilityCommand{}
@@ -57,7 +58,7 @@ var _ Statement = VisibilityCommand{}
 type SetCommand struct {
 	Key   string `json:",omitempty"` // e.g. separator
 	Value string `json:",omitempty"` // e.g. .
-	Trivia
+	BaseNode
 }
 
 var _ Statement = SetCommand{}
@@ -72,7 +73,7 @@ const (
 
 type DirectionCommand struct {
 	Direction DirectionCommandKind `json:",omitempty"`
-	Trivia
+	BaseNode
 }
 
 var _ Statement = DirectionCommand{}

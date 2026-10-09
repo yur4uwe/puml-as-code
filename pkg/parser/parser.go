@@ -66,7 +66,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				if blockNum == -1 {
 					return nil, errors.New("no diagrams found")
 				}
-				return nil, WrapParserError(fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1), tokenizer.Token{})
+				return nil, fmt.Errorf("diagram block %s not found, file has %d blocks", p.TargetID, blockNum+1)
 			}
 
 			blockNum++
@@ -75,7 +75,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			if err != nil {
 				return nil, err
 			} else if !startBound.IsStart {
-				return nil, NewParserError("Expected diagram start marker", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected diagram start marker")
 			}
 
 			if p.TargetID == "" {
@@ -99,7 +99,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		}
 
 		p.ast.Statements = append(p.ast.Statements, startBound)
-		p.ast.Name = startBound.Name
+		p.ast.Name = startBound.DiagramName()
 	}
 
 	for {
@@ -111,10 +111,10 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				return nil, err
 			}
 			if endBound.IsStart {
-				return nil, NewParserError("Unexpected diagram end marker", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Unexpected diagram end marker")
 			}
 			if endBound.Type != startBound.Type {
-				return nil, NewParserError("Types of starting and ending markers don't match", p.stream.PeekTokenAt(0))
+				return nil, NewParserError(p.stream.PeekTokenAt(0), "Types of starting and ending markers don't match")
 			}
 			endBound.LeadingTrivia = boundLeading
 			p.stream.EmitCommentToks()
@@ -125,7 +125,10 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
-			return p.ast, WrapParserError(tokenizer.ErrUnexpectedEOF, tok)
+			if p.IsBoundless {
+				break
+			}
+			return p.ast, WrapParserError(tok, tokenizer.ErrUnexpectedEOF)
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
 			// If the newline is relevant it will be consumed
@@ -142,25 +145,25 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
-		stmts, err := p.parseDiagramOnlyStatement(tok)
+		stmt, err := p.parseDiagramOnlyStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if len(stmts) > 0 {
-			p.ast.Statements = append(p.ast.Statements, stmts...)
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}
 
-		stmts, err = p.parseContainerStatement(tok)
+		stmt, err = p.parseContainerStatement(tok)
 		if err != nil {
 			return nil, err
 		}
-		if len(stmts) > 0 {
-			p.ast.Statements = append(p.ast.Statements, stmts...)
+		if stmt != nil {
+			p.ast.Statements = append(p.ast.Statements, stmt)
 			continue
 		}
 
-		return nil, NewParserError("Unexpected token", tok)
+		return nil, NewParserError(tok, "Unexpected token")
 	}
 
 	if p.TargetID == "" {
@@ -175,50 +178,30 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	return p.ast, nil
 }
 
-func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, error) {
+func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.EXCLAMATION {
-		stmt, err := p.parseDirective(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseDirective(tok)
 	}
 
 	if p.HasArrowOnLine() {
-		rel, err := p.parseRelationship(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{rel}, nil
+		return p.parseRelationship(tok)
 	}
 
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		stmt, err := p.parseLayoutStatement(tok, nil)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		nextKW := keyword.Classify(nextTok.Literal)
 		if nextKW == keyword.Header || nextKW == keyword.Footer || nextKW == keyword.Legend || nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			stmt, err := p.parseLayoutStatement(actualKwTok, &tok)
-			if err != nil {
-				return nil, err
-			}
-			return []ast.Statement{stmt}, nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		}
-		return nil, NewParserError("Unexpected direction keyword in container", tok)
+		return nil, NewParserError(tok, "Unexpected direction keyword in container")
 	case keyword.Caption, keyword.Sprite:
-		stmt, err := p.parseUnhandled(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseUnhandled(tok)
 	case keyword.Class,
 		keyword.Interface,
 		keyword.Struct,
@@ -231,11 +214,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		keyword.Protocol,
 		keyword.Entity:
 		// Class-like Entities
-		ent, err := p.parseEntity(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{ent}, nil
+		return p.parseEntity(tok)
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -246,98 +225,61 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) ([]ast.Statement, 
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		cont, err := p.parseContainer(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{cont}, nil
+		return p.parseContainer(tok)
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
-		return nil, errors.New("unimplemented entity keyword handling")
+		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
-		note, err := p.parseNote()
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{note}, nil
+		return p.parseNote(tok)
 	}
 
 	switch tok.Type {
 	case tokenizer.IDENTIFIER:
-		stmt, err := p.parseInlineMember(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseInlineMember(tok)
 	default:
 		return nil, nil
 	}
 }
 
-func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) ([]ast.Statement, error) {
+func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
 		return p.parseStyleBlock(tok)
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
-		stmt, err := p.parseDirective(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmt}, nil
+		return p.parseDirective(tok)
 	}
 
 	if p.HasArrowOnLine() {
-		stmnt, err := p.parseRelationship(tok)
-		if err != nil {
-			return nil, err
-		}
-		return []ast.Statement{stmnt}, nil
+		return p.parseRelationship(tok)
 	}
 
-	var stmnt ast.Statement
-	var err error
-
 	switch keyword.Classify(tok.Literal) {
-	// Multi-statement branches
 	case keyword.Skinparam:
-		return p.parseSkinparam()
-
-	// Single-statement branches
+		return p.parseSkinparamRoot(tok)
 	case keyword.Title,
 		keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		stmnt, err = p.parseLayoutStatement(tok, nil)
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
-		stmnt, err = p.parseVisibilityCommand(tok)
+		return p.parseVisibilityCommand(tok)
 	case keyword.Scale:
-		stmnt, err = p.parseScale()
+		return p.parseScale(tok)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		if nextTok.Literal == "to" {
-			stmnt, err = p.parseDiagDirection(tok)
-			break
+			return p.parseDiagDirection(tok)
 		} else if nextKW := keyword.Classify(nextTok.Literal); nextKW == keyword.Header ||
 			nextKW == keyword.Footer ||
 			nextKW == keyword.Legend ||
 			nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			stmnt, err = p.parseLayoutStatement(actualKwTok, &tok)
-			if err != nil {
-				return nil, err
-			}
-			return []ast.Statement{stmnt}, nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		} else {
-			return nil, NewParserError("Unexpected token after direction", tok)
+			return nil, NewParserError(tok, "Unexpected token after direction")
 		}
 	case keyword.Set:
-		stmnt, err = p.parseSetDirective()
-	}
-	if err != nil {
-		return nil, err
-	}
-	if stmnt != nil {
-		return []ast.Statement{stmnt}, nil
+		return p.parseSetDirective(tok)
 	}
 
 	return nil, nil

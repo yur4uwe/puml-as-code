@@ -25,7 +25,8 @@ func (g GoDialect) parseField(toks []tokenizer.Token, opts *MemberOptions) (*GoF
 		Name:       toks[0].Literal,
 		Visibility: opts.Visibility,
 		Modifiers:  opts.Modifiers,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
+			NodeSpan:       opts.MemberSpan,
 			LeadingTrivia:  opts.LeadingTrivia,
 			TrailingTrivia: opts.TrailingTrivia,
 		},
@@ -88,7 +89,8 @@ func (g GoDialect) parseMethod(toks []tokenizer.Token, opts *MemberOptions) (*Go
 		Parameters: params,
 		Modifiers:  opts.Modifiers,
 		Visibility: opts.Visibility,
-		Trivia: ast.Trivia{
+		BaseNode: ast.BaseNode{
+			NodeSpan:       opts.MemberSpan,
 			LeadingTrivia:  opts.LeadingTrivia,
 			TrailingTrivia: opts.TrailingTrivia,
 		},
@@ -101,8 +103,8 @@ func (g GoDialect) parseType(toks []tokenizer.Token) (*GoTypeRef, error) {
 		return nil, err
 	}
 	if consumed != len(toks) {
-		return nil, fmt.Errorf("%w: unexpected trailing tokens in type",
-			ErrParsingDialect)
+		return nil, fmt.Errorf("%w: unexpected trailing tokens in type: %v",
+			ErrParsingDialect, toks)
 	}
 	return ref, nil
 }

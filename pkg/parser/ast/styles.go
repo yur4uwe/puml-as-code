@@ -7,19 +7,128 @@ import (
 	"strings"
 )
 
-type StyleRule struct {
-	Selectors   []string          `json:",omitempty"`
-	Properties  map[string]string `json:",omitempty"`
-	IsSkinparam bool              // Origin provenance (true for skinparam, false for <style> block)
-	Trivia
+// StyleDeclaration represents a single CSS property declaration within a style rule:
+//
+//	FontColor: #333333;
+//	BackGroundColor: PaleGreen;
+type StyleDeclaration struct {
+	BaseNode
+	Property string
+	Value    string
 }
 
 // StatementNode implements [Statement].
-func (s *StyleRule) StatementNode() Statement {
-	return s
+func (d StyleDeclaration) StatementNode() Statement { return d }
+
+var _ Statement = StyleDeclaration{}
+
+// StyleRule represents a scoped CSS rule within a <style> block:
+//
+//	classDiagram {
+//	    class { ... }
+//	}
+type StyleRule struct {
+	BaseNode
+	Selectors  []string    `json:",omitempty"`
+	Statements []Statement `json:",omitempty"` // StyleDeclaration, nested StyleRule, or UnhandledStatement
 }
 
-var _ Statement = (*StyleRule)(nil)
+// StatementNode implements [Statement].
+func (s StyleRule) StatementNode() Statement { return s }
+
+var _ Statement = StyleRule{}
+
+// StyleBlock represents the top-level <style> ... </style> block container.
+type StyleBlock struct {
+	BaseNode
+	Statements []Statement `json:",omitempty"` // StyleRule or UnhandledStatement
+}
+
+// StatementNode implements [Statement].
+func (b StyleBlock) StatementNode() Statement { return b }
+
+var _ Statement = StyleBlock{}
+
+// SkinparamSetting represents a single-line skinparam setting:
+//
+//	skinparam backgroundColor #EEEBDC
+//	skinparam shadowing<<no_shadow>> false
+type SkinparamSetting struct {
+	BaseNode
+	Keyword    string `json:",omitempty"` // "skinparam" or "skinparamlocked"
+	Name       string `json:",omitempty"` // Full name (e.g., "backgroundColor")
+	Stereotype string `json:",omitempty"` // Extracted stereotype if present (e.g., "no_shadow")
+	Value      string `json:",omitempty"` // Sliced verbatim from source (preserves quotes, backslashes)
+}
+
+// StatementNode implements [Statement].
+func (s SkinparamSetting) StatementNode() Statement { return s }
+
+// EffectiveKey returns the full name of a single-line setting.
+func (s SkinparamSetting) EffectiveKey() string { return s.Name }
+
+var _ Statement = SkinparamSetting{}
+
+// SkinparamBlock represents a skinparam block (top-level or nested):
+//
+//	skinparam class {
+//	    BackgroundColor PaleGreen
+//	    header {
+//	        FontSize 12
+//	    }
+//	}
+type SkinparamBlock struct {
+	BaseNode
+	Keyword    string      `json:",omitempty"` // "skinparam" (empty for nested blocks)
+	Name       string      `json:",omitempty"` // Block target name (e.g., "class"), empty for nameless "skinparam { ... }"
+	Stereotype string      `json:",omitempty"` // Extracted stereotype if present
+	Statements []Statement `json:",omitempty"` // SkinparamSetting, nested SkinparamBlock, or UnhandledStatement
+}
+
+// StatementNode implements [Statement].
+func (b SkinparamBlock) StatementNode() Statement { return b }
+
+var _ Statement = SkinparamBlock{}
+
+// ResolvedSkinparam is one effective setting with its concatenated key,
+// used by code generators and semantic passes.
+type ResolvedSkinparam struct {
+	Key   string   // Concatenated key (e.g. "class.header.FontSize")
+	Value string   // Value of the setting
+	Path  []string // Hierarchical path segments
+}
+
+// Settings flattens the block into effective settings in source order.
+func (b SkinparamBlock) Settings() []ResolvedSkinparam {
+	return flattenSkinparam(b.Name, b.Statements)
+}
+
+func flattenSkinparam(prefix string, stmts []Statement) []ResolvedSkinparam {
+	var out []ResolvedSkinparam
+	for _, stmt := range stmts {
+		switch s := stmt.(type) {
+		case SkinparamSetting:
+			key := s.Name
+			if prefix != "" {
+				key = prefix + "." + s.Name
+			}
+			out = append(out, ResolvedSkinparam{
+				Key:   key,
+				Value: s.Value,
+				Path:  strings.Split(key, "."),
+			})
+		case SkinparamBlock:
+			nextPrefix := s.Name
+			if prefix != "" && s.Name != "" {
+				nextPrefix = prefix + "." + s.Name
+			} else if prefix != "" {
+				nextPrefix = prefix
+			}
+			out = append(out, flattenSkinparam(nextPrefix, s.Statements)...)
+		}
+	}
+	return out
+}
 
 type SkinparamValueType int
 
