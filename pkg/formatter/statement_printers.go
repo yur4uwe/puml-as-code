@@ -97,14 +97,10 @@ func printDiagramBound(s *formatterState, bound *ast.DiagramBound) {
 		s.buf.WriteString("{")
 		s.buf.WriteString(bound.Tools.File)
 		if bound.Tools.Caption != "" {
-			s.buf.WriteString(", ")
-			s.buf.WriteString(bound.Tools.Caption)
+			fmt.Fprintf(&s.buf, ", %s", bound.Tools.Caption)
 		}
 		for _, opt := range bound.Tools.Options {
-			s.buf.WriteString(", ")
-			s.buf.WriteString(opt.Key)
-			s.buf.WriteString("=")
-			s.buf.WriteString(opt.Value)
+			fmt.Fprintf(&s.buf, ", %s=%s", opt.Key, opt.Value)
 		}
 		s.buf.WriteString("}")
 	} else if bound.TrailingName != "" {
@@ -121,9 +117,7 @@ func printScaleCommand(s *formatterState, scaleCmd *ast.ScaleCommand) {
 	s.buf.WriteString(scaleCmd.Lhs)
 	if scaleCmd.Sep != "" {
 		if scaleCmd.Sep != "." {
-			s.buf.WriteByte(' ')
-			s.buf.WriteString(scaleCmd.Sep)
-			s.buf.WriteByte(' ')
+			fmt.Fprintf(&s.buf, " %s ", scaleCmd.Sep)
 		} else {
 			s.buf.WriteString(scaleCmd.Sep)
 		}
@@ -147,15 +141,13 @@ func printSkinparamBlock(s *formatterState, block *ast.SkinparamBlock) {
 		s.buf.WriteByte(' ')
 	}
 	if block.Stereotype != "" {
-		s.buf.WriteString("<<")
-		s.buf.WriteString(block.Stereotype)
-		s.buf.WriteString(">> ")
+		fmt.Fprintf(&s.buf, "<<%s>> ", block.Stereotype)
 	}
 	s.buf.WriteString("{")
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("}")
 }
@@ -181,7 +173,7 @@ func printStyleBlock(s *formatterState, block *ast.StyleBlock) {
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("</style>")
 }
@@ -198,7 +190,7 @@ func printStyleRule(s *formatterState, block *ast.StyleRule) {
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("}")
 }
@@ -211,6 +203,7 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 		s.buf.WriteString(" : ")
 		for _, mem := range ent.Members {
 			s.formatMember(mem)
+			s.emitBlockEndTrivia(mem)
 		}
 		return
 	}
@@ -252,7 +245,7 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 	s.emitBlockStartTrivia(ent)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockMembers(ent.Members)
+	s.formatBlockMembers(ent, ent.Members)
 
 	if ent.Kind != ast.EntityUnknown {
 		s.emitWithIndent("}")
@@ -314,7 +307,7 @@ func printContainer(s *formatterState, cont *ast.Container) {
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(cont.Statements)
+	s.formatBlockStatements(cont, cont.Statements)
 
 	if cont.Kind != ast.ContainerUnknown {
 		s.emitWithIndent("}")
