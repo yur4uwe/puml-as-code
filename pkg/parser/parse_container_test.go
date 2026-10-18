@@ -13,20 +13,11 @@ import (
 
 func TestParseContainer(t *testing.T) {
 	tests := []struct {
-		name        string
-		input       string
-		kwType      keyword.KeywordKind
-		want        ast.Container
-		expectErr   bool
-		errContains string
+		name   string
+		input  string
+		kwType keyword.KeywordKind
+		want   ast.Container
 	}{
-		{
-			name:        "together empty error",
-			input:       "together",
-			kwType:      keyword.Together,
-			expectErr:   true,
-			errContains: "Expected container body to end",
-		},
 		{
 			name:   "together empty newline",
 			input:  "together\n",
@@ -51,7 +42,7 @@ func TestParseContainer(t *testing.T) {
 				Kind: ast.ContainerTogether,
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -62,7 +53,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "package mypkg\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
+				Identifier: identRef("mypkg"),
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -71,8 +62,8 @@ func TestParseContainer(t *testing.T) {
 			input:  `package "My Package" as mypkg` + "\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
-				Alias:      "\"My Package\"",
+				Identifier: identRef("mypkg"),
+				Alias:      tokString("My Package"),
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -81,8 +72,8 @@ func TestParseContainer(t *testing.T) {
 			input:  `package mypkg as "My Package"` + "\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
-				Alias:      "\"My Package\"",
+				Identifier: identRef("mypkg"),
+				Alias:      tokString("My Package"),
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -91,8 +82,8 @@ func TestParseContainer(t *testing.T) {
 			input:  "package mypkg as otherpkg\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "otherpkg",
-				Alias:      "mypkg",
+				Identifier: identRef("otherpkg"),
+				Alias:      tokIdent("mypkg"),
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -101,7 +92,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "package mypkg <<Service>>\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
+				Identifier: identRef("mypkg"),
 				Stereotype: "Service",
 				Kind:       ast.ContainerPackage,
 			},
@@ -111,7 +102,7 @@ func TestParseContainer(t *testing.T) {
 			input:  "package mypkg <<Service>> #green\n",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
+				Identifier: identRef("mypkg"),
 				Stereotype: "Service",
 				Color:      "#green",
 				Kind:       ast.ContainerPackage,
@@ -122,25 +113,25 @@ func TestParseContainer(t *testing.T) {
 			input:  "package mypkg { class A together { class B } A -> B\n}",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "mypkg",
+				Identifier: identRef("mypkg"),
 				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 					&ast.Container{
 						Kind: ast.ContainerTogether,
 						Statements: []ast.Statement{
 							&ast.Entity{
-								Identifier: "B",
+								Identifier: identRef("B"),
 								Kind:       ast.EntityClass,
 							},
 						},
 					},
 					&ast.Relationship{
-						LHS:       ast.TargetRef{Entity: "A"},
-						RHS:       ast.TargetRef{Entity: "B"},
+						LHS:       identRef("A"),
+						RHS:       identRef("B"),
 						Body:      '-',
 						RArrow:    '>',
 						BodyCount: 1,
@@ -154,16 +145,16 @@ func TestParseContainer(t *testing.T) {
 			input:  "package p { class folder {} folder --> p }",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "p",
+				Identifier: identRef("p"),
 				Kind:       ast.ContainerPackage,
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "folder",
+						Identifier: identRef("folder"),
 						Kind:       ast.EntityClass,
 					},
 					&ast.Relationship{
-						LHS:       ast.TargetRef{Entity: "folder"},
-						RHS:       ast.TargetRef{Entity: "p"},
+						LHS:       identRef("folder"),
+						RHS:       identRef("p"),
 						Body:      '-',
 						BodyCount: 2,
 						RArrow:    '>',
@@ -177,43 +168,9 @@ func TestParseContainer(t *testing.T) {
 			input:  "package p.p {}",
 			kwType: keyword.Package,
 			want: ast.Container{
-				Identifier: "p",
+				Identifier: identRef("p", "p"),
 				Kind:       ast.ContainerPackage,
-				Statements: []ast.Statement{
-					&ast.Container{
-						Identifier: "p",
-						Kind:       ast.ContainerPackage,
-					},
-				},
 			},
-		},
-		{
-			name:        "package incomplete alias",
-			input:       "package mypkg as\n",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected identifier for container name",
-		},
-		{
-			name:        "package unclosed stereotype",
-			input:       "package mypkg <<Service\n",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "unexpected EOF",
-		},
-		{
-			name:        "package unclosed body",
-			input:       "package mypkg { class A",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "unexpected EOF",
-		},
-		{
-			name:        "package unexpected token in body",
-			input:       "package mypkg { @invalid }",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected a statement in a container body",
 		},
 		{
 			name:   "package with same line body and color",
@@ -221,22 +178,15 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Package,
 			want: ast.Container{
 				Kind:       ast.ContainerPackage,
-				Identifier: "mypkg",
+				Identifier: identRef("mypkg"),
 				Color:      "#red",
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
 			},
-		},
-		{
-			name:        "package body class error",
-			input:       "package mypkg { class MyClass as }",
-			kwType:      keyword.Package,
-			expectErr:   true,
-			errContains: "Expected token for entity identifier or alias",
 		},
 		// --- Container keyword coverage ---
 		{
@@ -245,10 +195,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Folder,
 			want: ast.Container{
 				Kind:       ast.ContainerFolder,
-				Identifier: "myfolder",
+				Identifier: identRef("myfolder"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -260,10 +210,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Frame,
 			want: ast.Container{
 				Kind:       ast.ContainerFrame,
-				Identifier: "myframe",
+				Identifier: identRef("myframe"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -275,10 +225,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Rectangle,
 			want: ast.Container{
 				Kind:       ast.ContainerRectangle,
-				Identifier: "myrect",
+				Identifier: identRef("myrect"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -290,10 +240,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Cloud,
 			want: ast.Container{
 				Kind:       ast.ContainerCloud,
-				Identifier: "mycloud",
+				Identifier: identRef("mycloud"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -305,10 +255,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Database,
 			want: ast.Container{
 				Kind:       ast.ContainerDatabase,
-				Identifier: "mydb",
+				Identifier: identRef("mydb"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -320,10 +270,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Node,
 			want: ast.Container{
 				Kind:       ast.ContainerNode,
-				Identifier: "mynode",
+				Identifier: identRef("mynode"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -335,10 +285,10 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Namespace,
 			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
-				Identifier: "myns",
+				Identifier: identRef("myns"),
 				Statements: []ast.Statement{
 					&ast.Entity{
-						Identifier: "A",
+						Identifier: identRef("A"),
 						Kind:       ast.EntityClass,
 					},
 				},
@@ -350,7 +300,7 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Folder,
 			want: ast.Container{
 				Kind:       ast.ContainerFolder,
-				Identifier: "myfolder",
+				Identifier: identRef("myfolder"),
 			},
 		},
 		{
@@ -359,8 +309,8 @@ func TestParseContainer(t *testing.T) {
 			kwType: keyword.Namespace,
 			want: ast.Container{
 				Kind:       ast.ContainerNamespace,
-				Identifier: "myns",
-				Alias:      "\"My Namespace\"",
+				Identifier: identRef("myns"),
+				Alias:      tokString("My Namespace"),
 				Stereotype: "API",
 			},
 		},
@@ -377,16 +327,101 @@ func TestParseContainer(t *testing.T) {
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
 			got, err := p.parseContainer(tok)
-			if tc.expectErr {
-				require.Error(t, err)
-				if tc.errContains != "" {
-					require.Contains(t, err.Error(), tc.errContains)
-				}
-			} else {
-				require.NoError(t, err)
-				assertASTEqual(t, tc.want, got)
-			}
+			require.NoError(t, err)
+			assertASTEqual(t, tc.want, got)
 		})
 	}
 }
 
+func TestParseContainer_Errors(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		kwType      keyword.KeywordKind
+		errContains string
+	}{
+		{
+			name:        "together empty error",
+			input:       "together",
+			kwType:      keyword.Together,
+			errContains: "Expected container body to end",
+		},
+		{
+			name:        "package incomplete alias",
+			input:       "package mypkg as\n",
+			kwType:      keyword.Package,
+			errContains: "Expected identifier or string for container alias",
+		},
+		{
+			name:        "package unclosed stereotype",
+			input:       "package mypkg <<Service\n",
+			kwType:      keyword.Package,
+			errContains: "unexpected EOF",
+		},
+		{
+			name:        "package unclosed body",
+			input:       "package mypkg { class A",
+			kwType:      keyword.Package,
+			errContains: "unexpected EOF",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
+
+			got, err := p.parseContainer(tok)
+			require.Error(t, err)
+			require.Nil(t, got)
+			if tc.errContains == "" {
+				t.Fatal("expected error but got none")
+			}
+			require.Contains(t, err.Error(), tc.errContains)
+		})
+	}
+}
+
+func TestParseContainer_Recovery(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		kwType   keyword.KeywordKind
+		checkBad func(t *testing.T, container *ast.Container, p *Parser)
+	}{
+		{
+			name:   "package unexpected token in body",
+			input:  "package mypkg { @invalid }",
+			kwType: keyword.Package,
+			checkBad: func(t *testing.T, container *ast.Container, p *Parser) {
+				require.NotNil(t, container)
+				require.Len(t, container.Statements, 1)
+				bad, ok := container.Statements[0].(*ast.BadStatement)
+				require.True(t, ok, "expected statement to be *ast.BadStatement")
+				require.NotNil(t, bad.Diagnostic)
+				require.True(t, p.ast.HasErrors())
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
+
+			got, err := p.parseContainer(tok)
+			require.NoError(t, err)
+			tc.checkBad(t, got, &p)
+		})
+	}
+}

@@ -87,7 +87,40 @@
       ]
     },
     {
-      "Identifier": "p",
+      "Identifier": {
+        "Name": {
+          "Type": "IDENTIFIER",
+          "Literal": "p",
+          "Span": {
+            "Start": {
+              "Line": 5,
+              "Col": 9,
+              "Offset": 211
+            },
+            "End": {
+              "Line": 5,
+              "Col": 10,
+              "Offset": 212
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Type": "ILLEGAL",
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "package",
       "Statements": [
         {
@@ -121,7 +154,40 @@
               }
             }
           ],
-          "Identifier": "User",
+          "Identifier": {
+            "Name": {
+              "Type": "IDENTIFIER",
+              "Literal": "User",
+              "Span": {
+                "Start": {
+                  "Line": 7,
+                  "Col": 11,
+                  "Offset": 342
+                },
+                "End": {
+                  "Line": 7,
+                  "Col": 15,
+                  "Offset": 346
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Type": "ILLEGAL",
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
           "Members": [
             {
@@ -156,7 +222,6 @@
                 }
               ],
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "id",
                 "Type": {
@@ -225,7 +290,7 @@
         "End": {
           "Line": 19,
           "Col": 2,
-          "Offset": 690
+          "Offset": 754
         }
       },
       "LeadingTrivia": [
@@ -265,22 +330,71 @@
         },
         {
           "Type": "COMMENT",
+          "Literal": "This is a single line comment that has no member to attach to",
+          "Span": {
+            "Start": {
+              "Line": 18,
+              "Col": 3,
+              "Offset": 689
+            },
+            "End": {
+              "Line": 19,
+              "Col": 0,
+              "Offset": 752
+            }
+          }
+        },
+        {
+          "Type": "COMMENT",
           "Literal": "This is a single line comment attached to Service after '}'",
           "Span": {
             "Start": {
               "Line": 19,
               "Col": 3,
-              "Offset": 691
+              "Offset": 755
             },
             "End": {
               "Line": 20,
               "Col": 0,
-              "Offset": 752
+              "Offset": 816
             }
           }
         }
       ],
-      "Identifier": "Service",
+      "Identifier": {
+        "Name": {
+          "Type": "IDENTIFIER",
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 16,
+              "Col": 7,
+              "Offset": 536
+            },
+            "End": {
+              "Line": 16,
+              "Col": 14,
+              "Offset": 543
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Type": "ILLEGAL",
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
       "Members": [
         {
@@ -291,13 +405,30 @@
               "Offset": 610
             },
             "End": {
-              "Line": 18,
-              "Col": 0,
+              "Line": 17,
+              "Col": 19,
               "Offset": 626
             }
           },
+          "TrailingTrivia": [
+            {
+              "Type": "COMMENT",
+              "Literal": "This is a single line comment attached to Service.Process",
+              "Span": {
+                "Start": {
+                  "Line": 17,
+                  "Col": 20,
+                  "Offset": 627
+                },
+                "End": {
+                  "Line": 18,
+                  "Col": 0,
+                  "Offset": 686
+                }
+              }
+            }
+          ],
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "Process",
             "ReturnType": [
@@ -314,10 +445,40 @@
     },
     {
       "LHS": {
-        "Entity": "User"
+        "Name": {
+          "Type": "IDENTIFIER",
+          "Literal": "User",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 1,
+              "Offset": 853
+            },
+            "End": {
+              "Line": 22,
+              "Col": 5,
+              "Offset": 857
+            }
+          }
+        }
       },
       "RHS": {
-        "Entity": "Service"
+        "Name": {
+          "Type": "IDENTIFIER",
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 9,
+              "Offset": 861
+            },
+            "End": {
+              "Line": 22,
+              "Col": 16,
+              "Offset": 868
+            }
+          }
+        }
       },
       "TypeRHS": "association",
       "MultLHS": null,
@@ -330,12 +491,12 @@
         "Start": {
           "Line": 22,
           "Col": 1,
-          "Offset": 789
+          "Offset": 853
         },
         "End": {
           "Line": 22,
           "Col": 26,
-          "Offset": 814
+          "Offset": 878
         }
       },
       "LeadingTrivia": [
@@ -346,12 +507,12 @@
             "Start": {
               "Line": 21,
               "Col": 1,
-              "Offset": 754
+              "Offset": 818
             },
             "End": {
               "Line": 22,
               "Col": 0,
-              "Offset": 788
+              "Offset": 852
             }
           }
         }
@@ -364,12 +525,12 @@
             "Start": {
               "Line": 22,
               "Col": 27,
-              "Offset": 815
+              "Offset": 879
             },
             "End": {
               "Line": 23,
               "Col": 0,
-              "Offset": 850
+              "Offset": 914
             }
           }
         }
@@ -382,12 +543,12 @@
         "Start": {
           "Line": 25,
           "Col": 1,
-          "Offset": 886
+          "Offset": 950
         },
         "End": {
           "Line": 25,
           "Col": 8,
-          "Offset": 893
+          "Offset": 957
         }
       },
       "LeadingTrivia": [
@@ -398,12 +559,12 @@
             "Start": {
               "Line": 24,
               "Col": 1,
-              "Offset": 852
+              "Offset": 916
             },
             "End": {
               "Line": 25,
               "Col": 0,
-              "Offset": 885
+              "Offset": 949
             }
           }
         }
@@ -416,12 +577,12 @@
             "Start": {
               "Line": 25,
               "Col": 9,
-              "Offset": 894
+              "Offset": 958
             },
             "End": {
               "Line": 26,
               "Col": 0,
-              "Offset": 928
+              "Offset": 992
             }
           }
         }

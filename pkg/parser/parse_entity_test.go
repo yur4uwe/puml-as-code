@@ -13,18 +13,17 @@ import (
 
 func TestParseEntity(t *testing.T) {
 	tests := []struct {
-		name      string
-		input     string
-		kwType    keyword.KeywordKind
-		want      ast.Statement
-		expectErr bool
+		name   string
+		input  string
+		kwType keyword.KeywordKind
+		want   ast.Statement
 	}{
 		{
 			name:   "simple class",
 			input:  "class MyClass",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 			},
 		},
@@ -33,7 +32,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "abstract class MyAbstractClass",
 			kwType: keyword.Abstract,
 			want: &ast.Entity{
-				Identifier: "MyAbstractClass",
+				Identifier: identRef("MyAbstractClass"),
 				Kind:       ast.EntityAbstractClass,
 			},
 		},
@@ -42,24 +41,17 @@ func TestParseEntity(t *testing.T) {
 			input:  "class MyClass as \"MC\"",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
-				Alias:      "\"MC\"",
+				Identifier: identRef("MyClass"),
+				Alias:      tokString("MC"),
 				Kind:       ast.EntityClass,
 			},
-		},
-		{
-			name:      "class with invalid alias (not a string)",
-			input:     "class MyClass as MC",
-			kwType:    keyword.Class,
-			want:      nil,
-			expectErr: true,
 		},
 		{
 			name:   "class with stereotype",
 			input:  "class MyClass <<Service>>",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 				Stereotype: "Service",
 			},
@@ -69,7 +61,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "class MyClass #FF0000",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 				Color:      "#FF0000",
 			},
@@ -79,7 +71,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "class MyClass {\n}",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 			},
 		},
@@ -88,8 +80,8 @@ func TestParseEntity(t *testing.T) {
 			input:  "class MyClass as \"MC\" <T> <<Database>> #FF0000",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
-				Alias:      "\"MC\"",
+				Identifier: identRef("MyClass"),
+				Alias:      tokString("MC"),
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: "Database",
@@ -101,7 +93,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "class MyClass {\n  +field int\n}",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 				Members: []ast.Member{
 					&ast.FieldDeclaration{
@@ -118,55 +110,17 @@ func TestParseEntity(t *testing.T) {
 			name:   "class with package separator",
 			input:  "class net.http.Client\n",
 			kwType: keyword.Class,
-			want: &ast.Container{
-				Identifier: "net",
-				Statements: []ast.Statement{
-					&ast.Container{
-						Identifier: "http",
-						Statements: []ast.Statement{
-							&ast.Entity{
-								Identifier: "Client",
-								Kind:       ast.EntityClass,
-							},
-						},
-					},
-				},
+			want: &ast.Entity{
+				Identifier: identRef("Client", "net", "http"),
+				Kind:       ast.EntityClass,
 			},
-		},
-		{
-			name:      "invalid alias",
-			input:     "class MyClass as",
-			kwType:    keyword.Class,
-			want:      nil,
-			expectErr: true,
-		},
-		{
-			name:      "unclosed stereotype",
-			input:     "class MyClass <<Stereo",
-			kwType:    keyword.Class,
-			want:      nil,
-			expectErr: true,
-		},
-		{
-			name:      "unclosed body",
-			input:     "class MyClass {",
-			kwType:    keyword.Class,
-			want:      nil,
-			expectErr: true,
-		},
-		{
-			name:      "invalid member inside body",
-			input:     "class MyClass {\n  name : invalid\n}",
-			kwType:    keyword.Class,
-			want:      nil,
-			expectErr: true,
 		},
 		{
 			name:   "sketch field inside body",
 			input:  "class MyClass {\n  untypedField\n}",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "MyClass",
+				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
 				Members: []ast.Member{
 					&ast.FieldDeclaration{
@@ -183,7 +137,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "class List<T>",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "List",
+				Identifier: identRef("List"),
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 			},
@@ -193,7 +147,7 @@ func TestParseEntity(t *testing.T) {
 			input:  "class Map<K, V>",
 			kwType: keyword.Class,
 			want: &ast.Entity{
-				Identifier: "Map",
+				Identifier: identRef("Map"),
 				Kind:       ast.EntityClass,
 				Generic:    "K, V",
 			},
@@ -205,17 +159,99 @@ func TestParseEntity(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
 			got, err := p.parseEntity(tok)
-			if tc.expectErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				assertASTEqual(t, tc.want, got)
+			require.NoError(t, err)
+			assertASTEqual(t, tc.want, got)
+		})
+	}
+}
+
+func TestParseEntity_Errors(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  string
+		kwType keyword.KeywordKind
+	}{
+		{
+			name:   "class with invalid alias (not a string)",
+			input:  "class MyClass as MC",
+			kwType: keyword.Class,
+		},
+		{
+			name:   "invalid alias",
+			input:  "class MyClass as",
+			kwType: keyword.Class,
+		},
+		{
+			name:   "unclosed stereotype",
+			input:  "class MyClass <<Stereo",
+			kwType: keyword.Class,
+		},
+		{
+			name:   "unclosed body",
+			input:  "class MyClass {",
+			kwType: keyword.Class,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
 			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
+
+			got, err := p.parseEntity(tok)
+			require.Error(t, err)
+			require.Nil(t, got)
+		})
+	}
+}
+
+func TestParseEntity_Recovery(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		kwType   keyword.KeywordKind
+		checkBad func(t *testing.T, stmt ast.Statement, p *Parser)
+	}{
+		{
+			name:   "invalid member inside body",
+			input:  "class MyClass {\n  name : invalid\n}",
+			kwType: keyword.Class,
+			checkBad: func(t *testing.T, stmt ast.Statement, p *Parser) {
+				ent, ok := stmt.(*ast.Entity)
+				require.True(t, ok, "expected statement to be *ast.Entity")
+				require.Len(t, ent.Members, 1)
+				bad, ok := ent.Members[0].(*ast.BadMember)
+				require.True(t, ok, "expected member to be *ast.BadMember")
+				require.NotNil(t, bad.Diagnostic)
+				require.True(t, p.ast.HasErrors())
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
+
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
+			tc.checkBad(t, got, &p)
 		})
 	}
 }
@@ -370,7 +406,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				}
 			}
 
-			got, err := p.parseFieldOrMethod(mod, vis, entryTok, nil)
+			got, err := p.parseFieldOrMethod(mod, vis, entryTok)
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {
@@ -471,32 +507,31 @@ func TestParseInlineMember(t *testing.T) {
 	tests := []struct {
 		name           string
 		input          string
-		wantEntity     string
+		wantTargetName string
 		wantMethod     bool
 		wantField      bool
 		wantModifiers  []string
 		wantVisibility ast.VisibilityKind
-		wantMember     func(t *testing.T, member ast.Member)
 	}{
 		{
 			name:           "field with visibility",
 			input:          "Foo : +id string\n",
-			wantEntity:     "Foo",
+			wantTargetName: "Foo",
 			wantField:      true,
 			wantVisibility: ast.VisibilityPublic,
 		},
 		{
 			name:           "method with visibility and params",
 			input:          "Foo : +DoWork(ctx Context) error\n",
-			wantEntity:     "Foo",
+			wantTargetName: "Foo",
 			wantMethod:     true,
 			wantVisibility: ast.VisibilityPublic,
 		},
 		{
-			name:       "field with static modifier",
-			input:      "Foo : {static} count int\n",
-			wantEntity: "Foo",
-			wantField:  true,
+			name:           "field with static modifier",
+			input:          "Foo : {static} count int\n",
+			wantTargetName: "Foo",
+			wantField:      true,
 			wantModifiers: []string{
 				"static",
 			},
@@ -515,18 +550,17 @@ func TestParseInlineMember(t *testing.T) {
 				tok = p.stream.Emit()
 			}
 			got, err := p.parseInlineMember(tok)
-			require.NoError(t, err)
-			ent, ok := got.(*ast.Entity)
-			require.True(t, ok)
-			require.Equal(t, tc.wantEntity, ent.Identifier)
-			require.Len(t, ent.Members, 1)
+			require.NoError(t, err, "unexpected error: %s", err)
+			member, ok := got.(*ast.InlineMember)
+			require.True(t, ok, "expected inline member but got %T", got)
+			require.Equal(t, tc.wantTargetName, member.Target.EntityName(), "expected entity %q but got %q", tc.wantTargetName, member.Target.EntityName())
 			if tc.wantMethod {
-				method, ok := ent.Members[0].(*ast.MethodDeclaration)
+				method, ok := member.Member.(*ast.MethodDeclaration)
 				require.True(t, ok)
 				require.Equal(t, tc.wantModifiers, method.Modifiers)
 				require.Equal(t, tc.wantVisibility, method.Visibility)
 			} else {
-				field, ok := ent.Members[0].(*ast.FieldDeclaration)
+				field, ok := member.Member.(*ast.FieldDeclaration)
 				require.True(t, ok)
 				require.Equal(t, tc.wantModifiers, field.Modifiers)
 				require.Equal(t, tc.wantVisibility, field.Visibility)
@@ -585,4 +619,3 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 		})
 	}
 }
-
