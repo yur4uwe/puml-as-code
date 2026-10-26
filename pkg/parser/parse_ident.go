@@ -1,6 +1,8 @@
 package parser
 
 import (
+	"fmt"
+
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
@@ -46,6 +48,22 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 		// we must anticipate this case
 		if followingIdent.Type != tokenizer.IDENTIFIER || !isAdjacent(sepEndTok, followingIdent) {
 			break
+		} else if followingIdent.Type == tokenizer.IDENTIFIER {
+			// warn on -left-, -right-, -up-, -down-
+			// probably needs a better heuristic
+			word := followingIdent.Literal
+			msg := fmt.Sprintf("%q has no effect on relationship", word)
+			err := NewParserError(followingIdent, msg)
+			switch word {
+			case "left", "right", "up", "down":
+				p.recordDiagnostic(&ast.Diagnostic{
+					ID:       len(p.ast.Diagnostics),
+					Severity: ast.SeverityWarning,
+					Message:  msg,
+					Span:     followingIdent.Span,
+					Err:      err,
+				})
+			}
 		}
 
 		isQualified = true
@@ -55,18 +73,22 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 
 	nextTok := p.stream.PeekTokenAt(offst)
 
+	// right after non-adjecent ident check for uniquely relationship
+	// identifying tokens
 	if isRelStartArrow(nextTok) {
-		return p.parseRelationship(identTok)
+		return p.parseRelationship(identTok), nil
 	}
 
 	if isQualified {
 		switch nextTok.Type {
 		case tokenizer.STRING:
 			// it is a relationship multiplicity
-			return p.parseRelationship(identTok)
+			return p.parseRelationship(identTok), nil
 		case tokenizer.COLON:
+			// either a relationship like: A::field --> B
+			// or an inline member like: A : field
 			if p.stream.PeekTokenAt(offst+1).Type == tokenizer.COLON {
-				return p.parseRelationship(identTok)
+				return p.parseRelationship(identTok), nil
 			}
 			return p.parseInlineMember(identTok)
 		}
@@ -84,18 +106,18 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 	case tokenizer.STRING:
 		followingTok := p.stream.PeekTokenAt(offst + 1)
 		if followingTok.Type == tokenizer.IDENTIFIER {
-			if followingTok.Literal == "o" || followingTok.Literal == "x" {
-				return p.parseRelationship(identTok)
-			}
 			// We should have a container or an entity
-			// basically delegate to keyword resolution
+			if followingTok.Literal == "o" || followingTok.Literal == "x" {
+				return p.parseRelationship(identTok), nil
+			}
+			// delegate to keyword resolution
 			return nil, nil
 		} else if followingTok.Type == tokenizer.LANGLE {
 			// handle class "name" <t> vs User "1" --> "*" Order
 			followingTok = p.stream.PeekTokenAt(offst + 2)
 			switch followingTok.Type {
 			case tokenizer.PIPE, tokenizer.DOT, tokenizer.DASH:
-				return p.parseRelationship(identTok)
+				return p.parseRelationship(identTok), nil
 			case tokenizer.LANGLE:
 				// stereotype
 				return nil, nil
@@ -108,17 +130,17 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 		} else if followingTok.Type == tokenizer.HASH {
 			afterHash := p.stream.PeekTokenAt(offst + 2)
 			if afterHash.Type == tokenizer.DASH || afterHash.Type == tokenizer.DOT {
-				return p.parseRelationship(identTok)
+				return p.parseRelationship(identTok), nil
 			}
 			return nil, nil // entity with color e.g. class "Foo" #red
 		} else if isRelStartArrow(followingTok) {
-			return p.parseRelationship(identTok)
+			return p.parseRelationship(identTok), nil
 		} else {
 			return nil, nil
 		}
 	case tokenizer.COLON:
 		if p.stream.PeekTokenAt(offst+1).Type == tokenizer.COLON {
-			return p.parseRelationship(identTok)
+			return p.parseRelationship(identTok), nil
 		}
 		return p.parseInlineMember(identTok)
 	default:

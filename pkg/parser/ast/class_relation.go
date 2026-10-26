@@ -121,39 +121,51 @@ func (m *Cardinality) UnmarshalJSON(data []byte) error {
 // UnknownCardinality is an empty/unknown multiplicity.
 var UnknownCardinality = Cardinality{Raw: "", Min: -2, Max: -2}
 
+// ParseCardinality parses a string into a `Cardinality`.
+// It always returns a valid Cardinality with at least Raw field filled
+// as long as its not empty.
 func ParseCardinality(s string) (Cardinality, error) {
 	s = strings.TrimSpace(strings.Trim(s, `"`))
 	if s == "" {
 		return UnknownCardinality, nil
 	}
+	card := Cardinality{Raw: s}
 	if s == "*" {
-		return Cardinality{Raw: s, Min: 0, Max: -1}, nil
+		card.Min = 0
+		card.Max = -1
+		return card, nil
 	}
 	if strings.Contains(s, "..") {
 		parts := strings.SplitN(s, "..", 2)
 		if len(parts) != 2 {
-			return UnknownCardinality, fmt.Errorf("invalid cardinality: %q", s)
+			return card, fmt.Errorf("invalid cardinality: %q", s)
 		}
 		min, err := strconv.Atoi(strings.TrimSpace(parts[0]))
 		if err != nil {
-			return UnknownCardinality, fmt.Errorf("invalid min in cardinality %q: %w", s, err)
+			return card, fmt.Errorf("invalid min in cardinality %q: %w", s, err)
 		}
 		maxStr := strings.TrimSpace(parts[1])
 		if maxStr == "*" {
-			return Cardinality{Raw: s, Min: min, Max: -1}, nil
+			card.Max = -1
+			card.Min = min
+			return card, nil
 		}
 		max, err := strconv.Atoi(maxStr)
 		if err != nil {
-			return UnknownCardinality, fmt.Errorf("invalid max in cardinality %q: %w", s, err)
+			return card, fmt.Errorf("invalid max in cardinality %q: %w", s, err)
 		}
-		return Cardinality{Raw: s, Min: min, Max: max}, nil
+		card.Min = min
+		card.Max = max
+		return card, nil
 	}
 	// single number
 	n, err := strconv.Atoi(s)
 	if err != nil {
 		return UnknownCardinality, fmt.Errorf("invalid cardinality: %q", s)
 	}
-	return Cardinality{Raw: s, Min: n, Max: n}, nil
+	card.Min = n
+	card.Max = n
+	return card, nil
 }
 
 func (m Cardinality) String() string {

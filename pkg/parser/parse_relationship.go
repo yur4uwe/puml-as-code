@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -23,56 +24,90 @@ func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	}
 }
 
-func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (*ast.Relationship, error) {
+func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relationship {
 	// Entry token is supposedly the first identifier
 	var err error
-	rel := &ast.Relationship{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
-	}
+	rel := &ast.Relationship{}
+	// Must not fail, guaranteed by the disambiguateIdent check
 	rel.LHS, err = p.parseTargetRef(firstTargetTok)
 	if err != nil {
-		return nil, err
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
 	}
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+		// I think its productive to defer the cardinality parsing to the resolver
+		// or someone that actually cares about it
 		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return nil, WrapParserError(multTok, err)
+			infoSpan := multTok.Span
+			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
+			err = WrapParserError(multTok, err)
+			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
 		}
 	}
 
-	p.parseArrowTokens(rel)
+	arrowMark := p.Mark(p.stream.PeekTokenAt(0))
+
+	err = p.parseArrowTokens(rel)
+	if err != nil {
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		rel.ArrowSpan = p.Span(arrowMark)
+		return rel
+	}
+
+	rel.ArrowSpan = p.Span(arrowMark)
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return nil, WrapParserError(multTok, err)
+			infoSpan := multTok.Span
+			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
+			err = WrapParserError(multTok, err)
+			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
 		}
 	}
 
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
-		return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected identifier or string after relationship")
+		nextTok := p.stream.PeekTokenAt(0)
+		errSpan := nextTok.Span
+		err := NewParserError(nextTok, "Expected identifier or string after relationship")
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
 	}
+
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
 	if err != nil {
-		return nil, err
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
+	}
+
+	if p.stream.AssertType(tokenizer.HASH) {
+		rel.Attrs = append(rel.Attrs, p.tryParseColor())
 	}
 
 	endingToken := p.stream.PeekTokenAt(0)
 	switch endingToken.Type {
-	case tokenizer.NEWLINE, tokenizer.EOF, tokenizer.RBRACE:
-		// Do not consume newline, EOF, or RBRACE so outer loop/caller handles delimiter
-		break
 	case tokenizer.COLON:
 		p.stream.Emit()
 		rel.Label = p.stream.ReadUntilNewline()
+	case tokenizer.NEWLINE, tokenizer.EOF, tokenizer.RBRACE:
+		// Do not consume newline, EOF, or RBRACE
+		// outer loop/caller handles the delimiter
 	default:
-		return nil, NewParserError(endingToken, "Expected newline or colon after relationship")
+		// literal junk, relationship is fully parsed and we can't know that is
+		p.recordDiagnostic(p.newDiagnosticError(NewParserError(endingToken, "Expected newline or colon after relationship"), endingToken.Span, rel))
+		p.syncToLineEnd()
 	}
 
-	return rel, nil
+	return rel
 }
 
 func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
@@ -148,6 +183,17 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			return NewParserError(tok, "Different body type runes in relationship")
 		}
 		if !p.stream.AssertType(tokenizer.LBRACKET) && !p.stream.AssertKW(keyword.Direction) {
+			nextTok := p.stream.PeekTokenAt(0)
+			if nextTok.Type != tokenizer.IDENTIFIER {
+				break
+			}
+			afterIdent := p.stream.PeekTokenAt(1)
+			if afterIdent.Type == bodyTokType || afterIdent.Type == tokenizer.LBRACKET {
+				// Valid case, misspelled identifier
+				// But we fail fast on speculative errors
+				return NewParserError(nextTok, "Unexpected identifier in relationship definition, did you mean to write a direction?")
+			}
+			// RHS identifier encountered
 			break
 		} else if sawAttrs || sawDirection {
 			return NewParserError(tok, "Cannot separate direction and attributes with a body token")
@@ -279,7 +325,8 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			p.stream.Emit()
 			rel.RArrow = rune(tok.Literal[0])
 		default:
-			return NewParserError(tok, "Unexpected identifier in relationship definition")
+			// Single token arrow on relationship
+			return nil
 		}
 	case tokenizer.HASH, tokenizer.PLUS, tokenizer.CARET:
 		p.stream.Emit()
@@ -295,4 +342,3 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	}
 	return nil
 }
-

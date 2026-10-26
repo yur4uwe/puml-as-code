@@ -84,6 +84,39 @@ func NewUnclosedBlockError(blockName, expectedCloser string) error {
 
 Any downstream pass can match `errors.Is(diag, parser.ErrUnclosedBlock)` uniformly.
 
+### 2.3 Error Recovery Policy & Synchronization Strategies
+
+```mermaid
+flowchart TD
+    Error["Syntax / Framing Violation"] --> Scope{"Scope Level"}
+    Scope -- Line Statement --> SyncLine["syncToLineEnd: Advance to NEWLINE, preserve partial node"]
+    Scope -- Member Statement --> SyncMember["syncToLineOrBlockEnd: Emit BadMember, retain inner member slice"]
+    Scope -- Block Scope --> Boundary{"Encountered @enduml / EOF before closer?"}
+    Boundary -- Yes --> FailFast["Record UnclosedBlockError, suppress intermediate phantom diagnostics, close block"]
+```
+
+#### 1. Line-Aligned Statement Synchronization (`syncToLineEnd`)
+- **Boundary:** `tokenizer.NEWLINE`, `tokenizer.EOF`, or diagram boundary markers (`@enduml`).
+- **Strategy:** If syntax within a single-line statement (relationship, layout command, directive) fails, construct the partial AST node with zero-value missing fields, record the diagnostic, and advance the token stream to the line boundary.
+- **Rule:** Zero intra-statement token invention. State is strictly isolated by `\n`.
+
+#### 2. Member Statement Synchronization (`syncToLineOrBlockEnd`)
+- **Boundary:** `tokenizer.NEWLINE`, `tokenizer.RBRACE`, `tokenizer.EOF`, or diagram boundary markers.
+- **Strategy:** The host parser partitions discrete member token slices per line before delegating to `Dialect.ParseField` or `Dialect.ParseMethod`. If a dialect returns a syntax error, construct `*ast.BadMember` spanning the token slice, record the diagnostic, and synchronize to the next member line or `}`.
+- **Boundary Invariant:** The `Dialect` interface remains a stateless payload interpreter (`ParseField`/`ParseMethod`). It never inspects host parser control flow, and the host parser never queries dialect capabilities (`IsStructured` is prohibited).
+
+#### 3. Block Scoping & Cascade Suppression (Fail-Fast at Diagram Boundaries)
+- **Scope:** Entities (`{ ... }`), containers (`{ ... }`), and opaque blocks (`note ... end note`, `<style> ... </style>`).
+- **Strategy:** An unclosed block is definitively recognized when encountering `@enduml` or `EOF` before the matching closing delimiter.
+- **Cascade Suppression:** 
+  1. Record a single `*ast.UnclosedBlockError` targeting the opening delimiter position (`LBrace` or keyword).
+  2. Suppress intermediate `*ast.BadMember` diagnostics accumulated during the scope leak into `@enduml`.
+  3. Close the enclosing node with zero-value closer (`RBrace == tokenizer.Pos{}`). Terminate block processing without speculative backtracking.
+
+#### 4. Runner-Level Dispatch Policy
+- **Batch Code Generation (`pac gen`):** Fail fast. If `Diagram.HasErrors()`, report only the first diagnostic to stderr with line/column coordinates and terminate (`os.Exit(1)`). Neither `pkg/resolver` nor `pkg/generator` may execute against an invalid AST.
+- **Language Server (`pac lsp`):** Resilient collection. Retain all semantic and partial AST nodes; emit diagnostics as editor lint markers to ensure completion, symbol outlines, and cross-references remain functional for valid regions.
+
 ---
 
 ## 3. Intermediary Typing States Taxonomy
@@ -411,12 +444,11 @@ flowchart TD
 - [x] Implement `NewUnclosedBlockError(name, closer)` constructor wrapping `ErrUnclosedBlock` in [`pkg/parser/ast/unclosed_block_err.go`](pkg/parser/ast/unclosed_block_err.go).
 
 ### Phase 2: Relationship & Arrow Resilience
-- [ ] Update `disambiguateIdent` in `pkg/parser/parse_ident.go` to route to `parseRelationship` whenever an identifier is followed by any arrow-starting token (`-`, `.`, `<`, `*`, `o`, `(`, `#`, `+`).
-- [ ] Refactor `parseRelationship` in `pkg/parser/parse_relationship.go`:
+- [x] Refactor `parseRelationship` in `pkg/parser/parse_relationship.go`:
   - Never return `nil, err` to fall back to `BadStatement`.
   - Capture arrow token boundaries into `rel.ArrowSpan` and continue.
-  - Return partial `Relationship` with zero `RHS` when line ends prematurely.
-- [ ] Unit tests for intermediary relationships (`A -`, `A -->`, `A -[#red`, `A -unknown- B`).
+  - Return partial `Relationship` with zero fields when line ends prematurely.
+- [x] Unit tests for intermediary relationships (`A -`, `A -->`, `A -[#red`, `A -unknown- B`).
 
 ### Phase 3: Delimiter Pos Tracking & Body Recovery (Stop EOF Dropping)
 - [ ] Fix `parseEntity` in `pkg/parser/parse_entity.go`: on EOF inside body, return `ent` with `RBrace` as zero `tokenizer.Pos{}`, never `nil, ErrUnexpectedEOF`.

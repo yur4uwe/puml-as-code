@@ -15,12 +15,23 @@ var (
 	ErrMalformedArrow        = errors.New("malformed relationship arrow")
 )
 
+//go:generate enumer -type=Severity -json -transform=lower -trimprefix=Severity
+type Severity int
+
+const (
+	SeverityError Severity = iota
+	SeverityWarning
+	SeverityInfo
+	SeverityHint
+)
+
 type Diagnostic struct {
-	ID      int                  `json:"id"`
-	Message string               `json:"message"`
-	Span    tokenizer.SourceSpan `json:"span"`
-	Err     error                `json:"-"`
-	Node    Node                 `json:"-"`
+	ID       int                  `json:"id"`
+	Severity Severity             `json:"severity"`
+	Message  string               `json:"message"`
+	Span     tokenizer.SourceSpan `json:"span"`
+	Err      error                `json:"-"`
+	Node     Node                 `json:"-"`
 }
 
 func (d *Diagnostic) Error() string {
