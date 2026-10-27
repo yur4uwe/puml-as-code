@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
@@ -189,7 +190,7 @@ func TestParseEntity(t *testing.T) {
 				assertBlockUnclosed(t, got)
 			}
 
-			assertASTEqual(t, tc.want, got)
+			testutil.SemanticEqual(t, tc.want, got)
 		})
 	}
 }
@@ -489,7 +490,7 @@ func TestParseFieldOrMethod(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assertASTEqual(t, tc.want, got)
+				testutil.SemanticEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -575,7 +576,7 @@ func TestParseEntityMember(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assertASTEqual(t, tc.want, got)
+				testutil.SemanticEqual(t, tc.want, got)
 			}
 		})
 	}
@@ -690,7 +691,7 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 			tok := p.stream.Emit()
 			got := p.parseEntity(tok)
 			require.NotNil(t, got)
-			assertASTEqual(t, tc.wantStereo, got.Stereotype)
+			testutil.SemanticEqual(t, tc.wantStereo, got.Stereotype)
 			require.Equal(t, tc.wantTags, got.Tags)
 		})
 	}

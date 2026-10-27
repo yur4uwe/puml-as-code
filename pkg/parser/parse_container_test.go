@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
@@ -328,7 +329,7 @@ func TestParseContainer(t *testing.T) {
 
 			got, err := p.parseContainer(tok)
 			require.NoError(t, err)
-			assertASTEqual(t, tc.want, got)
+			testutil.SemanticEqual(t, tc.want, got)
 		})
 	}
 }

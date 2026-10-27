@@ -3,10 +3,12 @@ package parser
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestRecovery(t *testing.T) {
@@ -30,7 +32,7 @@ class ValidB
 
 		entA, ok := diag.Statements[1].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("ValidA"), entA.Identifier)
+		testutil.SemanticEqual(t, identRef("ValidA"), entA.Identifier)
 
 		badStmt, ok := diag.Statements[2].(*ast.BadStatement)
 		require.True(t, ok, "expected 3rd statement to be BadStatement")
@@ -40,7 +42,7 @@ class ValidB
 
 		entB, ok := diag.Statements[3].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("ValidB"), entB.Identifier)
+		testutil.SemanticEqual(t, identRef("ValidB"), entB.Identifier)
 
 		endBound, ok := diag.Statements[4].(*ast.DiagramBound)
 		require.True(t, ok)
@@ -69,12 +71,12 @@ package mypkg {
 
 		cont, ok := diag.Statements[1].(*ast.Container)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("mypkg"), cont.Identifier)
+		testutil.SemanticEqual(t, identRef("mypkg"), cont.Identifier)
 		require.Len(t, cont.Statements, 3)
 
 		innerA, ok := cont.Statements[0].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("InnerA"), innerA.Identifier)
+		testutil.SemanticEqual(t, identRef("InnerA"), innerA.Identifier)
 
 		badStmt, ok := cont.Statements[1].(*ast.BadStatement)
 		require.True(t, ok)
@@ -82,7 +84,7 @@ package mypkg {
 
 		innerB, ok := cont.Statements[2].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("InnerB"), innerB.Identifier)
+		testutil.SemanticEqual(t, identRef("InnerB"), innerB.Identifier)
 	})
 
 	t.Run("entity level recovers past bad member in body", func(t *testing.T) {
@@ -104,7 +106,7 @@ class Service {
 
 		ent, ok := diag.Statements[1].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("Service"), ent.Identifier)
+		testutil.SemanticEqual(t, identRef("Service"), ent.Identifier)
 		require.Len(t, ent.Members, 3)
 
 		field, ok := ent.Members[0].(*ast.FieldDeclaration)

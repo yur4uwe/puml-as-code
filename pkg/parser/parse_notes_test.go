@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
@@ -223,7 +224,7 @@ func TestParseNote(t *testing.T) {
 				}
 			} else {
 				require.NoError(t, err)
-				assertASTEqual(t, *tc.want, note)
+				testutil.SemanticEqual(t, *tc.want, note)
 			}
 		})
 	}

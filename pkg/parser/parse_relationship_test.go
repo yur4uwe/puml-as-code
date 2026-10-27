@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
@@ -566,7 +567,7 @@ func TestParseRelationship_Valid(t *testing.T) {
 			firstTok := p.stream.Emit()
 
 			rel := p.parseRelationship(firstTok)
-			assertASTEqual(t, tc.want, rel)
+			testutil.SemanticEqual(t, tc.want, rel)
 		})
 	}
 }
@@ -835,7 +836,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 			}
 			firstTok := p.stream.Emit()
 			rel := p.parseRelationship(firstTok)
-			assertASTEqual(t, tc.want, rel)
+			testutil.SemanticEqual(t, tc.want, rel)
 			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, rel)
 		})
 	}
@@ -897,7 +898,7 @@ func TestParseTargetRef(t *testing.T) {
 			firstTok := p.stream.Emit()
 			got, err := p.parseTargetRef(firstTok)
 			require.NoError(t, err)
-			assertASTEqual(t, tc.want, got)
+			testutil.SemanticEqual(t, tc.want, got)
 		})
 	}
 }

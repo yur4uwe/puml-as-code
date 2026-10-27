@@ -3,10 +3,12 @@ package parser
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDisambiguateIdent_Relationships(t *testing.T) {
@@ -129,7 +131,7 @@ func TestDisambiguateIdent_Relationships(t *testing.T) {
 			firstTok := p.stream.Emit()
 			stmt, err := p.disambiguateIdent(firstTok)
 			require.NoError(t, err)
-			assertASTEqual(t, tc.want, stmt)
+			testutil.SemanticEqual(t, tc.want, stmt)
 		})
 	}
 }
@@ -209,7 +211,7 @@ func TestDisambiguateIdent_InlineMembers(t *testing.T) {
 			firstTok := p.stream.Emit()
 			stmt, err := p.disambiguateIdent(firstTok)
 			require.NoError(t, err)
-			assertASTEqual(t, tc.want, stmt)
+			testutil.SemanticEqual(t, tc.want, stmt)
 		})
 	}
 }
@@ -299,7 +301,7 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 			TypeRHS:   ast.RelationAssociation,
 			RHS:       identRef("text"),
 		}
-		assertASTEqual(t, want, stmt)
+		testutil.SemanticEqual(t, want, stmt)
 	})
 
 	t.Run("target with styled arrow", func(t *testing.T) {
@@ -323,6 +325,6 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 			TypeRHS:   ast.RelationAssociation,
 			RHS:       identRef("text"),
 		}
-		assertASTEqual(t, want, stmt)
+		testutil.SemanticEqual(t, want, stmt)
 	})
 }

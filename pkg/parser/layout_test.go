@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
@@ -293,7 +294,7 @@ package mypkg {
 
 		ent, ok := cont.Statements[1].(*ast.Entity)
 		require.True(t, ok)
-		assertASTEqual(t, identRef("Foo"), ent.Identifier)
+		testutil.SemanticEqual(t, identRef("Foo"), ent.Identifier)
 	})
 
 	t.Run("unterminated block errors", func(t *testing.T) {
