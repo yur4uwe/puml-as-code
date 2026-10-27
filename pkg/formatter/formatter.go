@@ -150,20 +150,20 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	// Find the previous newline to calculate original indent for relative indentation
 	var origIndent uint
+	isLeading := true
 	if span.Start.Offset > 0 {
-		isLeading := true
 		for i := int(span.Start.Offset) - 1; i >= 0; i-- {
 			if s.source[i] == '\n' {
 				break
 			}
 			if !unicode.IsSpace(s.source[i]) {
+				// Find the actual indent for lines where the statement emitted with
+				// span is preceded by other statement
 				isLeading = false
-				break
+				origIndent = 0
+			} else {
+				origIndent++
 			}
-			origIndent++
-		}
-		if !isLeading {
-			origIndent = 0
 		}
 	}
 
@@ -173,6 +173,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	var currLine []rune
 	currLineIndent := 0
 
+	// Collect lines stripped of leading spaces and
+	// line-wise indent depth for each line to reproduce correct indents
+	// for non-first lines
 	for i, r := range inputSpan {
 		if len(currLine) == 0 && unicode.IsSpace(r) {
 			currLineIndent++
@@ -191,7 +194,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 
 	for i, line := range inputLines {
 		if i == 0 {
-			s.writeIndent()
+			if isLeading {
+				s.writeIndent()
+			}
 			s.buf.WriteString(string(line))
 			if len(inputLines) > 1 {
 				s.buf.WriteRune('\n')
