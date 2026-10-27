@@ -205,6 +205,11 @@
         "critical",
         "auth"
       ],
+      "LBrace": {
+        "Line": 9,
+        "Col": 50,
+        "Offset": 177
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -250,7 +255,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 12,
+        "Col": 1,
+        "Offset": 207
+      }
     },
     {
       "NodeSpan": {
@@ -342,6 +352,11 @@
       "Tags": [
         "billing"
       ],
+      "LBrace": {
+        "Line": 14,
+        "Col": 43,
+        "Offset": 252
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -369,7 +384,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 16,
+        "Col": 1,
+        "Offset": 272
+      }
     },
     {
       "NodeSpan": {
@@ -420,6 +440,11 @@
       "Tags": [
         "internal"
       ],
+      "LBrace": {
+        "Line": 18,
+        "Col": 32,
+        "Offset": 306
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -439,7 +464,12 @@
             "Name": "HelperFunc"
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 20,
+        "Col": 1,
+        "Offset": 324
+      }
     },
     {
       "Identifier": {
@@ -478,6 +508,11 @@
       "Tags": [
         "backend"
       ],
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -528,6 +563,11 @@
           "Tags": [
             "api"
           ],
+          "LBrace": {
+            "Line": 23,
+            "Col": 22,
+            "Offset": 376
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -547,9 +587,19 @@
                 "Name": "Route"
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 25,
+            "Col": 3,
+            "Offset": 393
+          }
         }
       ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "NodeSpan": {
         "Start": {
           "Line": 22,

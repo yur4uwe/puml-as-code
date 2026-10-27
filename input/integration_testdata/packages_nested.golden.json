@@ -52,6 +52,11 @@
         }
       },
       "Kind": "package",
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -99,6 +104,11 @@
             }
           },
           "Kind": "class",
+          "LBrace": {
+            "Line": 3,
+            "Col": 14,
+            "Offset": 71
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -144,9 +154,19 @@
                 }
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 6,
+            "Col": 3,
+            "Offset": 107
+          }
         }
       ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "NodeSpan": {
         "Start": {
           "Line": 2,
@@ -194,6 +214,11 @@
         }
       },
       "Kind": "namespace",
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -241,6 +266,11 @@
             }
           },
           "Kind": "class",
+          "LBrace": {
+            "Line": 10,
+            "Col": 18,
+            "Offset": 147
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -264,9 +294,19 @@
                 }
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 12,
+            "Col": 3,
+            "Offset": 174
+          }
         }
       ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "NodeSpan": {
         "Start": {
           "Line": 9,
@@ -314,6 +354,11 @@
         }
       },
       "Kind": "folder",
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "Identifier": {
@@ -349,6 +394,11 @@
             }
           },
           "Kind": "node",
+          "LBrace": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
           "Statements": [
             {
               "NodeSpan": {
@@ -396,6 +446,11 @@
                 }
               },
               "Kind": "class",
+              "LBrace": {
+                "Line": 17,
+                "Col": 16,
+                "Offset": 229
+              },
               "Members": [
                 {
                   "NodeSpan": {
@@ -419,9 +474,19 @@
                     }
                   }
                 }
-              ]
+              ],
+              "RBrace": {
+                "Line": 19,
+                "Col": 5,
+                "Offset": 255
+              }
             }
           ],
+          "RBrace": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
           "NodeSpan": {
             "Start": {
               "Line": 16,
@@ -436,6 +501,11 @@
           }
         }
       ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "NodeSpan": {
         "Start": {
           "Line": 15,
@@ -487,6 +557,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 23,
+          "Col": 6,
+          "Offset": 269
+        },
+        "End": {
+          "Line": 23,
+          "Col": 9,
+          "Offset": 272
+        }
+      },
       "Body": 45,
       "BodyCount": 2,
       "RArrow": 62,

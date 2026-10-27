@@ -64,6 +64,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 2,
+        "Col": 12,
+        "Offset": 34
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -87,7 +92,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 4,
+        "Col": 1,
+        "Offset": 51
+      }
     },
     {
       "NodeSpan": {
@@ -135,6 +145,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 5,
+        "Col": 14,
+        "Offset": 66
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -158,7 +173,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 7,
+        "Col": 1,
+        "Offset": 82
+      }
     },
     {
       "LHS": {
@@ -205,6 +225,18 @@
         "Raw": "0..*",
         "Min": "0",
         "Max": "*"
+      },
+      "ArrowSpan": {
+        "Start": {
+          "Line": 9,
+          "Col": 10,
+          "Offset": 94
+        },
+        "End": {
+          "Line": 9,
+          "Col": 13,
+          "Offset": 97
+        }
       },
       "Body": 45,
       "BodyCount": 2,

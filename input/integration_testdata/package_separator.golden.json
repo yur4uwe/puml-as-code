@@ -112,6 +112,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 4,
+        "Col": 23,
+        "Offset": 67
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -135,7 +140,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 6,
+        "Col": 1,
+        "Offset": 84
+      }
     },
     {
       "NodeSpan": {
@@ -215,6 +225,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 8,
+        "Col": 23,
+        "Offset": 109
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -238,7 +253,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 10,
+        "Col": 1,
+        "Offset": 123
+      }
     },
     {
       "LHS": {
@@ -342,6 +362,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 12,
+          "Col": 17,
+          "Offset": 142
+        },
+        "End": {
+          "Line": 12,
+          "Col": 20,
+          "Offset": 145
+        }
+      },
       "Body": 45,
       "BodyCount": 2,
       "RArrow": 62,
@@ -453,6 +485,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 16,
+        "Col": 29,
+        "Offset": 220
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -476,7 +513,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 18,
+        "Col": 1,
+        "Offset": 238
+      }
     },
     {
       "NodeSpan": {
@@ -556,6 +598,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 20,
+        "Col": 27,
+        "Offset": 267
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -579,7 +626,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 22,
+        "Col": 1,
+        "Offset": 282
+      }
     },
     {
       "LHS": {
@@ -683,6 +735,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 24,
+          "Col": 21,
+          "Offset": 305
+        },
+        "End": {
+          "Line": 24,
+          "Col": 24,
+          "Offset": 308
+        }
+      },
       "Body": 45,
       "BodyCount": 2,
       "RArrow": 62,

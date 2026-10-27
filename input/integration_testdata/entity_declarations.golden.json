@@ -64,6 +64,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 4,
+        "Col": 35,
+        "Offset": 82
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -135,7 +140,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 8,
+        "Col": 1,
+        "Offset": 133
+      }
     },
     {
       "NodeSpan": {
@@ -226,6 +236,11 @@
       },
       "Generic": "T",
       "Color": "#lightblue",
+      "LBrace": {
+        "Line": 10,
+        "Col": 41,
+        "Offset": 176
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -262,7 +277,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 12,
+        "Col": 1,
+        "Offset": 203
+      }
     },
     {
       "NodeSpan": {
@@ -310,6 +330,11 @@
         }
       },
       "Kind": "enum",
+      "LBrace": {
+        "Line": 14,
+        "Col": 13,
+        "Offset": 218
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -382,7 +407,12 @@
             "Name": "Pending"
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 19,
+        "Col": 1,
+        "Offset": 280
+      }
     },
     {
       "Target": {

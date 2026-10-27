@@ -109,6 +109,11 @@
           }
         }
       },
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -200,7 +205,12 @@
           },
           "Value": "Black"
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      }
     },
     {
       "NodeSpan": {
@@ -248,6 +258,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 11,
+        "Col": 15,
+        "Offset": 207
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -275,7 +290,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 13,
+        "Col": 1,
+        "Offset": 224
+      }
     },
     {
       "IsStart": false,

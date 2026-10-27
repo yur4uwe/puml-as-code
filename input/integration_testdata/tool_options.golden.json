@@ -90,6 +90,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 3,
+        "Col": 18,
+        "Offset": 92
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -117,7 +122,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 5,
+        "Col": 1,
+        "Offset": 110
+      }
     },
     {
       "IsStart": false,

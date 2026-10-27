@@ -112,6 +112,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 4,
+        "Col": 23,
+        "Offset": 61
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -196,7 +201,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 8,
+        "Col": 1,
+        "Offset": 120
+      }
     },
     {
       "NodeSpan": {
@@ -276,6 +286,11 @@
         }
       },
       "Kind": "class",
+      "LBrace": {
+        "Line": 10,
+        "Col": 23,
+        "Offset": 145
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -325,7 +340,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 13,
+        "Col": 1,
+        "Offset": 176
+      }
     },
     {
       "LHS": {
@@ -429,6 +449,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 15,
+          "Col": 17,
+          "Offset": 195
+        },
+        "End": {
+          "Line": 15,
+          "Col": 19,
+          "Offset": 197
+        }
+      },
       "Body": 45,
       "BodyCount": 1,
       "RArrow": 62,
@@ -582,6 +614,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 16,
+          "Col": 26,
+          "Offset": 250
+        },
+        "End": {
+          "Line": 16,
+          "Col": 28,
+          "Offset": 252
+        }
+      },
       "Body": 45,
       "BodyCount": 1,
       "RArrow": 62,
@@ -735,6 +779,18 @@
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 17,
+          "Col": 21,
+          "Offset": 302
+        },
+        "End": {
+          "Line": 17,
+          "Col": 23,
+          "Offset": 304
+        }
+      },
       "Body": 45,
       "BodyCount": 1,
       "RArrow": 62,
