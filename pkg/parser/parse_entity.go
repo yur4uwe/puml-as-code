@@ -3,7 +3,6 @@ package parser
 import (
 	"errors"
 	"log"
-	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/keyword"
@@ -14,74 +13,68 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) e
 	switch nameOrAlias.Type {
 	case tokenizer.STRING:
 		if !ent.Alias.IsZero() {
-			return NewParserError(nameOrAlias, "Entity alias already set")
+			return NewParserError(nameOrAlias, "entity alias already set")
 		}
 		ent.Alias = ast.IdentFromToken(nameOrAlias)
 		return nil
 	case tokenizer.IDENTIFIER:
 		if !ent.Identifier.Name.IsZero() {
-			if !ent.Alias.IsZero() {
-				return NewParserError(nameOrAlias, "Entity name and alias already set")
-			}
-			ent.Alias = ast.IdentFromToken(nameOrAlias)
-			return nil
+			return NewParserError(nameOrAlias, "entity name already set")
 		}
 		targetRef, err := p.parseTargetRef(nameOrAlias)
-		if err != nil {
-			return err
-		}
-		if targetRef.Member != nil {
-			return NewParserErrorFromIdent(targetRef.Member.Name, "Entity declaration cannot contain member")
+		if err != nil || targetRef.Member != nil {
+			return NewParserErrorFromIdent(targetRef.Name, "entity name contains unexpected member")
 		}
 		ent.Identifier = targetRef
 		return nil
 	default:
-		return NewParserError(nameOrAlias, "Expected token for entity identifier or alias")
+		return NewParserError(nameOrAlias, "expected token for entity identifier or alias")
 	}
 }
 
-// tok is the kind of an entity (class, interface, struct, enum, etc.)
-func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
-	ent := &ast.Entity{
-		Kind: p.mapTokenToEntityKind(tok),
-	}
-
+func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 	// Unexpectedly, class and other entity definitions have very strict syntax:
 	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
 
-	err := p.setAliasAndName(ent, p.stream.Emit())
+	identTok := p.stream.Emit()
+	err := p.setAliasAndName(ent, identTok)
 	if err != nil {
-		return nil, err
+		p.recordDiagnostic(p.newDiagnosticError(err, identTok.Span, ent))
+		p.syncToBlockStart()
+		return
 	}
 
 	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
-		err := p.setAliasAndName(ent, p.stream.Emit())
-		if err != nil {
-			return nil, err
+		secondIdentTok := p.stream.Emit()
+		if err := p.setAliasAndName(ent, secondIdentTok); err != nil {
+			p.recordDiagnostic(p.newDiagnosticError(err, secondIdentTok.Span, ent))
+			p.syncToBlockStart()
+			return
 		}
-	}
-
-	if !ent.Identifier.Name.IsZero() && !ent.Alias.IsZero() && !strings.HasPrefix(ent.Alias.Literal, "\"") {
-		return nil, NewParserErrorFromIdent(ent.Alias, "Alias must be a string")
 	}
 
 	if ent.Identifier.Name.IsZero() {
 		// If no identifier is set, use the alias
 		ent.Identifier = ast.TargetRef{Name: ent.Alias}
+		ent.Alias = ast.Ident{}
 	}
 
-	if !p.stream.AssertSeq([]tokenizer.Token{{Type: tokenizer.LANGLE}, {Type: tokenizer.LANGLE}}) {
-		gen, err := p.tryReadGeneric()
+	if !p.stream.AssertTypeSeq(tokenizer.LANGLE, tokenizer.LANGLE) {
+		gen, span, err := p.tryReadGeneric()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
-			return nil, err
+			p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+			p.syncToBlockStart()
+			return
 		}
 		ent.Generic = gen
 	}
 
 	preTags := p.tryReadTags()
-	stereo, err := p.tryParseStereotype()
+	stereo, span, err := p.tryParseStereotype()
 	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
-		return nil, err
+		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.syncToBlockStart()
+		return
 	}
 	ent.Stereotype = stereo
 	postTags := p.tryReadTags()
@@ -95,14 +88,28 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 	}
 
 	ent.Color = p.tryParseColor()
+}
 
-	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
-		// No body return entity as is
-		return ent, nil
+// tok is the kind of an entity (class, interface, struct, enum, etc.)
+func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
+	ent := &ast.Entity{
+		Kind: p.mapTokenToEntityKind(tok),
 	}
+
+	p.parseEntityHeader(ent)
+
+	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
+	if !ok {
+		// No body return entity as is
+		return ent
+	}
+
+	ent.LBrace = lbraceTok.Span.Start
 
 	p.stream.EmitCommentToks()
 	ent.TrailingTrivia = p.dumpTrivia()
+
+	unclosedBlockErr := ast.NewUnclosedBlockError("class", "}")
 
 	// We are inside a body
 	for {
@@ -112,7 +119,11 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 			}
 		}
 
-		if p.stream.AssertAnyType(tokenizer.EOF, tokenizer.RBRACE) {
+		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
+			// place unclosed block diagnostic on the opener of the block
+			p.recordDiagnostic(p.newDiagnosticError(unclosedBlockErr, lbraceTok.Span, ent))
+			break
+		} else if p.stream.AssertType(tokenizer.RBRACE) {
 			break
 		}
 
@@ -123,19 +134,13 @@ func (p *Parser) parseEntity(tok tokenizer.Token) (ast.Statement, error) {
 		ent.Members = append(ent.Members, member)
 	}
 
-	if p.stream.AssertType(tokenizer.EOF) {
-		p.recordDiagnostic(&ast.Diagnostic{
-			ID:      len(p.ast.Diagnostics),
-			Message: tokenizer.ErrUnexpectedEOF.Error(),
-			Span:    p.stream.LastSemanticToken().Span,
-			Err:     tokenizer.ErrUnexpectedEOF,
-		})
-		return nil, tokenizer.ErrUnexpectedEOF
+	rbraceTok, ok := p.stream.TryConsumeType(tokenizer.RBRACE)
+	if !ok {
+		return ent
 	}
+	ent.RBrace = rbraceTok.Span.Start
 
-	p.stream.TryConsumeType(tokenizer.RBRACE)
-
-	return ent, nil
+	return ent
 }
 
 func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {

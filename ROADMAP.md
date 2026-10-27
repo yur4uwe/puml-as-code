@@ -86,6 +86,8 @@ Any downstream pass can match `errors.Is(diag, parser.ErrUnclosedBlock)` uniform
 
 ### 2.3 Error Recovery Policy & Synchronization Strategies
 
+Inspired by JBlow and LEGENDARY game programmer Casey Muratori
+
 ```mermaid
 flowchart TD
     Error["Syntax / Framing Violation"] --> Scope{"Scope Level"}

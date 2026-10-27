@@ -571,12 +571,6 @@ func TestParseRelationship_Valid(t *testing.T) {
 	}
 }
 
-type expectedDiag struct {
-	Severity ast.Severity
-	Msg      string
-	Span     tokenizer.SourceSpan
-}
-
 func TestParseRelationship_Invalid(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -842,15 +836,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 			firstTok := p.stream.Emit()
 			rel := p.parseRelationship(firstTok)
 			assertASTEqual(t, tc.want, rel)
-
-			require.Len(t, p.ast.Diagnostics, len(tc.wantDiags))
-			for i, wantD := range tc.wantDiags {
-				gotD := p.ast.Diagnostics[i]
-				require.Equal(t, wantD.Severity, gotD.Severity)
-				require.Contains(t, gotD.Message, wantD.Msg)
-				require.Equal(t, wantD.Span, gotD.Span)
-				require.Equal(t, rel, gotD.Node)
-			}
+			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, rel)
 		})
 	}
 }

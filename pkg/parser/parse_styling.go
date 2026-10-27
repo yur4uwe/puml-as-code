@@ -50,7 +50,7 @@ func (p *Parser) parseSkinparamTarget(firstTok tokenizer.Token) ([]tokenizer.Tok
 				return tokens, stereo, NewParserError(nextTok, "multiple stereotypes")
 			}
 			var err error
-			stereo, err = p.tryParseStereotype()
+			stereo, _, err = p.tryParseStereotype()
 			if errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 				return tokens, stereo, NewParserError(nextTok, "unexpected token in stereotype target declaration")
 			}
@@ -68,7 +68,7 @@ func (p *Parser) parseSkinparamTarget(firstTok tokenizer.Token) ([]tokenizer.Tok
 	}
 	if stereo == nil {
 		var err error
-		stereo, err = p.tryParseStereotype()
+		stereo, _, err = p.tryParseStereotype()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 			return tokens, nil, err
 		}

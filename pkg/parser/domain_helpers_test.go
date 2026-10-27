@@ -60,7 +60,7 @@ func TestTryParseStereotype(t *testing.T) {
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			stereo, err := p.tryParseStereotype()
+			stereo, _, err := p.tryParseStereotype()
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedValueStr, stereo.Value.Literal)
 			require.Equal(t, tc.expectedSpotRune, stereo.SpotRune)
@@ -72,13 +72,15 @@ func TestTryParseStereotype(t *testing.T) {
 func TestTryReadGeneric(t *testing.T) {
 	p := newParserForTest("<T> <T, U>")
 
-	gen, err := p.tryReadGeneric()
+	gen, span, err := p.tryReadGeneric()
 	require.NoError(t, err)
 	require.Equal(t, "T", gen)
+	require.NotZero(t, span, "expected span to be non-zero")
 
-	gen, err = p.tryReadGeneric()
+	gen, span, err = p.tryReadGeneric()
 	require.NoError(t, err)
 	require.Equal(t, "T, U", gen)
+	require.NotZero(t, span, "expected span to be non-zero")
 }
 
 func TestTryReadClassSeparator(t *testing.T) {

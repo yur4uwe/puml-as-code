@@ -76,7 +76,7 @@ func stripValue(val reflect.Value) reflect.Value {
 		return newMap
 
 	case reflect.Struct:
-		if val.Type() == reflect.TypeOf(tokenizer.SourceSpan{}) {
+		if val.Type() == reflect.TypeFor[tokenizer.SourceSpan]() || val.Type() == reflect.TypeFor[tokenizer.Pos]() {
 			return reflect.Zero(val.Type())
 		}
 
@@ -159,4 +159,50 @@ func tokStereo(lit string) *ast.Stereotype {
 	return &ast.Stereotype{
 		Value: ast.Ident{Literal: lit},
 	}
+}
+
+type expectedDiag struct {
+	Severity ast.Severity
+	Msg      string
+	Span     tokenizer.SourceSpan
+}
+
+func assertDiagsEqual(t *testing.T, expected []expectedDiag, actual ast.DiagnosticList, brokenNode ast.Node) {
+	t.Helper()
+	require.Len(t, actual, len(expected))
+	for i, wantD := range expected {
+		gotD := actual[i]
+		require.Equal(t, wantD.Severity, gotD.Severity)
+		require.Contains(t, gotD.Message, wantD.Msg)
+		if wantD.Span != (tokenizer.SourceSpan{}) {
+			require.Equal(t, wantD.Span, gotD.Span)
+		}
+		require.Equal(t, brokenNode, gotD.Node)
+	}
+}
+
+func assertBlockClosed(t *testing.T, node ast.Node) {
+	t.Helper()
+	b, ok := node.(ast.Block)
+	require.True(t, ok, "expected node %T to implement ast.Block", node)
+	require.True(t, b.HasBody(), "expected block to have an opened body")
+	require.True(t, b.IsClosed(), "expected block to be closed")
+}
+
+// assertBlockUnclosed verifies that a node opened a body but reached EOF/boundary without closing.
+func assertBlockUnclosed(t *testing.T, node ast.Node) {
+	t.Helper()
+	b, ok := node.(ast.Block)
+	require.True(t, ok, "expected node %T to implement ast.Block", node)
+	require.True(t, b.HasBody(), "expected block to have an opened body")
+	require.False(t, b.IsClosed(), "expected block to remain unclosed")
+}
+
+// assertBlockBodyless verifies that a node declared no body.
+func assertBlockBodyless(t *testing.T, node ast.Node) {
+	t.Helper()
+	b, ok := node.(ast.Block)
+	require.True(t, ok, "expected node %T to implement ast.Block", node)
+	require.False(t, b.HasBody(), "expected block to have no body")
+	require.True(t, b.IsClosed(), "expected bodyless block to be considered closed")
 }

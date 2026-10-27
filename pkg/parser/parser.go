@@ -210,7 +210,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Protocol,
 		keyword.Entity:
 		// Class-like Entities
-		return p.parseEntity(tok)
+		return p.parseEntity(tok), nil
 	// Containers
 	case keyword.Package,
 		keyword.Together,
