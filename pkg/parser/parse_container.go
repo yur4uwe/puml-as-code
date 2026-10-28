@@ -31,12 +31,20 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (*ast.Container, error) {
 		if err != nil {
 			return nil, err
 		}
-		preTags := p.tryReadTags()
+		var preTags []string
+		preTags, _, err = p.tryReadTags()
+		if err != nil {
+			return nil, err
+		}
 		container.Stereotype, _, err = p.tryParseStereotype()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 			return nil, err
 		}
-		postTags := p.tryReadTags()
+		var postTags []string
+		postTags, _, err = p.tryReadTags()
+		if err != nil {
+			return nil, err
+		}
 		if len(preTags) > 0 {
 			if len(postTags) > 0 {
 				log.Printf("warning: tags %v after stereotype on container %q are ignored in favor of pre-stereotype tags %v\n", postTags, container.Identifier.EntityName(), preTags)

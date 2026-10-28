@@ -29,7 +29,7 @@ func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, er
 	start := []tokenizer.TokenType{tokenizer.LANGLE, tokenizer.LANGLE}
 	end := []tokenizer.TokenType{tokenizer.RANGLE, tokenizer.RANGLE}
 
-	toks, span, err := p.stream.ReadTokensBetween(start, end)
+	toks, span, err := p.stream.ReadTokensBetween(start, end, tokenizer.LBRACE)
 	if err != nil {
 		return nil, p.Span(mark), err
 	}
@@ -126,7 +126,7 @@ func parseColor(toks []tokenizer.Token) (string, error) {
 func (p *Parser) tryReadGeneric() (string, tokenizer.SourceSpan, error) {
 	start := []tokenizer.TokenType{tokenizer.LANGLE}
 	end := []tokenizer.TokenType{tokenizer.RANGLE}
-	toks, span, err := p.stream.ReadTokensBetween(start, end)
+	toks, span, err := p.stream.ReadTokensBetween(start, end, tokenizer.LBRACE)
 	if err != nil {
 		return "", tokenizer.SourceSpan{}, err
 	}
@@ -213,17 +213,17 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 	return sep, nil
 }
 
-func (p *Parser) tryReadTags() []string {
+func (p *Parser) tryReadTags() ([]string, tokenizer.SourceSpan, error) {
 	var tags []string
 	for p.stream.AssertType(tokenizer.DOLLAR) {
-		p.stream.Emit() // consume $
+		dollarTok := p.stream.Emit() // consume $
 		tagTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
-			break
+			return nil, dollarTok.Span, NewParserError(dollarTok, "expected identifier after '$' for tag")
 		}
 		tags = append(tags, tagTok.Literal)
 	}
-	return tags
+	return tags, tokenizer.SourceSpan{}, nil
 }
 
 type Mark struct {

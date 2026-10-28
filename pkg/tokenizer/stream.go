@@ -381,7 +381,8 @@ var (
 
 // ReadTokensBetween handles bracketed sequences (e.g. <<...>>, {...}, <...>),
 // returning the enclosed tokens and the full source span enclosing both start and end markers.
-func (ts *TokenStream) ReadTokensBetween(start, end []TokenType) ([]Token, SourceSpan, error) {
+// Optional stopTokens immediately abort collection with ErrUnexpectedEOF before consuming the stop token.
+func (ts *TokenStream) ReadTokensBetween(start, end []TokenType, stopTokens ...TokenType) ([]Token, SourceSpan, error) {
 	// 1. Check if start markers match
 	if !ts.AssertTypeSeq(start...) {
 		return nil, SourceSpan{}, ErrStartMarkerNotFound
@@ -396,7 +397,7 @@ func (ts *TokenStream) ReadTokensBetween(start, end []TokenType) ([]Token, Sourc
 	// 3. Read content until end markers
 	var collected []Token
 	for {
-		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
+		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) || (len(stopTokens) > 0 && ts.AssertAnyType(stopTokens...)) {
 			return nil, SourceSpan{}, ErrUnexpectedEOF
 		}
 

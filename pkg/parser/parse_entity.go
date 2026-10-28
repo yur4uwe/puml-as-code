@@ -69,7 +69,13 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 		ent.Generic = gen
 	}
 
-	preTags := p.tryReadTags()
+	preTags, span, err := p.tryReadTags()
+	if err != nil {
+		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.syncToBlockStart()
+		return
+	}
+
 	stereo, span, err := p.tryParseStereotype()
 	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
 		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
@@ -77,7 +83,14 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 		return
 	}
 	ent.Stereotype = stereo
-	postTags := p.tryReadTags()
+
+	postTags, span, err := p.tryReadTags()
+	if err != nil {
+		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.syncToBlockStart()
+		return
+	}
+
 	if len(preTags) > 0 {
 		if len(postTags) > 0 {
 			log.Printf("warning: tags %v after stereotype on entity %q are ignored in favor of pre-stereotype tags %v\n", postTags, ent.Identifier.EntityName(), preTags)
@@ -100,7 +113,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 
 	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
 	if !ok {
-		// No body return entity as is
+		// No body, return entity as is
 		return ent
 	}
 
