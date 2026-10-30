@@ -127,13 +127,89 @@
           "Offset": 208
         }
       },
-      "Identifier": "User",
+      "Identifier": {
+        "Name": {
+          "Literal": "User",
+          "Span": {
+            "Start": {
+              "Line": 9,
+              "Col": 7,
+              "Offset": 134
+            },
+            "End": {
+              "Line": 9,
+              "Col": 11,
+              "Offset": 138
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
-      "Stereotype": "Entity",
+      "Stereotype": {
+        "Value": {
+          "Literal": "Entity",
+          "Span": {
+            "Start": {
+              "Line": 9,
+              "Col": 30,
+              "Offset": 157
+            },
+            "End": {
+              "Line": 9,
+              "Col": 36,
+              "Offset": 163
+            }
+          }
+        },
+        "SpotSpan": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        },
+        "FullSpan": {
+          "Start": {
+            "Line": 9,
+            "Col": 28,
+            "Offset": 155
+          },
+          "End": {
+            "Line": 9,
+            "Col": 38,
+            "Offset": 165
+          }
+        }
+      },
       "Tags": [
         "critical",
         "auth"
       ],
+      "LBrace": {
+        "Line": 9,
+        "Col": 50,
+        "Offset": 177
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -149,7 +225,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Field": {
             "Name": "id",
             "Type": {
@@ -172,7 +247,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Field": {
             "Name": "name",
             "Type": {
@@ -181,7 +255,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 12,
+        "Col": 1,
+        "Offset": 207
+      }
     },
     {
       "NodeSpan": {
@@ -196,12 +275,88 @@
           "Offset": 273
         }
       },
-      "Identifier": "PaymentService",
+      "Identifier": {
+        "Name": {
+          "Literal": "PaymentService",
+          "Span": {
+            "Start": {
+              "Line": 14,
+              "Col": 7,
+              "Offset": 216
+            },
+            "End": {
+              "Line": 14,
+              "Col": 21,
+              "Offset": 230
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
-      "Stereotype": "Service",
+      "Stereotype": {
+        "Value": {
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 14,
+              "Col": 24,
+              "Offset": 233
+            },
+            "End": {
+              "Line": 14,
+              "Col": 31,
+              "Offset": 240
+            }
+          }
+        },
+        "SpotSpan": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        },
+        "FullSpan": {
+          "Start": {
+            "Line": 14,
+            "Col": 22,
+            "Offset": 231
+          },
+          "End": {
+            "Line": 14,
+            "Col": 33,
+            "Offset": 242
+          }
+        }
+      },
       "Tags": [
         "billing"
       ],
+      "LBrace": {
+        "Line": 14,
+        "Col": 43,
+        "Offset": 252
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -217,7 +372,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "Charge",
             "ReturnType": [
@@ -230,7 +384,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 16,
+        "Col": 1,
+        "Offset": 272
+      }
     },
     {
       "NodeSpan": {
@@ -245,11 +404,47 @@
           "Offset": 325
         }
       },
-      "Identifier": "InternalHelper",
+      "Identifier": {
+        "Name": {
+          "Literal": "InternalHelper",
+          "Span": {
+            "Start": {
+              "Line": 18,
+              "Col": 7,
+              "Offset": 281
+            },
+            "End": {
+              "Line": 18,
+              "Col": 21,
+              "Offset": 295
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
       "Tags": [
         "internal"
       ],
+      "LBrace": {
+        "Line": 18,
+        "Col": 32,
+        "Offset": 306
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -265,19 +460,59 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "HelperFunc"
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 20,
+        "Col": 1,
+        "Offset": 324
+      }
     },
     {
-      "Identifier": "Services",
+      "Identifier": {
+        "Name": {
+          "Literal": "Services",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 9,
+              "Offset": 335
+            },
+            "End": {
+              "Line": 22,
+              "Col": 17,
+              "Offset": 343
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "package",
       "Tags": [
         "backend"
       ],
+      "LBrace": {
+        "Line": 22,
+        "Col": 27,
+        "Offset": 353
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -292,11 +527,47 @@
               "Offset": 394
             }
           },
-          "Identifier": "Gateway",
+          "Identifier": {
+            "Name": {
+              "Literal": "Gateway",
+              "Span": {
+                "Start": {
+                  "Line": 23,
+                  "Col": 9,
+                  "Offset": 363
+                },
+                "End": {
+                  "Line": 23,
+                  "Col": 16,
+                  "Offset": 370
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
           "Tags": [
             "api"
           ],
+          "LBrace": {
+            "Line": 23,
+            "Col": 22,
+            "Offset": 376
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -312,14 +583,23 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Method": {
                 "Name": "Route"
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 25,
+            "Col": 3,
+            "Offset": 393
+          }
         }
       ],
+      "RBrace": {
+        "Line": 26,
+        "Col": 1,
+        "Offset": 395
+      },
       "NodeSpan": {
         "Start": {
           "Line": 22,

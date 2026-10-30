@@ -79,7 +79,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 			blockNum++
 
-			startBound, err = p.readDiagramBounds()
+			startBound, err = p.readStartBounds()
 			if err != nil {
 				return nil, err
 			} else if !startBound.IsStart {
@@ -112,31 +112,19 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 	for {
 		// End condition check should be before consuming a token to avoid swallowing '@'
-		if !p.IsBoundless && p.isEndMarker() {
-			boundLeading := p.stream.DumpCollectedTrivia()
-			endBound, err := p.readDiagramBounds()
-			if err != nil {
-				return nil, err
-			}
-			if endBound.IsStart {
-				return nil, NewParserError(p.stream.PeekTokenAt(0), "Unexpected diagram end marker")
-			}
-			if endBound.Type != startBound.Type {
-				return nil, NewParserError(p.stream.PeekTokenAt(0), "Types of starting and ending markers don't match")
-			}
-			endBound.LeadingTrivia = boundLeading
-			p.stream.EmitCommentToks()
-			endBound = ast.WithMetadata(endBound, endBound.NodeSpan, p.stream.DumpCollectedTrivia())
-			p.ast.Statements = append(p.ast.Statements, endBound)
-			break
-		}
-
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
 			if p.IsBoundless {
 				break
 			}
-			return p.ast, WrapParserError(tok, tokenizer.ErrUnexpectedEOF)
+			eofDiagnst := &ast.Diagnostic{
+				ID:      len(p.ast.Diagnostics),
+				Message: tokenizer.ErrUnexpectedEOF.Error(),
+				Span:    p.stream.LastSemanticToken().Span,
+				Err:     tokenizer.ErrUnexpectedEOF,
+			}
+			p.recordDiagnostic(eofDiagnst)
+			break
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
 			// If the newline is relevant it will be consumed
@@ -154,31 +142,21 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// Handle comments
 		// Handle Identifiers
 
-		mark := p.Mark(tok)
-
-		stmt, err := p.parseDiagramOnlyStatement(tok)
-		if err != nil {
-			return nil, err
+		stmt := p.routeDiagramStatement(tok)
+		p.ast.Statements = append(p.ast.Statements, stmt)
+		if endBound, ok := stmt.(*ast.DiagramBound); ok && !endBound.IsStart {
+			if endBound.Type != startBound.Type {
+				msg := fmt.Errorf("types of starting and ending markers don't match")
+				p.recordDiagnostic(&ast.Diagnostic{
+					ID:      len(p.ast.Diagnostics),
+					Message: msg.Error(),
+					Span:    endBound.NodeSpan,
+					Node:    endBound,
+					Err:     msg,
+				})
+			}
+			break
 		}
-		if stmt != nil {
-			p.stream.EmitCommentToks()
-			stmt = ast.WithMetadata(stmt, p.Span(mark), p.stream.DumpCollectedTrivia())
-			p.ast.Statements = append(p.ast.Statements, stmt)
-			continue
-		}
-
-		stmt, err = p.parseContainerStatement(tok)
-		if err != nil {
-			return nil, err
-		}
-		if stmt != nil {
-			p.stream.EmitCommentToks()
-			stmt = ast.WithMetadata(stmt, p.Span(mark), p.stream.DumpCollectedTrivia())
-			p.ast.Statements = append(p.ast.Statements, stmt)
-			continue
-		}
-
-		return nil, NewParserError(tok, "Unexpected token")
 	}
 
 	if p.TargetID == "" {
@@ -190,6 +168,9 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		}
 	}
 
+	if p.ast.HasErrors() {
+		return p.ast, p.ast.Diagnostics
+	}
 	return p.ast, nil
 }
 
@@ -198,8 +179,8 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		return p.parseDirective(tok)
 	}
 
-	if p.HasArrowOnLine() {
-		return p.parseRelationship(tok)
+	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {
+		return stmt, err
 	}
 
 	switch keyword.Classify(tok.Literal) {
@@ -229,7 +210,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Protocol,
 		keyword.Entity:
 		// Class-like Entities
-		return p.parseEntity(tok)
+		return p.parseEntity(tok), nil
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -240,7 +221,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		return p.parseContainer(tok)
+		return p.parseContainer(tok), nil
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
 		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
@@ -248,15 +229,13 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		return p.parseNote(tok)
 	}
 
-	switch tok.Type {
-	case tokenizer.IDENTIFIER:
-		return p.parseInlineMember(tok)
-	default:
-		return nil, nil
-	}
+	return nil, nil
 }
 
 func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {
+	if !p.IsBoundless && p.isDiagramEndMarker(tok) {
+		return p.readEndBounds(tok)
+	}
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
 		return p.parseStyleBlock(tok)
 	}
@@ -264,8 +243,8 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.parseDirective(tok)
 	}
 
-	if p.HasArrowOnLine() {
-		return p.parseRelationship(tok)
+	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {
+		return stmt, err
 	}
 
 	switch keyword.Classify(tok.Literal) {

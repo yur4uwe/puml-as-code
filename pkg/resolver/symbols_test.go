@@ -52,8 +52,8 @@ User --> Order
 	require.NotNil(t, user)
 	require.Equal(t, "User", user.FQN)
 	require.NotNil(t, user.AST)
-	require.Equal(t, "\"User Entity\"", user.AST.Alias)
-	require.Equal(t, "User", user.AST.Identifier)
+	require.Equal(t, "\"User Entity\"", user.AST.Alias.Literal)
+	require.Equal(t, "User", user.AST.Identifier.EntityName())
 
 	require.Len(t, tbl.Relationships, 1)
 	require.Equal(t, user, tbl.Relationships[0].Source)
@@ -150,7 +150,8 @@ class Service {
 	svc := tbl.Lookup("Service")
 	require.NotNil(t, svc)
 	require.NotNil(t, svc.AST)
-	require.Equal(t, "API", svc.AST.Stereotype)
+	require.NotNil(t, svc.AST.Stereotype)
+	require.Equal(t, "API", svc.AST.Stereotype.Value.Literal)
 	require.Equal(t, "#red", svc.AST.Color)
 	require.Len(t, svc.AST.Members, 4, "expected members from both class bodies to be merged")
 }

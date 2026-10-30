@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/tokenizer"
@@ -459,72 +460,71 @@ func TestParseArrowTokens(t *testing.T) {
 	}
 }
 
-func TestParseRelationship(t *testing.T) {
+func TestParseRelationship_Valid(t *testing.T) {
 	tests := []struct {
-		name      string
-		input     string
-		want      ast.Relationship
-		expectErr bool
+		name  string
+		input string
+		want  ast.Relationship
 	}{
 		{
 			name:  "composition left-headed without right arrowhead",
 			input: "Car *-- Engine",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "Car"},
+				LHS:       identRef("Car"),
 				LArrow:    '*',
 				Body:      '-',
 				BodyCount: 2,
 				TypeLHS:   ast.RelationComposition,
-				RHS:       ast.TargetRef{Entity: "Engine"},
+				RHS:       identRef("Engine"),
 			},
 		},
 		{
 			name:  "aggregation left-headed without right arrowhead",
 			input: "Car o-- Wheel",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "Car"},
+				LHS:       identRef("Car"),
 				LArrow:    'o',
 				Body:      '-',
 				BodyCount: 2,
 				TypeLHS:   ast.RelationAggregation,
-				RHS:       ast.TargetRef{Entity: "Wheel"},
+				RHS:       identRef("Wheel"),
 			},
 		},
 		{
 			name:  "inheritance left-headed without right arrowhead",
 			input: "Vehicle <|-- Car",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "Vehicle"},
+				LHS:       identRef("Vehicle"),
 				LArrow:    '|',
 				Body:      '-',
 				BodyCount: 2,
 				TypeLHS:   ast.RelationInheritance,
-				RHS:       ast.TargetRef{Entity: "Car"},
+				RHS:       identRef("Car"),
 			},
 		},
 		{
 			name:  "composition with multiplicity on target",
 			input: "Car *-- \"1..*\" Engine",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "Car"},
+				LHS:       identRef("Car"),
 				LArrow:    '*',
 				Body:      '-',
 				BodyCount: 2,
 				TypeLHS:   ast.RelationComposition,
 				MultRHS:   ast.Cardinality{Raw: "1..*", Min: 1, Max: -1},
-				RHS:       ast.TargetRef{Entity: "Engine"},
+				RHS:       identRef("Engine"),
 			},
 		},
 		{
 			name:  "association with label",
 			input: "User --> Service : uses",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "User"},
+				LHS:       identRef("User"),
 				Body:      '-',
 				RArrow:    '>',
 				BodyCount: 2,
 				TypeRHS:   ast.RelationAssociation,
-				RHS:       ast.TargetRef{Entity: "Service"},
+				RHS:       identRef("Service"),
 				Label:     "uses",
 			},
 		},
@@ -532,12 +532,29 @@ func TestParseRelationship(t *testing.T) {
 			name:  "realization with right arrowhead",
 			input: "User ..|> Greeter",
 			want: ast.Relationship{
-				LHS:       ast.TargetRef{Entity: "User"},
+				LHS:       identRef("User"),
 				Body:      '.',
 				RArrow:    '|',
 				BodyCount: 2,
 				TypeRHS:   ast.RelationRealization,
-				RHS:       ast.TargetRef{Entity: "Greeter"},
+				RHS:       identRef("Greeter"),
+			},
+		},
+		{
+			name:  "relationship with trailing colon and empty label",
+			input: "A --> B : ",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Label:     "",
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 3, Offset: 2},
+					End:   tokenizer.Pos{Col: 5, Offset: 4},
+				},
 			},
 		},
 	}
@@ -548,15 +565,279 @@ func TestParseRelationship(t *testing.T) {
 				stream: tokenizer.NewTokenStream(tc.input),
 			}
 			firstTok := p.stream.Emit()
-			require.True(t, p.HasArrowOnLine(), "HasArrowOnLine should be true for %s", tc.input)
 
-			rel, err := p.parseRelationship(firstTok)
-			if tc.expectErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				assertASTEqual(t, tc.want, rel)
+			rel := p.parseRelationship(firstTok)
+			testutil.SemanticEqual(t, tc.want, rel)
+		})
+	}
+}
+
+func TestParseRelationship_Invalid(t *testing.T) {
+	tests := []struct {
+		name      string
+		input     string
+		want      *ast.Relationship
+		wantDiags []expectedDiag
+	}{
+		{
+			name:  "trailing single dash without RHS (A -)",
+			input: "A -",
+			want: &ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				BodyCount: 1,
+				TypeLHS:   ast.RelationAssociation,
+				TypeRHS:   ast.RelationAssociation,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 3, Offset: 2},
+					End:   tokenizer.Pos{Col: 3, Offset: 2},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Expected identifier or string after relationship",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 4, Offset: 3},
+						End:   tokenizer.Pos{Col: 4, Offset: 3},
+					},
+				},
+			},
+		},
+		{
+			name:  "unclosed color attribute in arrow (A -[#red)",
+			input: "A -[#red",
+			want: &ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 3, Offset: 2},
+					End:   tokenizer.Pos{Col: 3, Offset: 2},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Unexpected break in relationship attribute container",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 9, Offset: 8},
+						End:   tokenizer.Pos{Col: 9, Offset: 8},
+					},
+				},
+			},
+		},
+		{
+			name:  "unknown direction between dashes (A -unknown- B)",
+			input: "A -unknown- B",
+			want: &ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 3, Offset: 2},
+					End:   tokenizer.Pos{Col: 3, Offset: 2},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Unexpected identifier in relationship definition, did you mean to write a direction?",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 4, Offset: 3},
+						End:   tokenizer.Pos{Col: 11, Offset: 10},
+					},
+				},
+			},
+		},
+		{
+			name:  "missing RHS after multiplicities (A \"1\" --> \"*\")",
+			input: `A "1" --> "*"`,
+			want: &ast.Relationship{
+				LHS:       identRef("A"),
+				MultLHS:   ast.Cardinality{Raw: "1", Min: 1, Max: 1},
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				MultRHS:   ast.Cardinality{Raw: "*", Min: 0, Max: -1},
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 7, Offset: 6},
+					End:   tokenizer.Pos{Col: 9, Offset: 8},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Expected identifier or string after relationship",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 14, Offset: 13},
+						End:   tokenizer.Pos{Col: 14, Offset: 13},
+					},
+				},
+			},
+		},
+		{
+			name:  "no relationship RHS",
+			input: "User -->",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Expected identifier or string after relationship",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 9, Offset: 8},
+						End:   tokenizer.Pos{Col: 9, Offset: 8},
+					},
+				},
+			},
+		},
+		{
+			name:  "different body runes in arrow",
+			input: "User --..> Order",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 2,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Different body type runes in relationship",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 8, Offset: 7},
+						End:   tokenizer.Pos{Col: 9, Offset: 8},
+					},
+				},
+			},
+		},
+		{
+			name:  "misspelled direction in arrow",
+			input: "User -leftt-> Order",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 6, Offset: 6},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Unexpected identifier in relationship definition, did you mean to write a direction?",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 7, Offset: 6},
+						End:   tokenizer.Pos{Col: 12, Offset: 11},
+					},
+				},
+			},
+		},
+		{
+			name:  "unclosed bracket in arrow attributes",
+			input: "User -[bold",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 6, Offset: 6},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Unexpected break in relationship attribute container",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 12, Offset: 11},
+						End:   tokenizer.Pos{Col: 12, Offset: 11},
+					},
+				},
+			},
+		},
+		{
+			name:  "invalid multiplicity syntax emits info diagnostic and continues",
+			input: `User "invalid_mult" --> "1" Order`,
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				MultLHS:   ast.UnknownCardinality,
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				MultRHS:   ast.Cardinality{Raw: "1", Min: 1, Max: 1},
+				RHS:       identRef("Order"),
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 20, Offset: 20},
+					End:   tokenizer.Pos{Col: 22, Offset: 22},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityInfo,
+					Msg:      "incorrect multiplicity syntax",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 6, Offset: 5},
+						End:   tokenizer.Pos{Col: 20, Offset: 19},
+					},
+				},
+			},
+		},
+		{
+			name:  "trailing junk after relationship",
+			input: "User --> Order extra_junk",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Order"),
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "Expected newline or colon after relationship",
+					Span: tokenizer.SourceSpan{
+						Start: tokenizer.Pos{Col: 16, Offset: 15},
+						End:   tokenizer.Pos{Col: 26, Offset: 25},
+					},
+				},
+			},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := &Parser{
+				Dialect: dialect.NewGoDialect(),
+				stream:  tokenizer.NewTokenStream(tc.input),
+				ast:     &ast.Diagram{},
 			}
+			firstTok := p.stream.Emit()
+			rel := p.parseRelationship(firstTok)
+			testutil.SemanticEqual(t, tc.want, rel)
+			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, rel)
 		})
 	}
 }
@@ -570,37 +851,40 @@ func TestParseTargetRef(t *testing.T) {
 		{
 			name:  "simple entity",
 			input: "Client",
-			want:  ast.TargetRef{Entity: "Client"},
+			want:  identRef("Client"),
 		},
 		{
 			name:  "package path and entity",
 			input: "net.http.Client",
-			want:  ast.TargetRef{PackagePath: []string{"net", "http"}, Entity: "Client"},
+			want:  identRef("Client", "net", "http"),
 		},
 		{
 			name:  "entity and simple member",
 			input: "Client::Do",
-			want:  ast.TargetRef{Entity: "Client", Member: "Do"},
+			want:  identRefMember("Client", "Do"),
 		},
 		{
 			name:  "entity and method parens",
 			input: "Client::Do()",
-			want:  ast.TargetRef{Entity: "Client", Member: "Do()"},
+			want: identRefMethod("Client", "Do", []tokenizer.Token{
+				{Type: tokenizer.LPAREN, Literal: "("},
+				{Type: tokenizer.RPAREN, Literal: ")"},
+			}),
 		},
 		{
 			name:  "entity and method with parameters",
 			input: `Client::"Do(req Request)"`,
-			want:  ast.TargetRef{Entity: "Client", Member: "Do(req Request)"},
+			want:  identRefStringMember("Client", "Do(req Request)"),
 		},
 		{
 			name:  "package path entity and method in quotes",
 			input: `net.http.Client::"Do(Context)"`,
-			want:  ast.TargetRef{PackagePath: []string{"net", "http"}, Entity: "Client", Member: "Do(Context)"},
+			want:  identRefStringMember("Client", "Do(Context)", "net", "http"),
 		},
 		{
 			name:  "package separator follows the entity but not a part of it",
 			input: "Foo ..|> Bar",
-			want:  ast.TargetRef{Entity: "Foo"},
+			want:  identRef("Foo"),
 		},
 	}
 
@@ -614,8 +898,7 @@ func TestParseTargetRef(t *testing.T) {
 			firstTok := p.stream.Emit()
 			got, err := p.parseTargetRef(firstTok)
 			require.NoError(t, err)
-			require.Equal(t, tc.want, got)
+			testutil.SemanticEqual(t, tc.want, got)
 		})
 	}
 }
-

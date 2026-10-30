@@ -31,6 +31,11 @@
           "Offset": 111
         }
       },
+      "RAngle": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -48,6 +53,11 @@
           "Selectors": [
             "class"
           ],
+          "LBrace": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
           "Statements": [
             {
               "NodeSpan": {
@@ -97,9 +107,19 @@
               "Property": "BackgroundColor",
               "Value": "#FF0000"
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
         }
-      ]
+      ],
+      "LAngle": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      }
     },
     {
       "NodeSpan": {
@@ -114,8 +134,44 @@
           "Offset": 150
         }
       },
-      "Identifier": "Component",
+      "Identifier": {
+        "Name": {
+          "Literal": "Component",
+          "Span": {
+            "Start": {
+              "Line": 10,
+              "Col": 7,
+              "Offset": 119
+            },
+            "End": {
+              "Line": 10,
+              "Col": 16,
+              "Offset": 128
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 10,
+        "Col": 17,
+        "Offset": 129
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -131,7 +187,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "Execute",
             "ReturnType": [
@@ -144,7 +199,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 12,
+        "Col": 1,
+        "Offset": 149
+      }
     },
     {
       "IsStart": false,

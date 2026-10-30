@@ -11,6 +11,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func targetRefName(name string) ast.TargetRef {
+	return ast.TargetRef{
+		Name: ast.Ident{
+			Literal: name,
+		},
+	}
+}
+
 func TestTargetTypeName(t *testing.T) {
 	tt := []struct {
 		name   string
@@ -24,7 +32,7 @@ func TestTargetTypeName(t *testing.T) {
 			target: &resolver.EntitySymbol{
 				FQN: "models.User",
 				AST: &ast.Entity{
-					Identifier: "User",
+					Identifier: targetRefName("User"),
 				},
 				PackagePath: []string{"models"},
 			},
@@ -36,7 +44,7 @@ func TestTargetTypeName(t *testing.T) {
 			target: &resolver.EntitySymbol{
 				FQN: "models.User",
 				AST: &ast.Entity{
-					Identifier: "User",
+					Identifier: targetRefName("User"),
 				},
 				PackagePath: []string{"models"},
 			},
@@ -48,7 +56,7 @@ func TestTargetTypeName(t *testing.T) {
 			target: &resolver.EntitySymbol{
 				FQN: "models.User",
 				AST: &ast.Entity{
-					Identifier: "User",
+					Identifier: targetRefName("User"),
 				},
 				PackagePath: []string{"models"},
 			},
@@ -62,7 +70,7 @@ func TestTargetTypeName(t *testing.T) {
 			target: &resolver.EntitySymbol{
 				FQN: "User",
 				AST: &ast.Entity{
-					Identifier: "User",
+					Identifier: targetRefName("User"),
 				},
 				PackagePath: []string{},
 			},
@@ -285,9 +293,9 @@ func TestToTriviaView(t *testing.T) {
 		{
 			name: "leading trivia only",
 			trivia: ast.BaseNode{
-				LeadingTrivia: []tokenizer.Token{
-					{Literal: "Doc comment line 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
-					{Literal: "Doc comment line 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
+				LeadingTrivia: []ast.Comment{
+					{Text: "Doc comment line 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
+					{Text: "Doc comment line 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
 				},
 			},
 			expected: TriviaView{
@@ -298,8 +306,8 @@ func TestToTriviaView(t *testing.T) {
 		{
 			name: "single trailing comment on same line",
 			trivia: ast.BaseNode{
-				TrailingTrivia: []tokenizer.Token{
-					{Literal: "inline field comment", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
+				TrailingTrivia: []ast.Comment{
+					{Text: "inline field comment", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
 				},
 			},
 			expected: TriviaView{
@@ -310,10 +318,10 @@ func TestToTriviaView(t *testing.T) {
 		{
 			name: "multiple trailing comments on same line collapsed with semicolon",
 			trivia: ast.BaseNode{
-				TrailingTrivia: []tokenizer.Token{
-					{Literal: "comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
-					{Literal: "comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
-					{Literal: "comment 3", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
+				TrailingTrivia: []ast.Comment{
+					{Text: "comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
+					{Text: "comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
+					{Text: "comment 3", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 5}}},
 				},
 			},
 			expected: TriviaView{
@@ -324,11 +332,11 @@ func TestToTriviaView(t *testing.T) {
 		{
 			name: "block open and close trailing trivia on separate lines",
 			trivia: ast.BaseNode{
-				TrailingTrivia: []tokenizer.Token{
-					{Literal: "open comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
-					{Literal: "open comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
-					{Literal: "close comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 8}}},
-					{Literal: "close comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 8}}},
+				TrailingTrivia: []ast.Comment{
+					{Text: "open comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
+					{Text: "open comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
+					{Text: "close comment 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 8}}},
+					{Text: "close comment 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 8}}},
 				},
 			},
 			expected: TriviaView{
@@ -350,10 +358,10 @@ func TestToTriviaView(t *testing.T) {
 
 	t.Run("panics on more than 2 distinct trailing trivia lines", func(t *testing.T) {
 		invalidTrivia := ast.BaseNode{
-			TrailingTrivia: []tokenizer.Token{
-				{Literal: "line 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
-				{Literal: "line 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
-				{Literal: "line 3", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 3}}},
+			TrailingTrivia: []ast.Comment{
+				{Text: "line 1", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
+				{Text: "line 2", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 2}}},
+				{Text: "line 3", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 3}}},
 			},
 		}
 		require.Panics(t, func() {
@@ -365,7 +373,7 @@ func TestToTriviaView(t *testing.T) {
 func TestVisibilityMapping(t *testing.T) {
 	owner := &resolver.EntitySymbol{
 		FQN: "Account",
-		AST: &ast.Entity{Identifier: "Account"},
+		AST: &ast.Entity{Identifier: targetRefName("Account")},
 	}
 
 	t.Run("field visibility", func(t *testing.T) {
@@ -407,8 +415,8 @@ func TestVisibilityMapping(t *testing.T) {
 
 		fPrivateWithComment := toFieldView(owner, &ast.FieldDeclaration{
 			BaseNode: ast.BaseNode{
-				TrailingTrivia: []tokenizer.Token{
-					{Literal: "must be encrypted", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
+				TrailingTrivia: []ast.Comment{
+					{Text: "must be encrypted", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Line: 1}}},
 				},
 			},
 			Visibility: ast.VisibilityPrivate,

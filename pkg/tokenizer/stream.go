@@ -43,46 +43,44 @@ func NewTokenStream(input string) *TokenStream {
 	}
 }
 
-func (ts *TokenStream) matchPackageSeparatorAt(startIdx int) (int, bool) {
+func (ts *TokenStream) MatchPackageSeparatorAt(startIdx int) (int, bool) {
 	if ts.PackageSeparator == "" {
 		return 0, false
 	}
-	var sb strings.Builder
-	count := 0
-	var prevTok Token
-	hasPrev := false
+	var acc []Token
 	for {
-		tok := ts.PeekRawTokenAt(startIdx + count)
+		accCount := len(acc)
+		tok := ts.PeekRawTokenAt(startIdx + accCount)
 		if tok.Type == EOF || tok.Type == NEWLINE {
 			break
 		}
-		if hasPrev {
-			if tok.Span.Start.Offset != prevTok.Span.End.Offset {
-				break
-			}
+		if ts.IsPackageSeparator(acc) {
+			return accCount, true
 		}
-		sb.WriteString(tok.Literal)
-		count++
-		prevTok = tok
-		hasPrev = true
-		if sb.String() == ts.PackageSeparator {
-			return count, true
-		}
-		if len(sb.String()) >= len(ts.PackageSeparator) {
-			break
-		}
+		acc = append(acc, tok)
 	}
 	return 0, false
 }
 
-// AssertPackageSeparator returns whether the next token or sequence of tokens
-// matches the package separator and length of the sequence.
-func (ts *TokenStream) AssertPackageSeparator() (int, bool) {
-	return ts.matchPackageSeparatorAt(0)
+func (ts *TokenStream) IsPackageSeparator(toks []Token) bool {
+	var sb strings.Builder
+	for i, tok := range toks {
+		if i > 0 && tok.Span.Start.Offset != toks[i-1].Span.End.Offset {
+			return false
+		}
+		sb.WriteString(tok.Literal)
+		if sb.String() == ts.PackageSeparator {
+			return true
+		}
+		if len(sb.String()) >= len(ts.PackageSeparator) {
+			return false
+		}
+	}
+	return false
 }
 
 func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
-	count, ok := ts.matchPackageSeparatorAt(0)
+	count, ok := ts.MatchPackageSeparatorAt(0)
 	if !ok {
 		return "", false
 	}
@@ -270,6 +268,36 @@ func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, er
 	return rawBody, nil
 }
 
+// HasCloserBeforeBoundary peeks forward in the stream without consuming tokens to check
+// whether a line matching delimiterLiterals exists before encountering EOF or @enduml.
+func (ts *TokenStream) HasCloserBeforeBoundary(delimiterLiterals ...string) bool {
+	delim := strings.ToLower(strings.Join(delimiterLiterals, ""))
+	var curLine []Token
+	for i := 0; ; i++ {
+		tok := ts.PeekTokenAt(i)
+		if tok.Type == EOF {
+			break
+		}
+		if tok.Type == NEWLINE {
+			if len(curLine) > 0 {
+				if MatchTokenLine(curLine, delim) {
+					return true
+				}
+				if MatchTokenLine(curLine, "@enduml") {
+					return false
+				}
+			}
+			curLine = curLine[:0]
+			continue
+		}
+		curLine = append(curLine, tok)
+	}
+	if len(curLine) > 0 && MatchTokenLine(curLine, delim) {
+		return true
+	}
+	return false
+}
+
 // Assert checks if the next token matches the given target (Type and Literal if literal is set).
 // Does not emit the token.
 func (ts *TokenStream) Assert(target Token) bool {
@@ -312,7 +340,7 @@ func (ts *TokenStream) AssertSeq(seq []Token) bool {
 	return true
 }
 
-func (ts *TokenStream) AssertTypeSeq(seq []TokenType) bool {
+func (ts *TokenStream) AssertTypeSeq(seq ...TokenType) bool {
 	for i, t := range seq {
 		next := ts.PeekTokenAt(i)
 		if next.Type != t {
@@ -381,13 +409,16 @@ var (
 	ErrScopeDelimiterHit   = errors.New("hit enclosing scope delimiter")
 )
 
-// ReadBetween handles the common pattern of [start markers]...[end markers]
-func (ts *TokenStream) ReadBetween(start, end []Token) (string, error) {
+// ReadTokensBetween handles bracketed sequences (e.g. <<...>>, {...}, <...>),
+// returning the enclosed tokens and the full source span enclosing both start and end markers.
+// Optional stopTokens immediately abort collection with ErrUnexpectedEOF before consuming the stop token.
+func (ts *TokenStream) ReadTokensBetween(start, end []TokenType, stopTokens ...TokenType) ([]Token, SourceSpan, error) {
 	// 1. Check if start markers match
-	if !ts.AssertSeq(start) {
-		return "", ErrStartMarkerNotFound
+	if !ts.AssertTypeSeq(start...) {
+		return nil, SourceSpan{}, ErrStartMarkerNotFound
 	}
 
+	startTok := ts.PeekTokenAt(0)
 	// 2. Consume start markers
 	for range start {
 		ts.Emit()
@@ -396,25 +427,46 @@ func (ts *TokenStream) ReadBetween(start, end []Token) (string, error) {
 	// 3. Read content until end markers
 	var collected []Token
 	for {
-		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) {
-			return "", ErrUnexpectedEOF
+		if ts.AssertType(EOF) || ts.AssertType(NEWLINE) || (len(stopTokens) > 0 && ts.AssertAnyType(stopTokens...)) {
+			return nil, SourceSpan{}, ErrUnexpectedEOF
 		}
 
-		if ts.AssertSeq(end) {
+		if ts.AssertTypeSeq(end...) {
 			break
 		}
 
 		collected = append(collected, ts.Emit())
 	}
 
-	res := ts.SliceInputEnclosingTokens(collected...)
-
-	// Consume end markers
+	// 4. Consume end markers
+	var lastEndTok Token
 	for range end {
-		ts.Emit()
+		lastEndTok = ts.Emit()
 	}
 
-	return res, nil
+	span := SourceSpan{
+		Start: startTok.Span.Start,
+		End:   lastEndTok.Span.End,
+	}
+
+	return collected, span, nil
+}
+
+// ReadBetween handles the common pattern of [start markers]...[end markers]
+func (ts *TokenStream) ReadBetween(start, end []Token) (string, error) {
+	startTypes := make([]TokenType, len(start))
+	for i, t := range start {
+		startTypes[i] = t.Type
+	}
+	endTypes := make([]TokenType, len(end))
+	for i, t := range end {
+		endTypes[i] = t.Type
+	}
+	toks, _, err := ts.ReadTokensBetween(startTypes, endTypes)
+	if err != nil {
+		return "", err
+	}
+	return ts.SliceInputEnclosingTokens(toks...), nil
 }
 
 func (ts *TokenStream) collectUntilNewline(emitter func() Token) []Token {

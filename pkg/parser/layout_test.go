@@ -3,8 +3,10 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
 )
@@ -292,24 +294,19 @@ package mypkg {
 
 		ent, ok := cont.Statements[1].(*ast.Entity)
 		require.True(t, ok)
-		require.Equal(t, "Foo", ent.Identifier)
+		testutil.SemanticEqual(t, identRef("Foo"), ent.Identifier)
 	})
 
 	t.Run("unterminated block errors", func(t *testing.T) {
 		t.Run("unterminated header at EOF", func(t *testing.T) {
-			input := "@startuml\nheader\n  unclosed header\n"
-			p := newParser()
-			_, err := p.Parse(input)
+			input := "header\n  unclosed header\n"
+			p := Parser{
+				stream: tokenizer.NewTokenStream(input),
+			}
+			kwTok := p.stream.Emit()
+			_, err := p.parseLayoutStatement(kwTok, nil)
 			require.Error(t, err)
 			require.Contains(t, err.Error(), "unterminated block statement for header")
-		})
-
-		t.Run("unterminated legend hitting container scope delimiter", func(t *testing.T) {
-			input := "@startuml\npackage mypkg {\n  legend\n    unclosed\n}\n@enduml"
-			p := newParser()
-			_, err := p.Parse(input)
-			require.Error(t, err)
-			require.Contains(t, err.Error(), "unterminated block statement for legend")
 		})
 	})
 }

@@ -8,131 +8,220 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseNote(startTok tokenizer.Token) (*ast.Note, error) {
+func (p *Parser) parseNote(_ tokenizer.Token) (*ast.Note, error) {
+	// has the parameter to match signature
 	// tok is a keyword 'note'
-	note := &ast.Note{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
-		},
-	}
+	note := &ast.Note{}
+
 	tok := p.stream.Emit()
-	var err error
-	if tok.Type == tokenizer.STRING {
-		err = p.parseInlineIdentNote(note, tok)
-	} else {
+	switch tok.Type {
+	case tokenizer.STRING:
+		p.parseInlineIdentNote(note, tok)
+		return note, nil
+	case tokenizer.IDENTIFIER:
 		class := keyword.Classify(tok.Literal)
 		switch class {
 		case keyword.Direction:
-			err = p.parseDirectedNote(note, tok)
+			p.parseDirectedNote(note, tok)
 		case keyword.Position:
-			err = p.parseLinkNote(note, tok)
+			p.parseLinkNote(note, tok)
 		case keyword.Alias:
-			err = p.parseMultilineAliasNote(note)
+			p.parseMultilineAliasNote(note)
 		default:
-			return nil, NewParserErrorf(tok, "expected direction, string, note position or alias after 'note', got %s", class.String())
+			err := NewParserErrorf(tok, "expected direction (left, right etc.), position or alias (as) after 'note', got %s", class.String())
+			p.recordDiagnostic(p.newDiagnosticError(
+				err, tok.Span, note,
+			))
+			p.syncToNoteBody()
+			return note, nil
 		}
+	default:
+		err := NewParserError(tok, "unexpected token in note definition")
+		p.recordDiagnostic(p.newDiagnosticError(
+			err, tok.Span, note,
+		))
+		p.syncToLineEnd()
+		return note, nil
 	}
-	if err != nil {
-		return nil, err
-	}
+	p.parseNoteBody(note)
 	return note, nil
 }
 
 // parseDirectedNote can resolve into either a NoteTargeted or NoteLink.
-func (p *Parser) parseDirectedNote(note *ast.Note, dirTok tokenizer.Token) error {
+func (p *Parser) parseDirectedNote(note *ast.Note, dirTok tokenizer.Token) {
 	note.Kind = ast.NoteTargeted
 	note.Direction = p.mapTokenToDirection(dirTok)
 	if relativeTok, ok := p.stream.TryConsumeKW(keyword.Position); ok {
-		target, err := p.parseTargetRef(p.stream.Emit()) // consume target
+		if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
+			tok := p.stream.PeekTokenAt(0)
+			p.recordDiagnostic(p.newDiagnosticError(
+				NewParserError(tok, "Expected identifier for target"),
+				tok.Span,
+				note,
+			))
+			p.syncToNoteBody()
+			return
+		}
+		target, err := p.parseTargetRef(p.stream.Emit())
 		if err != nil {
-			return err
+			p.recordDiagnostic(p.newDiagnosticError(
+				err, target.Span(), note,
+			))
+			p.syncToLineEnd()
+			return
 		}
 		if relativeTok.Literal == "on" {
-			if strings.ToLower(target.Entity) != "link" {
-				return NewParserError(relativeTok, "Unexpected identifier for a note link target")
+			if strings.ToLower(target.EntityName()) != "link" {
+				err := NewParserError(relativeTok, "Unexpected identifier for a note link target")
+				p.recordDiagnostic(p.newDiagnosticError(
+					err, target.Span(), note,
+				))
+				p.syncToNoteBody()
+				return
 			}
 			note.Kind = ast.NoteLink
+			p.recordDiagnostic(p.newDiagnosticWarning(
+				NewParserErrorf(dirTok, "direction %q is ignored for note on links", dirTok.Literal),
+				dirTok.Span,
+				note,
+			))
 		} else {
 			note.Kind = ast.NoteTargeted
 		}
 		note.Target = &target
 	} else if tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER); ok {
-		return NewParserError(tok, "Unexpected identifier after direction")
+		err := NewParserError(tok, "Unexpected identifier after direction")
+		p.recordDiagnostic(p.newDiagnosticError(
+			err, tok.Span, note,
+		))
+		p.syncToNoteBody()
+		return
 	}
 	if color := p.tryParseColor(); color != "" {
 		note.Color = color
 	}
-	return p.parseNoteBody(note)
 }
 
-func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) error {
-	note.Text = stringTok.Literal
+func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) {
+	note.Text = strings.Trim(stringTok.Literal, "\"")
 	note.Kind = ast.NoteAlias
 	if aliasTok, ok := p.stream.TryConsumeKW(keyword.Alias); !ok {
-		return NewParserError(aliasTok, "Expected alias keyword after note text")
+		err := NewParserError(aliasTok, "expected alias keyword after note text")
+		p.recordDiagnostic(
+			p.newDiagnosticError(err, aliasTok.Span, note),
+		)
+		p.syncToLineEnd()
+		return
 	}
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if !ok {
-		return NewParserError(tok, "Expected identifier after alias keyword")
+	if !p.stream.AssertType(tokenizer.IDENTIFIER) {
+		tok := p.stream.PeekTokenAt(0)
+		err := NewParserError(tok, "Expected identifier after alias keyword")
+		p.recordDiagnostic(
+			p.newDiagnosticError(err, tok.Span, note),
+		)
+		p.syncToLineEnd()
+		return
 	}
-	note.Identifier = tok.Literal
+	note.Identifier = p.parseQualifiedName(p.stream.Emit())
 	if color := p.tryParseColor(); color != "" {
 		note.Color = color
 	}
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
-		return NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after inline alias note")
+		nextTok := p.stream.PeekTokenAt(0)
+		err := NewParserError(nextTok, "Unexpected tokens after inline alias note")
+		p.recordDiagnostic(
+			p.newDiagnosticError(err, nextTok.Span, note),
+		)
+		p.syncToLineEnd()
+		return
 	}
-	return nil
 }
 
-func (p *Parser) parseMultilineAliasNote(note *ast.Note) error {
+func (p *Parser) parseMultilineAliasNote(note *ast.Note) {
 	note.Kind = ast.NoteAlias
-	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-	if !ok {
-		return NewParserError(tok, "Expected identifier after alias keyword")
+	if !p.stream.AssertType(tokenizer.IDENTIFIER) {
+		tok := p.stream.PeekTokenAt(0)
+		p.recordDiagnostic(p.newDiagnosticError(
+			NewParserError(tok, "Expected identifier after alias keyword"),
+			tok.Span,
+			note,
+		))
+		p.syncToLineEnd()
+		return
 	}
-	note.Identifier = tok.Literal
+	note.Identifier = p.parseQualifiedName(p.stream.Emit())
 	if color := p.tryParseColor(); color != "" {
 		note.Color = color
 	}
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
-		return NewParserError(tok, "Expected newline after alias keyword")
+		lastLineTok := p.stream.PeekTokenAt(0)
+		p.recordDiagnostic(p.newDiagnosticError(
+			NewParserError(p.stream.PeekTokenAt(0), "Expected newline after alias keyword"),
+			lastLineTok.Span,
+			note,
+		))
+		p.syncToLineEnd()
+		return
 	}
-	return p.parseNoteBody(note)
 }
 
-func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) error {
+func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) {
 	if onTok.Literal != "on" {
-		return NewParserError(onTok, "Unexpected identifier after 'note'")
+		p.recordDiagnostic(p.newDiagnosticError(
+			NewParserError(onTok, "Unexpected identifier after 'note'"),
+			onTok.Span,
+			note,
+		))
+		p.syncToNoteBody()
+		return
 	}
-	if _, ok := p.stream.TryConsume(amb(tokenizer.IDENTIFIER, "link")); !ok {
-		return NewParserError(onTok, "Expected 'link' after 'note on'")
+	linkTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+	if !ok || linkTok.Literal != "link" {
+		errTok := linkTok
+		if !ok {
+			errTok = p.stream.PeekTokenAt(0)
+		}
+		p.recordDiagnostic(p.newDiagnosticError(
+			NewParserError(errTok, "Expected 'link' after 'note on'"),
+			errTok.Span,
+			note,
+		))
+		p.syncToNoteBody()
+		return
 	}
-	note.Target = &ast.TargetRef{Entity: "link"}
+	note.Target = &ast.TargetRef{Name: ast.IdentFromToken(linkTok)}
 	note.Kind = ast.NoteLink
 	if color := p.tryParseColor(); color != "" {
 		note.Color = color
 	}
-	return p.parseNoteBody(note)
 }
 
-func (p *Parser) parseNoteBody(note *ast.Note) error {
+func (p *Parser) parseNoteBody(note *ast.Note) {
 	tok := p.stream.PeekTokenAt(0)
 	switch tok.Type {
 	case tokenizer.COLON:
 		p.stream.Emit()
 		note.Text = p.stream.ReadUntilNewline()
-		return nil
 	case tokenizer.NEWLINE:
-		note.TrailingTrivia = p.stream.DumpCollectedTrivia()
+		note.TrailingTrivia = p.dumpTrivia()
+		if !p.stream.HasCloserBeforeBoundary("end", "note") {
+			p.recordDiagnostic(p.newDiagnosticError(
+				ast.NewUnclosedBlockError("note", "end note"),
+				tok.Span,
+				note,
+			))
+			return
+		}
 		body, err := p.stream.ConsumeTextBlock("end", "note")
 		if err != nil {
-			return err
+			return
 		}
 		note.Text = body
-		return nil
 	default:
 		p.stream.Emit()
-		return NewParserError(tok, "Expected ':' or newline after note definition")
+		err := NewParserError(tok, "Expected ':' or newline after note definition")
+		p.recordDiagnostic(p.newDiagnosticError(
+			err, tok.Span, note,
+		))
 	}
 }

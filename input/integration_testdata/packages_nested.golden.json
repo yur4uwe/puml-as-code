@@ -19,9 +19,44 @@
       }
     },
     {
-      "Identifier": "core",
-      "Alias": "\"Core Domain\"",
+      "Identifier": {
+        "Name": {
+          "Literal": "core",
+          "Span": {
+            "Start": {
+              "Line": 2,
+              "Col": 26,
+              "Offset": 51
+            },
+            "End": {
+              "Line": 2,
+              "Col": 30,
+              "Offset": 55
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "\"Core Domain\"",
+        "Span": {
+          "Start": {
+            "Line": 2,
+            "Col": 9,
+            "Offset": 34
+          },
+          "End": {
+            "Line": 2,
+            "Col": 22,
+            "Offset": 47
+          }
+        }
+      },
       "Kind": "package",
+      "LBrace": {
+        "Line": 2,
+        "Col": 31,
+        "Offset": 56
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -36,8 +71,44 @@
               "Offset": 108
             }
           },
-          "Identifier": "User",
+          "Identifier": {
+            "Name": {
+              "Literal": "User",
+              "Span": {
+                "Start": {
+                  "Line": 3,
+                  "Col": 9,
+                  "Offset": 66
+                },
+                "End": {
+                  "Line": 3,
+                  "Col": 13,
+                  "Offset": 70
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
+          "LBrace": {
+            "Line": 3,
+            "Col": 14,
+            "Offset": 71
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -53,7 +124,6 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "id",
                 "Type": {
@@ -76,7 +146,6 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "name",
                 "Type": {
@@ -85,9 +154,19 @@
                 }
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 6,
+            "Col": 3,
+            "Offset": 107
+          }
         }
       ],
+      "RBrace": {
+        "Line": 7,
+        "Col": 1,
+        "Offset": 109
+      },
       "NodeSpan": {
         "Start": {
           "Line": 2,
@@ -102,8 +181,44 @@
       }
     },
     {
-      "Identifier": "infra",
+      "Identifier": {
+        "Name": {
+          "Literal": "infra",
+          "Span": {
+            "Start": {
+              "Line": 9,
+              "Col": 11,
+              "Offset": 122
+            },
+            "End": {
+              "Line": 9,
+              "Col": 16,
+              "Offset": 127
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "namespace",
+      "LBrace": {
+        "Line": 9,
+        "Col": 17,
+        "Offset": 128
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -118,8 +233,44 @@
               "Offset": 175
             }
           },
-          "Identifier": "Database",
+          "Identifier": {
+            "Name": {
+              "Literal": "Database",
+              "Span": {
+                "Start": {
+                  "Line": 10,
+                  "Col": 9,
+                  "Offset": 138
+                },
+                "End": {
+                  "Line": 10,
+                  "Col": 17,
+                  "Offset": 146
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
+          "LBrace": {
+            "Line": 10,
+            "Col": 18,
+            "Offset": 147
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -135,7 +286,6 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "connection",
                 "Type": {
@@ -144,9 +294,19 @@
                 }
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 12,
+            "Col": 3,
+            "Offset": 174
+          }
         }
       ],
+      "RBrace": {
+        "Line": 13,
+        "Col": 1,
+        "Offset": 176
+      },
       "NodeSpan": {
         "Start": {
           "Line": 9,
@@ -161,12 +321,84 @@
       }
     },
     {
-      "Identifier": "\"Storage\"",
+      "Identifier": {
+        "Name": {
+          "Literal": "\"Storage\"",
+          "Span": {
+            "Start": {
+              "Line": 15,
+              "Col": 8,
+              "Offset": 186
+            },
+            "End": {
+              "Line": 15,
+              "Col": 17,
+              "Offset": 195
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "folder",
+      "LBrace": {
+        "Line": 15,
+        "Col": 18,
+        "Offset": 196
+      },
       "Statements": [
         {
-          "Identifier": "Server",
+          "Identifier": {
+            "Name": {
+              "Literal": "Server",
+              "Span": {
+                "Start": {
+                  "Line": 16,
+                  "Col": 8,
+                  "Offset": 205
+                },
+                "End": {
+                  "Line": 16,
+                  "Col": 14,
+                  "Offset": 211
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "node",
+          "LBrace": {
+            "Line": 16,
+            "Col": 15,
+            "Offset": 212
+          },
           "Statements": [
             {
               "NodeSpan": {
@@ -181,8 +413,44 @@
                   "Offset": 256
                 }
               },
-              "Identifier": "Disk",
+              "Identifier": {
+                "Name": {
+                  "Literal": "Disk",
+                  "Span": {
+                    "Start": {
+                      "Line": 17,
+                      "Col": 11,
+                      "Offset": 224
+                    },
+                    "End": {
+                      "Line": 17,
+                      "Col": 15,
+                      "Offset": 228
+                    }
+                  }
+                }
+              },
+              "Alias": {
+                "Literal": "",
+                "Span": {
+                  "Start": {
+                    "Line": 0,
+                    "Col": 0,
+                    "Offset": 0
+                  },
+                  "End": {
+                    "Line": 0,
+                    "Col": 0,
+                    "Offset": 0
+                  }
+                }
+              },
               "Kind": "class",
+              "LBrace": {
+                "Line": 17,
+                "Col": 16,
+                "Offset": 229
+              },
               "Members": [
                 {
                   "NodeSpan": {
@@ -198,7 +466,6 @@
                     }
                   },
                   "Visibility": "public",
-                  "Modifiers": null,
                   "Field": {
                     "Name": "capacity",
                     "Type": {
@@ -207,9 +474,19 @@
                     }
                   }
                 }
-              ]
+              ],
+              "RBrace": {
+                "Line": 19,
+                "Col": 5,
+                "Offset": 255
+              }
             }
           ],
+          "RBrace": {
+            "Line": 20,
+            "Col": 3,
+            "Offset": 259
+          },
           "NodeSpan": {
             "Start": {
               "Line": 16,
@@ -224,6 +501,11 @@
           }
         }
       ],
+      "RBrace": {
+        "Line": 21,
+        "Col": 1,
+        "Offset": 261
+      },
       "NodeSpan": {
         "Start": {
           "Line": 15,
@@ -239,14 +521,54 @@
     },
     {
       "LHS": {
-        "Entity": "User"
+        "Name": {
+          "Literal": "User",
+          "Span": {
+            "Start": {
+              "Line": 23,
+              "Col": 1,
+              "Offset": 264
+            },
+            "End": {
+              "Line": 23,
+              "Col": 5,
+              "Offset": 268
+            }
+          }
+        }
       },
       "RHS": {
-        "Entity": "Database"
+        "Name": {
+          "Literal": "Database",
+          "Span": {
+            "Start": {
+              "Line": 23,
+              "Col": 10,
+              "Offset": 273
+            },
+            "End": {
+              "Line": 23,
+              "Col": 18,
+              "Offset": 281
+            }
+          }
+        }
       },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 23,
+          "Col": 6,
+          "Offset": 269
+        },
+        "End": {
+          "Line": 23,
+          "Col": 9,
+          "Offset": 272
+        }
+      },
       "Body": 45,
       "BodyCount": 2,
       "RArrow": 62,

@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 
@@ -143,7 +144,7 @@ func TestParseScaleCommand(t *testing.T) {
 				require.Error(t, err)
 			} else {
 				require.NoError(t, err)
-				assertASTEqual(t, tc.want, got)
+				testutil.SemanticEqual(t, tc.want, got)
 			}
 		})
 	}

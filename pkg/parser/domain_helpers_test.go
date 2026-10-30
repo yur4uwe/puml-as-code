@@ -30,28 +30,57 @@ func TestTryReadModifier(t *testing.T) {
 	require.Equal(t, "", mod)
 }
 
-func TestTryReadStereotype(t *testing.T) {
-	p := newParserForTest("<<stereotype>> <<foo bar>>")
+func TestTryParseStereotype(t *testing.T) {
+	p := newParserForTest("<<stereotype>> << foo bar >> <<(S, #FF7700) MyStereotype>> <<(S) My Short Stereotype>>")
 
-	stereo, err := p.tryReadStereotype()
-	require.NoError(t, err)
-	require.Equal(t, "stereotype", stereo)
-
-	stereo, err = p.tryReadStereotype()
-	require.NoError(t, err)
-	require.Equal(t, "foo bar", stereo)
+	for _, tc := range []struct {
+		name              string
+		expectedValueStr  string
+		expectedSpotRune  rune
+		expectedSpotColor string
+	}{
+		{
+			name:             "simple",
+			expectedValueStr: "stereotype",
+		},
+		{
+			name:             "simple with space",
+			expectedValueStr: "foo bar",
+		},
+		{
+			name:              "with spot and spot color",
+			expectedValueStr:  "MyStereotype",
+			expectedSpotRune:  'S',
+			expectedSpotColor: "#FF7700",
+		},
+		{
+			name:             "with spot",
+			expectedValueStr: "My Short Stereotype",
+			expectedSpotRune: 'S',
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			stereo, _, err := p.tryParseStereotype()
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedValueStr, stereo.Value.Literal)
+			require.Equal(t, tc.expectedSpotRune, stereo.SpotRune)
+			require.Equal(t, tc.expectedSpotColor, stereo.SpotColor)
+		})
+	}
 }
 
 func TestTryReadGeneric(t *testing.T) {
 	p := newParserForTest("<T> <T, U>")
 
-	gen, err := p.tryReadGeneric()
+	gen, span, err := p.tryReadGeneric()
 	require.NoError(t, err)
 	require.Equal(t, "T", gen)
+	require.NotZero(t, span, "expected span to be non-zero")
 
-	gen, err = p.tryReadGeneric()
+	gen, span, err = p.tryReadGeneric()
 	require.NoError(t, err)
 	require.Equal(t, "T, U", gen)
+	require.NotZero(t, span, "expected span to be non-zero")
 }
 
 func TestTryReadClassSeparator(t *testing.T) {
@@ -176,7 +205,7 @@ func TestReadDiagramBounds(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			p := newParserForTest(tc.input)
-			b, err := p.readDiagramBounds()
+			b, err := p.readStartBounds()
 			if tc.expectError {
 				require.Error(t, err)
 				return
@@ -208,7 +237,8 @@ func TestReadDiagramBounds(t *testing.T) {
 			}
 
 			p.stream.TryConsumeType(tokenizer.NEWLINE)
-			b, err = p.readDiagramBounds()
+			atTok := p.stream.Emit()
+			b, err = p.readEndBounds(atTok)
 			require.NoError(t, err)
 			require.False(t, b.IsStart)
 			require.Equal(t, tc.expectedType, b.Type)

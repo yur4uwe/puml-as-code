@@ -1,20 +1,13 @@
 package parser
 
 import (
+	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
-
-func (p *Parser) tryParseColor() string {
-	if !p.stream.AssertType(tokenizer.HASH) {
-		return ""
-	}
-	tokens := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.COLON, tokenizer.LBRACE)
-	return p.stream.SliceInputEnclosingTokens(tokens...)
-}
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	switch tok.Literal {
@@ -31,116 +24,90 @@ func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	}
 }
 
-func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error) {
-	var ref ast.TargetRef
-	segments := []string{firstTok.Literal}
-
-	for {
-		length, ok := p.stream.AssertPackageSeparator()
-		if !ok {
-			break
-		}
-
-		afterPkgSep := p.stream.PeekTokenAt(length)
-		if afterPkgSep.Type != tokenizer.IDENTIFIER && afterPkgSep.Type != tokenizer.STRING {
-			// We have hit the case where the separator token is not a part of the entity reference
-			break
-		}
-
-		for range length {
-			p.stream.Emit()
-		}
-
-		segments = append(segments, p.stream.Emit().Literal)
-	}
-
-	if len(segments) > 0 {
-		ref.Entity = segments[len(segments)-1]
-		if len(segments) > 1 {
-			ref.PackagePath = segments[:len(segments)-1]
-		}
-	}
-
-	if p.stream.AssertTypeSeq([]tokenizer.TokenType{tokenizer.COLON, tokenizer.COLON}) {
-		p.stream.Emit() // consume first :
-		p.stream.Emit() // consume second :
-
-		tok := p.stream.Emit()
-		switch tok.Type {
-		case tokenizer.STRING:
-			ref.Member = tok.Literal
-		case tokenizer.IDENTIFIER:
-			var sb strings.Builder
-			sb.WriteString(tok.Literal)
-			if p.stream.AssertType(tokenizer.LPAREN) {
-				p.stream.Emit() // consume (
-				sb.WriteString("(")
-				paramToks := p.stream.ConsumeUntilType(tokenizer.RPAREN, tokenizer.NEWLINE, tokenizer.EOF)
-				sb.WriteString(p.stream.TokensToString(paramToks))
-				if _, ok := p.stream.TryConsumeType(tokenizer.RPAREN); !ok {
-					return ref, NewParserError(p.stream.PeekTokenAt(0), "Expected ')' closing method signature in target ref")
-				}
-				sb.WriteString(")")
-			}
-			ref.Member = sb.String()
-		default:
-			return ref, NewParserError(tok, "Expected member identifier or string after '::'")
-		}
-	}
-
-	return ref, nil
-}
-
-func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (*ast.Relationship, error) {
+func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relationship {
 	// Entry token is supposedly the first identifier
 	var err error
-	rel := &ast.Relationship{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
-		},
-	}
+	rel := &ast.Relationship{}
+	// Must not fail, guaranteed by the disambiguateIdent check
 	rel.LHS, err = p.parseTargetRef(firstTargetTok)
 	if err != nil {
-		return nil, err
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
 	}
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
+		// I think its productive to defer the cardinality parsing to the resolver
+		// or someone that actually cares about it
 		rel.MultLHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return nil, WrapParserError(multTok, err)
+			infoSpan := multTok.Span
+			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
+			err = WrapParserError(multTok, err)
+			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
 		}
 	}
 
-	p.parseArrowTokens(rel)
+	arrowMark := p.Mark(p.stream.PeekTokenAt(0))
+
+	err = p.parseArrowTokens(rel)
+	if err != nil {
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		rel.ArrowSpan = p.Span(arrowMark)
+		return rel
+	}
+
+	rel.ArrowSpan = p.Span(arrowMark)
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
 		if err != nil {
-			return nil, WrapParserError(multTok, err)
+			infoSpan := multTok.Span
+			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
+			err = WrapParserError(multTok, err)
+			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
 		}
 	}
 
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
-		return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected identifier or string after relationship")
+		nextTok := p.stream.PeekTokenAt(0)
+		errSpan := nextTok.Span
+		err := NewParserError(nextTok, "Expected identifier or string after relationship")
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
 	}
+
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
 	if err != nil {
-		return nil, err
+		errSpan := err.(parserError).Tok.Span
+		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.syncToLineEnd()
+		return rel
+	}
+
+	if p.stream.AssertType(tokenizer.HASH) {
+		rel.Attrs = append(rel.Attrs, p.tryParseColor())
 	}
 
 	endingToken := p.stream.PeekTokenAt(0)
 	switch endingToken.Type {
-	case tokenizer.NEWLINE, tokenizer.EOF, tokenizer.RBRACE:
-		// Do not consume newline, EOF, or RBRACE so outer loop/caller handles delimiter
-		break
 	case tokenizer.COLON:
 		p.stream.Emit()
 		rel.Label = p.stream.ReadUntilNewline()
+	case tokenizer.NEWLINE, tokenizer.EOF, tokenizer.RBRACE:
+		// Do not consume newline, EOF, or RBRACE
+		// outer loop/caller handles the delimiter
 	default:
-		return nil, NewParserError(endingToken, "Expected newline or colon after relationship")
+		// literal junk, relationship is fully parsed and we can't know that is
+		p.recordDiagnostic(p.newDiagnosticError(NewParserError(endingToken, "Expected newline or colon after relationship"), endingToken.Span, rel))
+		p.syncToLineEnd()
 	}
 
-	return rel, nil
+	return rel
 }
 
 func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
@@ -216,6 +183,17 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			return NewParserError(tok, "Different body type runes in relationship")
 		}
 		if !p.stream.AssertType(tokenizer.LBRACKET) && !p.stream.AssertKW(keyword.Direction) {
+			nextTok := p.stream.PeekTokenAt(0)
+			if nextTok.Type != tokenizer.IDENTIFIER {
+				break
+			}
+			afterIdent := p.stream.PeekTokenAt(1)
+			if afterIdent.Type == bodyTokType || afterIdent.Type == tokenizer.LBRACKET {
+				// Valid case, misspelled identifier
+				// But we fail fast on speculative errors
+				return NewParserError(nextTok, "Unexpected identifier in relationship definition, did you mean to write a direction?")
+			}
+			// RHS identifier encountered
 			break
 		} else if sawAttrs || sawDirection {
 			return NewParserError(tok, "Cannot separate direction and attributes with a body token")
@@ -347,7 +325,8 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			p.stream.Emit()
 			rel.RArrow = rune(tok.Literal[0])
 		default:
-			return NewParserError(tok, "Unexpected identifier in relationship definition")
+			// Single token arrow on relationship
+			return nil
 		}
 	case tokenizer.HASH, tokenizer.PLUS, tokenizer.CARET:
 		p.stream.Emit()
@@ -363,165 +342,3 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 	}
 	return nil
 }
-
-func (p *Parser) HasArrowOnLine() bool {
-	for i := 0; ; i++ {
-		tok := p.stream.PeekTokenAt(i)
-		if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.EOF ||
-			tok.Type == tokenizer.SEMICOLON || tok.Type == tokenizer.LBRACE ||
-			tok.Type == tokenizer.RBRACE {
-			break
-		} else if tok.Type == tokenizer.STRING {
-			continue
-		}
-		if _, ok := p.scanArrowTokensFrom(i); ok {
-			return true
-		}
-	}
-	return false
-}
-
-func (p *Parser) scanArrowTokensFrom(startIdx int) (int, bool) {
-	idx := startIdx
-	var sawDirection, sawAttrs, isLolipop bool
-
-	tok := p.stream.PeekTokenAt(idx)
-	idx++
-
-	switch tok.Type {
-	case tokenizer.LANGLE:
-		if p.stream.PeekTokenAt(idx).Type == tokenizer.PIPE {
-			idx++
-		}
-	case tokenizer.RBRACE:
-		// valid left arrow head
-	case tokenizer.LPAREN:
-		if p.stream.PeekTokenAt(idx).Type != tokenizer.RPAREN {
-			return 0, false
-		}
-		idx++
-		isLolipop = true
-	case tokenizer.IDENTIFIER:
-		if tok.Literal != "x" && tok.Literal != "o" {
-			return 0, false
-		}
-	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
-		// valid left arrow head
-	case tokenizer.DOT, tokenizer.DASH:
-		idx--
-	default:
-		return 0, false
-	}
-
-	tok = p.stream.PeekTokenAt(idx)
-	idx++
-
-	bodyTokType := tok.Type
-	var oppositeBodyTokType tokenizer.TokenType
-	switch bodyTokType {
-	case tokenizer.DOT:
-		oppositeBodyTokType = tokenizer.DASH
-	case tokenizer.DASH:
-		oppositeBodyTokType = tokenizer.DOT
-	default:
-		return 0, false
-	}
-
-	hasBody := false
-	for {
-		nextTok := p.stream.PeekTokenAt(idx)
-		if nextTok.Type == tokenizer.EOF || nextTok.Type == tokenizer.NEWLINE {
-			break
-		}
-		switch nextTok.Type {
-		case bodyTokType:
-			hasBody = true
-			idx++
-			continue
-		case oppositeBodyTokType:
-			return 0, false
-		}
-
-		if nextTok.Type != tokenizer.LBRACKET && keyword.Classify(nextTok.Literal) != keyword.Direction {
-			break
-		} else if sawAttrs || sawDirection {
-			return 0, false
-		}
-
-		if isLolipop {
-			return 0, false
-		}
-
-		for range 2 {
-			curr := p.stream.PeekTokenAt(idx)
-			if !sawDirection && keyword.Classify(curr.Literal) == keyword.Direction {
-				sawDirection = true
-				idx++
-			}
-			curr = p.stream.PeekTokenAt(idx)
-			if !sawAttrs && curr.Type == tokenizer.LBRACKET {
-				sawAttrs = true
-				idx++ // consume [
-				for {
-					attrTok := p.stream.PeekTokenAt(idx)
-					idx++
-					if attrTok.Type == tokenizer.RBRACKET {
-						break
-					}
-					if attrTok.Type == tokenizer.EOF || attrTok.Type == tokenizer.NEWLINE {
-						return 0, false
-					}
-				}
-			}
-		}
-
-		if !sawAttrs && !sawDirection {
-			continue
-		}
-
-		if p.stream.PeekTokenAt(idx).Type != bodyTokType {
-			return 0, false
-		}
-		idx++
-	}
-
-	rTok := p.stream.PeekTokenAt(idx)
-	hasRightArrowhead := false
-	switch rTok.Type {
-	case tokenizer.PIPE:
-		idx++
-		if p.stream.PeekTokenAt(idx).Type != tokenizer.RANGLE {
-			return 0, false
-		}
-		idx++
-		hasRightArrowhead = true
-	case tokenizer.RANGLE, tokenizer.LBRACE:
-		idx++
-		hasRightArrowhead = true
-	case tokenizer.LPAREN:
-		if sawDirection || sawAttrs || isLolipop {
-			return 0, false
-		}
-		idx++
-		if p.stream.PeekTokenAt(idx).Type != tokenizer.RPAREN {
-			return 0, false
-		}
-		idx++
-		hasRightArrowhead = true
-	case tokenizer.IDENTIFIER:
-		if rTok.Literal == "x" || rTok.Literal == "o" {
-			idx++
-			hasRightArrowhead = true
-		}
-	case tokenizer.HASH, tokenizer.ASTERISK, tokenizer.PLUS, tokenizer.CARET:
-		idx++
-		hasRightArrowhead = true
-	}
-
-	if !hasBody && !hasRightArrowhead && !isLolipop {
-		return 0, false
-	}
-
-	return idx - startIdx, true
-}
-

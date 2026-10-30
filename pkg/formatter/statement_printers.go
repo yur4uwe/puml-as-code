@@ -23,17 +23,16 @@ func printNoteHeader(s *formatterState, note *ast.Note, isBlock bool) {
 	s.emitWithIndent("note ")
 	switch note.Kind {
 	case ast.NoteAlias:
-		if isBlock {
-			s.buf.WriteString("as ")
-			s.buf.WriteString(note.Identifier)
-		} else {
-			fmt.Fprintf(&s.buf, "%q as %s", note.Text, note.Identifier)
+		if !isBlock {
+			s.buf.WriteRune('"')
+			s.buf.WriteString(note.Text)
+			s.buf.WriteString("\" ")
 		}
+		fmt.Fprintf(&s.buf, "as %s", note.Identifier.EntityName())
 	case ast.NoteTargeted:
 		s.buf.WriteString(note.Direction.String())
 		if note.Target != nil {
-			s.buf.WriteString(" of ")
-			s.buf.WriteString(s.targetFQN(*note.Target))
+			fmt.Fprintf(&s.buf, " of %s", s.targetFQN(*note.Target))
 		}
 	case ast.NoteLink:
 		if note.Direction != ast.DirectionUnknown {
@@ -97,14 +96,10 @@ func printDiagramBound(s *formatterState, bound *ast.DiagramBound) {
 		s.buf.WriteString("{")
 		s.buf.WriteString(bound.Tools.File)
 		if bound.Tools.Caption != "" {
-			s.buf.WriteString(", ")
-			s.buf.WriteString(bound.Tools.Caption)
+			fmt.Fprintf(&s.buf, ", %s", bound.Tools.Caption)
 		}
 		for _, opt := range bound.Tools.Options {
-			s.buf.WriteString(", ")
-			s.buf.WriteString(opt.Key)
-			s.buf.WriteString("=")
-			s.buf.WriteString(opt.Value)
+			fmt.Fprintf(&s.buf, ", %s=%s", opt.Key, opt.Value)
 		}
 		s.buf.WriteString("}")
 	} else if bound.TrailingName != "" {
@@ -121,9 +116,7 @@ func printScaleCommand(s *formatterState, scaleCmd *ast.ScaleCommand) {
 	s.buf.WriteString(scaleCmd.Lhs)
 	if scaleCmd.Sep != "" {
 		if scaleCmd.Sep != "." {
-			s.buf.WriteByte(' ')
-			s.buf.WriteString(scaleCmd.Sep)
-			s.buf.WriteByte(' ')
+			fmt.Fprintf(&s.buf, " %s ", scaleCmd.Sep)
 		} else {
 			s.buf.WriteString(scaleCmd.Sep)
 		}
@@ -142,20 +135,22 @@ func printSkinparamBlock(s *formatterState, block *ast.SkinparamBlock) {
 	} else {
 		s.writeIndent()
 	}
-	if block.Name != "" {
-		s.buf.WriteString(block.Name)
+	blockName := block.Name.Literal
+	if blockName != "" {
+		s.buf.WriteString(blockName)
 		s.buf.WriteByte(' ')
 	}
-	if block.Stereotype != "" {
-		s.buf.WriteString("<<")
-		s.buf.WriteString(block.Stereotype)
-		s.buf.WriteString(">> ")
+	if block.Stereotype != nil {
+		str := block.Stereotype.String()
+		if str != "" {
+			fmt.Fprintf(&s.buf, "<<%s>> ", str)
+		}
 	}
 	s.buf.WriteString("{")
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("}")
 }
@@ -166,12 +161,15 @@ func printSkinparamSetting(s *formatterState, setting *ast.SkinparamSetting) {
 		s.buf.WriteString(setting.Keyword)
 		s.buf.WriteByte(' ')
 	}
-	s.buf.WriteString(setting.Name)
+	s.buf.WriteString(setting.Name.Literal)
 	s.buf.WriteByte(' ')
-	if setting.Stereotype != "" {
-		s.buf.WriteString("<<")
-		s.buf.WriteString(setting.Stereotype)
-		s.buf.WriteString(">> ")
+	if setting.Stereotype != nil {
+		str := setting.Stereotype.String()
+		if str != "" {
+			s.buf.WriteString("<<")
+			s.buf.WriteString(str)
+			s.buf.WriteString(">> ")
+		}
 	}
 	s.buf.WriteString(setting.Value)
 }
@@ -181,7 +179,7 @@ func printStyleBlock(s *formatterState, block *ast.StyleBlock) {
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("</style>")
 }
@@ -198,23 +196,18 @@ func printStyleRule(s *formatterState, block *ast.StyleRule) {
 	s.emitBlockStartTrivia(block)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(block.Statements)
+	s.formatBlockStatements(block, block.Statements)
 
 	s.emitWithIndent("}")
 }
 
-func printEntity(s *formatterState, ent *ast.Entity) {
-	if ent.Kind == ast.EntityUnknown {
-		// This is an implicit entity either created by:
-		// Foo : Bar()
-		s.emitWithIndent(ent.Identifier)
-		s.buf.WriteString(" : ")
-		for _, mem := range ent.Members {
-			s.formatMember(mem)
-		}
-		return
-	}
+func printInlineMember(s *formatterState, im *ast.InlineMember) {
+	s.emitWithIndent(s.targetFQN(im.Target))
+	s.buf.WriteString(" : ")
+	s.formatMember(im.Member)
+}
 
+func printEntity(s *formatterState, ent *ast.Entity) {
 	// Otherwise, it is a named entity
 	actualKindStr := ent.Kind.String()
 	switch ent.Kind {
@@ -225,20 +218,22 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 	}
 	s.emitWithIndent(actualKindStr)
 	s.buf.WriteString(" ")
-	if ent.Alias != "" {
-		s.buf.WriteString(ent.Alias)
-		s.buf.WriteString(" as ")
+	if !ent.Alias.IsZero() {
+		fmt.Fprintf(&s.buf, "%s as ", ent.Alias.Literal)
 	}
-	s.buf.WriteString(ent.Identifier)
+	s.buf.WriteString(s.targetFQN(ent.Identifier))
 	if ent.Generic != "" {
 		s.buf.WriteString(" <")
 		s.buf.WriteString(ent.Generic)
 		s.buf.WriteString(">")
 	}
-	if ent.Stereotype != "" {
-		s.buf.WriteString(" <<")
-		s.buf.WriteString(ent.Stereotype)
-		s.buf.WriteString(">>")
+	if ent.Stereotype != nil {
+		str := ent.Stereotype.String()
+		if str != "" {
+			s.buf.WriteString(" <<")
+			s.buf.WriteString(str)
+			s.buf.WriteString(">>")
+		}
 	}
 	for _, tag := range ent.Tags {
 		s.buf.WriteString(" $")
@@ -252,54 +247,29 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 	s.emitBlockStartTrivia(ent)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockMembers(ent.Members)
+	s.formatBlockMembers(ent, ent.Members)
 
 	if ent.Kind != ast.EntityUnknown {
 		s.emitWithIndent("}")
 	}
 }
 
-func unwrapImplicitContainer(cont *ast.Container) ([]string, ast.Statement) {
-	pkgPath := []string{cont.Identifier}
-	curr := cont
-	for len(curr.Statements) == 1 {
-		if innerCont, ok := curr.Statements[0].(*ast.Container); ok && innerCont.Kind == ast.ContainerUnknown {
-			pkgPath = append(pkgPath, innerCont.Identifier)
-			curr = innerCont
-		} else {
-			return pkgPath, curr.Statements[0]
-		}
-	}
-	if len(curr.Statements) > 0 {
-		return pkgPath, curr.Statements[0]
-	}
-	return pkgPath, nil
-}
-
 func printContainer(s *formatterState, cont *ast.Container) {
-	if cont.Kind == ast.ContainerUnknown {
-		pkgPath, innerStmt := unwrapImplicitContainer(cont)
-		if innerEnt, ok := innerStmt.(*ast.Entity); ok {
-			innerEnt.Identifier = strings.Join(pkgPath, s.packageSeparator) + s.packageSeparator + innerEnt.Identifier
-			printEntity(s, innerEnt)
-			return
-		}
-	}
-
 	s.emitWithIndent(cont.Kind.String())
-	if cont.Alias != "" {
-		s.buf.WriteString(" ")
-		s.buf.WriteString(cont.Alias)
-		s.buf.WriteString(" as ")
-		s.buf.WriteString(cont.Identifier)
-	} else if cont.Identifier != "" {
-		s.buf.WriteString(" ")
-		s.buf.WriteString(cont.Identifier)
+	if !cont.Alias.IsZero() {
+		fmt.Fprintf(&s.buf, " %s as", cont.Alias.Literal)
 	}
-	if cont.Stereotype != "" {
-		s.buf.WriteString(" <<")
-		s.buf.WriteString(cont.Stereotype)
-		s.buf.WriteString(">>")
+	if cont.Kind != ast.ContainerTogether {
+		s.buf.WriteString(" ")
+		s.buf.WriteString(s.targetFQN(cont.Identifier))
+	}
+	if cont.Stereotype != nil {
+		str := cont.Stereotype.String()
+		if str != "" {
+			s.buf.WriteString(" <<")
+			s.buf.WriteString(str)
+			s.buf.WriteString(">>")
+		}
 	}
 	// For 0 tags either way nothing is printed
 	for _, tag := range cont.Tags {
@@ -314,11 +284,9 @@ func printContainer(s *formatterState, cont *ast.Container) {
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
 
-	s.formatBlockStatements(cont.Statements)
+	s.formatBlockStatements(cont, cont.Statements)
 
-	if cont.Kind != ast.ContainerUnknown {
-		s.emitWithIndent("}")
-	}
+	s.emitWithIndent("}")
 }
 
 func printRelationship(s *formatterState, rel *ast.Relationship) {

@@ -59,14 +59,11 @@ func formatNode(s *formatterState, node ast.Node) {
 	}
 
 	leadingTrivia := node.GetLeadingTrivia()
-	if len(leadingTrivia) == 0 {
-		leadingTrivia = getImplicitLeadingTrivia(node)
-	}
 	for _, comment := range leadingTrivia {
 		// Check leading trivia for pragmas
-		if strings.Contains(comment.Literal, "pac:fmt:off") {
+		if strings.Contains(comment.Text, "pac:fmt:off") {
 			s.disabled = true
-		} else if strings.Contains(comment.Literal, "pac:fmt:on") {
+		} else if strings.Contains(comment.Text, "pac:fmt:on") {
 			s.disabled = false
 		}
 		s.emitTrivia(comment)
@@ -90,23 +87,6 @@ func formatNode(s *formatterState, node ast.Node) {
 	s.lastNode = node
 }
 
-func getImplicitLeadingTrivia(node ast.Node) []tokenizer.Token {
-	switch n := node.(type) {
-	case *ast.Entity:
-		if n.Kind == ast.EntityUnknown && len(n.Members) > 0 {
-			return n.Members[0].GetLeadingTrivia()
-		}
-	case *ast.Container:
-		if n.Kind == ast.ContainerUnknown {
-			_, innerStmt := unwrapImplicitContainer(n)
-			if innerEnt, ok := innerStmt.(*ast.Entity); ok && innerEnt.Kind == ast.EntityUnknown && len(innerEnt.Members) > 0 {
-				return innerEnt.Members[0].GetLeadingTrivia()
-			}
-		}
-	}
-	return nil
-}
-
 func (s *formatterState) formatMember(member ast.Member) {
 	switch mem := member.(type) {
 	case *ast.ClassSeparator:
@@ -118,7 +98,6 @@ func (s *formatterState) formatMember(member ast.Member) {
 	default:
 		panic("unreachable")
 	}
-	s.emitBlockEndTrivia(member)
 }
 
 func (s *formatterState) formatStatement(stmt ast.Statement) {
@@ -131,6 +110,8 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 		s.emitRawSpan(st.NodeSpan)
 	case *ast.Entity:
 		printEntity(s, st)
+	case *ast.InlineMember:
+		printInlineMember(s, st)
 	case *ast.Container:
 		printContainer(s, st)
 	case *ast.Relationship:
@@ -169,20 +150,20 @@ func (s *formatterState) formatStatement(stmt ast.Statement) {
 func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	// Find the previous newline to calculate original indent for relative indentation
 	var origIndent uint
+	isLeading := true
 	if span.Start.Offset > 0 {
-		isLeading := true
 		for i := int(span.Start.Offset) - 1; i >= 0; i-- {
 			if s.source[i] == '\n' {
 				break
 			}
 			if !unicode.IsSpace(s.source[i]) {
+				// Find the actual indent for lines where the statement emitted with
+				// span is preceded by other statement
 				isLeading = false
-				break
+				origIndent = 0
+			} else {
+				origIndent++
 			}
-			origIndent++
-		}
-		if !isLeading {
-			origIndent = 0
 		}
 	}
 
@@ -192,6 +173,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 	var currLine []rune
 	currLineIndent := 0
 
+	// Collect lines stripped of leading spaces and
+	// line-wise indent depth for each line to reproduce correct indents
+	// for non-first lines
 	for i, r := range inputSpan {
 		if len(currLine) == 0 && unicode.IsSpace(r) {
 			currLineIndent++
@@ -210,7 +194,9 @@ func (s *formatterState) emitRawSpan(span tokenizer.SourceSpan) {
 
 	for i, line := range inputLines {
 		if i == 0 {
-			s.writeIndent()
+			if isLeading {
+				s.writeIndent()
+			}
 			s.buf.WriteString(string(line))
 			if len(inputLines) > 1 {
 				s.buf.WriteRune('\n')

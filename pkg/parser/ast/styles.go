@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+
+	"yur4uwe/pac/pkg/tokenizer"
 )
 
 // StyleDeclaration represents a single CSS property declaration within a style rule:
@@ -29,25 +31,72 @@ var _ Statement = (*StyleDeclaration)(nil)
 //	}
 type StyleRule struct {
 	BaseNode
-	Selectors  []string    `json:",omitempty"`
-	Statements []Statement `json:",omitempty"` // StyleDeclaration, nested StyleRule, or UnhandledStatement
+	Selectors  []string      `json:",omitempty"`
+	LBrace     tokenizer.Pos // Zero if bodyless declaration
+	Statements []Statement   `json:",omitempty"` // StyleDeclaration, nested StyleRule, or UnhandledStatement
+	RBrace     tokenizer.Pos // Zero if unclosed before EOF
+}
+
+func (s *StyleRule) BlockEnd() tokenizer.Pos   { return s.RBrace }
+func (s *StyleRule) BlockStart() tokenizer.Pos { return s.LBrace }
+
+func (s *StyleRule) HasBody() bool {
+	return s.LBrace != tokenizer.Pos{}
+}
+
+func (s *StyleRule) IsClosed() bool {
+	return !s.HasBody() || s.RBrace != tokenizer.Pos{}
 }
 
 // StatementNode implements [Statement].
 func (s *StyleRule) StatementNode() Statement { return s }
 
-var _ Statement = (*StyleRule)(nil)
+var (
+	_ Statement = (*StyleRule)(nil)
+	_ Block     = (*StyleRule)(nil)
+)
 
 // StyleBlock represents the top-level <style> ... </style> block container.
 type StyleBlock struct {
 	BaseNode
-	Statements []Statement `json:",omitempty"` // StyleRule or UnhandledStatement
+	RAngle     tokenizer.Pos // Zero if bodyless declaration
+	Statements []Statement   `json:",omitempty"` // StyleRule or UnhandledStatement
+	LAngle     tokenizer.Pos // Zero if unclosed before EOF
+}
+
+func (b *StyleBlock) BlockEnd() tokenizer.Pos   { return b.RAngle }
+func (b *StyleBlock) BlockStart() tokenizer.Pos { return b.LAngle }
+
+func (b *StyleBlock) HasBody() bool {
+	return b.LAngle != tokenizer.Pos{}
+}
+
+func (b *StyleBlock) IsClosed() bool {
+	return !b.HasBody() || b.RAngle != tokenizer.Pos{}
 }
 
 // StatementNode implements [Statement].
 func (b *StyleBlock) StatementNode() Statement { return b }
 
-var _ Statement = (*StyleBlock)(nil)
+var (
+	_ Statement = (*StyleBlock)(nil)
+	_ Block     = (*StyleBlock)(nil)
+)
+
+// TokensToKey concatenates the literals of a token slice into a string.
+func TokensToKey(tokens []tokenizer.Token) string {
+	if len(tokens) == 0 {
+		return ""
+	}
+	if len(tokens) == 1 {
+		return tokens[0].Literal
+	}
+	var sb strings.Builder
+	for _, tok := range tokens {
+		sb.WriteString(tok.Literal)
+	}
+	return sb.String()
+}
 
 // SkinparamSetting represents a single-line skinparam setting:
 //
@@ -55,17 +104,17 @@ var _ Statement = (*StyleBlock)(nil)
 //	skinparam shadowing<<no_shadow>> false
 type SkinparamSetting struct {
 	BaseNode
-	Keyword    string `json:",omitempty"` // "skinparam" or "skinparamlocked"
-	Name       string `json:",omitempty"` // Full name (e.g., "backgroundColor")
-	Stereotype string `json:",omitempty"` // Extracted stereotype if present (e.g., "no_shadow")
-	Value      string `json:",omitempty"` // Sliced verbatim from source (preserves quotes, backslashes)
+	Keyword    string      `json:",omitempty"` // "skinparam" or "skinparamlocked"
+	Name       Ident       // Target name identifier
+	Stereotype *Stereotype `json:",omitempty"` // Extracted stereotype if present
+	Value      string      `json:",omitempty"` // Sliced verbatim from source (preserves quotes, backslashes)
 }
 
 // StatementNode implements [Statement].
 func (s *SkinparamSetting) StatementNode() Statement { return s }
 
 // EffectiveKey returns the full name of a single-line setting.
-func (s SkinparamSetting) EffectiveKey() string { return s.Name }
+func (s SkinparamSetting) EffectiveKey() string { return s.Name.Literal }
 
 var _ Statement = (*SkinparamSetting)(nil)
 
@@ -79,16 +128,32 @@ var _ Statement = (*SkinparamSetting)(nil)
 //	}
 type SkinparamBlock struct {
 	BaseNode
-	Keyword    string      `json:",omitempty"` // "skinparam" (empty for nested blocks)
-	Name       string      `json:",omitempty"` // Block target name (e.g., "class"), empty for nameless "skinparam { ... }"
-	Stereotype string      `json:",omitempty"` // Extracted stereotype if present
-	Statements []Statement `json:",omitempty"` // SkinparamSetting, nested SkinparamBlock, or UnhandledStatement
+	Keyword    string        `json:",omitempty"` // "skinparam" (empty for nested blocks)
+	Name       Ident         // Block target name identifier, empty for nameless "skinparam { ... }"
+	Stereotype *Stereotype   `json:",omitempty"` // Extracted stereotype if present
+	LBrace     tokenizer.Pos // Zero if bodyless declaration
+	Statements []Statement   `json:",omitempty"` // SkinparamSetting, nested SkinparamBlock, or UnhandledStatement
+	RBrace     tokenizer.Pos // Zero if unclosed before EOF
+}
+
+func (b *SkinparamBlock) BlockEnd() tokenizer.Pos   { return b.RBrace }
+func (b *SkinparamBlock) BlockStart() tokenizer.Pos { return b.LBrace }
+
+func (b *SkinparamBlock) HasBody() bool {
+	return b.LBrace != tokenizer.Pos{}
+}
+
+func (b *SkinparamBlock) IsClosed() bool {
+	return !b.HasBody() || b.RBrace != tokenizer.Pos{}
 }
 
 // StatementNode implements [Statement].
 func (b *SkinparamBlock) StatementNode() Statement { return b }
 
-var _ Statement = (*SkinparamBlock)(nil)
+var (
+	_ Statement = (*SkinparamBlock)(nil)
+	_ Block     = (*SkinparamBlock)(nil)
+)
 
 // ResolvedSkinparam is one effective setting with its concatenated key,
 // used by code generators and semantic passes.
@@ -100,7 +165,7 @@ type ResolvedSkinparam struct {
 
 // Settings flattens the block into effective settings in source order.
 func (b SkinparamBlock) Settings() []ResolvedSkinparam {
-	return flattenSkinparam(b.Name, b.Statements)
+	return flattenSkinparam(b.Name.Literal, b.Statements)
 }
 
 func flattenSkinparam(prefix string, stmts []Statement) []ResolvedSkinparam {
@@ -108,9 +173,9 @@ func flattenSkinparam(prefix string, stmts []Statement) []ResolvedSkinparam {
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
 		case *SkinparamSetting:
-			key := s.Name
+			key := s.EffectiveKey()
 			if prefix != "" {
-				key = prefix + "." + s.Name
+				key = prefix + "." + key
 			}
 			out = append(out, ResolvedSkinparam{
 				Key:   key,
@@ -118,9 +183,10 @@ func flattenSkinparam(prefix string, stmts []Statement) []ResolvedSkinparam {
 				Path:  strings.Split(key, "."),
 			})
 		case *SkinparamBlock:
-			nextPrefix := s.Name
-			if prefix != "" && s.Name != "" {
-				nextPrefix = prefix + "." + s.Name
+			blockName := s.Name.Literal
+			nextPrefix := blockName
+			if prefix != "" && blockName != "" {
+				nextPrefix = prefix + "." + blockName
 			} else if prefix != "" {
 				nextPrefix = prefix
 			}

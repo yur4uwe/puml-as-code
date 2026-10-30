@@ -41,8 +41,12 @@ func isEnum(ent *ast.Entity) bool {
 func tryInterfacePromotion(symb *resolver.EntitySymbol) error {
 	if symb.AST == nil {
 		symb.AST = &ast.Entity{
-			Identifier: stdlib.SimpleName(symb.FQN),
-			Kind:       ast.EntityInterface,
+			Identifier: ast.TargetRef{
+				Name: ast.Ident{
+					Literal: stdlib.SimpleName(symb.FQN),
+				},
+			},
+			Kind: ast.EntityInterface,
 		}
 		return nil
 	}

@@ -34,8 +34,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Leading trivia for caption",
+          "Text": "' Leading trivia for caption",
           "Span": {
             "Start": {
               "Line": 2,
@@ -52,8 +51,7 @@
       ],
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Trailing trivia for caption",
+          "Text": "' Trailing trivia for caption",
           "Span": {
             "Start": {
               "Line": 3,
@@ -85,8 +83,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Single-line sprite declaration",
+          "Text": "' Single-line sprite declaration",
           "Span": {
             "Start": {
               "Line": 5,
@@ -118,8 +115,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Root fallback single-line directives",
+          "Text": "' Root fallback single-line directives",
           "Span": {
             "Start": {
               "Line": 8,
@@ -181,8 +177,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Non-nestable blocked directives",
+          "Text": "' Non-nestable blocked directives",
           "Span": {
             "Start": {
               "Line": 13,
@@ -244,8 +239,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Nestable blocked directives",
+          "Text": "' Nestable blocked directives",
           "Span": {
             "Start": {
               "Line": 28,
@@ -292,8 +286,44 @@
       }
     },
     {
-      "Identifier": "CoreService",
+      "Identifier": {
+        "Name": {
+          "Literal": "CoreService",
+          "Span": {
+            "Start": {
+              "Line": 45,
+              "Col": 9,
+              "Offset": 838
+            },
+            "End": {
+              "Line": 45,
+              "Col": 20,
+              "Offset": 849
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "package",
+      "LBrace": {
+        "Line": 45,
+        "Col": 21,
+        "Offset": 850
+      },
       "Statements": [
         {
           "Raw": "caption Core Service Caption",
@@ -311,8 +341,7 @@
           },
           "LeadingTrivia": [
             {
-              "Type": "COMMENT",
-              "Literal": "Unhandled statements inside container",
+              "Text": "' Unhandled statements inside container",
               "Span": {
                 "Start": {
                   "Line": 46,
@@ -371,8 +400,44 @@
               "Offset": 1097
             }
           },
-          "Identifier": "AuthService",
+          "Identifier": {
+            "Name": {
+              "Literal": "AuthService",
+              "Span": {
+                "Start": {
+                  "Line": 54,
+                  "Col": 9,
+                  "Offset": 1026
+                },
+                "End": {
+                  "Line": 54,
+                  "Col": 20,
+                  "Offset": 1037
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
+          "LBrace": {
+            "Line": 54,
+            "Col": 21,
+            "Offset": 1038
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -388,7 +453,6 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "Token",
                 "Type": {
@@ -411,7 +475,6 @@
                 }
               },
               "Visibility": "public",
-              "Modifiers": null,
               "Method": {
                 "Name": "Authenticate",
                 "ReturnType": [
@@ -433,9 +496,19 @@
                 ]
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 57,
+            "Col": 3,
+            "Offset": 1096
+          }
         }
       ],
+      "RBrace": {
+        "Line": 58,
+        "Col": 1,
+        "Offset": 1098
+      },
       "NodeSpan": {
         "Start": {
           "Line": 45,
@@ -462,8 +535,44 @@
           "Offset": 1148
         }
       },
-      "Identifier": "UserStore",
+      "Identifier": {
+        "Name": {
+          "Literal": "UserStore",
+          "Span": {
+            "Start": {
+              "Line": 60,
+              "Col": 7,
+              "Offset": 1107
+            },
+            "End": {
+              "Line": 60,
+              "Col": 16,
+              "Offset": 1116
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 60,
+        "Col": 17,
+        "Offset": 1117
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -479,7 +588,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "FindUser",
             "ReturnType": [
@@ -501,18 +609,63 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 62,
+        "Col": 1,
+        "Offset": 1147
+      }
     },
     {
       "LHS": {
-        "Entity": "AuthService"
+        "Name": {
+          "Literal": "AuthService",
+          "Span": {
+            "Start": {
+              "Line": 64,
+              "Col": 1,
+              "Offset": 1150
+            },
+            "End": {
+              "Line": 64,
+              "Col": 12,
+              "Offset": 1161
+            }
+          }
+        }
       },
       "RHS": {
-        "Entity": "UserStore"
+        "Name": {
+          "Literal": "UserStore",
+          "Span": {
+            "Start": {
+              "Line": 64,
+              "Col": 17,
+              "Offset": 1166
+            },
+            "End": {
+              "Line": 64,
+              "Col": 26,
+              "Offset": 1175
+            }
+          }
+        }
       },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 64,
+          "Col": 13,
+          "Offset": 1162
+        },
+        "End": {
+          "Line": 64,
+          "Col": 16,
+          "Offset": 1165
+        }
+      },
       "Body": 45,
       "BodyCount": 2,
       "RArrow": 62,

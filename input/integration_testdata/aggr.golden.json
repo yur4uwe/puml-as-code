@@ -31,8 +31,44 @@
           "Offset": 52
         }
       },
-      "Identifier": "Team",
+      "Identifier": {
+        "Name": {
+          "Literal": "Team",
+          "Span": {
+            "Start": {
+              "Line": 2,
+              "Col": 7,
+              "Offset": 29
+            },
+            "End": {
+              "Line": 2,
+              "Col": 11,
+              "Offset": 33
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 2,
+        "Col": 12,
+        "Offset": 34
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -48,7 +84,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Field": {
             "Name": "name",
             "Type": {
@@ -57,7 +92,12 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 4,
+        "Col": 1,
+        "Offset": 51
+      }
     },
     {
       "NodeSpan": {
@@ -72,8 +112,44 @@
           "Offset": 83
         }
       },
-      "Identifier": "Player",
+      "Identifier": {
+        "Name": {
+          "Literal": "Player",
+          "Span": {
+            "Start": {
+              "Line": 5,
+              "Col": 7,
+              "Offset": 59
+            },
+            "End": {
+              "Line": 5,
+              "Col": 13,
+              "Offset": 65
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 5,
+        "Col": 14,
+        "Offset": 66
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -89,7 +165,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Field": {
             "Name": "number",
             "Type": {
@@ -98,14 +173,47 @@
             }
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 7,
+        "Col": 1,
+        "Offset": 82
+      }
     },
     {
       "LHS": {
-        "Entity": "Team"
+        "Name": {
+          "Literal": "Team",
+          "Span": {
+            "Start": {
+              "Line": 9,
+              "Col": 1,
+              "Offset": 85
+            },
+            "End": {
+              "Line": 9,
+              "Col": 5,
+              "Offset": 89
+            }
+          }
+        }
       },
       "RHS": {
-        "Entity": "Player"
+        "Name": {
+          "Literal": "Player",
+          "Span": {
+            "Start": {
+              "Line": 9,
+              "Col": 21,
+              "Offset": 105
+            },
+            "End": {
+              "Line": 9,
+              "Col": 27,
+              "Offset": 111
+            }
+          }
+        }
       },
       "TypeLHS": "aggregation",
       "MultLHS": {
@@ -117,6 +225,18 @@
         "Raw": "0..*",
         "Min": "0",
         "Max": "*"
+      },
+      "ArrowSpan": {
+        "Start": {
+          "Line": 9,
+          "Col": 10,
+          "Offset": 94
+        },
+        "End": {
+          "Line": 9,
+          "Col": 13,
+          "Offset": 97
+        }
       },
       "Body": 45,
       "BodyCount": 2,

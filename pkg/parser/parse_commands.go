@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -15,7 +14,7 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (*ast.VisibilityCom
 	cmd := &ast.VisibilityCommand{
 		Kind: ast.VisibilityCMDUnknown,
 		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: p.dumpTrivia(),
 		},
 	}
 	switch keyword.Classify(tok.Literal) {
@@ -58,7 +57,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (*ast.DirectionCommand,
 
 	cmd := &ast.DirectionCommand{
 		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: p.dumpTrivia(),
 		},
 	}
 
@@ -94,7 +93,7 @@ func isDecimalFloat(s string) bool {
 func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (*ast.ScaleCommand, error) {
 	cmd := &ast.ScaleCommand{
 		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: p.dumpTrivia(),
 		},
 	}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
@@ -156,7 +155,7 @@ func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (*ast.ScaleCommand, e
 func (p *Parser) parseScale(startTok tokenizer.Token) (*ast.ScaleCommand, error) {
 	cmd := &ast.ScaleCommand{
 		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: p.dumpTrivia(),
 		},
 	}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
@@ -357,7 +356,7 @@ func (p *Parser) parseScale(startTok tokenizer.Token) (*ast.ScaleCommand, error)
 }
 
 func (p *Parser) parseSetDirective(startTok tokenizer.Token) (ast.Statement, error) {
-	leadingTrivia := p.stream.DumpCollectedTrivia()
+	leadingTrivia := p.dumpTrivia()
 	keyTok := p.stream.Emit() // consume "separator"
 
 	toks := p.stream.ConsumeUntilType(tokenizer.NEWLINE)
@@ -382,6 +381,7 @@ func (p *Parser) parseSetDirective(startTok tokenizer.Token) (ast.Statement, err
 		},
 	}, nil
 }
+
 func parseLayoutAlignmentToken(tok tokenizer.Token, blockKind ast.TextBlockKind) (horiz string, vert string, isAlign bool) {
 	switch strings.ToLower(tok.Literal) {
 	case "left", "right", "center":
@@ -398,7 +398,7 @@ func parseLayoutAlignmentToken(tok tokenizer.Token, blockKind ast.TextBlockKind)
 
 func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *tokenizer.Token) (ast.Statement, error) {
 	blockKind := mapKwTokToTextBlockKind(keyword.Classify(kwTok.Literal))
-	leadingTrivia := p.stream.DumpCollectedTrivia()
+	leadingTrivia := p.dumpTrivia()
 
 	block := &ast.TextBlock{
 		Kind: blockKind,
@@ -459,9 +459,6 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		var err error
 		body, err = p.stream.ConsumeTextBlock("end", kwTok.Literal)
 		if err != nil {
-			if errors.Is(err, tokenizer.ErrScopeDelimiterHit) {
-				return nil, NewParserErrorf(kwTok, "unterminated block statement for %s (hit enclosing scope delimiter)", kwTok.Literal)
-			}
 			return nil, NewParserErrorf(kwTok, "unterminated block statement for %s", kwTok.Literal)
 		}
 	} else {

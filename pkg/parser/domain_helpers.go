@@ -1,28 +1,136 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
 func (p *Parser) tryReadModifier() (string, error) {
-	start := []tokenizer.Token{{Type: tokenizer.LBRACE}}
-	end := []tokenizer.Token{{Type: tokenizer.RBRACE}}
-	return p.stream.ReadBetween(start, end)
+	start := []tokenizer.TokenType{tokenizer.LBRACE}
+	end := []tokenizer.TokenType{tokenizer.RBRACE}
+	toks, _, err := p.stream.ReadTokensBetween(start, end)
+	if err != nil {
+		return "", err
+	}
+	return p.stream.SliceInputEnclosingTokens(toks...), nil
 }
 
-func (p *Parser) tryReadStereotype() (string, error) {
-	start := []tokenizer.Token{{Type: tokenizer.LANGLE}, {Type: tokenizer.LANGLE}}
-	end := []tokenizer.Token{{Type: tokenizer.RANGLE}, {Type: tokenizer.RANGLE}}
-	return p.stream.ReadBetween(start, end)
+func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, error) {
+	if !p.stream.AssertTypeSeq(tokenizer.LANGLE, tokenizer.LANGLE) {
+		return nil, tokenizer.SourceSpan{}, tokenizer.ErrStartMarkerNotFound
+	}
+
+	mark := p.Mark(p.stream.PeekTokenAt(0))
+
+	start := []tokenizer.TokenType{tokenizer.LANGLE, tokenizer.LANGLE}
+	end := []tokenizer.TokenType{tokenizer.RANGLE, tokenizer.RANGLE}
+
+	toks, span, err := p.stream.ReadTokensBetween(start, end, tokenizer.LBRACE)
+	if err != nil {
+		return nil, p.Span(mark), err
+	}
+
+	stereo := &ast.Stereotype{
+		Value:    ast.MergeTokensIntoIdent(toks...),
+		FullSpan: span,
+	}
+
+	// Check for Spot Stereotype
+	if len(toks) < 3 || toks[0].Type != tokenizer.LPAREN {
+		return stereo, span, nil
+	}
+
+	openingParenTok := toks[0]
+	var closingParenTok tokenizer.Token
+
+	// We discard the opening and closing parentheses
+	// to get the closest syntax to the raw identifier
+	spotToks := make([]tokenizer.Token, 0, len(toks))
+	nonSpotToks := make([]tokenizer.Token, 0, len(toks))
+	inSpot := true
+	for i := 1; i < len(toks); i++ {
+		if toks[i].Type == tokenizer.RPAREN {
+			closingParenTok = toks[i]
+			inSpot = false
+			continue
+		}
+		if inSpot {
+			spotToks = append(spotToks, toks[i])
+		} else {
+			nonSpotToks = append(nonSpotToks, toks[i])
+		}
+	}
+
+	// Must have encountered a closing ')' and at least one spot token
+	if inSpot || len(spotToks) == 0 {
+		return stereo, span, nil
+	}
+
+	newValue := ast.MergeTokensIntoIdent(nonSpotToks...)
+	spotSpan := tokenizer.SourceSpan{
+		Start: openingParenTok.Span.Start,
+		End:   closingParenTok.Span.End,
+	}
+
+	spotRuneTok := spotToks[0]
+	spotRunes := []rune(spotRuneTok.Literal)
+	if spotRuneTok.Type != tokenizer.IDENTIFIER || len(spotRunes) != 1 {
+		return stereo, span, nil
+	}
+
+	spotRune := spotRunes[0]
+
+	if len(spotToks) == 1 {
+		stereo.Value = newValue
+		stereo.SpotSpan = spotSpan
+		stereo.SpotRune = spotRune
+		return stereo, span, nil
+	}
+
+	if spotToks[1].Type != tokenizer.COMMA {
+		return stereo, span, nil
+	}
+
+	color, err := parseColor(spotToks[2:])
+	if err != nil {
+		return nil, span, WrapParserError(spotToks[2], err)
+	}
+
+	spotStereo := &ast.Stereotype{
+		Value:     newValue,
+		SpotRune:  rune(spotRune),
+		SpotSpan:  spotSpan,
+		SpotColor: color,
+		FullSpan:  span,
+	}
+
+	return spotStereo, span, nil
 }
 
-func (p *Parser) tryReadGeneric() (string, error) {
-	start := []tokenizer.Token{{Type: tokenizer.LANGLE}}
-	end := []tokenizer.Token{{Type: tokenizer.RANGLE}}
-	return p.stream.ReadBetween(start, end)
+func parseColor(toks []tokenizer.Token) (string, error) {
+	if len(toks) == 0 {
+		return "", errors.New("expected color, received no tokens")
+	}
+
+	var sb strings.Builder
+	for _, tok := range toks {
+		sb.WriteString(tok.Literal)
+	}
+	return sb.String(), nil
+}
+
+func (p *Parser) tryReadGeneric() (string, tokenizer.SourceSpan, error) {
+	start := []tokenizer.TokenType{tokenizer.LANGLE}
+	end := []tokenizer.TokenType{tokenizer.RANGLE}
+	toks, span, err := p.stream.ReadTokensBetween(start, end, tokenizer.LBRACE)
+	if err != nil {
+		return "", tokenizer.SourceSpan{}, err
+	}
+	return p.stream.SliceInputEnclosingTokens(toks...), span, nil
 }
 
 func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
@@ -45,7 +153,7 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 	sep := &ast.ClassSeparator{
 		Type: sepChar,
 		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.stream.DumpCollectedTrivia(),
+			LeadingTrivia: p.dumpTrivia(),
 		},
 	}
 
@@ -77,7 +185,7 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 		if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.EOF {
 			break
 		}
-		if p.stream.AssertTypeSeq([]tokenizer.TokenType{sepTokType, sepTokType}) {
+		if p.stream.AssertTypeSeq(sepTokType, sepTokType) {
 			break
 		}
 		labelToks = append(labelToks, p.stream.Emit())
@@ -105,17 +213,17 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 	return sep, nil
 }
 
-func (p *Parser) tryReadTags() []string {
+func (p *Parser) tryReadTags() ([]string, tokenizer.SourceSpan, error) {
 	var tags []string
 	for p.stream.AssertType(tokenizer.DOLLAR) {
-		p.stream.Emit() // consume $
+		dollarTok := p.stream.Emit() // consume $
 		tagTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
-			break
+			return nil, dollarTok.Span, NewParserError(dollarTok, "expected identifier after '$' for tag")
 		}
 		tags = append(tags, tagTok.Literal)
 	}
-	return tags
+	return tags, tokenizer.SourceSpan{}, nil
 }
 
 type Mark struct {

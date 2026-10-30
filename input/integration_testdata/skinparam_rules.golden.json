@@ -32,7 +32,21 @@
         }
       },
       "Keyword": "skinparam",
-      "Name": "backgroundColor",
+      "Name": {
+        "Literal": "backgroundColor",
+        "Span": {
+          "Start": {
+            "Line": 2,
+            "Col": 11,
+            "Offset": 36
+          },
+          "End": {
+            "Line": 2,
+            "Col": 26,
+            "Offset": 51
+          }
+        }
+      },
       "Value": "#FFFFFF"
     },
     {
@@ -49,7 +63,21 @@
         }
       },
       "Keyword": "skinparam",
-      "Name": "classBackgroundColor",
+      "Name": {
+        "Literal": "classBackgroundColor",
+        "Span": {
+          "Start": {
+            "Line": 3,
+            "Col": 11,
+            "Offset": 70
+          },
+          "End": {
+            "Line": 3,
+            "Col": 31,
+            "Offset": 90
+          }
+        }
+      },
       "Value": "#FF0000"
     },
     {
@@ -66,7 +94,26 @@
         }
       },
       "Keyword": "skinparam",
-      "Name": "class",
+      "Name": {
+        "Literal": "class",
+        "Span": {
+          "Start": {
+            "Line": 5,
+            "Col": 11,
+            "Offset": 110
+          },
+          "End": {
+            "Line": 5,
+            "Col": 16,
+            "Offset": 115
+          }
+        }
+      },
+      "LBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -81,7 +128,21 @@
               "Offset": 141
             }
           },
-          "Name": "BackgroundColor",
+          "Name": {
+            "Literal": "BackgroundColor",
+            "Span": {
+              "Start": {
+                "Line": 6,
+                "Col": 3,
+                "Offset": 120
+              },
+              "End": {
+                "Line": 6,
+                "Col": 18,
+                "Offset": 135
+              }
+            }
+          },
           "Value": "Green"
         },
         {
@@ -97,7 +158,21 @@
               "Offset": 169
             }
           },
-          "Name": "HeaderBackgroundColor",
+          "Name": {
+            "Literal": "HeaderBackgroundColor",
+            "Span": {
+              "Start": {
+                "Line": 7,
+                "Col": 3,
+                "Offset": 144
+              },
+              "End": {
+                "Line": 7,
+                "Col": 24,
+                "Offset": 165
+              }
+            }
+          },
           "Value": "Red"
         },
         {
@@ -113,10 +188,29 @@
               "Offset": 189
             }
           },
-          "Name": "BorderColor",
+          "Name": {
+            "Literal": "BorderColor",
+            "Span": {
+              "Start": {
+                "Line": 8,
+                "Col": 3,
+                "Offset": 172
+              },
+              "End": {
+                "Line": 8,
+                "Col": 14,
+                "Offset": 183
+              }
+            }
+          },
           "Value": "Black"
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 0,
+        "Col": 0,
+        "Offset": 0
+      }
     },
     {
       "NodeSpan": {
@@ -131,8 +225,44 @@
           "Offset": 225
         }
       },
-      "Identifier": "Service",
+      "Identifier": {
+        "Name": {
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 11,
+              "Col": 7,
+              "Offset": 199
+            },
+            "End": {
+              "Line": 11,
+              "Col": 14,
+              "Offset": 206
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 11,
+        "Col": 15,
+        "Offset": 207
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -148,7 +278,6 @@
             }
           },
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "Run",
             "ReturnType": [
@@ -161,7 +290,12 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 13,
+        "Col": 1,
+        "Offset": 224
+      }
     },
     {
       "IsStart": false,

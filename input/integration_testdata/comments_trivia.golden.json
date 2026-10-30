@@ -35,8 +35,7 @@
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Trailing comment for diagram start",
+          "Text": "' Trailing comment for diagram start",
           "Span": {
             "Start": {
               "Line": 0,
@@ -51,8 +50,7 @@
           }
         },
         {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached as leading to 'set'",
+          "Text": "' This is a single line comment attached as leading to 'set'",
           "Span": {
             "Start": {
               "Line": 2,
@@ -69,8 +67,7 @@
       ],
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached as trailing to 'set'",
+          "Text": "' This is a single line comment attached as trailing to 'set'",
           "Span": {
             "Start": {
               "Line": 3,
@@ -87,8 +84,44 @@
       ]
     },
     {
-      "Identifier": "p",
+      "Identifier": {
+        "Name": {
+          "Literal": "p",
+          "Span": {
+            "Start": {
+              "Line": 5,
+              "Col": 9,
+              "Offset": 211
+            },
+            "End": {
+              "Line": 5,
+              "Col": 10,
+              "Offset": 212
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "package",
+      "LBrace": {
+        "Line": 5,
+        "Col": 11,
+        "Offset": 213
+      },
       "Statements": [
         {
           "NodeSpan": {
@@ -105,8 +138,7 @@
           },
           "LeadingTrivia": [
             {
-              "Type": "COMMENT",
-              "Literal": "This is a single line comment attached to User",
+              "Text": "' This is a single line comment attached to User",
               "Span": {
                 "Start": {
                   "Line": 6,
@@ -121,8 +153,44 @@
               }
             }
           ],
-          "Identifier": "User",
+          "Identifier": {
+            "Name": {
+              "Literal": "User",
+              "Span": {
+                "Start": {
+                  "Line": 7,
+                  "Col": 11,
+                  "Offset": 342
+                },
+                "End": {
+                  "Line": 7,
+                  "Col": 15,
+                  "Offset": 346
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
           "Kind": "class",
+          "LBrace": {
+            "Line": 7,
+            "Col": 16,
+            "Offset": 347
+          },
           "Members": [
             {
               "NodeSpan": {
@@ -139,8 +207,7 @@
               },
               "LeadingTrivia": [
                 {
-                  "Type": "COMMENT",
-                  "Literal": "This is a single line comment attached to User.id",
+                  "Text": "' This is a single line comment attached to User.id",
                   "Span": {
                     "Start": {
                       "Line": 8,
@@ -156,7 +223,6 @@
                 }
               ],
               "Visibility": "public",
-              "Modifiers": null,
               "Field": {
                 "Name": "id",
                 "Type": {
@@ -165,9 +231,19 @@
                 }
               }
             }
-          ]
+          ],
+          "RBrace": {
+            "Line": 10,
+            "Col": 5,
+            "Offset": 428
+          }
         }
       ],
+      "RBrace": {
+        "Line": 11,
+        "Col": 1,
+        "Offset": 430
+      },
       "NodeSpan": {
         "Start": {
           "Line": 5,
@@ -182,8 +258,7 @@
       },
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached to Package p after '{'",
+          "Text": "' This is a single line comment attached to Package p after '{'",
           "Span": {
             "Start": {
               "Line": 5,
@@ -198,8 +273,7 @@
           }
         },
         {
-          "Type": "COMMENT",
-          "Literal": "\nThis is a block comment attached to Package p after '}'\n",
+          "Text": "/'\nThis is a block comment attached to Package p after '}'\n'/",
           "Span": {
             "Start": {
               "Line": 11,
@@ -225,13 +299,12 @@
         "End": {
           "Line": 19,
           "Col": 2,
-          "Offset": 690
+          "Offset": 754
         }
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": " Block comment before Service ",
+          "Text": "/' Block comment before Service '/",
           "Span": {
             "Start": {
               "Line": 15,
@@ -248,8 +321,7 @@
       ],
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached to Service after '{'",
+          "Text": "' This is a single line comment attached to Service after '{'",
           "Span": {
             "Start": {
               "Line": 16,
@@ -264,24 +336,74 @@
           }
         },
         {
-          "Type": "COMMENT",
-          "Literal": "This is a single line comment attached to Service after '}'",
+          "Text": "' This is a single line comment that has no member to attach to",
           "Span": {
             "Start": {
-              "Line": 19,
+              "Line": 18,
               "Col": 3,
-              "Offset": 691
+              "Offset": 689
             },
             "End": {
-              "Line": 20,
+              "Line": 19,
               "Col": 0,
               "Offset": 752
             }
           }
+        },
+        {
+          "Text": "' This is a single line comment attached to Service after '}'",
+          "Span": {
+            "Start": {
+              "Line": 19,
+              "Col": 3,
+              "Offset": 755
+            },
+            "End": {
+              "Line": 20,
+              "Col": 0,
+              "Offset": 816
+            }
+          }
         }
       ],
-      "Identifier": "Service",
+      "Identifier": {
+        "Name": {
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 16,
+              "Col": 7,
+              "Offset": 536
+            },
+            "End": {
+              "Line": 16,
+              "Col": 14,
+              "Offset": 543
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
       "Kind": "class",
+      "LBrace": {
+        "Line": 16,
+        "Col": 15,
+        "Offset": 544
+      },
       "Members": [
         {
           "NodeSpan": {
@@ -291,13 +413,29 @@
               "Offset": 610
             },
             "End": {
-              "Line": 18,
-              "Col": 0,
+              "Line": 17,
+              "Col": 19,
               "Offset": 626
             }
           },
+          "TrailingTrivia": [
+            {
+              "Text": "' This is a single line comment attached to Service.Process",
+              "Span": {
+                "Start": {
+                  "Line": 17,
+                  "Col": 20,
+                  "Offset": 627
+                },
+                "End": {
+                  "Line": 18,
+                  "Col": 0,
+                  "Offset": 686
+                }
+              }
+            }
+          ],
           "Visibility": "public",
-          "Modifiers": null,
           "Method": {
             "Name": "Process",
             "ReturnType": [
@@ -310,18 +448,63 @@
             ]
           }
         }
-      ]
+      ],
+      "RBrace": {
+        "Line": 19,
+        "Col": 1,
+        "Offset": 753
+      }
     },
     {
       "LHS": {
-        "Entity": "User"
+        "Name": {
+          "Literal": "User",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 1,
+              "Offset": 853
+            },
+            "End": {
+              "Line": 22,
+              "Col": 5,
+              "Offset": 857
+            }
+          }
+        }
       },
       "RHS": {
-        "Entity": "Service"
+        "Name": {
+          "Literal": "Service",
+          "Span": {
+            "Start": {
+              "Line": 22,
+              "Col": 9,
+              "Offset": 861
+            },
+            "End": {
+              "Line": 22,
+              "Col": 16,
+              "Offset": 868
+            }
+          }
+        }
       },
       "TypeRHS": "association",
       "MultLHS": null,
       "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 22,
+          "Col": 6,
+          "Offset": 858
+        },
+        "End": {
+          "Line": 22,
+          "Col": 8,
+          "Offset": 860
+        }
+      },
       "Body": 45,
       "BodyCount": 1,
       "RArrow": 62,
@@ -330,46 +513,44 @@
         "Start": {
           "Line": 22,
           "Col": 1,
-          "Offset": 789
+          "Offset": 853
         },
         "End": {
           "Line": 22,
           "Col": 26,
-          "Offset": 814
+          "Offset": 878
         }
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Leading comment for relationship",
+          "Text": "' Leading comment for relationship",
           "Span": {
             "Start": {
               "Line": 21,
               "Col": 1,
-              "Offset": 754
+              "Offset": 818
             },
             "End": {
               "Line": 22,
               "Col": 0,
-              "Offset": 788
+              "Offset": 852
             }
           }
         }
       ],
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Trailing comment for relationship",
+          "Text": "' Trailing comment for relationship",
           "Span": {
             "Start": {
               "Line": 22,
               "Col": 27,
-              "Offset": 815
+              "Offset": 879
             },
             "End": {
               "Line": 23,
               "Col": 0,
-              "Offset": 850
+              "Offset": 914
             }
           }
         }
@@ -382,46 +563,44 @@
         "Start": {
           "Line": 25,
           "Col": 1,
-          "Offset": 886
+          "Offset": 950
         },
         "End": {
           "Line": 25,
           "Col": 8,
-          "Offset": 893
+          "Offset": 957
         }
       },
       "LeadingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Leading comment for diagram end",
+          "Text": "' Leading comment for diagram end",
           "Span": {
             "Start": {
               "Line": 24,
               "Col": 1,
-              "Offset": 852
+              "Offset": 916
             },
             "End": {
               "Line": 25,
               "Col": 0,
-              "Offset": 885
+              "Offset": 949
             }
           }
         }
       ],
       "TrailingTrivia": [
         {
-          "Type": "COMMENT",
-          "Literal": "Trailing comment for diagram end",
+          "Text": "' Trailing comment for diagram end",
           "Span": {
             "Start": {
               "Line": 25,
               "Col": 9,
-              "Offset": 894
+              "Offset": 958
             },
             "End": {
               "Line": 26,
               "Col": 0,
-              "Offset": 928
+              "Offset": 992
             }
           }
         }
