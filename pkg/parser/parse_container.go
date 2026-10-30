@@ -9,13 +9,10 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseContainer(tok tokenizer.Token) (*ast.Container, error) {
+func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 	containerClass := keyword.Classify(tok.Literal)
 	container := &ast.Container{
 		Kind: p.mapKeywordToContainerKind(containerClass),
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
 	}
 
 	// Handle container name, alias, stereotype, color
@@ -26,62 +23,92 @@ func (p *Parser) parseContainer(tok tokenizer.Token) (*ast.Container, error) {
 	// and Name is on the right of 'as' keyword
 
 	if containerClass != keyword.Together {
-		var err error
-		container.Alias, container.Identifier, err = p.parseContainerIdentAndAlias()
-		if err != nil {
-			return nil, err
+		if err, span := p.parseContainerHeader(container); err != nil {
+			p.recordDiagnostic(p.newDiagnosticError(err, span, container))
+			p.syncToBlockStart()
 		}
-		var preTags []string
-		preTags, _, err = p.tryReadTags()
-		if err != nil {
-			return nil, err
-		}
-		container.Stereotype, _, err = p.tryParseStereotype()
-		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
-			return nil, err
-		}
-		var postTags []string
-		postTags, _, err = p.tryReadTags()
-		if err != nil {
-			return nil, err
-		}
-		if len(preTags) > 0 {
-			if len(postTags) > 0 {
-				log.Printf("warning: tags %v after stereotype on container %q are ignored in favor of pre-stereotype tags %v\n", postTags, container.Identifier.EntityName(), preTags)
-			}
-			container.Tags = preTags
-		} else if len(postTags) > 0 {
-			container.Tags = postTags
-		}
-
-		container.Color = p.tryParseColor()
 	}
 
-	if _, ok := p.stream.TryConsumeType(tokenizer.LBRACE); !ok {
-		if !p.stream.AssertType(tokenizer.NEWLINE) {
-			return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected container body to end")
-		}
-		return container, nil
+	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
+	if !ok {
+		return container
 	}
+	container.LBrace = lbraceTok.Span.Start
 
 	p.stream.EmitCommentToks()
 	container.TrailingTrivia = p.dumpTrivia()
 
-	for tok := p.stream.Emit(); tok.Type != tokenizer.RBRACE; tok = p.stream.Emit() {
-		if tok.Type == tokenizer.EOF {
-			return nil, tokenizer.ErrUnexpectedEOF
-		} else if tok.Type == tokenizer.NEWLINE {
-			// Skip NEWLINE tokens inside parseContainer() so empty lines within
-			// container blocks { ... } do not trigger an erroneous "Expected a statement in a
-			// container body" error.
-			continue
+	unclosedBlockErr := ast.NewUnclosedBlockError(tok.Literal, "}")
+
+	for {
+		for {
+			if _, ok := p.stream.TryConsumeType(tokenizer.NEWLINE); !ok {
+				break
+			}
 		}
 
-		stmt := p.routeContainerStatement(tok)
-		container.Statements = append(container.Statements, stmt)
+		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
+			p.recordDiagnostic(p.newDiagnosticError(unclosedBlockErr, lbraceTok.Span, container))
+			break
+		} else if p.stream.AssertType(tokenizer.RBRACE) {
+			break
+		}
+
+		innerTok := p.stream.Emit()
+		stmt := p.routeContainerStatement(innerTok)
+		if stmt != nil {
+			container.Statements = append(container.Statements, stmt)
+		}
 	}
 
-	return container, nil
+	if rbraceTok, ok := p.stream.TryConsumeType(tokenizer.RBRACE); ok {
+		container.RBrace = rbraceTok.Span.Start
+	}
+
+	return container
+}
+
+func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.SourceSpan) {
+	var err error
+	var span tokenizer.SourceSpan
+	cntr.Alias, cntr.Identifier, err = p.parseContainerIdentAndAlias()
+	if err != nil {
+		if perr, ok := err.(parserError); ok {
+			span = perr.Tok.Span
+		}
+		return err, span
+	}
+	var preTags []string
+	preTags, span, err = p.tryReadTags()
+	if err != nil {
+		return err, span
+	}
+	cntr.Stereotype, span, err = p.tryParseStereotype()
+	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+		return err, span
+	}
+	var postTags []string
+	postTags, span, err = p.tryReadTags()
+	if err != nil {
+		return err, span
+	}
+	if len(preTags) > 0 {
+		if len(postTags) > 0 {
+			log.Printf("warning: tags %v after stereotype on container %q are ignored in favor of pre-stereotype tags %v\n", postTags, cntr.Identifier.EntityName(), preTags)
+		}
+		cntr.Tags = preTags
+	} else if len(postTags) > 0 {
+		cntr.Tags = postTags
+	}
+
+	cntr.Color = p.tryParseColor()
+
+	if !p.stream.AssertAnyType(tokenizer.LBRACE, tokenizer.NEWLINE, tokenizer.EOF) && !p.isEndMarker() {
+		nextTok := p.stream.PeekTokenAt(0)
+		return NewParserError(nextTok, "unexpected token after container declaration"), nextTok.Span
+	}
+
+	return nil, span
 }
 
 // parseContainerIdentAndAlias parses the container name and alias.
@@ -106,6 +133,9 @@ func (p *Parser) parseContainerIdentAndAlias() (ast.Ident, ast.TargetRef, error)
 		lhsTarget, err = p.parseTargetRef(firstTok)
 		if err != nil {
 			return ast.Ident{}, ast.TargetRef{}, err
+		}
+		if lhsTarget.Member != nil {
+			return ast.Ident{}, ast.TargetRef{}, NewParserErrorFromIdent(lhsTarget.Name, "container name contains unexpected member")
 		}
 		lhsIsTarget = true
 	default:
@@ -134,6 +164,9 @@ func (p *Parser) parseContainerIdentAndAlias() (ast.Ident, ast.TargetRef, error)
 		if err != nil {
 			return ast.Ident{}, ast.TargetRef{}, err
 		}
+		if rhsTarget.Member != nil {
+			return ast.Ident{}, ast.TargetRef{}, NewParserErrorFromIdent(rhsTarget.Name, "container alias contains unexpected member")
+		}
 		rhsIsTarget = true
 	default:
 		return ast.Ident{}, ast.TargetRef{}, NewParserError(secondTok, "Expected identifier or string for container alias")
@@ -152,4 +185,3 @@ func (p *Parser) parseContainerIdentAndAlias() (ast.Ident, ast.TargetRef, error)
 	// When both are strings
 	return lhsIdent, ast.TargetRef{Name: rhsIdent}, nil
 }
-

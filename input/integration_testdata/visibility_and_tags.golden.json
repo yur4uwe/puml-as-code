@@ -509,9 +509,9 @@
         "backend"
       ],
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 22,
+        "Col": 27,
+        "Offset": 353
       },
       "Statements": [
         {
@@ -596,9 +596,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 26,
+        "Col": 1,
+        "Offset": 395
       },
       "NodeSpan": {
         "Start": {

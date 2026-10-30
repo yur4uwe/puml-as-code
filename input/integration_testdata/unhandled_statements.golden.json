@@ -320,9 +320,9 @@
       },
       "Kind": "package",
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 45,
+        "Col": 21,
+        "Offset": 850
       },
       "Statements": [
         {
@@ -505,9 +505,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 58,
+        "Col": 1,
+        "Offset": 1098
       },
       "NodeSpan": {
         "Start": {

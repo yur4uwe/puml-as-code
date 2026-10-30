@@ -268,6 +268,36 @@ func (ts *TokenStream) ConsumeTextBlock(delimiterLiterals ...string) (string, er
 	return rawBody, nil
 }
 
+// HasCloserBeforeBoundary peeks forward in the stream without consuming tokens to check
+// whether a line matching delimiterLiterals exists before encountering EOF or @enduml.
+func (ts *TokenStream) HasCloserBeforeBoundary(delimiterLiterals ...string) bool {
+	delim := strings.ToLower(strings.Join(delimiterLiterals, ""))
+	var curLine []Token
+	for i := 0; ; i++ {
+		tok := ts.PeekTokenAt(i)
+		if tok.Type == EOF {
+			break
+		}
+		if tok.Type == NEWLINE {
+			if len(curLine) > 0 {
+				if MatchTokenLine(curLine, delim) {
+					return true
+				}
+				if MatchTokenLine(curLine, "@enduml") {
+					return false
+				}
+			}
+			curLine = curLine[:0]
+			continue
+		}
+		curLine = append(curLine, tok)
+	}
+	if len(curLine) > 0 && MatchTokenLine(curLine, delim) {
+		return true
+	}
+	return false
+}
+
 // Assert checks if the next token matches the given target (Type and Literal if literal is set).
 // Does not emit the token.
 func (ts *TokenStream) Assert(target Token) bool {

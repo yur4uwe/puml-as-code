@@ -28,7 +28,7 @@ func (p *Parser) tryParseColor() string {
 	return p.stream.SliceInputEnclosingTokens(tokens...)
 }
 
-func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error) {
+func (p *Parser) parseQualifiedName(firstTok tokenizer.Token) ast.TargetRef {
 	var ref ast.TargetRef
 	tokens := []tokenizer.Token{firstTok}
 
@@ -62,7 +62,13 @@ func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error)
 		}
 	}
 
+	return ref
+}
+
+func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error) {
 	// If encountering a () we in the case where package separator is '::' and encountered method reference
+	ref := p.parseQualifiedName(firstTok)
+
 	if p.stream.AssertType(tokenizer.LPAREN) {
 		lparenTok := p.stream.Emit() // consume (
 		memberRef := &ast.MemberRef{
@@ -78,8 +84,10 @@ func (p *Parser) parseTargetRef(firstTok tokenizer.Token) (ast.TargetRef, error)
 		sig = append(sig, paramToks...)
 		sig = append(sig, rparenTok)
 		memberRef.Signature = sig
-		ref.Name = ref.PackagePath[len(ref.PackagePath)-1]
-		ref.PackagePath = ref.PackagePath[:len(ref.PackagePath)-1]
+		if len(ref.PackagePath) > 0 {
+			ref.Name = ref.PackagePath[len(ref.PackagePath)-1]
+			ref.PackagePath = ref.PackagePath[:len(ref.PackagePath)-1]
+		}
 		ref.Member = memberRef
 	}
 

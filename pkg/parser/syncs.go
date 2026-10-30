@@ -36,3 +36,17 @@ func (p *Parser) syncToBlockStart() []tokenizer.Token {
 	}
 	return consumed
 }
+
+func (p *Parser) syncToNoteBody() []tokenizer.Token {
+	var consumed []tokenizer.Token
+	for !p.stream.AssertAnyType(
+		tokenizer.NEWLINE,
+		tokenizer.EOF,
+	) && !p.isEndMarker() {
+		if p.stream.AssertType(tokenizer.COLON) && p.stream.PeekTokenAt(1).Type != tokenizer.COLON {
+			break
+		}
+		consumed = append(consumed, p.stream.Emit())
+	}
+	return consumed
+}

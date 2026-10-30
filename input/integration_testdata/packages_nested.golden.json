@@ -53,9 +53,9 @@
       },
       "Kind": "package",
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 2,
+        "Col": 31,
+        "Offset": 56
       },
       "Statements": [
         {
@@ -163,9 +163,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 7,
+        "Col": 1,
+        "Offset": 109
       },
       "NodeSpan": {
         "Start": {
@@ -215,9 +215,9 @@
       },
       "Kind": "namespace",
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 9,
+        "Col": 17,
+        "Offset": 128
       },
       "Statements": [
         {
@@ -303,9 +303,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 13,
+        "Col": 1,
+        "Offset": 176
       },
       "NodeSpan": {
         "Start": {
@@ -355,9 +355,9 @@
       },
       "Kind": "folder",
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 15,
+        "Col": 18,
+        "Offset": 196
       },
       "Statements": [
         {
@@ -395,9 +395,9 @@
           },
           "Kind": "node",
           "LBrace": {
-            "Line": 0,
-            "Col": 0,
-            "Offset": 0
+            "Line": 16,
+            "Col": 15,
+            "Offset": 212
           },
           "Statements": [
             {
@@ -483,9 +483,9 @@
             }
           ],
           "RBrace": {
-            "Line": 0,
-            "Col": 0,
-            "Offset": 0
+            "Line": 20,
+            "Col": 3,
+            "Offset": 259
           },
           "NodeSpan": {
             "Start": {
@@ -502,9 +502,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 21,
+        "Col": 1,
+        "Offset": 261
       },
       "NodeSpan": {
         "Start": {

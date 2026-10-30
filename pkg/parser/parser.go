@@ -221,7 +221,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		return p.parseContainer(tok)
+		return p.parseContainer(tok), nil
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
 		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
