@@ -16,7 +16,7 @@ func (p *Parser) isStyleTagEnd() bool {
 	})
 }
 
-func (p *Parser) parseStyleBlock() (*ast.StyleBlock, error) {
+func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 	langle := p.stream.LastSemanticToken() // get the '<'
 	p.stream.Emit()                        // consume 'style'
 	rangle := p.stream.Emit()              // consume '>'
@@ -45,19 +45,14 @@ func (p *Parser) parseStyleBlock() (*ast.StyleBlock, error) {
 		leadingTrivia := p.dumpTrivia()
 
 		var stmnt ast.Statement
-		var err error
 		switch tok.Type {
 		case tokenizer.EXCLAMATION:
-			stmnt, err = p.parseDirective(tok)
+			stmnt = p.parseDirective(tok)
 		default:
 			// Must be a StyleRule (e.g. "root { ... }" or "classDiagram { ... }")
-			stmnt, err = p.parseStyleRule(tok)
+			stmnt = p.parseStyleRule(tok)
 		}
-		if err != nil {
-			p.recordDiagnostic(p.newDiagnosticError(
-				err, tokenizer.SourceSpan{}, styleBlock,
-			))
-		} else {
+		if stmnt != nil {
 			p.stream.EmitCommentToks()
 			stmnt.SetMetadata(p.Span(ruleMark), leadingTrivia, p.dumpTrivia())
 			styleBlock.Statements = append(styleBlock.Statements, stmnt)
@@ -77,7 +72,7 @@ func (p *Parser) parseStyleBlock() (*ast.StyleBlock, error) {
 		p.stream.TryConsumeType(tokenizer.RANGLE)
 	}
 
-	return styleBlock, nil
+	return styleBlock
 }
 
 func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) {
@@ -108,7 +103,7 @@ func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) 
 	selectorBuilder.Reset()
 }
 
-func (p *Parser) parseStyleRule(startTok tokenizer.Token) (*ast.StyleRule, error) {
+func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 	currentRule := &ast.StyleRule{}
 
 	p.setSelectorsFor(currentRule, startTok)
@@ -118,7 +113,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (*ast.StyleRule, error
 		nextTok := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextTok, "Expected opening brace after style rule")
 		p.recordDiagnostic(p.newDiagnosticError(err, nextTok.Span, currentRule))
-		return currentRule, nil
+		return currentRule
 	}
 	currentRule.LBrace = lbraceTok.Span.Start
 
@@ -138,16 +133,15 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (*ast.StyleRule, error
 		case tokenizer.NEWLINE, tokenizer.SEMICOLON:
 			continue
 		case tokenizer.EXCLAMATION:
-			dir, err := p.parseDirective(tok)
-			if err != nil {
-				return nil, err
+			dir := p.parseDirective(tok)
+			if dir != nil {
+				currentRule.Statements = append(currentRule.Statements, dir)
 			}
-			currentRule.Statements = append(currentRule.Statements, dir)
 			continue
 		}
 
 		if p.hasLBraceOnLine() {
-			nestedRule, _ := p.parseStyleRule(tok)
+			nestedRule := p.parseStyleRule(tok)
 			currentRule.Statements = append(currentRule.Statements, nestedRule)
 			continue
 		}
@@ -186,7 +180,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) (*ast.StyleRule, error
 	if rbraceTok, ok := p.stream.TryConsumeType(tokenizer.RBRACE); ok {
 		currentRule.RBrace = rbraceTok.Span.Start
 	}
-	return currentRule, nil
+	return currentRule
 }
 
 func (p *Parser) hasLBraceOnLine() bool {

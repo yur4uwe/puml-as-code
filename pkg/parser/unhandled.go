@@ -21,14 +21,19 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 	return p.consumeUnhandledLine(tok, leadingTrivia)
 }
 
-func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tokenizer.Token) (ast.Statement, error) {
+func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tokenizer.Token) ast.Statement {
 	leadingTrivia := p.dumpTrivia()
 
 	kw := FindUnhandledKeyword("!" + dirNameTok.Literal)
 	if kw != nil && kw.Closer != "" {
-		return p.consumeUnhandledBlock(exclTok, *kw, leadingTrivia)
+		stmt, err := p.consumeUnhandledBlock(exclTok, *kw, leadingTrivia)
+		if err != nil {
+			p.recordDiagnostic(p.newDiagnosticError(err, exclTok.Span, stmt))
+		}
+		return stmt
 	}
-	return p.consumeUnhandledLine(exclTok, leadingTrivia)
+	stmt, _ := p.consumeUnhandledLine(exclTok, leadingTrivia)
+	return stmt
 }
 
 func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []ast.Comment) (ast.Statement, error) {

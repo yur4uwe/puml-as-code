@@ -173,15 +173,12 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 		case tokenizer.EXCLAMATION:
 			memberMark := p.Mark(tok)
 			leadingTrivia := p.dumpTrivia()
-			member, err := p.parseDirective(tok)
-			if err != nil {
-				p.recordDiagnostic(p.newDiagnosticError(err, p.Span(memberMark), block))
-				p.syncToLineOrBlockEnd()
-				continue
+			member := p.parseDirective(tok)
+			if member != nil {
+				p.stream.EmitCommentToks()
+				member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
+				block.Statements = append(block.Statements, member)
 			}
-			p.stream.EmitCommentToks()
-			member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
-			block.Statements = append(block.Statements, member)
 			continue
 		}
 

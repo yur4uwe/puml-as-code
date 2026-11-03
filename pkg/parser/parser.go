@@ -176,7 +176,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.EXCLAMATION {
-		return p.parseDirective(tok)
+		return p.parseDirective(tok), nil
 	}
 
 	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {
@@ -237,10 +237,10 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.readEndBounds(tok)
 	}
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
-		return p.parseStyleBlock()
+		return p.parseStyleBlock(), nil
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
-		return p.parseDirective(tok)
+		return p.parseDirective(tok), nil
 	}
 
 	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {

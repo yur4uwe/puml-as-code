@@ -58,6 +58,14 @@ func TestParseIncludeDirectives(t *testing.T) {
 				Tag:  "0",
 			},
 		},
+		{
+			name:  "incomplete include without path",
+			input: "!include",
+			want: ast.IncludeDirective{
+				Kind: ast.IncludeOnce,
+				Path: "",
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -80,3 +88,64 @@ func TestParseIncludeDirectives(t *testing.T) {
 		})
 	}
 }
+
+func TestParseDirectiveRecovery(t *testing.T) {
+	t.Run("unknown include kind records diagnostic but produces IncludeDirective", func(t *testing.T) {
+		input := "!include_unknown myfile.puml"
+		p := NewParser(dialect.NewGoDialect())
+		p.IsBoundless = true
+		diagram, err := p.Parse(input)
+		require.Error(t, err)
+		require.NotNil(t, diagram)
+		require.True(t, diagram.HasErrors())
+		require.Len(t, diagram.Statements, 1)
+
+		got, ok := diagram.Statements[0].(*ast.IncludeDirective)
+		require.True(t, ok)
+		require.Equal(t, ast.IncludeOnce, got.Kind)
+		require.Equal(t, "myfile.puml", got.Path)
+	})
+
+	t.Run("bare exclamation mark records diagnostic and preserves surrounding statements", func(t *testing.T) {
+		input := `@startuml
+!
+class User
+@enduml`
+		p := NewParser(dialect.NewGoDialect())
+		diagram, err := p.Parse(input)
+		require.Error(t, err)
+		require.NotNil(t, diagram)
+		require.True(t, diagram.HasErrors())
+		require.Len(t, diagram.Statements, 4)
+
+		uh, ok := diagram.Statements[1].(*ast.UnhandledStatement)
+		require.True(t, ok)
+		require.Equal(t, "!", uh.Raw)
+
+		user, ok := diagram.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "User", user.Identifier.EntityName())
+	})
+
+	t.Run("exclamation mark with space before directive name records diagnostic and preserves statement", func(t *testing.T) {
+		input := `@startuml
+! include file.puml
+class Order
+@enduml`
+		p := NewParser(dialect.NewGoDialect())
+		diagram, err := p.Parse(input)
+		require.Error(t, err)
+		require.NotNil(t, diagram)
+		require.True(t, diagram.HasErrors())
+		require.Len(t, diagram.Statements, 4)
+
+		uh, ok := diagram.Statements[1].(*ast.UnhandledStatement)
+		require.True(t, ok)
+		require.Equal(t, "! include", uh.Raw)
+
+		order, ok := diagram.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "Order", order.Identifier.EntityName())
+	})
+}
+

@@ -72,8 +72,7 @@ class, interface {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb, err := p.parseStyleBlock()
-			require.NoError(t, err)
+			sb := p.parseStyleBlock()
 			require.NotNil(t, sb)
 			require.False(t, p.ast.HasErrors())
 			assertBlockClosed(t, sb)
@@ -150,8 +149,7 @@ func TestParseStyleBlock_Errors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb, err := p.parseStyleBlock()
-			require.NoError(t, err)
+			sb := p.parseStyleBlock()
 			require.NotNil(t, sb)
 
 			switch tc.bs {
@@ -230,8 +228,7 @@ func TestParseStyleBlock_Recovery(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb, err := p.parseStyleBlock()
-			require.NoError(t, err)
+			sb := p.parseStyleBlock()
 			require.NotNil(t, sb)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 
@@ -277,8 +274,7 @@ root {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb, err := p.parseStyleBlock()
-	require.NoError(t, err)
+	sb := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -314,8 +310,7 @@ class {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb, err := p.parseStyleBlock()
-	require.NoError(t, err)
+	sb := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -360,8 +355,7 @@ classDiagram {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb, err := p.parseStyleBlock()
-	require.NoError(t, err)
+	sb := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -400,8 +394,7 @@ root {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb, err := p.parseStyleBlock()
-	require.NoError(t, err)
+	sb := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
