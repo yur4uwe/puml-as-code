@@ -3,9 +3,10 @@ package parser
 import (
 	"testing"
 
-	"yur4uwe/pac/pkg/parser/ast"
-
 	"github.com/stretchr/testify/require"
+	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer"
 )
 
 // -----------------------------------------------------------------------------
@@ -102,8 +103,7 @@ func TestParseSkinparamSingleLine(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, tok := newDirectParser(tc.input)
-			stmt, err := p.parseSkinparamRoot(tok)
-			require.NoError(t, err)
+			stmt := p.parseSkinparamRoot(tok)
 
 			setting, ok := stmt.(*ast.SkinparamSetting)
 			require.True(t, ok)
@@ -119,26 +119,130 @@ func TestParseSkinparamSingleLine(t *testing.T) {
 	}
 }
 
-func TestParseSkinparamErrors(t *testing.T) {
+func TestParseSkinparam_Errors(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name           string
+		input          string
+		bs             expectedBlockState
+		errContains    string
+		wantStatements int
 	}{
 		{
-			name:  "missing target after skinparam",
-			input: "skinparam\n",
+			name:        "missing target after skinparam",
+			input:       "skinparam\n",
+			bs:          expectNoBlock,
+			errContains: "Expected target or parameter after skinparam",
 		},
 		{
-			name:  "unterminated block error",
-			input: "skinparam class {\n BackgroundColor red\n",
+			name:        "invalid target at root",
+			input:       "skinparam @invalid\n",
+			bs:          expectNoBlock,
+			errContains: "expected valid skinparam target name",
+		},
+		{
+			name:           "unterminated block error",
+			input:          "skinparam class {\n BackgroundColor red\n",
+			bs:             expectBlockUnclosed,
+			errContains:    "unclosed skinparam: expected }",
+			wantStatements: 1,
+		},
+		{
+			name:           "unterminated empty block",
+			input:          "skinparam class {\n",
+			bs:             expectBlockUnclosed,
+			errContains:    "unclosed skinparam: expected }",
+			wantStatements: 0,
+		},
+		{
+			name:           "unexpected token inside block",
+			input:          "skinparam class {\n @invalid\n BackgroundColor red\n}\n",
+			bs:             expectBlockClosed,
+			errContains:    "expected valid skinparam target name",
+			wantStatements: 1,
+		},
+		{
+			name:           "unterminated nested block",
+			input:          "skinparam class {\n header {\n FontSize 12\n",
+			bs:             expectBlockUnclosed,
+			errContains:    "unclosed skinparam: expected }",
+			wantStatements: 1,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, tok := newDirectParser(tc.input)
-			_, err := p.parseSkinparamRoot(tok)
-			require.Error(t, err)
+			stmt := p.parseSkinparamRoot(tok)
+			require.NotNil(t, stmt)
+			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
+			require.NotEmpty(t, p.ast.Diagnostics)
+			require.Contains(t, p.ast.Diagnostics[0].Message, tc.errContains)
+
+			switch tc.bs {
+			case expectNoBlock:
+				setting, ok := stmt.(*ast.SkinparamSetting)
+				require.True(t, ok)
+				require.Equal(t, "skinparam", setting.Keyword)
+			case expectBlockClosed:
+				block, ok := stmt.(*ast.SkinparamBlock)
+				require.True(t, ok)
+				assertBlockClosed(t, block)
+				require.Len(t, block.Statements, tc.wantStatements)
+			case expectBlockUnclosed:
+				block, ok := stmt.(*ast.SkinparamBlock)
+				require.True(t, ok)
+				assertBlockUnclosed(t, block)
+				require.Len(t, block.Statements, tc.wantStatements)
+			}
+		})
+	}
+}
+
+func TestParseSkinparam_Recovery(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		bs             expectedBlockState
+		wantStatements int
+	}{
+		{
+			name:           "restore to next property on invalid token",
+			input:          "skinparam class {\n @invalid\n BackgroundColor PaleGreen\n}\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 1,
+		},
+		{
+			name:           "unterminated block at eof preserves statements",
+			input:          "skinparam class {\n BackgroundColor PaleGreen\n",
+			bs:             expectBlockUnclosed,
+			wantStatements: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p, tok := newDirectParser(tc.input)
+			stmt := p.parseSkinparamRoot(tok)
+			require.NotNil(t, stmt)
+			require.True(t, p.ast.HasErrors())
+
+			block, ok := stmt.(*ast.SkinparamBlock)
+			require.True(t, ok)
+			require.Len(t, block.Statements, tc.wantStatements)
+
+			if tc.bs == expectBlockUnclosed {
+				assertBlockUnclosed(t, block)
+				require.True(t, p.stream.AssertType(tokenizer.EOF), "expected stream to reach EOF on unclosed block")
+			} else {
+				assertBlockClosed(t, block)
+				require.Equal(t, tokenizer.NEWLINE, p.stream.PeekTokenAt(0).Type, "expected next token to be NEWLINE after recovery")
+				p.stream.Emit()
+				nextTok := p.stream.Emit()
+				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
+				nextEnt := p.parseEntity(nextTok)
+				require.NotNil(t, nextEnt)
+				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
+			}
 		})
 	}
 }
@@ -150,11 +254,11 @@ func TestParseSkinparamErrors(t *testing.T) {
 func TestParseSkinparamAnonymousBlock(t *testing.T) {
 	input := "skinparam {\n BackgroundColor PaleGreen\n}\n"
 	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
+	stmt := p.parseSkinparamRoot(tok)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
+	assertBlockClosed(t, block)
 	require.Equal(t, "skinparam", block.Keyword)
 	require.Equal(t, "", block.Name.Literal)
 	require.Len(t, block.Statements, 1)
@@ -168,11 +272,11 @@ func TestParseSkinparamAnonymousBlock(t *testing.T) {
 func TestParseSkinparamBlockWithStereotype(t *testing.T) {
 	input := "skinparam class<<Special>> {\n BackgroundColor Gold\n}\n"
 	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
+	stmt := p.parseSkinparamRoot(tok)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
+	assertBlockClosed(t, block)
 	require.Equal(t, "class", block.Name.Literal)
 	var gotStereo string
 	if block.Stereotype != nil {
@@ -196,11 +300,11 @@ skinparam class { ' opener comment
 } ' after close
 `
 	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
+	stmt := p.routeDiagramStatement(tok)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
+	assertBlockClosed(t, block)
 	require.Equal(t, "class", block.Name.Literal)
 	require.NotEmpty(t, block.GetLeadingTrivia())
 	require.Contains(t, block.GetLeadingTrivia()[0].Text, "leading comment")
@@ -238,11 +342,11 @@ func TestParseSkinparamNestedAndFlattening(t *testing.T) {
 }
 `
 	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
+	stmt := p.parseSkinparamRoot(tok)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
+	assertBlockClosed(t, block)
 	require.Equal(t, "class", block.Name.Literal)
 	require.Len(t, block.Statements, 4)
 
@@ -258,6 +362,7 @@ func TestParseSkinparamNestedAndFlattening(t *testing.T) {
 	// Nested header block
 	nested, ok := block.Statements[2].(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
+	assertBlockClosed(t, nested)
 	require.Equal(t, "header", nested.Name.Literal)
 	require.Len(t, nested.Statements, 2)
 

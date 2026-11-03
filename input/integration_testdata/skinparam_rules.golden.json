@@ -110,9 +110,9 @@
         }
       },
       "LBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 5,
+        "Col": 17,
+        "Offset": 116
       },
       "Statements": [
         {
@@ -207,9 +207,9 @@
         }
       ],
       "RBrace": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 9,
+        "Col": 1,
+        "Offset": 190
       }
     },
     {

@@ -4,21 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"yur4uwe/pac/pkg/tokenizer"
 )
-
-func tokenizeSlice(input string) []tokenizer.Token {
-	lex := tokenizer.NewLexer(input)
-	var tokens []tokenizer.Token
-	for {
-		tok := lex.Emit()
-		if tok.Type == tokenizer.EOF {
-			break
-		}
-		tokens = append(tokens, tok)
-	}
-	return tokens
-}
 
 func TestStringifyTokenSlice_GoSyntax(t *testing.T) {
 	tests := []struct {
@@ -110,7 +96,7 @@ func TestStringifyTokenSlice_GoSyntax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			toks := tokenizeSlice(tt.input)
+			toks := tokenize(tt.input)
 			actual := StringifyTokenSlice(toks)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -172,7 +158,7 @@ func TestStringifyTokenSlice_UMLAndTypeScriptSyntax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			toks := tokenizeSlice(tt.input)
+			toks := tokenize(tt.input)
 			actual := StringifyTokenSlice(toks)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -224,7 +210,7 @@ func TestStringifyTokenSlice_JavaCSharpSyntax(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			toks := tokenizeSlice(tt.input)
+			toks := tokenize(tt.input)
 			actual := StringifyTokenSlice(toks)
 			assert.Equal(t, tt.expected, actual)
 		})
@@ -271,7 +257,7 @@ func TestStringifyTokenSlice_SketchAndEdgeCases(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			toks := tokenizeSlice(tt.input)
+			toks := tokenize(tt.input)
 			actual := StringifyTokenSlice(toks)
 			assert.Equal(t, tt.expected, actual)
 		})

@@ -249,7 +249,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Skinparam:
-		return p.parseSkinparamRoot(tok)
+		return p.parseSkinparamRoot(tok), nil
 	case keyword.Title,
 		keyword.Header,
 		keyword.Footer,

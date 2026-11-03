@@ -50,14 +50,6 @@ func loadDocsExamples() []exampleCase {
 	return docsExamples
 }
 
-func collectTokens(lex *Lexer) []Token {
-	tokens := make([]Token, 0, 32)
-	for tok := lex.Emit(); tok.Type != EOF; tok = lex.Emit() {
-		tokens = append(tokens, tok)
-	}
-	return tokens
-}
-
 func assertTokenSequence(t *testing.T, input string, expected []expectedToken) {
 	t.Helper()
 	l := NewLexer(input)

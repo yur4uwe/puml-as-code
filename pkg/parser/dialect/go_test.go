@@ -268,7 +268,7 @@ func TestGoDialect_ParseMethod(t *testing.T) {
 			expectedParams: nil,
 		},
 		{
-			name:         "multiple returns in parentheses (with named return)",
+			name:         "multiple returns in parentheses (with named pointer return)",
 			input:        "Method() (result *int, e error)",
 			expectedName: "Method",
 			expectedRets: []GoParameter{

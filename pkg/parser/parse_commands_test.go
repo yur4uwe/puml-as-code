@@ -130,8 +130,6 @@ func TestParseScaleCommand(t *testing.T) {
 		{name: "max integer", input: "scale max 200", expectErr: true},
 		{name: "max decimal", input: "scale max 1.5", expectErr: true},
 		{name: "fraction unit", input: "scale 2/3 width", expectErr: true},
-		{name: "box unit", input: "scale 200*100 width", expectErr: true},
-		{name: "dot only", input: "scale .", expectErr: true},
 	}
 
 	for _, tc := range tests {

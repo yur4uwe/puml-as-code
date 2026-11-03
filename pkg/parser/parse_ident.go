@@ -99,7 +99,7 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 	switch nextTok.Type {
 	case tokenizer.LBRACE:
 		if keyword.Classify(identTok.Literal) == keyword.Skinparam {
-			return p.parseSkinparamRoot(identTok)
+			return p.parseSkinparamRoot(identTok), nil
 		}
 		// delegate to keyword resolution
 		return nil, nil

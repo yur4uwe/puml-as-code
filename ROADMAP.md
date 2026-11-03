@@ -455,8 +455,10 @@ flowchart TD
 ### Phase 3: Delimiter Pos Tracking & Body Recovery (Stop EOF Dropping)
 - [x] Fix `parseEntity` in `pkg/parser/parse_entity.go`: on EOF inside body, return `ent` with `RBrace` as zero `tokenizer.Pos{}`, never `nil, ErrUnexpectedEOF`.
 - [x] Fix `parseContainer` in `pkg/parser/parse_container.go`: on EOF inside body, return `container` with zero `RBrace` and all parsed children.
-- [ ] Fix `parseNote` and `parseStyleBlock` to retain lines and rules on EOF.
-- [ ] Unit tests in `pkg/parser/recovery_test.go` verifying that unclosed blocks preserve their children.
+- [x] Fix `parseNote` 
+- [x] Fix `parseStyleBlock`
+- [x] Fix `parseSkinparam`
+- [x] Unit tests in `pkg/parser/recovery_test.go` verifying that unclosed blocks preserve their children.
 
 ### Phase 4: Dialect Boundary Hardening
 - [ ] Ensure `LaxDialect` accepts lenient member syntax without failing the core parser.

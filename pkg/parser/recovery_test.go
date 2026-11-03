@@ -145,4 +145,34 @@ package pkg {
 		// 3 diagnostics: root statement, entity member, container statement
 		require.Len(t, diag.Diagnostics, 3)
 	})
+
+	t.Run("unclosed blocks preserve their children without dropping AST", func(t *testing.T) {
+		input := `@startuml
+skinparam class {
+  BackgroundColor PaleGreen
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+
+		require.Len(t, diag.Statements, 3)
+
+		spBlock, ok := diag.Statements[1].(*ast.SkinparamBlock)
+		require.True(t, ok)
+		assertBlockUnclosed(t, spBlock)
+		require.Len(t, spBlock.Statements, 1)
+
+		setting, ok := spBlock.Statements[0].(*ast.SkinparamSetting)
+		require.True(t, ok)
+		require.Equal(t, "BackgroundColor", setting.Name.Literal)
+		require.Equal(t, "PaleGreen", setting.Value)
+
+		endBound, ok := diag.Statements[2].(*ast.DiagramBound)
+		require.True(t, ok)
+		require.False(t, endBound.IsStart)
+	})
 }
