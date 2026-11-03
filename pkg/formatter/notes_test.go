@@ -30,7 +30,7 @@ note bottom of User : Bottom note
 A --> B
 note "Active connection" as N1
 note on link : TLS Encrypted
-note left on link : Verified
+note on link : Verified
 @enduml
 `,
 		},
@@ -109,12 +109,12 @@ note left of User #yellow : Warning: Deprecated
 			name: "Irregular spacing in note on link",
 			input: `@startuml
 A --> B
-note   left   on   link   :   Verified
+note   on   link   :   Verified
 @enduml
 `,
 			expected: `@startuml
 A --> B
-note left on link : Verified
+note on link : Verified
 @enduml
 `,
 		},
