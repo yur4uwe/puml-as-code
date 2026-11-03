@@ -32,9 +32,9 @@
         }
       },
       "RAngle": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 2,
+        "Col": 7,
+        "Offset": 29
       },
       "Statements": [
         {
@@ -54,9 +54,9 @@
             "class"
           ],
           "LBrace": {
-            "Line": 0,
-            "Col": 0,
-            "Offset": 0
+            "Line": 3,
+            "Col": 7,
+            "Offset": 37
           },
           "Statements": [
             {
@@ -109,16 +109,16 @@
             }
           ],
           "RBrace": {
-            "Line": 0,
-            "Col": 0,
-            "Offset": 0
+            "Line": 7,
+            "Col": 1,
+            "Offset": 101
           }
         }
       ],
       "LAngle": {
-        "Line": 0,
-        "Col": 0,
-        "Offset": 0
+        "Line": 8,
+        "Col": 1,
+        "Offset": 103
       }
     },
     {

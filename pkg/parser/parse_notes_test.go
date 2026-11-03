@@ -208,8 +208,7 @@ func TestParseNote(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal), "First token must be 'note' for test input: %q", tc.input)
 
-			got, err := p.parseNote(tok)
-			require.NoError(t, err)
+			got := p.parseNote()
 			require.NotNil(t, got)
 			require.False(t, p.ast.HasErrors(), "expected no diagnostics for valid note definition")
 			testutil.SemanticEqual(t, tc.want, got)
@@ -456,8 +455,7 @@ func TestParseNote_Errors(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal))
 
-			got, err := p.parseNote(tok)
-			require.NoError(t, err)
+			got := p.parseNote()
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, got)
@@ -583,8 +581,7 @@ func TestParseNote_Recovery(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal))
 
-			got, err := p.parseNote(tok)
-			require.NoError(t, err)
+			got := p.parseNote()
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 

@@ -226,7 +226,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
-		return p.parseNote(tok)
+		return p.parseNote(), nil
 	}
 
 	return nil, nil
@@ -237,7 +237,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.readEndBounds(tok)
 	}
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
-		return p.parseStyleBlock(tok)
+		return p.parseStyleBlock()
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
 		return p.parseDirective(tok)

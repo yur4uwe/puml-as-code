@@ -64,15 +64,15 @@ type StyleBlock struct {
 	LAngle     tokenizer.Pos // Zero if unclosed before EOF
 }
 
-func (b *StyleBlock) BlockEnd() tokenizer.Pos   { return b.RAngle }
-func (b *StyleBlock) BlockStart() tokenizer.Pos { return b.LAngle }
+func (b *StyleBlock) BlockEnd() tokenizer.Pos   { return b.LAngle }
+func (b *StyleBlock) BlockStart() tokenizer.Pos { return b.RAngle }
 
 func (b *StyleBlock) HasBody() bool {
-	return b.LAngle != tokenizer.Pos{}
+	return b.RAngle != tokenizer.Pos{}
 }
 
 func (b *StyleBlock) IsClosed() bool {
-	return !b.HasBody() || b.RAngle != tokenizer.Pos{}
+	return !b.HasBody() || b.LAngle != tokenizer.Pos{}
 }
 
 // StatementNode implements [Statement].

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/parser/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -13,6 +14,7 @@ func newDirectParser(input string) (*Parser, tokenizer.Token) {
 	p := &Parser{
 		stream:  tokenizer.NewTokenStream(input),
 		Dialect: dialect.NewGoDialect(),
+		ast:     &ast.Diagram{},
 	}
 	for {
 		tok := p.stream.Emit()
@@ -20,277 +22,6 @@ func newDirectParser(input string) (*Parser, tokenizer.Token) {
 			return p, tok
 		}
 	}
-}
-
-// -----------------------------------------------------------------------------
-// Skinparam Single-Line Tests (Table-Driven)
-// -----------------------------------------------------------------------------
-
-func TestParseSkinparamSingleLine(t *testing.T) {
-	tests := []struct {
-		name       string
-		input      string
-		wantName   string
-		wantStereo string
-		wantValue  string
-	}{
-		{
-			name:      "gradient with backslash preserved",
-			input:     "skinparam backgroundColor #red\\blue\n",
-			wantName:  "backgroundColor",
-			wantValue: "#red\\blue",
-		},
-		{
-			name:      "quotes preserved in string value",
-			input:     "skinparam defaultFontName \"Courier New\"\n",
-			wantName:  "defaultFontName",
-			wantValue: `"Courier New"`,
-		},
-		{
-			name:      "numeric value",
-			input:     "skinparam classAttributeIconSize 0\n",
-			wantName:  "classAttributeIconSize",
-			wantValue: "0",
-		},
-		{
-			name:      "boolean value",
-			input:     "skinparam shadowing false\n",
-			wantName:  "shadowing",
-			wantValue: "false",
-		},
-		{
-			name:      "valueless skinparam",
-			input:     "skinparam handwritten\n",
-			wantName:  "handwritten",
-			wantValue: "",
-		},
-		{
-			name:      "semicolon terminated setting",
-			input:     "skinparam backgroundColor red;\n",
-			wantName:  "backgroundColor",
-			wantValue: "red",
-		},
-		{
-			name:      "dotted name",
-			input:     "skinparam sequence.ArrowColor red\n",
-			wantName:  "sequence.ArrowColor",
-			wantValue: "red",
-		},
-		{
-			name:       "middle stereotype",
-			input:      "skinparam class<<Foo>>backgroundColor Wheat\n",
-			wantName:   "classbackgroundColor",
-			wantStereo: "Foo",
-			wantValue:  "Wheat",
-		},
-		{
-			name:       "end stereotype",
-			input:      "skinparam class.BackgroundColor<< Bar >> DimGray\n",
-			wantName:   "class.BackgroundColor",
-			wantStereo: "Bar",
-			wantValue:  "DimGray",
-		},
-		{
-			name:       "end stereotype with space",
-			input:      "skinparam class.BackgroundColor << Bar >> DimGray\n",
-			wantName:   "class.BackgroundColor",
-			wantStereo: "Bar",
-			wantValue:  "DimGray",
-		},
-		{
-			name:       "stereotype with spaces between words",
-			input:      "skinparam class<<foo bar>>backgroundColor Wheat\n",
-			wantName:   "classbackgroundColor",
-			wantStereo: "foo bar",
-			wantValue:  "Wheat",
-		},
-		{
-			name:       "dotted target with middle stereotype",
-			input:      "skinparam class.sub<<Foo>>param red\n",
-			wantName:   "class.subparam",
-			wantStereo: "Foo",
-			wantValue:  "red",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			p, tok := newDirectParser(tc.input)
-			stmt, err := p.parseSkinparamRoot(tok)
-			require.NoError(t, err)
-
-			setting, ok := stmt.(*ast.SkinparamSetting)
-			require.True(t, ok)
-			require.Equal(t, "skinparam", setting.Keyword)
-			require.Equal(t, tc.wantName, setting.Name.Literal)
-			var gotStereo string
-			if setting.Stereotype != nil {
-				gotStereo = setting.Stereotype.Value.Literal
-			}
-			require.Equal(t, tc.wantStereo, gotStereo)
-			require.Equal(t, tc.wantValue, setting.Value)
-		})
-	}
-}
-
-func TestParseSkinparamErrors(t *testing.T) {
-	tests := []struct {
-		name  string
-		input string
-	}{
-		{
-			name:  "missing target after skinparam",
-			input: "skinparam\n",
-		},
-		{
-			name:  "unterminated block error",
-			input: "skinparam class {\n BackgroundColor red\n",
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			p, tok := newDirectParser(tc.input)
-			_, err := p.parseSkinparamRoot(tok)
-			require.Error(t, err)
-		})
-	}
-}
-
-// -----------------------------------------------------------------------------
-// Skinparam Block Tests (Individual Specialized Tests)
-// -----------------------------------------------------------------------------
-
-func TestParseSkinparamAnonymousBlock(t *testing.T) {
-	input := "skinparam {\n BackgroundColor PaleGreen\n}\n"
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
-
-	block, ok := stmt.(*ast.SkinparamBlock)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "skinparam", block.Keyword)
-	require.Equal(t, "", block.Name.Literal)
-	require.Len(t, block.Statements, 1)
-
-	entry, ok := block.Statements[0].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "BackgroundColor", entry.Name.Literal)
-	require.Equal(t, "PaleGreen", entry.Value)
-}
-
-func TestParseSkinparamBlockWithStereotype(t *testing.T) {
-	input := "skinparam class<<Special>> {\n BackgroundColor Gold\n}\n"
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
-
-	block, ok := stmt.(*ast.SkinparamBlock)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "class", block.Name.Literal)
-	var gotStereo string
-	if block.Stereotype != nil {
-		gotStereo = block.Stereotype.Value.Literal
-	}
-	require.Equal(t, "Special", gotStereo)
-	require.Len(t, block.Statements, 1)
-
-	entry, ok := block.Statements[0].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "BackgroundColor", entry.Name.Literal)
-	require.Equal(t, "Gold", entry.Value)
-}
-
-func TestParseSkinparamBlockWithComments(t *testing.T) {
-	input := `' leading comment
-skinparam class { ' opener comment
- ' entry leading comment
- BackgroundColor PaleGreen ' same line comment
- ArrowColor SeaGreen
-} ' after close
-`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
-
-	block, ok := stmt.(*ast.SkinparamBlock)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "class", block.Name.Literal)
-	require.NotEmpty(t, block.GetLeadingTrivia())
-	require.Contains(t, block.GetLeadingTrivia()[0].Text, "leading comment")
-	require.Len(t, block.Statements, 2)
-
-	// Entry 1
-	e1, ok := block.Statements[0].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "BackgroundColor", e1.Name.Literal)
-	require.Equal(t, "PaleGreen", e1.Value)
-	require.NotEmpty(t, e1.GetLeadingTrivia())
-	require.Contains(t, e1.GetLeadingTrivia()[0].Text, "entry leading comment")
-	require.NotEmpty(t, e1.GetTrailingTrivia())
-	require.Contains(t, e1.GetTrailingTrivia()[0].Text, "same line comment")
-
-	// Entry 2
-	e2, ok := block.Statements[1].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "ArrowColor", e2.Name.Literal)
-	require.Equal(t, "SeaGreen", e2.Value)
-
-	// Closing comments
-	require.NotEmpty(t, block.GetTrailingTrivia())
-}
-
-func TestParseSkinparamNestedAndFlattening(t *testing.T) {
-	input := `skinparam class {
- BackgroundColor PaleGreen
- !include_once common.puml
- header {
-     FontSize 12
-     FontColor DarkGreen
- }
- ArrowColor SeaGreen
-}
-`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseSkinparamRoot(tok)
-	require.NoError(t, err)
-
-	block, ok := stmt.(*ast.SkinparamBlock)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "class", block.Name.Literal)
-	require.Len(t, block.Statements, 4)
-
-	// BackgroundColor
-	s1, ok := block.Statements[0].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "BackgroundColor", s1.Name.Literal)
-
-	// Directive
-	_, ok = block.Statements[1].(*ast.IncludeDirective)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-
-	// Nested header block
-	nested, ok := block.Statements[2].(*ast.SkinparamBlock)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "header", nested.Name.Literal)
-	require.Len(t, nested.Statements, 2)
-
-	// ArrowColor
-	s4, ok := block.Statements[3].(*ast.SkinparamSetting)
-	require.True(t, ok, "expected skinparam block but got %T", stmt)
-	require.Equal(t, "ArrowColor", s4.Name.Literal)
-
-	// Test .Settings() flattening
-	settings := block.Settings()
-	require.Len(t, settings, 4)
-	require.Equal(t, "class.BackgroundColor", settings[0].Key)
-	require.Equal(t, "PaleGreen", settings[0].Value)
-	require.Equal(t, "class.header.FontSize", settings[1].Key)
-	require.Equal(t, "12", settings[1].Value)
-	require.Equal(t, "class.header.FontColor", settings[2].Key)
-	require.Equal(t, "DarkGreen", settings[2].Value)
-	require.Equal(t, "class.ArrowColor", settings[3].Key)
-	require.Equal(t, "SeaGreen", settings[3].Value)
 }
 
 // -----------------------------------------------------------------------------
@@ -340,47 +71,195 @@ class, interface {
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			p, tok := newDirectParser(tc.input)
-			stmt, err := p.parseStyleBlock(tok)
+			p, _ := newDirectParser(tc.input)
+			sb, err := p.parseStyleBlock()
 			require.NoError(t, err)
-
-			sb, ok := stmt.(*ast.StyleBlock)
-			require.True(t, ok, "expected skinparam block but got %T", stmt)
+			require.NotNil(t, sb)
+			require.False(t, p.ast.HasErrors())
+			assertBlockClosed(t, sb)
 			require.Len(t, sb.Statements, len(tc.wantSelectors))
 
 			for i, wantSel := range tc.wantSelectors {
 				rule, ok := sb.Statements[i].(*ast.StyleRule)
 				require.True(t, ok)
+				assertBlockClosed(t, rule)
 				require.Equal(t, wantSel, rule.Selectors)
 			}
 		})
 	}
 }
 
-func TestParseStyleBlockErrors(t *testing.T) {
+func TestParseStyleBlock_Errors(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name           string
+		input          string
+		bs             expectedBlockState
+		ruleBs         expectedBlockState
+		errContains    string
+		wantStatements int
 	}{
 		{
-			name:  "unterminated style block",
-			input: "<style>\nroot {\nFontColor: red;\n}\n",
+			name:           "unterminated style block",
+			input:          "<style>\nroot {\nFontColor: red;\n}\n",
+			bs:             expectBlockUnclosed,
+			ruleBs:         expectBlockClosed,
+			errContains:    "unclosed <style>: expected </style>",
+			wantStatements: 1,
 		},
 		{
-			name:  "unterminated rule in style block",
-			input: "<style>\nroot {\nFontColor: red;\n</style>\n",
+			name:           "unterminated rule in style block",
+			input:          "<style>\nroot {\nFontColor: red;\n</style>\n",
+			bs:             expectBlockClosed,
+			ruleBs:         expectBlockUnclosed,
+			errContains:    "unclosed style rule: expected }",
+			wantStatements: 1,
 		},
 		{
-			name:  "empty selector list",
-			input: "<style>\n, {\nFontColor: red;\n}\n</style>\n",
+			name:           "empty selector list",
+			input:          "<style>\n, {\nFontColor: red;\n}\n</style>\n",
+			bs:             expectBlockClosed,
+			ruleBs:         expectBlockClosed,
+			errContains:    "empty selector in style rule",
+			wantStatements: 1,
+		},
+		{
+			name:           "missing opening brace after style rule",
+			input:          "<style>\nroot\n</style>\n",
+			bs:             expectBlockClosed,
+			errContains:    "Expected opening brace after style rule",
+			wantStatements: 1,
+		},
+		{
+			name:           "unexpected token in style rule body",
+			input:          "<style>\nroot {\n@invalid\nFontColor: red;\n}\n</style>\n",
+			bs:             expectBlockClosed,
+			ruleBs:         expectBlockClosed,
+			errContains:    "Expected style property name or rule selector",
+			wantStatements: 1,
+		},
+		{
+			name:           "missing value after style declaration",
+			input:          "<style>\nroot {\nFontColor:\n}\n</style>\n",
+			bs:             expectBlockClosed,
+			ruleBs:         expectBlockClosed,
+			errContains:    "expected value after style declaration",
+			wantStatements: 1,
 		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			p, tok := newDirectParser(tc.input)
-			_, err := p.parseStyleBlock(tok)
-			require.Error(t, err)
+			p, _ := newDirectParser(tc.input)
+			sb, err := p.parseStyleBlock()
+			require.NoError(t, err)
+			require.NotNil(t, sb)
+
+			switch tc.bs {
+			case expectNoBlock:
+				assertBlockBodyless(t, sb)
+			case expectBlockClosed:
+				assertBlockClosed(t, sb)
+			case expectBlockUnclosed:
+				assertBlockUnclosed(t, sb)
+			}
+
+			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
+			require.NotEmpty(t, p.ast.Diagnostics)
+			require.Contains(t, p.ast.Diagnostics[0].Message, tc.errContains)
+			require.Len(t, sb.Statements, tc.wantStatements)
+
+			if tc.ruleBs != expectNoBlock && len(sb.Statements) > 0 {
+				if rule, ok := sb.Statements[0].(*ast.StyleRule); ok {
+					switch tc.ruleBs {
+					case expectBlockClosed:
+						assertBlockClosed(t, rule)
+					case expectBlockUnclosed:
+						assertBlockUnclosed(t, rule)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestParseStyleBlock_Recovery(t *testing.T) {
+	tests := []struct {
+		name           string
+		input          string
+		bs             expectedBlockState
+		wantStatements int
+	}{
+		{
+			name:           "restore to next rule on empty selector",
+			input:          "<style>\n, {\nFontColor: red;\n}\nclass {\nBackgroundColor: blue;\n}\n</style>\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 2,
+		},
+		{
+			name:           "restore to next rule on missing opening brace",
+			input:          "<style>\nroot\nclass {\nBackgroundColor: blue;\n}\n</style>\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 2,
+		},
+		{
+			name:           "restore past bad token inside rule body",
+			input:          "<style>\nroot {\n@invalid\nFontColor: red;\n}\n</style>\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 1,
+		},
+		{
+			name:           "restore past missing value in declaration",
+			input:          "<style>\nroot {\nFontColor:\nMargin: 10;\n}\n</style>\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 1,
+		},
+		{
+			name:           "restore on unclosed rule before style block closer",
+			input:          "<style>\nroot {\nFontColor: red;\n</style>\nclass NextClass",
+			bs:             expectBlockClosed,
+			wantStatements: 1,
+		},
+		{
+			name:           "restore to EOF on unclosed style block",
+			input:          "<style>\nroot {\nFontColor: red;\n}\n",
+			bs:             expectBlockUnclosed,
+			wantStatements: 1,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p, _ := newDirectParser(tc.input)
+			sb, err := p.parseStyleBlock()
+			require.NoError(t, err)
+			require.NotNil(t, sb)
+			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
+
+			switch tc.bs {
+			case expectNoBlock:
+				assertBlockBodyless(t, sb)
+			case expectBlockClosed:
+				assertBlockClosed(t, sb)
+			case expectBlockUnclosed:
+				assertBlockUnclosed(t, sb)
+			}
+
+			require.Len(t, sb.Statements, tc.wantStatements)
+
+			if tc.bs == expectBlockUnclosed {
+				require.True(t, p.stream.AssertType(tokenizer.EOF), "expected stream to reach EOF on unclosed block")
+			} else {
+				// Next token must be the separating newline
+				require.Equal(t, tokenizer.NEWLINE, p.stream.PeekTokenAt(0).Type, "expected next token to be NEWLINE after recovery")
+
+				// Canary assertion: consume newline and parse subsequent statement
+				p.stream.Emit()
+				nextTok := p.stream.Emit()
+				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
+				nextEnt := p.parseEntity(nextTok)
+				require.NotNil(t, nextEnt)
+				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
+			}
 		})
 	}
 }
@@ -397,16 +276,18 @@ root {
     Margin: 10;
 }
 </style>`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseStyleBlock(tok)
+	p, _ := newDirectParser(input)
+	sb, err := p.parseStyleBlock()
 	require.NoError(t, err)
+	require.NotNil(t, sb)
+	require.False(t, p.ast.HasErrors())
+	assertBlockClosed(t, sb)
 
-	sb, ok := stmt.(*ast.StyleBlock)
-	require.True(t, ok)
-	require.Len(t, sb.Statements, 1)
+	require.Len(t, sb.Statements, 1, "expected single statement in style block")
 
 	rule, ok := sb.Statements[0].(*ast.StyleRule)
 	require.True(t, ok)
+	assertBlockClosed(t, rule)
 	require.Equal(t, []string{"root"}, rule.Selectors)
 	require.Len(t, rule.Statements, 3)
 
@@ -432,16 +313,18 @@ class {
     LineThickness: 2;
 }
 </style>`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseStyleBlock(tok)
+	p, _ := newDirectParser(input)
+	sb, err := p.parseStyleBlock()
 	require.NoError(t, err)
+	require.NotNil(t, sb)
+	require.False(t, p.ast.HasErrors())
+	assertBlockClosed(t, sb)
 
-	sb, ok := stmt.(*ast.StyleBlock)
-	require.True(t, ok)
 	require.Len(t, sb.Statements, 1)
 
 	rule, ok := sb.Statements[0].(*ast.StyleRule)
 	require.True(t, ok)
+	assertBlockClosed(t, rule)
 	require.Len(t, rule.Statements, 4)
 
 	// Case 1: colon, no semicolon
@@ -476,19 +359,22 @@ classDiagram {
     }
 }
 </style>`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseStyleBlock(tok)
+	p, _ := newDirectParser(input)
+	sb, err := p.parseStyleBlock()
 	require.NoError(t, err)
+	require.NotNil(t, sb)
+	require.False(t, p.ast.HasErrors())
+	assertBlockClosed(t, sb)
 
-	sb, ok := stmt.(*ast.StyleBlock)
-	require.True(t, ok)
 	require.Len(t, sb.Statements, 1)
 
 	outer := sb.Statements[0].(*ast.StyleRule)
+	assertBlockClosed(t, outer)
 	require.Equal(t, []string{"classDiagram"}, outer.Selectors)
 	require.Len(t, outer.Statements, 1)
 
 	classRule := outer.Statements[0].(*ast.StyleRule)
+	assertBlockClosed(t, classRule)
 	require.Equal(t, []string{"class"}, classRule.Selectors)
 	require.Len(t, classRule.Statements, 2)
 
@@ -497,6 +383,7 @@ classDiagram {
 	require.Equal(t, "PaleGreen", decl.Value)
 
 	highlightRule := classRule.Statements[1].(*ast.StyleRule)
+	assertBlockClosed(t, highlightRule)
 	require.Equal(t, []string{".highlight"}, highlightRule.Selectors)
 	require.Len(t, highlightRule.Statements, 1)
 	hDecl := highlightRule.Statements[0].(*ast.StyleDeclaration)
@@ -505,30 +392,28 @@ classDiagram {
 }
 
 func TestParseStyleBlockDirectivesAndTrivia(t *testing.T) {
-	input := `' before style
-<style>
+	input := `<style>
 !include_once common.puml
 root {
     ' comment before prop
     FontName: Helvetica; ' inline comment
 }
 </style>`
-	p, tok := newDirectParser(input)
-	stmt, err := p.parseStyleBlock(tok)
+	p, _ := newDirectParser(input)
+	sb, err := p.parseStyleBlock()
 	require.NoError(t, err)
-
-	sb, ok := stmt.(*ast.StyleBlock)
-	require.True(t, ok)
-	require.NotEmpty(t, sb.GetLeadingTrivia())
-	require.Contains(t, sb.GetLeadingTrivia()[0].Text, "before style")
+	require.NotNil(t, sb)
+	require.False(t, p.ast.HasErrors())
+	assertBlockClosed(t, sb)
 	require.Len(t, sb.Statements, 2)
 
 	// Directive
-	_, ok = sb.Statements[0].(*ast.IncludeDirective)
+	_, ok := sb.Statements[0].(*ast.IncludeDirective)
 	require.True(t, ok)
 
 	// Rule & Declaration with trivia
 	rule := sb.Statements[1].(*ast.StyleRule)
+	assertBlockClosed(t, rule)
 	decl := rule.Statements[0].(*ast.StyleDeclaration)
 	require.Equal(t, "FontName", decl.Property)
 	require.Equal(t, "Helvetica", decl.Value)

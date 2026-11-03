@@ -8,7 +8,7 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseNote(_ tokenizer.Token) (*ast.Note, error) {
+func (p *Parser) parseNote() *ast.Note {
 	// has the parameter to match signature
 	// tok is a keyword 'note'
 	note := &ast.Note{}
@@ -17,7 +17,7 @@ func (p *Parser) parseNote(_ tokenizer.Token) (*ast.Note, error) {
 	switch tok.Type {
 	case tokenizer.STRING:
 		p.parseInlineIdentNote(note, tok)
-		return note, nil
+		return note
 	case tokenizer.IDENTIFIER:
 		class := keyword.Classify(tok.Literal)
 		switch class {
@@ -33,7 +33,7 @@ func (p *Parser) parseNote(_ tokenizer.Token) (*ast.Note, error) {
 				err, tok.Span, note,
 			))
 			p.syncToNoteBody()
-			return note, nil
+			return note
 		}
 	default:
 		err := NewParserError(tok, "unexpected token in note definition")
@@ -41,10 +41,10 @@ func (p *Parser) parseNote(_ tokenizer.Token) (*ast.Note, error) {
 			err, tok.Span, note,
 		))
 		p.syncToLineEnd()
-		return note, nil
+		return note
 	}
 	p.parseNoteBody(note)
-	return note, nil
+	return note
 }
 
 // parseDirectedNote can resolve into either a NoteTargeted or NoteLink.
