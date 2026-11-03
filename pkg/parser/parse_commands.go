@@ -31,7 +31,7 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (*ast.VisibilityCom
 	return cmd, nil
 }
 
-func (p *Parser) parseDiagDirection(tok tokenizer.Token) (*ast.DirectionCommand, error) {
+func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 	var to string
 	switch tok.Literal {
 	case "left":
@@ -55,16 +55,20 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (*ast.DirectionCommand,
 		},
 	}
 
-	cmd := &ast.DirectionCommand{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
-	}
+	cmd := &ast.DirectionCommand{}
 
 	for _, token := range expectedSeq {
-		if _, ok := p.stream.TryConsume(token); !ok {
-			return nil, NewParserError(token, "Unexpected diagram direction modifier")
+		if _, ok := p.stream.TryConsume(token); ok {
+			continue
 		}
+
+		nextToken := p.stream.PeekTokenAt(0)
+		err := NewParserError(nextToken, "Unexpected diagram direction modifier")
+		p.recordDiagnostic(p.newDiagnosticError(
+			err, nextToken.Span, cmd,
+		))
+		p.syncToLineEnd()
+		return cmd
 	}
 	switch tok.Literal {
 	case "left":
@@ -73,9 +77,14 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) (*ast.DirectionCommand,
 		cmd.Direction = ast.TopToBottomDirection
 	}
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
-		return nil, NewParserError(p.stream.PeekTokenAt(0), "Unexpected tokens after direction command")
+		nextToken := p.stream.PeekTokenAt(0)
+		err := NewParserError(nextToken, "Unexpected tokens after direction command")
+		p.recordDiagnostic(p.newDiagnosticError(
+			err, nextToken.Span, cmd,
+		))
+		p.syncToLineEnd()
 	}
-	return cmd, nil
+	return cmd
 }
 
 func (p *Parser) extractScaleTokens() (lhs, sep, rhs, unit string, err error) {

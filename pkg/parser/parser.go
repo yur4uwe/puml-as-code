@@ -262,7 +262,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		if nextTok.Literal == "to" {
-			return p.parseDiagDirection(tok)
+			return p.parseDiagDirection(tok), nil
 		} else if nextKW := keyword.Classify(nextTok.Literal); nextKW == keyword.Header ||
 			nextKW == keyword.Footer ||
 			nextKW == keyword.Legend ||
