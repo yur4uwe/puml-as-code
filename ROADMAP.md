@@ -435,8 +435,9 @@ flowchart TD
     P1["Phase 1: AST Structural Contracts & Sentinel Errors"] --> P2["Phase 2: Relationship & Arrow Resilience"]
     P2 --> P3["Phase 3: Delimiter Pos Tracking & Body Recovery"]
     P3 --> P4["Phase 4: Dialect Boundary Hardening"]
-    P4 --> P5["Phase 5: Downstream Hardening (Resolver & Formatter)"]
-    P5 --> P6["Phase 6: Typing Simulation Test Suite"]
+    P4 --> P5a["Phase 5a: Resolver Resilience & Symbol Hardening"]
+    P5a --> P5b["Phase 5b: Formatter Resilience & Source Fidelity"]
+    P5b --> P6["Phase 6: Typing Simulation Test Suite"]
 ```
 
 ### Phase 1: AST Structural Contracts & Sentinel Errors
@@ -461,19 +462,32 @@ flowchart TD
 - [x] Unit tests in `pkg/parser/recovery_test.go` verifying that unclosed blocks preserve their children.
 
 ### Phase 4: Dialect Boundary Hardening
-- [ ] Ensure `LaxDialect` accepts lenient member syntax without failing the core parser.
-- [ ] Scope structured member syntax diagnostics (parameters, return types) strictly to `pkg/parser/dialect/` (e.g. `GoDialect`).
-- [ ] Restrict `BadMember` strictly to lines starting with unidentifiable tokens.
+- [x] Ensure `LaxDialect` accepts lenient member syntax without failing the core parser.
+- [x] Scope structured member syntax diagnostics (parameters, return types) strictly to `pkg/parser/dialect/` (e.g. `GoDialect`).
+- [x] Restrict `BadMember` strictly to lines starting with unidentifiable tokens.
 
-### Phase 5: Downstream Hardening (Resolver & Formatter)
-- [ ] Harden `pkg/resolver/symbols.go`:
-  - Check `rel.IsIncomplete()` and skip incomplete relationships.
-  - Check `ref.Name.IsZero()` and skip empty targets.
-- [ ] Harden `pkg/formatter/`:
-  - Add formatting support for `rel.ArrowSpan` and zero `RHS`.
-  - Handle zero `RBrace` without printing extraneous closing braces.
-  - Replace `panic("unreachable")` in `formatMember` with raw token formatting for `BadMember`.
-  - Test idempotence on incomplete source snippets.
+### Phase 5a: Resolver Resilience & Symbol Hardening
+- [ ] Refactor `resolveStatements` into dedicated per-type resolver functions (`resolveEntity`, `resolveInlineMember`, `resolveContainer`, `resolveNote`, `resolveRelationship`).
+- [ ] Drop incomplete/broken AST nodes during symbol resolution:
+  - Skip entities with zero identifiers (`Identifier.Name.IsZero()`).
+  - Skip inline members with zero targets (`Target.Name.IsZero()`).
+  - Skip incomplete relationships (`IsIncomplete() == true`).
+  - Tolerate targeted notes with missing/unresolved targets by appending to floating notes instead of erroring.
+  - Skip `IncludeDirective` with empty path (`strings.TrimSpace(Path) == ""`).
+  - Preserve valid entity members and container contents even when blocks are unclosed (`!IsClosed()`).
+- [ ] Unit tests in `pkg/resolver/symbols_test.go` and `pkg/resolver/imports_test.go` covering broken and typing-in-progress inputs.
+
+### Phase 5b: Formatter Resilience & Source Fidelity
+- [ ] Render `BadStatement` and `BadMember` via `emitRawSpan(node.Span())` without panicking.
+- [ ] Delimiter-aware formatting:
+  - Omit `{ ... }` for bodyless entities/containers (`!HasBody()`).
+  - Do not append closing `}` for unclosed blocks (`!IsClosed()`).
+- [ ] Formatting incomplete relationships:
+  - Emit raw arrow tokens via `rel.ArrowSpan` when arrow is malformed.
+  - Omit trailing whitespace and RHS when `rel.RHS.Name.IsZero()`.
+- [ ] Handle unclosed block notes, skinparam, and style blocks without appending synthetic closers.
+- [ ] Remove all remaining `panic(...)` calls in statement and member formatting switches.
+- [ ] Test idempotence on incomplete and broken snippets (`Format(Format(src)) == Format(src)`).
 
 ### Phase 6: Typing Simulation Test Suite
 - [ ] Implement incremental keystroke simulation tests: for representative diagrams, slice input string from length 1 to N, parsing each prefix:
