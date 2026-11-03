@@ -147,13 +147,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		if endBound, ok := stmt.(*ast.DiagramBound); ok && !endBound.IsStart {
 			if endBound.Type != startBound.Type {
 				msg := fmt.Errorf("types of starting and ending markers don't match")
-				p.recordDiagnostic(&ast.Diagnostic{
-					ID:      len(p.ast.Diagnostics),
-					Message: msg.Error(),
-					Span:    endBound.NodeSpan,
-					Node:    endBound,
-					Err:     msg,
-				})
+				p.recordError(msg, endBound.NodeSpan, endBound)
 			}
 			break
 		}
@@ -187,13 +181,13 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	case keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		return p.parseLayoutStatement(tok, nil)
+		return p.parseLayoutStatement(tok, nil), nil
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		nextKW := keyword.Classify(nextTok.Literal)
 		if nextKW == keyword.Header || nextKW == keyword.Footer || nextKW == keyword.Legend || nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			return p.parseLayoutStatement(actualKwTok, &tok)
+			return p.parseLayoutStatement(actualKwTok, &tok), nil
 		}
 		return nil, NewParserError(tok, "Unexpected direction keyword in container")
 	case keyword.Caption, keyword.Sprite:
@@ -254,7 +248,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		return p.parseLayoutStatement(tok, nil)
+		return p.parseLayoutStatement(tok, nil), nil
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
 		return p.parseVisibilityCommand(tok), nil
 	case keyword.Scale:
@@ -268,12 +262,12 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 			nextKW == keyword.Legend ||
 			nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			return p.parseLayoutStatement(actualKwTok, &tok)
+			return p.parseLayoutStatement(actualKwTok, &tok), nil
 		} else {
 			return nil, NewParserError(tok, "Unexpected token after direction")
 		}
 	case keyword.Set:
-		return p.parseSetDirective(tok)
+		return p.parseSetCommand(), nil
 	}
 
 	return nil, nil

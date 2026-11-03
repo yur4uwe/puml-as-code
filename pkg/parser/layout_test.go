@@ -6,7 +6,6 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
 )
@@ -296,17 +295,255 @@ package mypkg {
 		require.True(t, ok)
 		testutil.SemanticEqual(t, identRef("Foo"), ent.Identifier)
 	})
+}
 
-	t.Run("unterminated block errors", func(t *testing.T) {
-		t.Run("unterminated header at EOF", func(t *testing.T) {
-			input := "header\n  unclosed header\n"
-			p := Parser{
-				stream: tokenizer.NewTokenStream(input),
-			}
-			kwTok := p.stream.Emit()
-			_, err := p.parseLayoutStatement(kwTok, nil)
+func TestParseLayoutDirectives_Errors(t *testing.T) {
+	newParser := func() *Parser {
+		p := NewParser(dialect.NewGoDialect())
+		p.IsBoundless = true
+		return p
+	}
+
+	tests := []struct {
+		name        string
+		input       string
+		errContains string
+	}{
+		{
+			name:        "title rejects prefix alignment",
+			input:       "center title My Title",
+			errContains: "Title alignment not supported",
+		},
+		{
+			name:        "vertical alignment not supported for header",
+			input:       "top header My Header",
+			errContains: "Vertical alignment only supported for legend",
+		},
+		{
+			name:        "vertical alignment not supported for footer",
+			input:       "bottom footer My Footer",
+			errContains: "Vertical alignment only supported for legend",
+		},
+		{
+			name:        "duplicate horizontal alignment on header",
+			input:       "header left right My Header",
+			errContains: "Horizontal alignment already set",
+		},
+		{
+			name:        "duplicate horizontal alignment on footer",
+			input:       "footer center left My Footer",
+			errContains: "Horizontal alignment already set",
+		},
+		{
+			name:        "duplicate horizontal alignment on legend",
+			input:       "legend left right My Legend",
+			errContains: "Horizontal alignment already set",
+		},
+		{
+			name:        "duplicate vertical alignment on legend",
+			input:       "legend top bottom My Legend",
+			errContains: "Vertical alignment already set",
+		},
+		{
+			name:        "unclosed multi-line header block",
+			input:       "header\n  line 1\n  line 2\n",
+			errContains: "unclosed header: expected end header",
+		},
+		{
+			name:        "unclosed multi-line footer block",
+			input:       "footer\n  line 1\n",
+			errContains: "unclosed footer: expected end footer",
+		},
+		{
+			name:        "unclosed multi-line legend block",
+			input:       "legend\n  line 1\n",
+			errContains: "unclosed legend: expected end legend",
+		},
+		{
+			name:        "unclosed multi-line title block",
+			input:       "title\n  line 1\n",
+			errContains: "unclosed title: expected end title",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := newParser()
+			diag, err := p.Parse(tc.input)
 			require.Error(t, err)
-			require.Contains(t, err.Error(), "unterminated block statement for header")
+			require.NotNil(t, diag)
+			require.True(t, diag.HasErrors())
+			require.Contains(t, err.Error(), tc.errContains)
 		})
+	}
+}
+
+func TestParseLayoutDirectives_Recovery(t *testing.T) {
+	t.Run("single line header with duplicate alignment preserves text block and parses subsequent entity", func(t *testing.T) {
+		input := `@startuml
+header left right My Header
+class User
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 4)
+
+		tb, ok := diag.Statements[1].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockHeader, tb.Kind)
+		require.Equal(t, "My Header", tb.Text)
+		require.Equal(t, "left", tb.HorizontalAlignment)
+
+		ent, ok := diag.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "User", ent.Identifier.EntityName())
+	})
+
+	t.Run("title with rejected alignment sets diagram title and parses subsequent entity", func(t *testing.T) {
+		input := `@startuml
+center title App Architecture
+class Service
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+		require.Equal(t, "App Architecture", p.ast.Title)
+
+		require.Len(t, diag.Statements, 4)
+
+		tb, ok := diag.Statements[1].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockTitle, tb.Kind)
+		require.Equal(t, "App Architecture", tb.Text)
+
+		ent, ok := diag.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "Service", ent.Identifier.EntityName())
+	})
+
+	t.Run("footer with invalid vertical alignment preserves footer and parses subsequent entity", func(t *testing.T) {
+		input := `@startuml
+top footer Confidential
+class Data
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 4)
+
+		tb, ok := diag.Statements[1].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockFooter, tb.Kind)
+		require.Equal(t, "Confidential", tb.Text)
+
+		ent, ok := diag.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "Data", ent.Identifier.EntityName())
+	})
+
+	t.Run("unclosed multi-line block preserves text block node without panicking", func(t *testing.T) {
+		input := "header\n  Header Line 1\n  Header Line 2\n"
+
+		p := NewParser(dialect.NewGoDialect())
+		p.IsBoundless = true
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 1)
+		tb, ok := diag.Statements[0].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockHeader, tb.Kind)
+	})
+
+	t.Run("layout statement with alignment error inside container preserves text block and container children", func(t *testing.T) {
+		input := `@startuml
+package mypkg {
+  header left right InPackageHeader
+  class InnerService
+}
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 3)
+
+		cont, ok := diag.Statements[1].(*ast.Container)
+		require.True(t, ok)
+		require.Len(t, cont.Statements, 2)
+
+		tb, ok := cont.Statements[0].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockHeader, tb.Kind)
+		require.Equal(t, "InPackageHeader", tb.Text)
+
+		ent, ok := cont.Statements[1].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "InnerService", ent.Identifier.EntityName())
+	})
+
+	t.Run("multiple layout errors in same diagram collects all diagnostics and retains all statements", func(t *testing.T) {
+		input := `@startuml
+header left right BadHeader
+top footer BadFooter
+center title BadTitle
+class FinalEntity
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 3)
+
+		require.Len(t, diag.Statements, 6)
+
+		h, ok := diag.Statements[1].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockHeader, h.Kind)
+		require.Equal(t, "BadHeader", h.Text)
+
+		f, ok := diag.Statements[2].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockFooter, f.Kind)
+		require.Equal(t, "BadFooter", f.Text)
+
+		ti, ok := diag.Statements[3].(*ast.TextBlock)
+		require.True(t, ok)
+		require.Equal(t, ast.BlockTitle, ti.Kind)
+		require.Equal(t, "BadTitle", ti.Text)
+
+		ent, ok := diag.Statements[4].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "FinalEntity", ent.Identifier.EntityName())
 	})
 }
