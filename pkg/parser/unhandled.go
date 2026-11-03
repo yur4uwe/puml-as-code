@@ -28,7 +28,7 @@ func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tok
 	if kw != nil && kw.Closer != "" {
 		stmt, err := p.consumeUnhandledBlock(exclTok, *kw, leadingTrivia)
 		if err != nil {
-			p.recordDiagnostic(p.newDiagnosticError(err, exclTok.Span, stmt))
+			p.recordError(err, exclTok.Span, stmt)
 		}
 		return stmt
 	}

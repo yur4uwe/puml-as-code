@@ -10,13 +10,8 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (*ast.VisibilityCommand, error) {
-	cmd := &ast.VisibilityCommand{
-		Kind: ast.VisibilityCMDUnknown,
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
-	}
+func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) *ast.VisibilityCommand {
+	cmd := &ast.VisibilityCommand{}
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Hide:
 		cmd.Kind = ast.VisibilityCMDHide
@@ -26,9 +21,18 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) (*ast.VisibilityCom
 		cmd.Kind = ast.VisibilityCMDRemove
 	case keyword.Restore:
 		cmd.Kind = ast.VisibilityCMDRestore
+	default:
+		panic("visibility command: unreachable")
 	}
 	cmd.Target = p.stream.ReadUntilNewline()
-	return cmd, nil
+	if len(cmd.Target) == 0 {
+		nextTok := p.stream.PeekTokenAt(0)
+		err := NewParserError(nextTok, "empty target for visibility command")
+		p.recordError(
+			err, nextTok.Span, cmd,
+		)
+	}
+	return cmd
 }
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
@@ -64,9 +68,9 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 
 		nextToken := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextToken, "Unexpected diagram direction modifier")
-		p.recordDiagnostic(p.newDiagnosticError(
+		p.recordError(
 			err, nextToken.Span, cmd,
-		))
+		)
 		p.syncToLineEnd()
 		return cmd
 	}
@@ -79,9 +83,9 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		nextToken := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextToken, "Unexpected tokens after direction command")
-		p.recordDiagnostic(p.newDiagnosticError(
+		p.recordError(
 			err, nextToken.Span, cmd,
-		))
+		)
 		p.syncToLineEnd()
 	}
 	return cmd
@@ -100,11 +104,7 @@ func isDecimalFloat(s string) bool {
 }
 
 func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (*ast.ScaleCommand, error) {
-	cmd := &ast.ScaleCommand{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
-	}
+	cmd := &ast.ScaleCommand{}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
 		cmd.IsMax = true
 	}
@@ -161,12 +161,8 @@ func (p *Parser) parseScaleTrial(startTok tokenizer.Token) (*ast.ScaleCommand, e
 	return cmd, nil
 }
 
-func (p *Parser) parseScale(startTok tokenizer.Token) (*ast.ScaleCommand, error) {
-	cmd := &ast.ScaleCommand{
-		BaseNode: ast.BaseNode{
-			LeadingTrivia: p.dumpTrivia(),
-		},
-	}
+func (p *Parser) parseScale() (*ast.ScaleCommand, error) {
+	cmd := &ast.ScaleCommand{}
 	if _, ok := p.stream.TryConsume(tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: "max"}); ok {
 		cmd.IsMax = true
 	}

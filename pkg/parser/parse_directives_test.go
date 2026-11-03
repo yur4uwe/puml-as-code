@@ -148,4 +148,3 @@ class Order
 		require.Equal(t, "Order", order.Identifier.EntityName())
 	})
 }
-

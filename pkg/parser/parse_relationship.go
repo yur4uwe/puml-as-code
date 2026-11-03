@@ -32,7 +32,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	rel.LHS, err = p.parseTargetRef(firstTargetTok)
 	if err != nil {
 		errSpan := err.(parserError).Tok.Span
-		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.recordError(err, errSpan, rel)
 		p.syncToLineEnd()
 		return rel
 	}
@@ -45,7 +45,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 			infoSpan := multTok.Span
 			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
 			err = WrapParserError(multTok, err)
-			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
+			p.recordInfo(err, infoSpan, rel)
 		}
 	}
 
@@ -54,7 +54,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	err = p.parseArrowTokens(rel)
 	if err != nil {
 		errSpan := err.(parserError).Tok.Span
-		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.recordError(err, errSpan, rel)
 		p.syncToLineEnd()
 		rel.ArrowSpan = p.Span(arrowMark)
 		return rel
@@ -68,7 +68,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 			infoSpan := multTok.Span
 			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
 			err = WrapParserError(multTok, err)
-			p.recordDiagnostic(p.newDiagnosticInfo(err, infoSpan, rel))
+			p.recordInfo(err, infoSpan, rel)
 		}
 	}
 
@@ -76,7 +76,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		nextTok := p.stream.PeekTokenAt(0)
 		errSpan := nextTok.Span
 		err := NewParserError(nextTok, "Expected identifier or string after relationship")
-		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.recordError(err, errSpan, rel)
 		p.syncToLineEnd()
 		return rel
 	}
@@ -84,7 +84,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
 	if err != nil {
 		errSpan := err.(parserError).Tok.Span
-		p.recordDiagnostic(p.newDiagnosticError(err, errSpan, rel))
+		p.recordError(err, errSpan, rel)
 		p.syncToLineEnd()
 		return rel
 	}
@@ -103,7 +103,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		// outer loop/caller handles the delimiter
 	default:
 		// literal junk, relationship is fully parsed and we can't know that is
-		p.recordDiagnostic(p.newDiagnosticError(NewParserError(endingToken, "Expected newline or colon after relationship"), endingToken.Span, rel))
+		p.recordError(NewParserError(endingToken, "Expected newline or colon after relationship"), endingToken.Span, rel)
 		p.syncToLineEnd()
 	}
 

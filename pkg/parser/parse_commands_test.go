@@ -137,7 +137,8 @@ func TestParseScaleCommand(t *testing.T) {
 			p := Parser{
 				stream: tokenizer.NewTokenStream(tc.input),
 			}
-			got, err := p.parseScale(p.stream.Emit())
+			p.stream.Emit()
+			got, err := p.parseScale()
 			if tc.expectErr {
 				require.Error(t, err)
 			} else {

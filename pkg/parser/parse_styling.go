@@ -31,11 +31,11 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 	for !p.isStyleTagEnd() {
 		tok := p.stream.Emit()
 		if p.isEndMarker() || tok.Type == tokenizer.EOF {
-			p.recordDiagnostic(p.newDiagnosticError(
+			p.recordError(
 				unclBlkErr,
 				blockMarkerSpan,
 				styleBlock,
-			))
+			)
 			break
 		} else if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.SEMICOLON {
 			continue
@@ -85,7 +85,7 @@ func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) 
 		if t.Type == tokenizer.COMMA {
 			if selectorBuilder.Len() == 0 {
 				err := NewParserError(t, "empty selector in style rule")
-				p.recordDiagnostic(p.newDiagnosticError(err, t.Span, rule))
+				p.recordError(err, t.Span, rule)
 			}
 			rule.Selectors = append(rule.Selectors, selectorBuilder.String())
 			selectorBuilder.Reset()
@@ -97,7 +97,7 @@ func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) 
 	lastTok := toks[len(toks)-1]
 	if selectorBuilder.Len() == 0 {
 		err := NewParserError(lastTok, "empty selector in style rule")
-		p.recordDiagnostic(p.newDiagnosticError(err, lastTok.Span, rule))
+		p.recordError(err, lastTok.Span, rule)
 	}
 	rule.Selectors = append(rule.Selectors, selectorBuilder.String())
 	selectorBuilder.Reset()
@@ -112,7 +112,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 	if !ok {
 		nextTok := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextTok, "Expected opening brace after style rule")
-		p.recordDiagnostic(p.newDiagnosticError(err, nextTok.Span, currentRule))
+		p.recordError(err, nextTok.Span, currentRule)
 		return currentRule
 	}
 	currentRule.LBrace = lbraceTok.Span.Start
@@ -121,7 +121,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 
 	for {
 		if p.isStyleTagEnd() || p.isEndMarker() || p.stream.AssertType(tokenizer.EOF) {
-			p.recordDiagnostic(p.newDiagnosticError(err, lbraceTok.Span, currentRule))
+			p.recordError(err, lbraceTok.Span, currentRule)
 			break
 		}
 		if p.stream.AssertType(tokenizer.RBRACE) {
@@ -149,7 +149,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 		// By elimination: it is a style declaration
 		if tok.Type != tokenizer.IDENTIFIER {
 			err := NewParserError(tok, "Expected style property name or rule selector")
-			p.recordDiagnostic(p.newDiagnosticError(err, tok.Span, currentRule))
+			p.recordError(err, tok.Span, currentRule)
 			p.syncToLineEnd()
 			continue
 		}
@@ -161,7 +161,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 		if len(toks) == 0 {
 			nextTok := p.stream.PeekTokenAt(0)
 			err := NewParserError(nextTok, "expected value after style declaration")
-			p.recordDiagnostic(p.newDiagnosticError(err, nextTok.Span, currentRule))
+			p.recordError(err, nextTok.Span, currentRule)
 			p.syncToLineEnd()
 			continue
 		}

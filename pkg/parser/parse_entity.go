@@ -39,7 +39,7 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 	identTok := p.stream.Emit()
 	err := p.setAliasAndName(ent, identTok)
 	if err != nil {
-		p.recordDiagnostic(p.newDiagnosticError(err, identTok.Span, ent))
+		p.recordError(err, identTok.Span, ent)
 		p.syncToBlockStart()
 		return
 	}
@@ -47,7 +47,7 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
 		secondIdentTok := p.stream.Emit()
 		if err := p.setAliasAndName(ent, secondIdentTok); err != nil {
-			p.recordDiagnostic(p.newDiagnosticError(err, secondIdentTok.Span, ent))
+			p.recordError(err, secondIdentTok.Span, ent)
 			p.syncToBlockStart()
 			return
 		}
@@ -62,7 +62,7 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 	if !p.stream.AssertTypeSeq(tokenizer.LANGLE, tokenizer.LANGLE) {
 		gen, span, err := p.tryReadGeneric()
 		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
-			p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+			p.recordError(err, span, ent)
 			p.syncToBlockStart()
 			return
 		}
@@ -71,14 +71,14 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 
 	preTags, span, err := p.tryReadTags()
 	if err != nil {
-		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.recordError(err, span, ent)
 		p.syncToBlockStart()
 		return
 	}
 
 	stereo, span, err := p.tryParseStereotype()
 	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
-		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.recordError(err, span, ent)
 		p.syncToBlockStart()
 		return
 	}
@@ -86,7 +86,7 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 
 	postTags, span, err := p.tryReadTags()
 	if err != nil {
-		p.recordDiagnostic(p.newDiagnosticError(err, span, ent))
+		p.recordError(err, span, ent)
 		p.syncToBlockStart()
 		return
 	}
@@ -134,7 +134,7 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 
 		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
 			// place unclosed block diagnostic on the opener of the block
-			p.recordDiagnostic(p.newDiagnosticError(unclosedBlockErr, lbraceTok.Span, ent))
+			p.recordError(unclosedBlockErr, lbraceTok.Span, ent)
 			break
 		} else if p.stream.AssertType(tokenizer.RBRACE) {
 			break

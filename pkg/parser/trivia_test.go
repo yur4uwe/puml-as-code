@@ -139,4 +139,3 @@ class User { /' open comment 1 '/ /' open comment 2 '/
 	require.Contains(t, field.TrailingTrivia[0].Text, "field comment 1")
 	require.Contains(t, field.TrailingTrivia[1].Text, "field comment 2")
 }
-

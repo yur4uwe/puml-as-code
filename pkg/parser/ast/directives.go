@@ -18,4 +18,3 @@ type IncludeDirective struct {
 var _ Statement = (*IncludeDirective)(nil)
 
 func (d *IncludeDirective) StatementNode() Statement { return d }
-
