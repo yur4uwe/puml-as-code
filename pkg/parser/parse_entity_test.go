@@ -765,6 +765,191 @@ func TestParseInlineMember(t *testing.T) {
 	}
 }
 
+func TestParseInlineMember_Errors(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		errContains string
+	}{
+		{
+			name:        "missing colon after target identifier",
+			input:       "Foo +id string\n",
+			errContains: "Expected ':' after entity identifier",
+		},
+		{
+			name:        "empty member after colon",
+			input:       "Foo :\n",
+			errContains: "expected at least one token",
+		},
+		{
+			name:        "conflicting field and method modifiers",
+			input:       "Foo : {field} {method} id int\n",
+			errContains: "Cannot be field and method at the same time",
+		},
+		{
+			name:        "unclosed method parameter list in GoDialect",
+			input:       "Foo : +Execute(ctx Context\n",
+			errContains: "parsing parameter list",
+		},
+		{
+			name:        "invalid slice type in GoDialect",
+			input:       "Foo : +data []\n",
+			errContains: "expected type, got end of tokens",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  tokenizer.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			for tok.Type == tokenizer.NEWLINE {
+				tok = p.stream.Emit()
+			}
+			got, err := p.parseInlineMember(tok)
+			require.NoError(t, err)
+			require.NotNil(t, got)
+			im, ok := got.(*ast.InlineMember)
+			require.True(t, ok)
+			require.Equal(t, "Foo", im.Target.EntityName())
+			require.Nil(t, im.Member)
+			require.True(t, p.ast.HasErrors())
+			require.Len(t, p.ast.Diagnostics, 1)
+			require.Contains(t, p.ast.Diagnostics[0].Message, tc.errContains)
+		})
+	}
+}
+
+func TestParseInlineMember_Recovery(t *testing.T) {
+	t.Run("diagram level recovers past malformed inline member", func(t *testing.T) {
+		input := `@startuml
+ValidA : +id string
+User : !@#$ invalid syntax
+ValidB : +name string
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err, "expected Parse to return error when diagram contains diagnostics")
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		// Statements: startuml, ValidA, User (partial InlineMember), ValidB, enduml
+		require.Len(t, diag.Statements, 5)
+
+		imA, ok := diag.Statements[1].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "ValidA", imA.Target.EntityName())
+
+		imUser, ok := diag.Statements[2].(*ast.InlineMember)
+		require.True(t, ok, "malformed inline member should be preserved as *ast.InlineMember")
+		require.Equal(t, "User", imUser.Target.EntityName())
+		require.Nil(t, imUser.Member)
+
+		imB, ok := diag.Statements[3].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "ValidB", imB.Target.EntityName())
+
+		endBound, ok := diag.Statements[4].(*ast.DiagramBound)
+		require.True(t, ok)
+		require.False(t, endBound.IsStart)
+	})
+
+	t.Run("container level recovers past malformed inline member in body", func(t *testing.T) {
+		input := `@startuml
+package mypkg {
+  First : +a int
+  User : !@#$ invalid
+  Second : +b string
+}
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 3)
+
+		cont, ok := diag.Statements[1].(*ast.Container)
+		require.True(t, ok)
+		require.Len(t, cont.Statements, 3)
+
+		imFirst, ok := cont.Statements[0].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "First", imFirst.Target.EntityName())
+
+		imUser, ok := cont.Statements[1].(*ast.InlineMember)
+		require.True(t, ok, "malformed inline member in container should be preserved as *ast.InlineMember")
+		require.Equal(t, "User", imUser.Target.EntityName())
+		require.Nil(t, imUser.Member)
+
+		imSecond, ok := cont.Statements[2].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "Second", imSecond.Target.EntityName())
+	})
+
+	t.Run("empty inline member at newline records diagnostic and parses subsequent entity", func(t *testing.T) {
+		input := `@startuml
+User :
+class Order
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 4)
+
+		imUser, ok := diag.Statements[1].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "User", imUser.Target.EntityName())
+		require.Nil(t, imUser.Member)
+
+		orderEnt, ok := diag.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "Order", orderEnt.Identifier.EntityName())
+	})
+
+	t.Run("qualified target inline member error recovers to parse subsequent statement", func(t *testing.T) {
+		input := `@startuml
+net.http.Client : !@#$ bad
+class Server
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		require.Len(t, diag.Statements, 4)
+
+		imClient, ok := diag.Statements[1].(*ast.InlineMember)
+		require.True(t, ok)
+		require.Equal(t, "Client", imClient.Target.EntityName())
+		require.Nil(t, imClient.Member)
+
+		serverEnt, ok := diag.Statements[2].(*ast.Entity)
+		require.True(t, ok)
+		require.Equal(t, "Server", serverEnt.Identifier.EntityName())
+	})
+}
+
 func TestParseEntityAndContainerTags(t *testing.T) {
 	tests := []struct {
 		name       string
