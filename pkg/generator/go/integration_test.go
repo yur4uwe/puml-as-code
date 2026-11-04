@@ -105,8 +105,8 @@ func TestGenerator_Golden(t *testing.T) {
 			diagram, err := p.Parse(string(pumlBytes))
 			require.NoError(t, err, "failed to parse puml diagram %s", pumlFileName)
 
-			tbl, err := resolver.ResolveSymbols(diagram)
-			require.NoError(t, err, "failed to resolve symbols for %s", pumlFileName)
+			tbl := resolver.ResolveSymbols(diagram)
+			require.False(t, diagram.HasErrors(), "unexpected diagnostics for %s", pumlFileName)
 
 			gen := GoCodeGenerator{}
 			err = gen.SemanticPass(tbl)

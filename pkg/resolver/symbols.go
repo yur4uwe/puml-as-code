@@ -75,11 +75,17 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 
 	// get rid of targeted notes
 	if note.Target != nil {
-		target := tbl.LookupByRef(*note.Target, pkgPath)
-		if target == nil {
-			err := NewResolutionErrorf(note, "no entity found for targeted note %v", note)
+		if note.Target.Name.IsZero() {
+			err := NewResolutionErrorf(note, "empty target for note")
 			tbl.ast.RecordError(err, note.Span(), note)
+			tbl.Notes = append(tbl.Notes, note)
 			return
+		}
+		target := tbl.FindOrCreateByRef(*note.Target, pkgPath)
+		if target.AST == nil {
+			target.AST = &ast.Entity{
+				Identifier: *note.Target,
+			}
 		}
 		if note.Target.MemberName() != "" {
 			if target.MemberNotes == nil {
@@ -88,6 +94,8 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 			target.MemberNotes[note.Target.MemberName()] = append(target.MemberNotes[note.Target.MemberName()], note)
 			return
 		}
+		target.Notes = append(target.Notes, note)
+		return
 	}
 
 	tbl.Notes = append(tbl.Notes, note)
@@ -135,6 +143,7 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 // ResolveSymbols resolves all symbols in the AST and return flat symbol table.
 func ResolveSymbols(diagram *ast.Diagram) *SymbolTable {
 	tbl := &SymbolTable{
+		ast:    diagram,
 		lookup: map[string]*EntitySymbol{},
 	}
 	noteLookup := map[string]*ast.Note{}

@@ -17,8 +17,8 @@ func parseAndResolveTable(t *testing.T, input string) *resolver.SymbolTable {
 	diag, err := p.Parse(input)
 	require.NoError(t, err)
 
-	tbl, err := resolver.ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := resolver.ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	return tbl
 }

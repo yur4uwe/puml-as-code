@@ -19,8 +19,8 @@ MainService --> User
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	require.Len(t, tbl.Entities, 2)
 	require.Len(t, tbl.Relationships, 1)
@@ -45,8 +45,8 @@ User --> Order
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	user := tbl.Lookup("User")
 	require.NotNil(t, user)
@@ -73,8 +73,8 @@ class User {
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	user := tbl.Lookup("User")
 	require.NotNil(t, user)
@@ -95,8 +95,8 @@ class Outside
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	client := tbl.Lookup("net.http.Client")
 	require.NotNil(t, client)
@@ -117,9 +117,10 @@ A <|--|> B
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	_, err := ResolveSymbols(diag)
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "bidirectional inheritance")
+	tbl := ResolveSymbols(diag)
+	require.True(t, diag.HasErrors())
+	require.Contains(t, diag.Diagnostics[0].Message, "bidirectional inheritance")
+	require.Empty(t, tbl.Relationships)
 }
 
 func TestResolveSymbols_MergeEntityDeclarations(t *testing.T) {
@@ -142,8 +143,8 @@ class Service {
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	require.Len(t, tbl.Entities, 1, "expected Service to be merged into a single entity")
 
@@ -169,8 +170,8 @@ interface Service {
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	svc := tbl.Lookup("Service")
 	require.NotNil(t, svc)
@@ -195,8 +196,8 @@ package storage {
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	token := tbl.Lookup("auth.Token")
 	require.NotNil(t, token)
@@ -222,8 +223,8 @@ N2 -- Service::DoWork
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	svc := tbl.Lookup("Service")
 	require.NotNil(t, svc)
@@ -250,8 +251,8 @@ Service -- N2
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	svc := tbl.Lookup("Service")
 	require.NotNil(t, svc)
@@ -277,8 +278,8 @@ package domain {
 	}
 
 	diag := parseAndResolve(t, "/project/main.puml", fs)
-	tbl, err := ResolveSymbols(diag)
-	require.NoError(t, err)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
 
 	require.Len(t, tbl.Entities, 3, "expected only 3 entities in domain package, no root ghost entities")
 	for _, ent := range tbl.Entities {
@@ -290,4 +291,23 @@ package domain {
 	require.Equal(t, "domain.UserRepository", tbl.Relationships[0].Target.FQN)
 	require.Equal(t, "domain.UserService", tbl.Relationships[1].Source.FQN)
 	require.Equal(t, "domain.ImplicitStore", tbl.Relationships[1].Target.FQN)
+}
+
+func TestResolveSymbols_TargetedNoteImplicitEntity(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+note left of ImplicitService : Some note
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
+
+	ent := tbl.Lookup("ImplicitService")
+	require.NotNil(t, ent)
+	require.Len(t, ent.Notes, 1)
+	require.Equal(t, "Some note", ent.Notes[0].Text)
 }
