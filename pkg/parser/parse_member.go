@@ -51,7 +51,7 @@ func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
 	}
 
 	diagst.Node = badMember
-	p.recordDiagnostic(diagst)
+	p.ast.RecordDiagnostic(diagst)
 	return badMember
 }
 
@@ -210,7 +210,7 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
 		nextTok := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextTok, "Expected ':' after entity identifier for inline member declaration")
-		p.recordError(
+		p.ast.RecordError(
 			err, nextTok.Span, im,
 		)
 		p.syncToLineEnd()
@@ -237,7 +237,7 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	memberMark := p.Mark(entryTok)
 	member, err := p.parseFieldOrMethod(mod, vis, entryTok)
 	if err != nil {
-		p.recordError(
+		p.ast.RecordError(
 			err, p.Span(memberMark), im,
 		)
 		p.syncToLineEnd()

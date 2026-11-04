@@ -56,13 +56,7 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 			err := NewParserError(followingIdent, msg)
 			switch word {
 			case "left", "right", "up", "down":
-				p.recordDiagnostic(&ast.Diagnostic{
-					ID:       len(p.ast.Diagnostics),
-					Severity: ast.SeverityWarning,
-					Message:  msg,
-					Span:     followingIdent.Span,
-					Err:      err,
-				})
+				p.ast.RecordWarning(err, followingIdent.Span, nil)
 			}
 		}
 

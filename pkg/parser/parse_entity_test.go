@@ -269,6 +269,7 @@ func TestParseEntity_Errors(t *testing.T) {
 			p := Parser{
 				stream:  tokenizer.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Class, keyword.Classify(tok.Literal))

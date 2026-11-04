@@ -11,6 +11,7 @@ import (
 func newParserForTest(input string) *Parser {
 	return &Parser{
 		stream: tokenizer.NewTokenStream(input),
+		ast:    &ast.Diagram{},
 	}
 }
 

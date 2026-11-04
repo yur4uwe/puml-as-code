@@ -99,7 +99,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 			setting := &ast.SkinparamSetting{
 				Keyword: keyword,
 			}
-			p.recordError(err, nextTok.Span, setting)
+			p.ast.RecordError(err, nextTok.Span, setting)
 			return setting
 		}
 
@@ -114,11 +114,11 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 			setting := &ast.SkinparamSetting{
 				Keyword: keyword,
 			}
-			p.recordError(err, nameStartTok.Span, setting)
+			p.ast.RecordError(err, nameStartTok.Span, setting)
 			p.syncToLineEnd()
 			return setting
 		}
-		p.recordError(err, nameStartTok.Span, nil)
+		p.ast.RecordError(err, nameStartTok.Span, nil)
 		p.syncToLineOrBlockEnd()
 		return nil
 	}
@@ -159,7 +159,7 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 
 	for {
 		if p.isEndMarker() || p.stream.AssertType(tokenizer.EOF) {
-			p.recordError(unclosedErr, lbraceSpan, block)
+			p.ast.RecordError(unclosedErr, lbraceSpan, block)
 			break
 		}
 		if p.stream.AssertType(tokenizer.RBRACE) {

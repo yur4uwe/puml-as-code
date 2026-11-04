@@ -54,3 +54,42 @@ func (dl DiagnosticList) Error() string {
 		return fmt.Sprintf("%s (and %d more errors)", dl[0].Error(), len(dl)-1)
 	}
 }
+
+func (d *Diagram) RecordDiagnostic(diag *Diagnostic) *Diagnostic {
+	if d == nil {
+		return diag
+	}
+	diag.ID = len(d.Diagnostics)
+	d.Diagnostics = append(d.Diagnostics, diag)
+	return diag
+}
+
+func (d *Diagram) RecordError(err error, span tokenizer.SourceSpan, node Node) *Diagnostic {
+	return d.RecordDiagnostic(&Diagnostic{
+		Severity: SeverityError,
+		Message:  err.Error(),
+		Span:     span,
+		Err:      err,
+		Node:     node,
+	})
+}
+
+func (d *Diagram) RecordWarning(err error, span tokenizer.SourceSpan, node Node) *Diagnostic {
+	return d.RecordDiagnostic(&Diagnostic{
+		Severity: SeverityWarning,
+		Message:  err.Error(),
+		Span:     span,
+		Err:      err,
+		Node:     node,
+	})
+}
+
+func (d *Diagram) RecordInfo(err error, span tokenizer.SourceSpan, node Node) *Diagnostic {
+	return d.RecordDiagnostic(&Diagnostic{
+		Severity: SeverityInfo,
+		Message:  err.Error(),
+		Span:     span,
+		Err:      err,
+		Node:     node,
+	})
+}

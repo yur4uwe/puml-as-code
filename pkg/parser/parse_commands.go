@@ -28,7 +28,7 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) *ast.VisibilityComm
 	if len(cmd.Target) == 0 {
 		nextTok := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextTok, "empty target for visibility command")
-		p.recordError(
+		p.ast.RecordError(
 			err, nextTok.Span, cmd,
 		)
 	}
@@ -68,7 +68,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 
 		nextToken := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextToken, "Unexpected diagram direction modifier")
-		p.recordError(
+		p.ast.RecordError(
 			err, nextToken.Span, cmd,
 		)
 		p.syncToLineEnd()
@@ -83,7 +83,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		nextToken := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextToken, "Unexpected tokens after direction command")
-		p.recordError(
+		p.ast.RecordError(
 			err, nextToken.Span, cmd,
 		)
 		p.syncToLineEnd()
@@ -415,13 +415,13 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 			} else {
 				err = NewParserError(*prefixAlignment, "Invalid alignment")
 			}
-			p.recordError(err, *&prefixAlignment.Span, block)
+			p.ast.RecordError(err, *&prefixAlignment.Span, block)
 		}
 		block.HorizontalAlignment = h
 		block.VerticalAlignment = v
 	} else if prefixAlignment != nil && blockKind == ast.BlockTitle {
 		err := NewParserError(*prefixAlignment, "Title alignment not supported")
-		p.recordError(err, *&prefixAlignment.Span, block)
+		p.ast.RecordError(err, *&prefixAlignment.Span, block)
 	}
 
 	// Consume any trailing alignment modifiers on the opener line (e.g. "legend top left", "header center")
@@ -437,7 +437,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		if h != "" {
 			if block.HorizontalAlignment != "" {
 				err := NewParserError(peekTok, "Horizontal alignment already set")
-				p.recordError(err, peekTok.Span, block)
+				p.ast.RecordError(err, peekTok.Span, block)
 			} else {
 				block.HorizontalAlignment = h
 			}
@@ -445,7 +445,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		} else if v != "" {
 			if block.VerticalAlignment != "" {
 				err := NewParserError(peekTok, "Vertical alignment already set")
-				p.recordError(err, peekTok.Span, block)
+				p.ast.RecordError(err, peekTok.Span, block)
 			} else {
 				block.VerticalAlignment = v
 			}
@@ -462,7 +462,7 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		body, err = p.stream.ConsumeTextBlock("end", kwTok.Literal)
 		if err != nil {
 			err := ast.NewUnclosedBlockError(kwTok.Literal, "end "+kwTok.Literal)
-			p.recordError(err, kwTok.Span, block)
+			p.ast.RecordError(err, kwTok.Span, block)
 			return block
 		}
 	} else {

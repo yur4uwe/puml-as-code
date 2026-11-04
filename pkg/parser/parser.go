@@ -31,6 +31,7 @@ type Parser struct {
 func NewParser(d dialect.Dialect) *Parser {
 	return &Parser{
 		Dialect: d,
+		ast:     &ast.Diagram{},
 	}
 }
 
@@ -123,7 +124,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 				Span:    p.stream.LastSemanticToken().Span,
 				Err:     tokenizer.ErrUnexpectedEOF,
 			}
-			p.recordDiagnostic(eofDiagnst)
+			p.ast.RecordDiagnostic(eofDiagnst)
 			break
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now
@@ -147,7 +148,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		if endBound, ok := stmt.(*ast.DiagramBound); ok && !endBound.IsStart {
 			if endBound.Type != startBound.Type {
 				msg := fmt.Errorf("types of starting and ending markers don't match")
-				p.recordError(msg, endBound.NodeSpan, endBound)
+				p.ast.RecordError(msg, endBound.NodeSpan, endBound)
 			}
 			break
 		}

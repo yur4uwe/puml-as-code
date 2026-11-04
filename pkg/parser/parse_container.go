@@ -24,7 +24,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 
 	if containerClass != keyword.Together {
 		if err, span := p.parseContainerHeader(container); err != nil {
-			p.recordError(err, span, container)
+			p.ast.RecordError(err, span, container)
 			p.syncToBlockStart()
 		}
 	}
@@ -48,7 +48,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 		}
 
 		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
-			p.recordError(unclosedBlockErr, lbraceTok.Span, container)
+			p.ast.RecordError(unclosedBlockErr, lbraceTok.Span, container)
 			break
 		} else if p.stream.AssertType(tokenizer.RBRACE) {
 			break
