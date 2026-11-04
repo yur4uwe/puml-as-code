@@ -1,7 +1,6 @@
 package resolver
 
 import (
-	"fmt"
 	"log"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -40,18 +39,22 @@ type RelationshipSymbol struct {
 	Notes      []*ast.Note // Notes on the relationship/link
 }
 
-func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship, pkgPath []string) (*RelationshipSymbol, error) {
+func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship, pkgPath []string) *RelationshipSymbol {
 	headL := classifyHead(rel.LArrow)
 	headR := classifyHead(rel.RArrow)
 
 	if headL >= HeadContainment && headR >= HeadContainment {
 		if headL == HeadGeneralization && headR == HeadGeneralization {
-			return nil, fmt.Errorf("cannot have bidirectional inheritance: %s and %s", rel.LHS.EntityName(), rel.RHS.EntityName())
+			err := NewResolutionErrorf(rel, "cannot have bidirectional inheritance: %s and %s", rel.LHS.EntityName(), rel.RHS.EntityName())
+			tbl.ast.RecordError(err, rel.Span(), rel)
+		} else if headL == HeadContainment && headR == HeadContainment {
+			err := NewResolutionErrorf(rel, "cannot have bidirectional composition/aggregation: %s and %s", rel.LHS.EntityName(), rel.RHS.EntityName())
+			tbl.ast.RecordError(err, rel.Span(), rel)
+		} else {
+			err := NewResolutionErrorf(rel, "conflicting relationship heads: cannot combine %s and %s on the same line", rel.TypeLHS, rel.TypeRHS)
+			tbl.ast.RecordError(err, rel.Span(), rel)
 		}
-		if headL == HeadContainment && headR == HeadContainment {
-			return nil, fmt.Errorf("cannot have bidirectional composition/aggregation: %s and %s", rel.LHS.EntityName(), rel.RHS.EntityName())
-		}
-		return nil, fmt.Errorf("conflicting relationship heads: cannot combine %s and %s on the same line", rel.TypeLHS, rel.TypeRHS)
+		return nil
 	}
 
 	symb := &RelationshipSymbol{
@@ -127,5 +130,5 @@ func newRelationshipSymbol(tbl *SymbolTable, rel *ast.Relationship, pkgPath []st
 		symb.TargetMult = rel.MultRHS
 	}
 
-	return symb, nil
+	return symb
 }

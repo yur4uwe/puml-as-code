@@ -79,11 +79,7 @@ func (c *GenCommand) Run(args []string) error {
 		os.Exit(1)
 	}
 
-	tbl, err := resolver.ResolveSymbols(AST)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error resolving symbols: %v\n", err)
-		os.Exit(1)
-	}
+	tbl := resolver.ResolveSymbols(AST)
 
 	codeGen, ok := generator.CodeGeneratorByLang(c.lang)
 	if !ok {

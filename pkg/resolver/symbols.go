@@ -1,7 +1,6 @@
 package resolver
 
 import (
-	"fmt"
 	"slices"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -49,69 +48,70 @@ func resolveInlineMember(tbl *SymbolTable, s *ast.InlineMember, pkgPath []string
 	ent.AST.Members = append(ent.AST.Members, s.Member)
 }
 
-func resolveContainer(tbl *SymbolTable, s *ast.Container, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) error {
+func resolveContainer(tbl *SymbolTable, s *ast.Container, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) {
 	containerPath := append(s.Identifier.PackagePathStrings(), s.Identifier.EntityName())
 	childPkgPath := append(slices.Clone(pkgPath), containerPath...)
-	return resolveStatements(tbl, s.Statements, childPkgPath, noteLookup, namedNotes)
+	resolveStatements(tbl, s.Statements, childPkgPath, noteLookup, namedNotes)
 }
 
-func resolveNote(tbl *SymbolTable, s *ast.Note, prevRelationship *RelationshipSymbol, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) error {
+func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *RelationshipSymbol, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) {
 	// get rid of the link notes
-	if s.Target != nil && s.Target.EntityName() == "link" {
+	if note.Target != nil && note.Target.EntityName() == "link" {
 		if prevRelationship == nil {
-			return fmt.Errorf("no relationship found for link note %s", s.Text)
+			err := NewResolutionErrorf(note, "no relationship found for link note %s", note.Text)
+			tbl.ast.RecordError(err, note.Span(), note)
+		} else {
+			prevRelationship.Notes = append(prevRelationship.Notes, note)
 		}
-		prevRelationship.Notes = append(prevRelationship.Notes, s)
-		return nil
+		return
 	}
 
 	// get rid of the referenced notes
-	if !s.Identifier.Name.IsZero() {
-		noteLookup[s.Identifier.EntityName()] = s
-		*namedNotes = append(*namedNotes, s)
-		return nil
+	if !note.Identifier.Name.IsZero() {
+		noteLookup[note.Identifier.EntityName()] = note
+		*namedNotes = append(*namedNotes, note)
+		return
 	}
 
 	// get rid of targeted notes
-	if s.Target != nil {
-		target := tbl.LookupByRef(*s.Target, pkgPath)
+	if note.Target != nil {
+		target := tbl.LookupByRef(*note.Target, pkgPath)
 		if target == nil {
-			return fmt.Errorf("no entity found for targeted note %v", s)
+			err := NewResolutionErrorf(note, "no entity found for targeted note %v", note)
+			tbl.ast.RecordError(err, note.Span(), note)
+			return
 		}
-		if s.Target.MemberName() != "" {
+		if note.Target.MemberName() != "" {
 			if target.MemberNotes == nil {
 				target.MemberNotes = make(map[string][]*ast.Note)
 			}
-			target.MemberNotes[s.Target.MemberName()] = append(target.MemberNotes[s.Target.MemberName()], s)
-			return nil
+			target.MemberNotes[note.Target.MemberName()] = append(target.MemberNotes[note.Target.MemberName()], note)
+			return
 		}
-		target.Notes = append(target.Notes, s)
-		return nil
 	}
 
-	tbl.Notes = append(tbl.Notes, s)
-	return nil
+	tbl.Notes = append(tbl.Notes, note)
 }
 
-func resolveRelationship(tbl *SymbolTable, s *ast.Relationship, pkgPath []string, noteLookup map[string]*ast.Note) (*RelationshipSymbol, error) {
-	rel, err := newRelationshipSymbol(tbl, s, pkgPath)
-	if err != nil {
-		return nil, err
+func resolveRelationship(tbl *SymbolTable, s *ast.Relationship, pkgPath []string, noteLookup map[string]*ast.Note) *RelationshipSymbol {
+	rel := newRelationshipSymbol(tbl, s, pkgPath)
+	if rel == nil {
+		return nil
 	}
 
 	if note, ok := noteLookup[rel.AST.LHS.EntityName()]; ok {
 		attachNote(tbl, rel.AST.LHS, rel.AST.RHS, note, noteLookup, pkgPath)
-		return rel, nil
+		return rel
 	} else if note, ok := noteLookup[rel.AST.RHS.EntityName()]; ok {
 		attachNote(tbl, rel.AST.RHS, rel.AST.LHS, note, noteLookup, pkgPath)
-		return rel, nil
+		return rel
 	}
 
 	tbl.Relationships = append(tbl.Relationships, rel)
-	return rel, nil
+	return rel
 }
 
-func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) error {
+func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) {
 	var prevRelationship *RelationshipSymbol
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
@@ -120,39 +120,30 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 		case *ast.InlineMember:
 			resolveInlineMember(tbl, s, pkgPath)
 		case *ast.Container:
-			if err := resolveContainer(tbl, s, pkgPath, noteLookup, namedNotes); err != nil {
-				return err
-			}
+			resolveContainer(tbl, s, pkgPath, noteLookup, namedNotes)
 		case *ast.Note:
-			if err := resolveNote(tbl, s, prevRelationship, pkgPath, noteLookup, namedNotes); err != nil {
-				return err
-			}
+			resolveNote(tbl, s, prevRelationship, pkgPath, noteLookup, namedNotes)
 		case *ast.Relationship:
-			rel, err := resolveRelationship(tbl, s, pkgPath, noteLookup)
-			if err != nil {
-				return err
+			rel := resolveRelationship(tbl, s, pkgPath, noteLookup)
+			if rel != nil {
+				prevRelationship = rel
 			}
-			prevRelationship = rel
 		}
 	}
-	return nil
 }
 
 // ResolveSymbols resolves all symbols in the AST and return flat symbol table.
-func ResolveSymbols(diagram *ast.Diagram) (*SymbolTable, error) {
+func ResolveSymbols(diagram *ast.Diagram) *SymbolTable {
 	tbl := &SymbolTable{
 		lookup: map[string]*EntitySymbol{},
 	}
 	noteLookup := map[string]*ast.Note{}
 	var namedNotes []*ast.Note
-	err := resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
-	if err != nil {
-		return nil, err
-	}
+	resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
 	for _, n := range namedNotes {
 		if _, ok := noteLookup[n.Identifier.EntityName()]; ok {
 			tbl.Notes = append(tbl.Notes, n)
 		}
 	}
-	return tbl, nil
+	return tbl
 }

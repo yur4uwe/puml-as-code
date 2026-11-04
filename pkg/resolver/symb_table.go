@@ -8,6 +8,7 @@ import (
 )
 
 type SymbolTable struct {
+	ast           *ast.Diagram
 	Entities      []*EntitySymbol
 	Relationships []*RelationshipSymbol
 	Notes         []*ast.Note // Floating or unlinked notes
