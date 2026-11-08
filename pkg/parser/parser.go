@@ -9,6 +9,7 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -22,7 +23,7 @@ func amb(tok tokenizer.TokenType, literal string) tokenizer.Token {
 
 type Parser struct {
 	ast         *ast.Diagram
-	stream      *tokenizer.TokenStream
+	stream      *stream.TokenStream
 	Dialect     dialect.Dialect
 	TargetID    string
 	IsBoundless bool
@@ -54,7 +55,7 @@ func (p *Parser) moveToDiagStart() error {
 		}
 	}
 
-	return tokenizer.ErrUnexpectedEOF
+	return stream.ErrUnexpectedEOF
 }
 
 func (p *Parser) Parse(input string) (*ast.Diagram, error) {
@@ -63,7 +64,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 	}
 
 	p.ast = &ast.Diagram{}
-	p.stream = tokenizer.NewTokenStream(input)
+	p.stream = stream.NewTokenStream(input)
 
 	var startBound *ast.DiagramBound
 	if !p.IsBoundless {
@@ -120,9 +121,9 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 			}
 			eofDiagnst := &ast.Diagnostic{
 				ID:      len(p.ast.Diagnostics),
-				Message: tokenizer.ErrUnexpectedEOF.Error(),
+				Message: stream.ErrUnexpectedEOF.Error(),
 				Span:    p.stream.LastSemanticToken().Span,
-				Err:     tokenizer.ErrUnexpectedEOF,
+				Err:     stream.ErrUnexpectedEOF,
 			}
 			p.ast.RecordDiagnostic(eofDiagnst)
 			break

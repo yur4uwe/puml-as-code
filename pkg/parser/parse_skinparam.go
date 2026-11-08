@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -42,7 +43,7 @@ func (p *Parser) parseSkinparamTarget(firstTok tokenizer.Token) ([]tokenizer.Tok
 			}
 			var err error
 			stereo, _, err = p.tryParseStereotype()
-			if errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+			if errors.Is(err, stream.ErrStartMarkerNotFound) {
 				return tokens, stereo, NewParserError(nextTok, "unexpected token in stereotype target declaration")
 			}
 			if err != nil {
@@ -60,7 +61,7 @@ func (p *Parser) parseSkinparamTarget(firstTok tokenizer.Token) ([]tokenizer.Tok
 	if stereo == nil {
 		var err error
 		stereo, _, err = p.tryParseStereotype()
-		if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+		if err != nil && !errors.Is(err, stream.ErrStartMarkerNotFound) {
 			return tokens, nil, err
 		}
 	}

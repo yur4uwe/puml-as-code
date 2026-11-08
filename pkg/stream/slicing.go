@@ -22,3 +22,12 @@ func (ts *TokenStream) SliceInputEnclosingTokens(toks ...tokenizer.Token) string
 	}
 	return ts.SliceInput(span.Start.Offset, span.End.Offset)
 }
+
+func (ts *TokenStream) ReadUntilNewline() string {
+	toks := ts.ConsumeUntilType(tokenizer.NEWLINE)
+	if len(toks) == 0 {
+		return ""
+	}
+
+	return ts.SliceInputEnclosingTokens(toks...)
+}

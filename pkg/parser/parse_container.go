@@ -6,6 +6,7 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -84,7 +85,7 @@ func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.Sou
 		return err, span
 	}
 	cntr.Stereotype, span, err = p.tryParseStereotype()
-	if err != nil && !errors.Is(err, tokenizer.ErrStartMarkerNotFound) {
+	if err != nil && !errors.Is(err, stream.ErrStartMarkerNotFound) {
 		return err, span
 	}
 	var postTags []string

@@ -7,12 +7,13 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
 func newDirectParser(input string) (*Parser, tokenizer.Token) {
 	p := &Parser{
-		stream:  tokenizer.NewTokenStream(input),
+		stream:  stream.NewTokenStream(input),
 		Dialect: dialect.NewGoDialect(),
 		ast:     &ast.Diagram{},
 	}

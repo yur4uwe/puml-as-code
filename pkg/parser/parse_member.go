@@ -2,11 +2,12 @@ package parser
 
 import (
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
 func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
-	collector := &tokenizer.TokenCollector{}
+	collector := &stream.TokenCollector{}
 	detach := p.stream.Attach(collector)
 	defer detach()
 
@@ -74,7 +75,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 			return nil, err
 		}
 		return member, nil
-	} else if err != tokenizer.ErrStartMarkerNotFound {
+	} else if err != stream.ErrStartMarkerNotFound {
 		// Ignore the particular error because of the reasons above
 		return nil, err
 	}
@@ -147,7 +148,7 @@ outer:
 			}
 			mods = append(mods, mod)
 			continue
-		} else if err != tokenizer.ErrStartMarkerNotFound {
+		} else if err != stream.ErrStartMarkerNotFound {
 			return nil, err
 		}
 

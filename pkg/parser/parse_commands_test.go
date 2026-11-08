@@ -5,7 +5,7 @@ import (
 
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/stream"
 
 	"github.com/stretchr/testify/require"
 )
@@ -135,7 +135,7 @@ func TestParseScaleCommand(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream: tokenizer.NewTokenStream(tc.input),
+				stream: stream.NewTokenStream(tc.input),
 			}
 			p.stream.Emit()
 			got, err := p.parseScale()

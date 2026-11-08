@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -21,7 +22,7 @@ func (p *Parser) tryReadModifier() (string, error) {
 
 func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, error) {
 	if !p.stream.AssertTypeSeq(tokenizer.LANGLE, tokenizer.LANGLE) {
-		return nil, tokenizer.SourceSpan{}, tokenizer.ErrStartMarkerNotFound
+		return nil, tokenizer.SourceSpan{}, stream.ErrStartMarkerNotFound
 	}
 
 	mark := p.Mark(p.stream.PeekTokenAt(0))
@@ -168,7 +169,7 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 	}
 
 	if sep.TypeCount < 2 {
-		return nil, tokenizer.ErrStartMarkerNotFound
+		return nil, stream.ErrStartMarkerNotFound
 	}
 
 	for i := 0; i < sep.TypeCount; i++ {
@@ -195,7 +196,7 @@ func (p *Parser) tryReadClassSeparator() (*ast.ClassSeparator, error) {
 	case tokenizer.NEWLINE:
 		return nil, fmt.Errorf("unclosed class separator")
 	case tokenizer.EOF:
-		return nil, tokenizer.ErrUnexpectedEOF
+		return nil, stream.ErrUnexpectedEOF
 	}
 
 	for {

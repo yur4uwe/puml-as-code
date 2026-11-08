@@ -6,6 +6,7 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
@@ -440,7 +441,7 @@ func TestParseArrowTokens(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream: tokenizer.NewTokenStream(tc.input),
+				stream: stream.NewTokenStream(tc.input),
 			}
 			var got ast.Relationship
 			err := p.parseArrowTokens(&got)
@@ -562,7 +563,7 @@ func TestParseRelationship_Valid(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream: tokenizer.NewTokenStream(tc.input),
+				stream: stream.NewTokenStream(tc.input),
 			}
 			firstTok := p.stream.Emit()
 
@@ -831,7 +832,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Parser{
 				Dialect: dialect.NewGoDialect(),
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
@@ -891,7 +892,7 @@ func TestParseTargetRef(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}

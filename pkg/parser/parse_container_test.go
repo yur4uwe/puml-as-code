@@ -7,6 +7,7 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
@@ -320,7 +321,7 @@ func TestParseContainer(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
@@ -368,7 +369,7 @@ func TestParseContainer_Errors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
@@ -601,7 +602,7 @@ func TestParseContainer_Recovery(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}

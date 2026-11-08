@@ -8,6 +8,7 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -201,7 +202,7 @@ func TestParseNote(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
@@ -448,7 +449,7 @@ func TestParseNote_Errors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
@@ -574,7 +575,7 @@ func TestParseNote_Recovery(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
@@ -649,7 +650,7 @@ func TestParseNoteBody(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p := Parser{
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}

@@ -12,7 +12,7 @@ import (
 	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/stream"
 )
 
 const (
@@ -97,7 +97,7 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 			WithTargetID(v.Tag)
 		p.IsBoundless = isBoundless
 		diag, err := p.Parse(string(fileBytes))
-		if err != nil && !errors.Is(err, tokenizer.ErrUnexpectedEOF) {
+		if err != nil && !errors.Is(err, stream.ErrUnexpectedEOF) {
 			return err
 		}
 

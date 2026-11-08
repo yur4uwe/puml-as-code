@@ -5,12 +5,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
 func newParserForTest(input string) *Parser {
 	return &Parser{
-		stream: tokenizer.NewTokenStream(input),
+		stream: stream.NewTokenStream(input),
 		ast:    &ast.Diagram{},
 	}
 }

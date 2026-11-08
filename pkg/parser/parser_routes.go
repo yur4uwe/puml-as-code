@@ -2,6 +2,7 @@ package parser
 
 import (
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -10,7 +11,7 @@ func (p *Parser) fallbackRoute(
 	stmt ast.Statement,
 	err error,
 	mark Mark,
-	collector *tokenizer.TokenCollector,
+	collector *stream.TokenCollector,
 	detach func(),
 	syncToBlockEnd bool,
 ) ast.Statement {
@@ -63,7 +64,7 @@ func (p *Parser) fallbackRoute(
 }
 
 func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
-	collector := &tokenizer.TokenCollector{}
+	collector := &stream.TokenCollector{}
 	collector.Receive(tok)
 	detach := p.stream.Attach(collector)
 	defer detach()
@@ -98,7 +99,7 @@ func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
 }
 
 func (p *Parser) routeContainerStatement(tok tokenizer.Token) ast.Statement {
-	collector := &tokenizer.TokenCollector{}
+	collector := &stream.TokenCollector{}
 	collector.Receive(tok)
 	detach := p.stream.Attach(collector)
 	defer detach()

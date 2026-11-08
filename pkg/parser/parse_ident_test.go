@@ -6,7 +6,7 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/stream"
 
 	"github.com/stretchr/testify/require"
 )
@@ -125,7 +125,7 @@ func TestDisambiguateIdent_Relationships(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Parser{
 				Dialect: dialect.NewGoDialect(),
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
@@ -205,7 +205,7 @@ func TestDisambiguateIdent_InlineMembers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Parser{
 				Dialect: dialect.NewGoDialect(),
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
@@ -240,7 +240,7 @@ func TestDisambiguateIdent_Delegation(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			p := &Parser{
 				Dialect: dialect.NewGoDialect(),
-				stream:  tokenizer.NewTokenStream(tc.input),
+				stream:  stream.NewTokenStream(tc.input),
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
@@ -255,7 +255,7 @@ func TestDisambiguateIdent_Skinparam(t *testing.T) {
 	input := "skinparam {\n  ClassFontColor blue\n}"
 	p := &Parser{
 		Dialect: dialect.NewGoDialect(),
-		stream:  tokenizer.NewTokenStream(input),
+		stream:  stream.NewTokenStream(input),
 		ast:     &ast.Diagram{},
 	}
 	firstTok := p.stream.Emit()
@@ -270,7 +270,7 @@ func TestDisambiguateIdent_QualifiedTargetError(t *testing.T) {
 	input := "com.example.User"
 	p := &Parser{
 		Dialect: dialect.NewGoDialect(),
-		stream:  tokenizer.NewTokenStream(input),
+		stream:  stream.NewTokenStream(input),
 		ast:     &ast.Diagram{},
 	}
 	firstTok := p.stream.Emit()
@@ -285,7 +285,7 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 		input := "note-left->text"
 		p := &Parser{
 			Dialect: dialect.NewGoDialect(),
-			stream:  tokenizer.NewTokenStream(input),
+			stream:  stream.NewTokenStream(input),
 			ast:     &ast.Diagram{},
 		}
 		p.stream.PackageSeparator = "-"
@@ -308,7 +308,7 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 		input := "note-[bold]->text"
 		p := &Parser{
 			Dialect: dialect.NewGoDialect(),
-			stream:  tokenizer.NewTokenStream(input),
+			stream:  stream.NewTokenStream(input),
 			ast:     &ast.Diagram{},
 		}
 		p.stream.PackageSeparator = "-"
