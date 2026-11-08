@@ -120,7 +120,7 @@ var singleCharTokens = map[rune]TokenType{
 // ResolveUnambiguousToken handles tokens with obvious, unambiguous identification.
 func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	if l.isEOF() {
-		return Token{Type: EOF, Literal: "", Span: SourceSpan{Start: l.getPos(), End: l.getPos()}}, true
+		return Token{Type: EOF, Literal: "", Span: SourceSpan{Start: l.Pos(), End: l.Pos()}}, true
 	}
 
 	// Special case for Windows CRLF line endings
@@ -128,12 +128,12 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		crlfTok := Token{
 			Type:    NEWLINE,
 			Literal: "\n",
-			Span:    SourceSpan{Start: l.getPos()},
+			Span:    SourceSpan{Start: l.Pos()},
 		}
 		l.readChar()
 		if l.ch == '\n' {
 			l.readChar()
-			crlfTok.Span.End = l.getPos()
+			crlfTok.Span.End = l.Pos()
 			return crlfTok, true
 		}
 	}
@@ -142,7 +142,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 		return l.consumeChar(tt, l.ch), true
 	}
 
-	start := l.getPos()
+	start := l.Pos()
 	token := Token{
 		Type:    ILLEGAL,
 		Literal: "",
@@ -166,7 +166,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 	}
 
 	if token.Type != ILLEGAL {
-		token.Span.End = l.getPos()
+		token.Span.End = l.Pos()
 		return token, true
 	}
 
@@ -176,17 +176,17 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 // ResolveAmbiguousToken handles identifiers, keywords and numbers.
 func ResolveAmbiguousToken(l *Lexer) Token {
 	if helpers.IsIdentifierRune(l.ch) || l.ch == '\\' {
-		start := l.getPos()
+		start := l.Pos()
 		lit := l.readIdentifier()
-		span := SourceSpan{Start: start, End: l.getPos()}
+		span := SourceSpan{Start: start, End: l.Pos()}
 		return Token{Type: IDENTIFIER, Literal: lit, Span: span}
 	}
 
 	if unicode.IsDigit(l.ch) {
-		start := l.getPos()
+		start := l.Pos()
 		lit, err := l.readNumber()
 		if err == nil {
-			span := SourceSpan{Start: start, End: l.getPos()}
+			span := SourceSpan{Start: start, End: l.Pos()}
 			return Token{Type: NUMBER, Literal: lit, Span: span}
 		}
 		// If the error is about a trailing identifier character, it means this is
@@ -195,10 +195,10 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		if errors.Is(err, ErrInvalidTrailingChar) {
 			rest := l.readIdentifier()
 			fullLit := lit + rest
-			span := SourceSpan{Start: start, End: l.getPos()}
+			span := SourceSpan{Start: start, End: l.Pos()}
 			return Token{Type: IDENTIFIER, Literal: fullLit, Span: span}
 		}
-		span := SourceSpan{Start: start, End: l.getPos()}
+		span := SourceSpan{Start: start, End: l.Pos()}
 		return Token{Type: ILLEGAL, Literal: err.Error(), Span: span}
 	}
 

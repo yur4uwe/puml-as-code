@@ -187,7 +187,7 @@ func renderJSON(diagrams []diagram) ([]byte, error) {
 }
 
 func collectTokens(input string) []tokenizer.Token {
-	lex := tokenizer.NewLexer(input)
+	lex := tokenizer.NewLexer([]rune(input))
 	out := make([]tokenizer.Token, 0, 64)
 	for tok := lex.Emit(); tok.Type != tokenizer.EOF; tok = lex.Emit() {
 		out = append(out, tok)

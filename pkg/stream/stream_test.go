@@ -1,33 +1,35 @@
-package tokenizer
+package stream
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"yur4uwe/pac/pkg/tokenizer"
 )
 
 func TestNewTokenStream(t *testing.T) {
 	ts := NewTokenStream("")
 	require.NotNil(t, ts)
 	tok := ts.PeekRawTokenAt(0)
-	require.Equal(t, EOF, tok.Type)
+	require.Equal(t, tokenizer.EOF, tok.Type)
 }
 
 func TestPeekTokenAt(t *testing.T) {
 	ts := NewTokenStream("package .\nset separator ::\npackage :: .")
-	seq := []Token{
-		{Type: IDENTIFIER, Literal: "package"},
-		{Type: DOT, Literal: "."},
-		{Type: NEWLINE, Literal: "\n"},
-		{Type: IDENTIFIER, Literal: "set"},
-		{Type: IDENTIFIER, Literal: "separator"},
-		{Type: COLON, Literal: ":"},
-		{Type: COLON, Literal: ":"},
-		{Type: NEWLINE, Literal: "\n"},
-		{Type: IDENTIFIER, Literal: "package"},
-		{Type: COLON, Literal: ":"},
-		{Type: COLON, Literal: ":"},
-		{Type: DOT, Literal: "."},
+	seq := []tokenizer.Token{
+		{Type: tokenizer.IDENTIFIER, Literal: "package"},
+		{Type: tokenizer.DOT, Literal: "."},
+		{Type: tokenizer.NEWLINE, Literal: "\n"},
+		{Type: tokenizer.IDENTIFIER, Literal: "set"},
+		{Type: tokenizer.IDENTIFIER, Literal: "separator"},
+		{Type: tokenizer.COLON, Literal: ":"},
+		{Type: tokenizer.COLON, Literal: ":"},
+		{Type: tokenizer.NEWLINE, Literal: "\n"},
+		{Type: tokenizer.IDENTIFIER, Literal: "package"},
+		{Type: tokenizer.COLON, Literal: ":"},
+		{Type: tokenizer.COLON, Literal: ":"},
+		{Type: tokenizer.DOT, Literal: "."},
 	}
 
 	for i, e := range seq {
@@ -43,7 +45,7 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		require.Equal(t, ".", ts.PackageSeparator)
 
 		tok := ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 		require.Equal(t, "foo", tok.Literal)
 
 		sep, ok := ts.TryConsumePackageSeparator()
@@ -51,7 +53,7 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		require.Equal(t, ".", sep)
 
 		tok = ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 		require.Equal(t, "bar", tok.Literal)
 	})
 
@@ -61,14 +63,14 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		require.Equal(t, "::", ts.PackageSeparator)
 
 		tok := ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 
 		sep, ok := ts.TryConsumePackageSeparator()
 		require.True(t, ok)
 		require.Equal(t, "::", sep)
 
 		tok = ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 		require.Equal(t, "bar", tok.Literal)
 	})
 
@@ -77,13 +79,13 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		ts.PackageSeparator = "::"
 
 		tok := ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 
 		_, ok := ts.TryConsumePackageSeparator()
 		require.False(t, ok)
 
 		tok = ts.Emit()
-		require.Equal(t, COLON, tok.Type)
+		require.Equal(t, tokenizer.COLON, tok.Type)
 	})
 
 	t.Run("none separator", func(t *testing.T) {
@@ -92,7 +94,7 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		require.Equal(t, "", ts.PackageSeparator)
 
 		tok := ts.Emit()
-		require.Equal(t, IDENTIFIER, tok.Type)
+		require.Equal(t, tokenizer.IDENTIFIER, tok.Type)
 
 		_, ok := ts.TryConsumePackageSeparator()
 		require.False(t, ok)
@@ -102,14 +104,14 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 func TestStreamEmitRaw(t *testing.T) {
 	ts := NewTokenStream("A /' comment '/ B")
 	tokA := ts.EmitRaw()
-	require.Equal(t, IDENTIFIER, tokA.Type)
+	require.Equal(t, tokenizer.IDENTIFIER, tokA.Type)
 	require.Equal(t, "A", tokA.Literal)
 
 	tokC := ts.EmitRaw()
-	require.Equal(t, COMMENT, tokC.Type)
+	require.Equal(t, tokenizer.COMMENT, tokC.Type)
 	require.Equal(t, " comment ", tokC.Literal)
 
 	tokB := ts.EmitRaw()
-	require.Equal(t, IDENTIFIER, tokB.Type)
+	require.Equal(t, tokenizer.IDENTIFIER, tokB.Type)
 	require.Equal(t, "B", tokB.Literal)
 }

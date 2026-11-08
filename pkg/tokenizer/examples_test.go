@@ -52,7 +52,7 @@ func loadDocsExamples() []exampleCase {
 
 func assertTokenSequence(t *testing.T, input string, expected []expectedToken) {
 	t.Helper()
-	l := NewLexer(input)
+	l := NewLexer([]rune(input))
 	actual := make([]expectedToken, 0, len(expected))
 
 	for tok := l.Emit(); tok.Type != EOF; tok = l.Emit() {

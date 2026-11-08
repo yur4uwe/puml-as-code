@@ -29,7 +29,7 @@ type Lexer struct {
 
 type lexerState struct{}
 
-func (l *Lexer) getPos() Pos {
+func (l *Lexer) Pos() Pos {
 	return Pos{
 		Line:   l.line,
 		Col:    l.col,
@@ -38,12 +38,12 @@ func (l *Lexer) getPos() Pos {
 }
 
 func (l *Lexer) String() string {
-	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.getPos().String(), l.readPos, l.ch)
+	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.Pos().String(), l.readPos, l.ch)
 }
 
-func NewLexer(input string) *Lexer {
+func NewLexer(input []rune) *Lexer {
 	l := &Lexer{
-		input: []rune(input),
+		input: input,
 	}
 	l.readChar()
 	return l
@@ -77,10 +77,10 @@ func (l *Lexer) consumeChar(tokenType TokenType, literal rune) Token {
 	tok := Token{
 		Type:    tokenType,
 		Literal: string(literal),
-		Span:    SourceSpan{Start: l.getPos()},
+		Span:    SourceSpan{Start: l.Pos()},
 	}
 	l.readChar()
-	tok.Span.End = l.getPos()
+	tok.Span.End = l.Pos()
 	return tok
 }
 

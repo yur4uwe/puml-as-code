@@ -7,13 +7,13 @@ import (
 )
 
 func TestReadIdentifier(t *testing.T) {
-	lex := NewLexer("tag13")
+	lex := NewLexer([]rune("tag13"))
 	require.Equal(t, "tag13", lex.readIdentifier())
 
-	lex = NewLexer("Foo\\-bar")
+	lex = NewLexer([]rune("Foo\\-bar"))
 	require.Equal(t, "Foo-bar", lex.readIdentifier())
 
-	lex = NewLexer("Foo123")
+	lex = NewLexer([]rune("Foo123"))
 	require.Equal(t, "Foo123", lex.readIdentifier())
 }
 
@@ -50,7 +50,7 @@ func TestReadNumber(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			lex := NewLexer(tt.input)
+			lex := NewLexer([]rune(tt.input))
 			lit, err := lex.readNumber()
 			if tt.wantErr {
 				require.Error(t, err, "Expected error for input: %s", tt.input)
@@ -63,12 +63,12 @@ func TestReadNumber(t *testing.T) {
 }
 
 func TestReadString(t *testing.T) {
-	lex := NewLexer("\"a\\\"b\"")
+	lex := NewLexer([]rune("\"a\\\"b\""))
 	require.Equal(t, "\"a\\\"b\"", lex.readString())
 }
 
 func TestReadLineComment(t *testing.T) {
-	lex := NewLexer("' comment here\n")
+	lex := NewLexer([]rune("' comment here\n"))
 	line := lex.readLineComment()
 	require.Equal(t, "comment here", line)
 }

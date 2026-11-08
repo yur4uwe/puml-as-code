@@ -13,7 +13,7 @@ func assertTokenType(t *testing.T, expected, actual TokenType) {
 }
 
 func TestResolveUnambiguousToken_EOF(t *testing.T) {
-	l := NewLexer("")
+	l := NewLexer([]rune(""))
 	tok, resolved := ResolveUnambiguousToken(l)
 
 	require.True(t, resolved)
@@ -21,7 +21,7 @@ func TestResolveUnambiguousToken_EOF(t *testing.T) {
 }
 
 func TestResolveUnambiguousToken_String(t *testing.T) {
-	l := NewLexer(`"hello world"`)
+	l := NewLexer([]rune(`"hello world"`))
 	tok, resolved := ResolveUnambiguousToken(l)
 
 	require.True(t, resolved)
@@ -65,7 +65,7 @@ func TestResolveUnambiguousToken_Physical(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			l := NewLexer(tc.input)
+			l := NewLexer([]rune(tc.input))
 			tok, resolved := ResolveUnambiguousToken(l)
 
 			require.True(t, resolved)
@@ -76,7 +76,7 @@ func TestResolveUnambiguousToken_Physical(t *testing.T) {
 }
 
 func TestResolveUnambiguousToken_Comment(t *testing.T) {
-	l := NewLexer("' this is a comment")
+	l := NewLexer([]rune("' this is a comment"))
 	tok, resolved := ResolveUnambiguousToken(l)
 
 	require.True(t, resolved)
@@ -84,46 +84,46 @@ func TestResolveUnambiguousToken_Comment(t *testing.T) {
 }
 
 func TestResolveUnambiguousToken_Unresolved(t *testing.T) {
-	l := NewLexer("foo")
+	l := NewLexer([]rune("foo"))
 	_, resolved := ResolveUnambiguousToken(l)
 
 	require.False(t, resolved, "identifiers should not be resolved as unambiguous")
 }
 
 func TestResolveAmbiguousToken_Identifier(t *testing.T) {
-	l := NewLexer("class")
+	l := NewLexer([]rune("class"))
 	tok := ResolveAmbiguousToken(l)
 	assertTokenType(t, IDENTIFIER, tok.Type)
 	require.Equal(t, "class", tok.Literal)
 
-	l = NewLexer("foo_bar")
+	l = NewLexer([]rune("foo_bar"))
 	tok = ResolveAmbiguousToken(l)
 	assertTokenType(t, IDENTIFIER, tok.Type)
 	require.Equal(t, "foo_bar", tok.Literal)
 }
 
 func TestResolveAmbiguousToken_Number(t *testing.T) {
-	l := NewLexer("123")
+	l := NewLexer([]rune("123"))
 	tok := ResolveAmbiguousToken(l)
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "123", tok.Literal)
 
-	l = NewLexer("123.456")
+	l = NewLexer([]rune("123.456"))
 	tok = ResolveAmbiguousToken(l)
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "123.456", tok.Literal)
 
-	l = NewLexer("0x123")
+	l = NewLexer([]rune("0x123"))
 	tok = ResolveAmbiguousToken(l)
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "0x123", tok.Literal)
 
-	l = NewLexer("0o123")
+	l = NewLexer([]rune("0o123"))
 	tok = ResolveAmbiguousToken(l)
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "0o123", tok.Literal)
 
-	l = NewLexer("0b101")
+	l = NewLexer([]rune("0b101"))
 	tok = ResolveAmbiguousToken(l)
 	assertTokenType(t, NUMBER, tok.Type)
 	require.Equal(t, "0b101", tok.Literal)
@@ -169,7 +169,7 @@ func TestSourceFidelity(t *testing.T) {
 	// Helper to collect all tokens safely up to EOF with an iteration guard against infinite loops
 	tokenizeAll := func(t *testing.T, input string) []Token {
 		t.Helper()
-		l := NewLexer(input)
+		l := NewLexer([]rune(input))
 		var tokens []Token
 		const maxIterations = 200
 		for i := range maxIterations {
