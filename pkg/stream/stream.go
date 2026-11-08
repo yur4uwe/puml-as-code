@@ -2,26 +2,11 @@ package stream
 
 import (
 	"errors"
-	"fmt"
-	"strings"
 
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
 const maxConsecutiveEOF = 25
-
-type UnexpectedTokenError struct {
-	Expected tokenizer.Token
-	Found    tokenizer.Token
-}
-
-func (e UnexpectedTokenError) Error() string {
-	return fmt.Sprintf("token stream: unexpected token %s(%q) at %d:%d, expected %s(%q)", e.Found.Type, e.Found.Literal, e.Found.Span.Start.Line, e.Found.Span.Start.Col, e.Expected.Type, e.Expected.Literal)
-}
-
-func unexpectedTokenError(expected tokenizer.Token, found tokenizer.Token) error {
-	return UnexpectedTokenError{Expected: expected, Found: found}
-}
 
 type TokenStream struct {
 	source              []rune
@@ -29,7 +14,6 @@ type TokenStream struct {
 	collectedTrivia     []tokenizer.Token
 	buffer              []tokenizer.Token
 	sinks               []TokenSink
-	rawModeTerminator   []rune
 	PackageSeparator    string
 	lastNonNewlineToken tokenizer.Token
 	eofEmitCount        int
@@ -72,40 +56,9 @@ func (ts *TokenStream) Attach(sink TokenSink) func() {
 	}
 }
 
-// TokensToString is DEPRECATED as it can distort the original source
-// Use SliceInputEnclosingTokens instead
-func (ts *TokenStream) TokensToString(toks []tokenizer.Token) string {
-	if len(toks) == 0 {
-		return ""
-	}
-
-	var sb strings.Builder
-	var prevTok *tokenizer.Token
-	for i := range toks {
-		tok := &toks[i]
-		if tok.Type == tokenizer.COMMENT {
-			continue
-		}
-
-		if prevTok != nil {
-			startNext := tok.Span.Start.Offset
-			endPrev := prevTok.Span.End.Offset
-			if startNext > endPrev {
-				sb.WriteString(string(ts.source[endPrev:startNext]))
-			}
-		}
-
-		sb.WriteString(tok.Literal)
-		prevTok = tok
-	}
-
-	return sb.String()
-}
-
 var (
 	ErrStartMarkerNotFound = errors.New("start marker not found")
 	ErrUnexpectedEOF       = errors.New("unexpected EOF")
-	ErrScopeDelimiterHit   = errors.New("hit enclosing scope delimiter")
 )
 
 // ReadTokensBetween handles bracketed sequences (e.g. <<...>>, {...}, <...>),
@@ -149,24 +102,6 @@ func (ts *TokenStream) ReadTokensBetween(start, end []tokenizer.TokenType, stopT
 	}
 
 	return collected, span, nil
-}
-
-// ReadBlock assumes that end tokens are first in the line
-// So actual end markers are implicitly append([]tokenizer.Token{tokenizer.NEWLINE}, ...endMark)
-func (ts *TokenStream) ReadBlock(endMark ...tokenizer.Token) (string, error) {
-	tok := ts.EmitRaw()
-	startPos := tok.Span.Start
-	for tok.Type != tokenizer.EOF {
-		if tok.Type == tokenizer.NEWLINE && ts.AssertSeq(endMark) {
-			endPos := tok.Span.Start
-			for range endMark {
-				ts.EmitRaw() // consume end markers
-			}
-			return string(ts.source[startPos.Offset:endPos.Offset]), nil
-		}
-		tok = ts.EmitRaw()
-	}
-	return "", fmt.Errorf("block end not found")
 }
 
 func (ts *TokenStream) LastSemanticToken() tokenizer.Token {

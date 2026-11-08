@@ -164,7 +164,7 @@ func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
 			return nil, fmt.Errorf("unexpected EOF or newline")
 		}
 		tools := &ast.BoundToolOptions{
-			File: p.stream.TokensToString(tokens),
+			File: p.stream.SliceInputEnclosingTokens(tokens...),
 		}
 
 		if p.stream.PeekTokenAt(2).Type != tokenizer.EQUALS {
@@ -173,7 +173,7 @@ func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
 			if p.stream.AssertType(tokenizer.EOF) || p.stream.AssertType(tokenizer.NEWLINE) {
 				return nil, fmt.Errorf("unexpected EOF or newline")
 			}
-			tools.Caption = p.stream.TokensToString(captionTokens)
+			tools.Caption = p.stream.SliceInputEnclosingTokens(captionTokens...)
 		}
 
 		seenOpts := make(map[string]bool)

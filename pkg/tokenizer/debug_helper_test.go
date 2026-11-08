@@ -41,3 +41,22 @@ func TestFormatTokenDiff_Alignment(t *testing.T) {
 	// For manual inspection during development
 	t.Logf("Aligned Diff Output:\n%s", diff)
 }
+
+func TestFormatTokenDiff_SubstitutionWithLongerActual(t *testing.T) {
+	// Prevents regression where opSubstitute indexed expected by item.actIdx
+	// causing index out of range panic when len(actual) > len(expected).
+	exp := []expectedToken{
+		{Type: IDENTIFIER, Literal: "A"},
+		{Type: IDENTIFIER, Literal: "B"},
+	}
+	act := []expectedToken{
+		{Type: IDENTIFIER, Literal: "Extra1"},
+		{Type: IDENTIFIER, Literal: "Extra2"},
+		{Type: IDENTIFIER, Literal: "C"},
+	}
+
+	require.NotPanics(t, func() {
+		diff := FormatTokenDiff(exp, act)
+		require.NotEmpty(t, diff)
+	})
+}

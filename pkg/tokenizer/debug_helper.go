@@ -124,7 +124,7 @@ func FormatTokenDiff(expected []expectedToken, actual []expectedToken) string {
 			match = "✓"
 			idxStr = fmt.Sprintf("%d", item.expIdx)
 		case opSubstitute:
-			expStr = TokenFormat(expected[item.actIdx])
+			expStr = TokenFormat(expected[item.expIdx])
 			actStr = TokenFormat(actual[item.actIdx])
 			match = "✗"
 			idxStr = fmt.Sprintf("%d", item.expIdx)
@@ -159,9 +159,4 @@ func truncate(s string, n int) string {
 		return s[:n-3] + "..."
 	}
 	return s
-}
-
-func (l *Lexer) DebugState() {
-	fmt.Printf("DEBUG: pos=%d, ch=%q\n",
-		l.position, l.ch)
 }

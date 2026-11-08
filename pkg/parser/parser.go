@@ -8,7 +8,7 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
 )

@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 

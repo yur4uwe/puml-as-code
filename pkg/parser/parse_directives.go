@@ -57,7 +57,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirectiv
 	}
 
 	filePathToks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.EXCLAMATION)
-	dir.Path = p.stream.TokensToString(filePathToks)
+	dir.Path = p.stream.SliceInputEnclosingTokens(filePathToks...)
 	if p.stream.AssertType(tokenizer.EXCLAMATION) {
 		p.stream.Emit() // consume '!'
 		// Id or order must be a single token

@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -123,7 +123,9 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 		rel.LArrow = rune(tok.Literal[0])
 	// lolipop interface
 	case tokenizer.LPAREN:
-		p.stream.MustConsumeType(tokenizer.RPAREN)
+		if _, ok := p.stream.TryConsumeType(tokenizer.RPAREN); !ok {
+			return NewParserError(p.stream.PeekTokenAt(0), "Expected ')' for lollipop relationship")
+		}
 		isLolipop = true
 		rel.LArrow = rune(tok.Literal[0])
 	// position INDEPENDENT start and end tokens
@@ -305,7 +307,9 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			return NewParserError(tok, "Cannot have double headed lolipop relationship")
 		}
 		p.stream.Emit()
-		p.stream.MustConsumeType(tokenizer.RPAREN)
+		if _, ok := p.stream.TryConsumeType(tokenizer.RPAREN); !ok {
+			return NewParserError(p.stream.PeekTokenAt(0), "Expected ')' for lollipop relationship")
+		}
 		rel.RArrow = rune(tok.Literal[0])
 	// position INDEPENDENT start and end tokens
 	case tokenizer.ASTERISK:

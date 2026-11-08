@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"yur4uwe/pac/pkg/parser/keyword"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
@@ -125,14 +125,6 @@ func (ts *TokenStream) AssertTypeSeq(seq ...tokenizer.TokenType) bool {
 		}
 	}
 	return true
-}
-
-// MustConsumeType is ONLY for internal use as it panics
-func (ts *TokenStream) MustConsumeType(targetType tokenizer.TokenType) tokenizer.Token {
-	if !ts.AssertType(targetType) {
-		panic(fmt.Sprintf("expected %s, got %s", targetType, ts.PeekTokenAt(0).Type))
-	}
-	return ts.Emit()
 }
 
 func (ts *TokenStream) TryConsume(target tokenizer.Token) (tokenizer.Token, bool) {

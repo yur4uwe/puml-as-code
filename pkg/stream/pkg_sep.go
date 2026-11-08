@@ -10,36 +10,43 @@ func (ts *TokenStream) MatchPackageSeparatorAt(startIdx int) (int, bool) {
 	if ts.PackageSeparator == "" {
 		return 0, false
 	}
-	var acc []tokenizer.Token
-	for {
-		accCount := len(acc)
-		tok := ts.PeekRawTokenAt(startIdx + accCount)
+	var sb strings.Builder
+	var lastEnd uint
+	for count := 1; ; count++ {
+		tok := ts.PeekRawTokenAt(startIdx + count - 1)
 		if tok.Type == tokenizer.EOF || tok.Type == tokenizer.NEWLINE {
 			break
 		}
-		if ts.IsPackageSeparator(acc) {
-			return accCount, true
+		if count > 1 && tok.Span.Start.Offset != lastEnd {
+			break
 		}
-		acc = append(acc, tok)
+		sb.WriteString(tok.Literal)
+		lastEnd = tok.Span.End.Offset
+		if sb.String() == ts.PackageSeparator {
+			return count, true
+		}
+		if sb.Len() >= len(ts.PackageSeparator) {
+			break
+		}
 	}
 	return 0, false
 }
 
 func (ts *TokenStream) IsPackageSeparator(toks []tokenizer.Token) bool {
+	if len(toks) == 0 || ts.PackageSeparator == "" {
+		return false
+	}
 	var sb strings.Builder
 	for i, tok := range toks {
 		if i > 0 && tok.Span.Start.Offset != toks[i-1].Span.End.Offset {
 			return false
 		}
 		sb.WriteString(tok.Literal)
-		if sb.String() == ts.PackageSeparator {
-			return true
-		}
-		if len(sb.String()) >= len(ts.PackageSeparator) {
+		if sb.Len() > len(ts.PackageSeparator) {
 			return false
 		}
 	}
-	return false
+	return sb.String() == ts.PackageSeparator
 }
 
 func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
@@ -48,7 +55,7 @@ func (ts *TokenStream) TryConsumePackageSeparator() (string, bool) {
 		return "", false
 	}
 	for range count {
-		ts.Emit()
+		ts.EmitRaw()
 	}
 	return ts.PackageSeparator, true
 }

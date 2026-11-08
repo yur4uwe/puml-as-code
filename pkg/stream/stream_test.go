@@ -99,6 +99,54 @@ func TestPackageSeparatorHelpers(t *testing.T) {
 		_, ok := ts.TryConsumePackageSeparator()
 		require.False(t, ok)
 	})
+
+	t.Run("separator followed by newline", func(t *testing.T) {
+		ts := NewTokenStream("foo.\nbar")
+		tok := ts.Emit()
+		require.Equal(t, "foo", tok.Literal)
+
+		count, ok := ts.MatchPackageSeparatorAt(0)
+		require.True(t, ok)
+		require.Equal(t, 1, count)
+
+		sep, ok := ts.TryConsumePackageSeparator()
+		require.True(t, ok)
+		require.Equal(t, ".", sep)
+	})
+
+	t.Run("separator at EOF", func(t *testing.T) {
+		ts := NewTokenStream(".")
+		count, ok := ts.MatchPackageSeparatorAt(0)
+		require.True(t, ok)
+		require.Equal(t, 1, count)
+
+		sep, ok := ts.TryConsumePackageSeparator()
+		require.True(t, ok)
+		require.Equal(t, ".", sep)
+	})
+
+	t.Run("multi-token separator at EOF", func(t *testing.T) {
+		ts := NewTokenStream("::")
+		ts.PackageSeparator = "::"
+		count, ok := ts.MatchPackageSeparatorAt(0)
+		require.True(t, ok)
+		require.Equal(t, 2, count)
+
+		sep, ok := ts.TryConsumePackageSeparator()
+		require.True(t, ok)
+		require.Equal(t, "::", sep)
+	})
+
+	t.Run("IsPackageSeparator trailing tokens rejected", func(t *testing.T) {
+		ts := NewTokenStream("")
+		ts.PackageSeparator = "::"
+		toks := []tokenizer.Token{
+			{Literal: ":", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Offset: 0}, End: tokenizer.Pos{Offset: 1}}},
+			{Literal: ":", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Offset: 1}, End: tokenizer.Pos{Offset: 2}}},
+			{Literal: "x", Span: tokenizer.SourceSpan{Start: tokenizer.Pos{Offset: 2}, End: tokenizer.Pos{Offset: 3}}},
+		}
+		require.False(t, ts.IsPackageSeparator(toks))
+	})
 }
 
 func TestStreamEmitRaw(t *testing.T) {

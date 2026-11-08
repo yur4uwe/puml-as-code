@@ -175,7 +175,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 
 // ResolveAmbiguousToken handles identifiers, keywords and numbers.
 func ResolveAmbiguousToken(l *Lexer) Token {
-	if helpers.IsIdentifierRune(l.ch) || l.ch == '\\' {
+	if helpers.IsIdentifierRune(l.ch) {
 		start := l.Pos()
 		lit := l.readIdentifier()
 		span := SourceSpan{Start: start, End: l.Pos()}
