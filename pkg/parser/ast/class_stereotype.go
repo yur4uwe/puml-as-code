@@ -9,7 +9,7 @@ import (
 type Stereotype struct {
 	Value Ident
 
-	SpotColor string `json:",omitempty"`
+	SpotColor *ColorRef `json:",omitempty"`
 	// SpotSpan spans the spot syntax in "<< (S,#00FF00) ... >>" construct.
 	SpotSpan tokenizer.SourceSpan
 	SpotRune rune `json:",omitempty"`
@@ -30,9 +30,9 @@ func (s *Stereotype) String() string {
 	var sb strings.Builder
 	sb.WriteByte('(')
 	sb.WriteRune(s.SpotRune)
-	if s.SpotColor != "" {
+	if s.SpotColor != nil {
 		sb.WriteString(", ")
-		sb.WriteString(s.SpotColor)
+		sb.WriteString(s.SpotColor.Literal)
 	}
 	sb.WriteByte(')')
 	if s.Value.Literal != "" {

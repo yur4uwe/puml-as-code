@@ -66,7 +66,11 @@ func TestTryParseStereotype(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, tc.expectedValueStr, stereo.Value.Literal)
 			require.Equal(t, tc.expectedSpotRune, stereo.SpotRune)
-			require.Equal(t, tc.expectedSpotColor, stereo.SpotColor)
+			spotColor := ""
+			if stereo.SpotColor != nil {
+				spotColor = stereo.SpotColor.Literal
+			}
+			require.Equal(t, tc.expectedSpotColor, spotColor)
 		})
 	}
 }
