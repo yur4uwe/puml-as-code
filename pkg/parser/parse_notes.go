@@ -4,9 +4,32 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
+
+func (p *Parser) parseNoteStyle(n *ast.Note) *ast.NoteStyle {
+	firstHash, ok := p.stream.TryConsumeType(tokenizer.HASH)
+	if !ok {
+		return nil
+	}
+	mark := p.Mark(firstHash)
+
+	noteStyle := &ast.NoteStyle{
+		Span: firstHash.Span,
+	}
+
+	colorTok := p.stream.Emit()
+	expr, err := p.parseColorExpr(colorTok)
+	noteStyle.Span = p.Span(mark)
+	if err != nil {
+		p.ast.RecordError(err, colorTok.Span, n)
+		return noteStyle
+	}
+
+	noteStyle.Background = expr
+	return noteStyle
+}
 
 func (p *Parser) parseNote() *ast.Note {
 	// has the parameter to match signature
@@ -97,9 +120,7 @@ func (p *Parser) parseDirectedNote(note *ast.Note, dirTok tokenizer.Token) {
 		p.syncToNoteBody()
 		return
 	}
-	if color := p.tryParseColor(); color != "" {
-		note.Color = color
-	}
+	note.Style = p.parseNoteStyle(note)
 }
 
 func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token) {
@@ -119,9 +140,7 @@ func (p *Parser) parseInlineIdentNote(note *ast.Note, stringTok tokenizer.Token)
 		return
 	}
 	note.Identifier = p.parseQualifiedName(p.stream.Emit())
-	if color := p.tryParseColor(); color != "" {
-		note.Color = color
-	}
+	note.Style = p.parseNoteStyle(note)
 	if !p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 		nextTok := p.stream.PeekTokenAt(0)
 		err := NewParserError(nextTok, "Unexpected tokens after inline alias note")
@@ -144,9 +163,7 @@ func (p *Parser) parseMultilineAliasNote(note *ast.Note) {
 		return
 	}
 	note.Identifier = p.parseQualifiedName(p.stream.Emit())
-	if color := p.tryParseColor(); color != "" {
-		note.Color = color
-	}
+	note.Style = p.parseNoteStyle(note)
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		lastLineTok := p.stream.PeekTokenAt(0)
 		p.ast.RecordError(
@@ -185,9 +202,7 @@ func (p *Parser) parseLinkNote(note *ast.Note, onTok tokenizer.Token) {
 	}
 	note.Target = &ast.TargetRef{Name: ast.IdentFromToken(linkTok)}
 	note.Kind = ast.NoteLink
-	if color := p.tryParseColor(); color != "" {
-		note.Color = color
-	}
+	note.Style = p.parseNoteStyle(note)
 }
 
 func (p *Parser) parseNoteBody(note *ast.Note) {

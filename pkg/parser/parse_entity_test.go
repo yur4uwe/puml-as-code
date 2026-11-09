@@ -75,7 +75,7 @@ func TestParseEntity(t *testing.T) {
 			want: &ast.Entity{
 				Identifier: identRef("MyClass"),
 				Kind:       ast.EntityClass,
-				Color:      "#FF0000",
+				Style:      simpleEntStyle("FF0000"),
 			},
 		},
 		{
@@ -98,7 +98,7 @@ func TestParseEntity(t *testing.T) {
 				Kind:       ast.EntityClass,
 				Generic:    "T",
 				Stereotype: tokStereo("Database"),
-				Color:      "#FF0000",
+				Style:      simpleEntStyle("FF0000"),
 			},
 		},
 		{
@@ -1164,6 +1164,66 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 			require.NotNil(t, got)
 			testutil.SemanticEqual(t, tc.wantStereo, got.Stereotype)
 			require.Equal(t, tc.wantTags, got.Tags)
+		})
+	}
+}
+
+func TestEntityStyle_Span(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantSpan string
+	}{
+		{
+			name:     "simple background color",
+			input:    "class Foo #red\n",
+			wantSpan: "#red",
+		},
+		{
+			name:     "gradient background color",
+			input:    "class Foo #red/blue\n",
+			wantSpan: "#red/blue",
+		},
+		{
+			name:     "key-val target styles",
+			input:    "class Foo #back:red;header:blue;line:green;text:yellow\n",
+			wantSpan: "#back:red;header:blue;line:green;text:yellow",
+		},
+		{
+			name:     "line style dotted",
+			input:    "class Foo #line.dotted;text:blue\n",
+			wantSpan: "#line.dotted;text:blue",
+		},
+		{
+			name:     "composite trailing line color",
+			input:    "class Foo #red ##blue\n",
+			wantSpan: "#red ##blue",
+		},
+		{
+			name:     "composite trailing line style and color",
+			input:    "class Foo #red ##[dashed]blue\n",
+			wantSpan: "#red ##[dashed]blue",
+		},
+		{
+			name:     "standalone double hash style",
+			input:    "class Foo ##[bold]green\n",
+			wantSpan: "##[bold]green",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  stream.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got := p.parseEntity(tok)
+			require.NotNil(t, got)
+			require.NotNil(t, got.Style)
+			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]
+			require.Equal(t, tc.wantSpan, gotSpan)
 		})
 	}
 }

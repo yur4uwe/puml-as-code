@@ -146,6 +146,42 @@ func parseStereotypeSpotColor(toks []tokenizer.Token) (*ast.ColorRef, error) {
 	}
 }
 
+func parseLineStyle(tok tokenizer.Token) (ast.LineStyle, error) {
+	switch tok.Literal {
+	case "dotted":
+		return ast.LineDotted, nil
+	case "dashed":
+		return ast.LineDashed, nil
+	case "bold":
+		return ast.LineBold, nil
+	default:
+		return ast.LineNormal, fmt.Errorf("unexpected line style: %s, expected any of: dotted, dashed, bold", tok.Literal)
+	}
+}
+
+func (p *Parser) parseColorExpr(tok tokenizer.Token) (ast.ColorExpr, error) {
+	if tok.Type != tokenizer.IDENTIFIER && tok.Type != tokenizer.NUMBER {
+		return nil, fmt.Errorf("unexpected token describing target color: %s(%s)", tok.Type, tok.Literal)
+	}
+
+	startCol := ast.FromToken(tok)
+	if !p.stream.AssertAnyType(tokenizer.SLASH, tokenizer.BACKSLASH, tokenizer.PIPE, tokenizer.DASH) {
+		return startCol, nil
+	}
+
+	gradType := ast.FromTokType(p.stream.Emit().Type)
+	endTok := p.stream.Emit()
+	if endTok.Type != tokenizer.IDENTIFIER && endTok.Type != tokenizer.NUMBER {
+		return startCol, fmt.Errorf("unexpected token describing target gradient end color: %s(%s)", endTok.Type, endTok.Literal)
+	}
+
+	return &ast.GradientColor{
+		Start:     startCol,
+		End:       ast.FromToken(endTok),
+		Direction: gradType,
+	}, nil
+}
+
 func (p *Parser) tryReadGeneric() (string, tokenizer.SourceSpan, error) {
 	start := []tokenizer.TokenType{tokenizer.LANGLE}
 	end := []tokenizer.TokenType{tokenizer.RANGLE}

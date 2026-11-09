@@ -41,6 +41,8 @@ type Relationship struct {
 	// if the arrow is like '--|>', the '|' is used to distinguish it from '-->'
 	// which would have end = '>'
 
+	Style *RelationshipStyle `json:",omitempty"`
+
 	Label string   `json:",omitempty"`
 	Attrs []string `json:",omitempty"`
 	BaseNode

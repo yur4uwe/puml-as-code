@@ -2,13 +2,159 @@ package parser
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
+
+func (p *Parser) parseContainerStyle(c *ast.Container) *ast.ContainerStyle {
+	firstHash, ok := p.stream.TryConsumeType(tokenizer.HASH)
+	if !ok {
+		return nil
+	}
+	mark := p.Mark(firstHash)
+
+	cntStyle := &ast.ContainerStyle{
+		Span: firstHash.Span,
+	}
+
+	decisionTok := p.stream.Emit()
+	if decisionTok.Type != tokenizer.IDENTIFIER && decisionTok.Type != tokenizer.NUMBER {
+		cntStyle.Span = p.Span(mark)
+		err := fmt.Errorf("unexpected token in style declaration: %s(%s)", decisionTok.Type, decisionTok.Literal)
+		p.ast.RecordError(err, decisionTok.Span, c)
+		p.syncToBlockStart()
+		return cntStyle
+	}
+
+	isKeyVal := false
+	switch decisionTok.Literal {
+	case "back", "line", "text":
+		isKeyVal = true
+	default: // actual color
+		bg, err := p.parseColorExpr(decisionTok)
+		if err != nil {
+			cntStyle.Span = p.Span(mark)
+			p.ast.RecordError(err, p.stream.LastSemanticToken().Span, c)
+			p.syncToBlockStart()
+			return cntStyle
+		}
+		cntStyle.Background = bg
+	}
+
+	hasSemi := false
+	if !isKeyVal {
+		_, hasSemi = p.stream.TryConsumeType(tokenizer.SEMICOLON)
+	}
+
+	if !isKeyVal && !hasSemi {
+		cntStyle.Span = p.Span(mark)
+		return cntStyle
+	}
+
+	tok := decisionTok
+	for {
+		targetKind := ""
+		switch tok.Literal {
+		case "line":
+			targetKind = tok.Literal
+			if !p.stream.AssertType(tokenizer.DOT) {
+				break
+			}
+			p.stream.Emit() // consume '.'
+
+			lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+			if !ok {
+				cntStyle.Span = p.Span(mark)
+				err := fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
+				p.ast.RecordError(err, lineStyleTok.Span, c)
+				p.syncToBlockStart()
+				return cntStyle
+			}
+
+			ls, err := parseLineStyle(lineStyleTok)
+			if err != nil {
+				cntStyle.Span = p.Span(mark)
+				p.ast.RecordError(err, lineStyleTok.Span, c)
+				p.syncToBlockStart()
+				return cntStyle
+			}
+			cntStyle.LineStyle = ls
+
+			if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); ok {
+				var ok bool
+				tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+				if !ok {
+					cntStyle.Span = p.Span(mark)
+					err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
+					p.ast.RecordError(err, tok.Span, c)
+					p.syncToBlockStart()
+					return cntStyle
+				}
+				continue
+			}
+		case "back", "text":
+			targetKind = tok.Literal
+		default:
+			cntStyle.Span = p.Span(mark)
+			err := fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
+			p.ast.RecordError(err, tok.Span, c)
+			p.syncToBlockStart()
+			return cntStyle
+		}
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
+			cntStyle.Span = p.Span(mark)
+			tok := p.stream.PeekTokenAt(0)
+			err := errors.New("missing colon after specified color target")
+			p.ast.RecordError(err, tok.Span, c)
+			p.syncToBlockStart()
+			return cntStyle
+		}
+
+		colorTok := p.stream.Emit()
+		expr, err := p.parseColorExpr(colorTok)
+		if err != nil {
+			cntStyle.Span = p.Span(mark)
+			p.ast.RecordError(err, p.stream.LastSemanticToken().Span, c)
+			p.syncToBlockStart()
+			return cntStyle
+		}
+
+		switch targetKind {
+		case "text":
+			cntStyle.TextColor = expr
+		case "line":
+			cntStyle.LineColor = expr
+		case "back":
+			cntStyle.Background = expr
+		}
+
+		if !p.stream.AssertType(tokenizer.SEMICOLON) {
+			break
+		}
+
+		p.stream.Emit() // emit the semicolon
+
+		// update the active target tok
+		var ok bool
+		tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			cntStyle.Span = p.Span(mark)
+			err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
+			p.ast.RecordError(err, tok.Span, c)
+			p.syncToBlockStart()
+			return cntStyle
+		}
+	}
+
+	cntStyle.Span = p.Span(mark)
+	return cntStyle
+}
 
 func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 	containerClass := keyword.Classify(tok.Literal)
@@ -102,7 +248,7 @@ func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.Sou
 		cntr.Tags = postTags
 	}
 
-	cntr.Color = p.tryParseColor()
+	cntr.Style = p.parseContainerStyle(cntr)
 
 	if !p.stream.AssertAnyType(tokenizer.LBRACE, tokenizer.NEWLINE, tokenizer.EOF) && !p.isEndMarker() {
 		nextTok := p.stream.PeekTokenAt(0)

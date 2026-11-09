@@ -38,7 +38,7 @@ func mergeEntities(target *ast.Entity, incoming *ast.Entity) *ast.Entity {
 		Alias:      target.Alias,
 		Stereotype: target.Stereotype,
 		Generic:    target.Generic,
-		Color:      target.Color,
+		Style:      target.Style,
 		Tags:       target.Tags,
 	}
 	merge.Members = append(target.Members, incoming.Members...)
@@ -56,8 +56,8 @@ func mergeEntities(target *ast.Entity, incoming *ast.Entity) *ast.Entity {
 	if incoming.Generic != "" {
 		merge.Generic = incoming.Generic
 	}
-	if incoming.Color != "" {
-		merge.Color = incoming.Color
+	if incoming.Style != nil {
+		merge.Style = incoming.Style
 	}
 	if !incoming.Alias.IsZero() {
 		merge.Alias = incoming.Alias

@@ -7,6 +7,9 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
+func printNoteStyle(s *formatterState, style *ast.NoteStyle) {
+}
+
 func printNote(s *formatterState, note *ast.Note) {
 	isMultiline := strings.Contains(note.Text, "\n")
 	// Anstract limit where note is too long to be inline
@@ -43,9 +46,9 @@ func printNoteHeader(s *formatterState, note *ast.Note, isBlock bool) {
 	default:
 		panic("unreachable")
 	}
-	if note.Color != "" {
+	if note.Style != nil {
 		s.buf.WriteByte(' ')
-		s.buf.WriteString(note.Color)
+		printNoteStyle(s, note.Style)
 	}
 }
 
@@ -207,6 +210,8 @@ func printInlineMember(s *formatterState, im *ast.InlineMember) {
 	s.formatMember(im.Member)
 }
 
+func printEntityStyle(s *formatterState, style *ast.EntityStyle) {}
+
 func printEntity(s *formatterState, ent *ast.Entity) {
 	// Otherwise, it is a named entity
 	actualKindStr := ent.Kind.String()
@@ -239,9 +244,9 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
 	}
-	if ent.Color != "" {
+	if ent.Style != nil {
 		s.buf.WriteString(" ")
-		s.buf.WriteString(ent.Color)
+		printEntityStyle(s, ent.Style)
 	}
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(ent)
@@ -253,6 +258,8 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 		s.emitWithIndent("}")
 	}
 }
+
+func printContainerStyle(s *formatterState, style *ast.ContainerStyle) {}
 
 func printContainer(s *formatterState, cont *ast.Container) {
 	s.emitWithIndent(cont.Kind.String())
@@ -276,9 +283,9 @@ func printContainer(s *formatterState, cont *ast.Container) {
 		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
 	}
-	if cont.Color != "" {
+	if cont.Style != nil {
 		s.buf.WriteString(" ")
-		s.buf.WriteString(cont.Color)
+		printContainerStyle(s, cont.Style)
 	}
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(cont)

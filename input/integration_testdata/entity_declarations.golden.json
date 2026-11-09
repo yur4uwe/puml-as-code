@@ -235,7 +235,35 @@
         }
       },
       "Generic": "T",
-      "Color": "#lightblue",
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 10,
+            "Col": 30,
+            "Offset": 165
+          },
+          "End": {
+            "Line": 10,
+            "Col": 40,
+            "Offset": 175
+          }
+        },
+        "Background": {
+          "Literal": "lightblue",
+          "ColorSpan": {
+            "Start": {
+              "Line": 10,
+              "Col": 31,
+              "Offset": 166
+            },
+            "End": {
+              "Line": 10,
+              "Col": 40,
+              "Offset": 175
+            }
+          }
+        }
+      },
       "LBrace": {
         "Line": 10,
         "Col": 41,

@@ -153,7 +153,7 @@ class Service {
 	require.NotNil(t, svc.AST)
 	require.NotNil(t, svc.AST.Stereotype)
 	require.Equal(t, "API", svc.AST.Stereotype.Value.Literal)
-	require.Equal(t, "#red", svc.AST.Color)
+	require.Equal(t, "#red", svc.AST.Style)
 	require.Len(t, svc.AST.Members, 4, "expected members from both class bodies to be merged")
 }
 

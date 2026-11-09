@@ -67,6 +67,30 @@ func tokStereo(lit string) *ast.Stereotype {
 	}
 }
 
+func simpleColor(lit string) *ast.ColorRef {
+	return &ast.ColorRef{
+		Literal: lit,
+	}
+}
+
+func simpleEntStyle(lit string) *ast.EntityStyle {
+	return &ast.EntityStyle{
+		Background: simpleColor(lit),
+	}
+}
+
+func simpleContStyle(lit string) *ast.ContainerStyle {
+	return &ast.ContainerStyle{
+		Background: simpleColor(lit),
+	}
+}
+
+func simpleNoteStyle(lit string) *ast.NoteStyle {
+	return &ast.NoteStyle{
+		Background: simpleColor(lit),
+	}
+}
+
 type expectedDiag struct {
 	Severity ast.Severity
 	Msg      string

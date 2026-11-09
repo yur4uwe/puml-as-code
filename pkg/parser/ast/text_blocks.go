@@ -90,7 +90,7 @@ type Note struct {
 	Text       string        `json:",omitempty"`
 	Direction  DirectionKind `json:",omitempty"`
 	Target     *TargetRef    `json:",omitempty"`
-	Color      string        `json:",omitempty"`
+	Style      *NoteStyle    `json:",omitempty"`
 	Identifier TargetRef
 	BaseNode
 }
