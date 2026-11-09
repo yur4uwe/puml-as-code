@@ -3,7 +3,6 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/stream"
@@ -96,7 +95,7 @@ func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, er
 		return stereo, span, nil
 	}
 
-	color, err := parseColor(spotToks[2:])
+	color, err := parseStereotypeSpotColor(spotToks[2:])
 	if err != nil {
 		return nil, span, WrapParserError(spotToks[2], err)
 	}
@@ -112,16 +111,39 @@ func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, er
 	return spotStereo, span, nil
 }
 
-func parseColor(toks []tokenizer.Token) (string, error) {
+func parseStereotypeSpotColor(toks []tokenizer.Token) (*ast.ColorRef, error) {
 	if len(toks) == 0 {
-		return "", errors.New("expected color, received no tokens")
+		return nil, errors.New("expected color, received no tokens")
 	}
 
-	var sb strings.Builder
-	for _, tok := range toks {
-		sb.WriteString(tok.Literal)
+	first := toks[0]
+	switch first.Type {
+	case tokenizer.IDENTIFIER, tokenizer.NUMBER:
+		if len(toks) > 1 {
+			return nil, fmt.Errorf("unexpected token after color: %s", toks[1].Literal)
+		}
+		return &ast.ColorRef{
+			Literal:   first.Literal,
+			ColorSpan: first.Span,
+		}, nil
+	case tokenizer.HASH:
+		if len(toks) < 2 {
+			return nil, errors.New("expected color after '#")
+		} else if len(toks) > 2 {
+			return nil, fmt.Errorf("unexpected token after color: %s", toks[2].Literal)
+		}
+		second := toks[1]
+		if second.Type != tokenizer.IDENTIFIER && second.Type != tokenizer.NUMBER {
+			return nil, fmt.Errorf("unexpected token after '#' for stereotype spot color: %s(%s)", second.Type, second.Literal)
+		}
+		fullSpan := tokenizer.SpanEnclosing(first, second)
+		return &ast.ColorRef{
+			Literal:   "#" + second.Literal,
+			ColorSpan: fullSpan,
+		}, nil
+	default:
+		return nil, fmt.Errorf("unexpected token in spot syntax: %s(%s)", first.Type, first.Literal)
 	}
-	return sb.String(), nil
 }
 
 func (p *Parser) tryReadGeneric() (string, tokenizer.SourceSpan, error) {
