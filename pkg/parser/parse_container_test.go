@@ -6,9 +6,9 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 
 	"github.com/stretchr/testify/require"
 )
@@ -106,7 +106,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Identifier: identRef("mypkg"),
 				Stereotype: tokStereo("Service"),
-				Color:      "#green",
+				Style:      simpleContStyle("green"),
 				Kind:       ast.ContainerPackage,
 			},
 		},
@@ -181,7 +181,7 @@ func TestParseContainer(t *testing.T) {
 			want: ast.Container{
 				Kind:       ast.ContainerPackage,
 				Identifier: identRef("mypkg"),
-				Color:      "#red",
+				Style:      simpleContStyle("red"),
 				Statements: []ast.Statement{
 					&ast.Entity{
 						Identifier: identRef("A"),
@@ -771,6 +771,51 @@ func TestParseContainer_Recovery(t *testing.T) {
 				require.NotNil(t, nextEnt)
 				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 			}
+		})
+	}
+}
+
+func TestContainerStyle_Span(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantSpan string
+	}{
+		{
+			name:     "simple background color",
+			input:    "package mypkg #green\n",
+			wantSpan: "#green",
+		},
+		{
+			name:     "gradient background color",
+			input:    "package mypkg #red/blue\n",
+			wantSpan: "#red/blue",
+		},
+		{
+			name:     "key-val target styles",
+			input:    "package mypkg #back:red;line:green;text:yellow\n",
+			wantSpan: "#back:red;line:green;text:yellow",
+		},
+		{
+			name:     "line style dotted",
+			input:    "package mypkg #line.dotted;text:blue\n",
+			wantSpan: "#line.dotted;text:blue",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  stream.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got := p.parseContainer(tok)
+			require.NotNil(t, got)
+			require.NotNil(t, got.Style)
+			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]
+			require.Equal(t, tc.wantSpan, gotSpan)
 		})
 	}
 }

@@ -7,9 +7,9 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 type expectedNoteBodyState byte
@@ -64,7 +64,7 @@ func TestParseNote(t *testing.T) {
 				Text:      "some note text",
 				Direction: ast.DirectionTop,
 				Target:    identRefPtr("MyClass"),
-				Color:     "#green",
+				Style:     simpleNoteStyle("green"),
 			},
 		},
 		{
@@ -94,7 +94,7 @@ func TestParseNote(t *testing.T) {
 				Text:      "some note text",
 				Direction: ast.DirectionRight,
 				Target:    identRefPtr("MyClass"),
-				Color:     "#blue",
+				Style:     simpleNoteStyle("blue"),
 			},
 		},
 
@@ -115,7 +115,7 @@ func TestParseNote(t *testing.T) {
 				Kind:       ast.NoteAlias,
 				Text:       "some note text",
 				Identifier: identRef("N1"),
-				Color:      "#blue",
+				Style:      simpleNoteStyle("blue"),
 			},
 		},
 		{
@@ -145,7 +145,7 @@ func TestParseNote(t *testing.T) {
 				Kind:       ast.NoteAlias,
 				Text:       "some note text",
 				Identifier: identRef("N1"),
-				Color:      "#red",
+				Style:      simpleNoteStyle("red"),
 			},
 		},
 		{
@@ -175,7 +175,7 @@ func TestParseNote(t *testing.T) {
 				Kind:   ast.NoteLink,
 				Text:   "some note text",
 				Target: identRefPtr("link"),
-				Color:  "#yellow",
+				Style:  simpleNoteStyle("yellow"),
 			},
 		},
 		{
@@ -194,7 +194,7 @@ func TestParseNote(t *testing.T) {
 				Kind:   ast.NoteLink,
 				Text:   "some note text",
 				Target: identRefPtr("link"),
-				Color:  "#cyan",
+				Style:  simpleNoteStyle("cyan"),
 			},
 		},
 	}
@@ -385,7 +385,7 @@ func TestParseNote_Errors(t *testing.T) {
 			want: &ast.Note{
 				Kind:       ast.NoteAlias,
 				Identifier: identRef("N1"),
-				Color:      "#red",
+				Style:      simpleNoteStyle("red"),
 				Text:       "body",
 			},
 			wantDiags: []expectedDiag{
@@ -768,6 +768,45 @@ func TestParseNoteBody(t *testing.T) {
 				require.False(t, p.ast.HasErrors())
 				require.Equal(t, tc.wantText, note.Text)
 			}
+		})
+	}
+}
+
+func TestNoteStyle_Span(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantSpan string
+	}{
+		{
+			name:     "simple color",
+			input:    "note left of Foo #red : text\n",
+			wantSpan: "#red",
+		},
+		{
+			name:     "gradient color",
+			input:    "note right of Foo #red/blue : text\n",
+			wantSpan: "#red/blue",
+		},
+		{
+			name:     "inline alias note",
+			input:    "note \"hello\" as N1 #green\n",
+			wantSpan: "#green",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  stream.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			p.stream.Emit() // consume 'note'
+			note := p.parseNote()
+			require.NotNil(t, note.Style)
+			gotSpan := tc.input[note.Style.Span.Start.Offset:note.Style.Span.End.Offset]
+			require.Equal(t, tc.wantSpan, gotSpan)
 		})
 	}
 }
