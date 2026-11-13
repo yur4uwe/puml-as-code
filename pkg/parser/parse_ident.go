@@ -1,11 +1,9 @@
 package parser
 
 import (
-	"fmt"
-
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func isAdjacent(prev, curr tokenizer.Token) bool {
@@ -52,11 +50,9 @@ func (p *Parser) disambiguateIdent(identTok tokenizer.Token) (ast.Statement, err
 			// warn on -left-, -right-, -up-, -down-
 			// probably needs a better heuristic
 			word := followingIdent.Literal
-			msg := fmt.Sprintf("%q has no effect on relationship", word)
-			err := NewParserError(followingIdent, msg)
 			switch word {
 			case "left", "right", "up", "down":
-				p.ast.RecordWarning(err, followingIdent.Span, nil)
+				p.recordWarningf(followingIdent, nil, "%q has no effect on relationship", word)
 			}
 		}
 

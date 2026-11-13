@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) *ast.VisibilityCommand {
@@ -27,10 +27,7 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) *ast.VisibilityComm
 	cmd.Target = p.stream.ReadUntilNewline()
 	if len(cmd.Target) == 0 {
 		nextTok := p.stream.PeekTokenAt(0)
-		err := NewParserError(nextTok, "empty target for visibility command")
-		p.ast.RecordError(
-			err, nextTok.Span, cmd,
-		)
+		p.recordError(nextTok, cmd, "empty target for visibility command")
 	}
 	return cmd
 }
@@ -67,10 +64,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 		}
 
 		nextToken := p.stream.PeekTokenAt(0)
-		err := NewParserError(nextToken, "Unexpected diagram direction modifier")
-		p.ast.RecordError(
-			err, nextToken.Span, cmd,
-		)
+		p.recordError(nextToken, cmd, "Unexpected diagram direction modifier")
 		p.syncToLineEnd()
 		return cmd
 	}
@@ -82,10 +76,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 	}
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		nextToken := p.stream.PeekTokenAt(0)
-		err := NewParserError(nextToken, "Unexpected tokens after direction command")
-		p.ast.RecordError(
-			err, nextToken.Span, cmd,
-		)
+		p.recordError(nextToken, cmd, "Unexpected tokens after direction command")
 		p.syncToLineEnd()
 	}
 	return cmd
@@ -436,16 +427,14 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 		}
 		if h != "" {
 			if block.HorizontalAlignment != "" {
-				err := NewParserError(peekTok, "Horizontal alignment already set")
-				p.ast.RecordError(err, peekTok.Span, block)
+				p.recordError(peekTok, block, "Horizontal alignment already set")
 			} else {
 				block.HorizontalAlignment = h
 			}
 			p.stream.Emit()
 		} else if v != "" {
 			if block.VerticalAlignment != "" {
-				err := NewParserError(peekTok, "Vertical alignment already set")
-				p.ast.RecordError(err, peekTok.Span, block)
+				p.recordError(peekTok, block, "Vertical alignment already set")
 			} else {
 				block.VerticalAlignment = v
 			}

@@ -5,8 +5,8 @@ import (
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
@@ -103,7 +103,7 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		// outer loop/caller handles the delimiter
 	default:
 		// literal junk, relationship is fully parsed and we can't know that is
-		p.ast.RecordError(NewParserError(endingToken, "Expected newline or colon after relationship"), endingToken.Span, rel)
+		p.recordError(endingToken, rel, "Expected newline or colon after relationship")
 		p.syncToLineEnd()
 	}
 

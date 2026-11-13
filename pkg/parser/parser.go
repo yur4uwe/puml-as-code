@@ -8,9 +8,9 @@ import (
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func unamb(tok tokenizer.TokenType) tokenizer.Token {
@@ -148,8 +148,7 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		p.ast.Statements = append(p.ast.Statements, stmt)
 		if endBound, ok := stmt.(*ast.DiagramBound); ok && !endBound.IsStart {
 			if endBound.Type != startBound.Type {
-				msg := fmt.Errorf("types of starting and ending markers don't match")
-				p.ast.RecordError(msg, endBound.NodeSpan, endBound)
+				p.ast.RecordErrorMessage(endBound.NodeSpan, endBound, "types of starting and ending markers don't match")
 			}
 			break
 		}

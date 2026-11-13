@@ -39,3 +39,16 @@ func NewParserErrorf(tok tokenizer.Token, format string, args ...any) error {
 func WrapParserError(tok tokenizer.Token, err error) error {
 	return parserError{Err: err, Tok: tok}
 }
+
+// Keep the token context of a parser error while deriving its diagnostic span.
+func (p *Parser) recordError(tok tokenizer.Token, node ast.Node, message string) *ast.Diagnostic {
+	return p.ast.RecordError(NewParserError(tok, message), tok.Span, node)
+}
+
+func (p *Parser) recordErrorf(tok tokenizer.Token, node ast.Node, format string, args ...any) *ast.Diagnostic {
+	return p.ast.RecordError(NewParserErrorf(tok, format, args...), tok.Span, node)
+}
+
+func (p *Parser) recordWarningf(tok tokenizer.Token, node ast.Node, format string, args ...any) *ast.Diagnostic {
+	return p.ast.RecordWarning(NewParserErrorf(tok, format, args...), tok.Span, node)
+}

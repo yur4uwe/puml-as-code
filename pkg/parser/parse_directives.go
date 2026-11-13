@@ -22,8 +22,7 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) ast.Statement {
 	}
 
 	if directiveNameTok.Span.Start.Offset != tok1.Span.Start.Offset+1 {
-		err := NewParserError(directiveNameTok, "Expected directive name right after !")
-		p.ast.RecordError(err, directiveNameTok.Span, nil)
+		p.recordError(directiveNameTok, nil, "Expected directive name right after !")
 		p.syncToLineEnd()
 		return &ast.UnhandledStatement{
 			Raw: p.stream.SliceInput(tok1.Span.Start.Offset, directiveNameTok.Span.End.Offset),
@@ -48,8 +47,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirectiv
 		kind = ast.IncludeOnce
 	default:
 		kind = ast.IncludeOnce
-		err := NewParserError(tok, "Unknown include directive")
-		p.ast.RecordError(err, tok.Span, nil)
+		p.recordError(tok, nil, "Unknown include directive")
 	}
 
 	dir := &ast.IncludeDirective{

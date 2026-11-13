@@ -74,6 +74,16 @@ func (d *Diagram) RecordError(err error, span tokenizer.SourceSpan, node Node) *
 	})
 }
 
+// RecordErrorMessage records a new error at span.
+func (d *Diagram) RecordErrorMessage(span tokenizer.SourceSpan, node Node, message string) *Diagnostic {
+	return d.RecordError(errors.New(message), span, node)
+}
+
+// RecordErrorf records a formatted error at span. It supports %w wrapping.
+func (d *Diagram) RecordErrorf(span tokenizer.SourceSpan, node Node, format string, args ...any) *Diagnostic {
+	return d.RecordError(fmt.Errorf(format, args...), span, node)
+}
+
 func (d *Diagram) RecordWarning(err error, span tokenizer.SourceSpan, node Node) *Diagnostic {
 	return d.RecordDiagnostic(&Diagnostic{
 		Severity: SeverityWarning,
@@ -82,6 +92,16 @@ func (d *Diagram) RecordWarning(err error, span tokenizer.SourceSpan, node Node)
 		Err:      err,
 		Node:     node,
 	})
+}
+
+// RecordWarningMessage records a warning at span.
+func (d *Diagram) RecordWarningMessage(span tokenizer.SourceSpan, node Node, message string) *Diagnostic {
+	return d.RecordWarning(errors.New(message), span, node)
+}
+
+// RecordWarningf records a formatted warning at span. It supports %w wrapping.
+func (d *Diagram) RecordWarningf(span tokenizer.SourceSpan, node Node, format string, args ...any) *Diagnostic {
+	return d.RecordWarning(fmt.Errorf(format, args...), span, node)
 }
 
 func (d *Diagram) RecordInfo(err error, span tokenizer.SourceSpan, node Node) *Diagnostic {

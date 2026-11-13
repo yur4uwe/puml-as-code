@@ -84,8 +84,7 @@ func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) 
 	for _, t := range toks {
 		if t.Type == tokenizer.COMMA {
 			if selectorBuilder.Len() == 0 {
-				err := NewParserError(t, "empty selector in style rule")
-				p.ast.RecordError(err, t.Span, rule)
+				p.recordError(t, rule, "empty selector in style rule")
 			}
 			rule.Selectors = append(rule.Selectors, selectorBuilder.String())
 			selectorBuilder.Reset()
@@ -96,8 +95,7 @@ func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) 
 
 	lastTok := toks[len(toks)-1]
 	if selectorBuilder.Len() == 0 {
-		err := NewParserError(lastTok, "empty selector in style rule")
-		p.ast.RecordError(err, lastTok.Span, rule)
+		p.recordError(lastTok, rule, "empty selector in style rule")
 	}
 	rule.Selectors = append(rule.Selectors, selectorBuilder.String())
 	selectorBuilder.Reset()
@@ -111,8 +109,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
 	if !ok {
 		nextTok := p.stream.PeekTokenAt(0)
-		err := NewParserError(nextTok, "Expected opening brace after style rule")
-		p.ast.RecordError(err, nextTok.Span, currentRule)
+		p.recordError(nextTok, currentRule, "Expected opening brace after style rule")
 		return currentRule
 	}
 	currentRule.LBrace = lbraceTok.Span.Start
@@ -148,8 +145,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 
 		// By elimination: it is a style declaration
 		if tok.Type != tokenizer.IDENTIFIER {
-			err := NewParserError(tok, "Expected style property name or rule selector")
-			p.ast.RecordError(err, tok.Span, currentRule)
+			p.recordError(tok, currentRule, "Expected style property name or rule selector")
 			p.syncToLineEnd()
 			continue
 		}
@@ -160,8 +156,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 		toks := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE)
 		if len(toks) == 0 {
 			nextTok := p.stream.PeekTokenAt(0)
-			err := NewParserError(nextTok, "expected value after style declaration")
-			p.ast.RecordError(err, nextTok.Span, currentRule)
+			p.recordError(nextTok, currentRule, "expected value after style declaration")
 			p.syncToLineEnd()
 			continue
 		}
