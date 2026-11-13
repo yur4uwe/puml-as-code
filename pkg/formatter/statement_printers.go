@@ -8,6 +8,10 @@ import (
 )
 
 func printNote(s *formatterState, note *ast.Note) {
+	if note.Kind == ast.NoteUnknown {
+		s.emitRawSpan(note.Span())
+		return
+	}
 	isMultiline := strings.Contains(note.Text, "\n")
 	// Anstract limit where note is too long to be inline
 	isTooLong := len(note.Text) > 60
@@ -40,8 +44,6 @@ func printNoteHeader(s *formatterState, note *ast.Note, isBlock bool) {
 			s.buf.WriteByte(' ')
 		}
 		s.buf.WriteString("on link")
-	default:
-		panic("unreachable")
 	}
 	if note.Color != "" {
 		s.buf.WriteByte(' ')
@@ -152,7 +154,9 @@ func printSkinparamBlock(s *formatterState, block *ast.SkinparamBlock) {
 
 	s.formatBlockStatements(block, block.Statements)
 
-	s.emitWithIndent("}")
+	if block.IsClosed() {
+		s.emitWithIndent("}")
+	}
 }
 
 func printSkinparamSetting(s *formatterState, setting *ast.SkinparamSetting) {
@@ -181,7 +185,9 @@ func printStyleBlock(s *formatterState, block *ast.StyleBlock) {
 
 	s.formatBlockStatements(block, block.Statements)
 
-	s.emitWithIndent("</style>")
+	if block.IsClosed() {
+		s.emitWithIndent("</style>")
+	}
 }
 
 func printStyleRule(s *formatterState, block *ast.StyleRule) {
@@ -198,7 +204,9 @@ func printStyleRule(s *formatterState, block *ast.StyleRule) {
 
 	s.formatBlockStatements(block, block.Statements)
 
-	s.emitWithIndent("}")
+	if block.IsClosed() {
+		s.emitWithIndent("}")
+	}
 }
 
 func printInlineMember(s *formatterState, im *ast.InlineMember) {
@@ -243,13 +251,16 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 		s.buf.WriteString(" ")
 		s.buf.WriteString(ent.Color)
 	}
+	if s.partial && !ent.HasBody() && len(ent.Members) == 0 {
+		return
+	}
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(ent)
 	s.buf.WriteByte('\n')
 
 	s.formatBlockMembers(ent, ent.Members)
 
-	if ent.Kind != ast.EntityUnknown {
+	if ent.Kind != ast.EntityUnknown && ent.IsClosed() {
 		s.emitWithIndent("}")
 	}
 }
@@ -280,13 +291,18 @@ func printContainer(s *formatterState, cont *ast.Container) {
 		s.buf.WriteString(" ")
 		s.buf.WriteString(cont.Color)
 	}
+	if s.partial && !cont.HasBody() {
+		return
+	}
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
 
 	s.formatBlockStatements(cont, cont.Statements)
 
-	s.emitWithIndent("}")
+	if cont.IsClosed() {
+		s.emitWithIndent("}")
+	}
 }
 
 func printRelationship(s *formatterState, rel *ast.Relationship) {
@@ -349,7 +365,8 @@ func printTextBlock(s *formatterState, block *ast.TextBlock) {
 	case ast.BlockTitle:
 		kind = "title"
 	default:
-		panic("unreachable")
+		s.emitRawSpan(block.Span())
+		return
 	}
 
 	isMultiline := strings.Contains(block.Text, "\n")

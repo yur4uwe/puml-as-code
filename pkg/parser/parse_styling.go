@@ -29,15 +29,16 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 	unclBlkErr := ast.NewUnclosedBlockError("<style>", "</style>")
 
 	for !p.isStyleTagEnd() {
-		tok := p.stream.Emit()
-		if p.isEndMarker() || tok.Type == tokenizer.EOF {
+		if p.isEndMarker() || p.stream.AssertType(tokenizer.EOF) {
 			p.ast.RecordError(
 				unclBlkErr,
 				blockMarkerSpan,
 				styleBlock,
 			)
 			break
-		} else if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.SEMICOLON {
+		}
+		tok := p.stream.Emit()
+		if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.SEMICOLON {
 			continue
 		}
 
