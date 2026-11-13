@@ -1,12 +1,13 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
@@ -25,14 +26,14 @@ func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 }
 
 func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relationship {
+	var pe ParserError
 	// Entry token is supposedly the first identifier
 	var err error
 	rel := &ast.Relationship{}
 	// Must not fail, guaranteed by the disambiguateIdent check
 	rel.LHS, err = p.parseTargetRef(firstTargetTok)
-	if err != nil {
-		errSpan := err.(parserError).Tok.Span
-		p.ast.RecordError(err, errSpan, rel)
+	if errors.As(err, &pe) {
+		p.ast.RecordError(err, pe.Span, rel)
 		p.syncToLineEnd()
 		return rel
 	}
@@ -44,7 +45,6 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		if err != nil {
 			infoSpan := multTok.Span
 			err := fmt.Errorf("incorrect multiplicity syntax: %w", err)
-			err = WrapParserError(multTok, err)
 			p.ast.RecordInfo(err, infoSpan, rel)
 		}
 	}
@@ -52,9 +52,8 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	arrowMark := p.Mark(p.stream.PeekTokenAt(0))
 
 	err = p.parseArrowTokens(rel)
-	if err != nil {
-		errSpan := err.(parserError).Tok.Span
-		p.ast.RecordError(err, errSpan, rel)
+	if errors.As(err, &pe) {
+		p.ast.RecordError(err, pe.Span, rel)
 		p.syncToLineEnd()
 		rel.ArrowSpan = p.Span(arrowMark)
 		return rel
@@ -82,9 +81,8 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	}
 
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
-	if err != nil {
-		errSpan := err.(parserError).Tok.Span
-		p.ast.RecordError(err, errSpan, rel)
+	if errors.As(err, &pe) {
+		p.ast.RecordError(err, pe.Span, rel)
 		p.syncToLineEnd()
 		return rel
 	}
