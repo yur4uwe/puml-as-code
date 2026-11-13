@@ -66,7 +66,10 @@ func (ts *TokenStream) HasCloserBeforeBoundary(delimiterLiterals ...string) bool
 	delim := strings.ToLower(strings.Join(delimiterLiterals, ""))
 	var curLine []tokenizer.Token
 	for i := 0; ; i++ {
-		tok := ts.PeekTokenAt(i)
+		tok := ts.PeekRawTokenAt(i)
+		if tok.Type == tokenizer.COMMENT {
+			continue
+		}
 		if tok.Type == tokenizer.EOF {
 			break
 		}

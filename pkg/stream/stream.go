@@ -13,6 +13,7 @@ type TokenStream struct {
 	lexer               *tokenizer.Lexer
 	collectedTrivia     []tokenizer.Token
 	buffer              []tokenizer.Token
+	bufferHead          int
 	sinks               []TokenSink
 	PackageSeparator    string
 	lastNonNewlineToken tokenizer.Token
