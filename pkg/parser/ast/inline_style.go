@@ -112,6 +112,7 @@ type RelationshipStyle struct {
 	LineColor ColorExpr `json:",omitempty"`
 	LineStyle LineStyle `json:",omitempty"`
 	TextColor ColorExpr `json:",omitempty"`
+	Thickness int       `json:",omitempty"`
 }
 
 // NoteStyle models inline style annotations on notes:

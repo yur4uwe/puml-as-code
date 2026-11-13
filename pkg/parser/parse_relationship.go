@@ -3,12 +3,97 @@ package parser
 import (
 	"errors"
 	"fmt"
-	"strings"
+	"strconv"
 
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/tokenizer"
 	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
+
+func (p *Parser) parseRelationshipStyle() (*ast.RelationshipStyle, tokenizer.SourceSpan, error) {
+	relStyle := &ast.RelationshipStyle{}
+
+	tokenAfterHash := p.stream.PeekTokenAt(0)
+	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.NUMBER) {
+		return relStyle, tokenAfterHash.Span, fmt.Errorf("unexpected token in style declaration: %s(%s)", tokenAfterHash.Type, tokenAfterHash.Literal)
+	}
+
+	// --- First item: may be a bare color ---
+	switch p.stream.PeekTokenAt(0).Literal {
+	case "back", "line", "text":
+	default:
+		// lines only allow simple colors
+		tok := p.stream.Emit()
+		if tok.Type != tokenizer.IDENTIFIER && tok.Type != tokenizer.NUMBER {
+			return relStyle, tok.Span, fmt.Errorf("expected identifier or a number for a line color value, got: %s(%s)", tok.Type, tok.Literal)
+		}
+		relStyle.LineColor = ast.FromToken(tok)
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
+			return relStyle, tokenizer.SourceSpan{}, nil
+		}
+	}
+
+	for {
+		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			return relStyle, tok.Span, fmt.Errorf("unexpected token describing relationship colorable target: %s(%s)", tok.Type, tok.Literal)
+		}
+
+		targetKind := ""
+		switch tok.Literal {
+		case "line":
+			targetKind = tok.Literal
+			if _, ok = p.stream.TryConsumeType(tokenizer.DOT); !ok {
+				break // no dot — fall through to colon:color
+			}
+
+			lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+			if !ok {
+				return relStyle, lineStyleTok.Span, fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
+			}
+
+			ls, err := parseLineStyle(lineStyleTok)
+			if err != nil {
+				return relStyle, lineStyleTok.Span, err
+			}
+			relStyle.LineStyle = ls
+
+			if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); ok {
+				continue
+			}
+			// no semicolon, so fall through to parse optional :color
+		case "text":
+			targetKind = tok.Literal
+		default:
+			return relStyle, tok.Span, fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
+		}
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
+			peekTok := p.stream.PeekTokenAt(0)
+			return relStyle, peekTok.Span, errors.New("missing colon after specified color target")
+		}
+
+		colorTok := p.stream.Emit()
+		expr, err := p.parseColorExpr(colorTok)
+		if err != nil {
+			return relStyle, p.stream.LastSemanticToken().Span, err
+		}
+
+		switch targetKind {
+		case "text":
+			relStyle.TextColor = expr
+		case "line":
+			relStyle.LineColor = expr
+		}
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
+			break
+		}
+	}
+
+	return relStyle, tokenizer.SourceSpan{}, nil
+}
 
 func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	switch tok.Literal {
@@ -87,8 +172,16 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		return rel
 	}
 
-	if p.stream.AssertType(tokenizer.HASH) {
-		rel.Attrs = append(rel.Attrs, p.tryParseColor())
+	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		mark := p.Mark(hashTok)
+		style, errSpan, err := p.parseRelationshipStyle()
+		style.Span = p.Span(mark)
+		rel.Style = style
+		if err != nil {
+			p.ast.RecordError(err, errSpan, rel)
+			p.syncToLineEnd()
+			return rel
+		}
 	}
 
 	endingToken := p.stream.PeekTokenAt(0)
@@ -106,6 +199,61 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	}
 
 	return rel
+}
+
+func (p *Parser) parseArrowAttributes() (*ast.RelationshipStyle, error) {
+	relStyle := &ast.RelationshipStyle{}
+	for {
+		tok := p.stream.Emit()
+		switch tok.Type {
+		case tokenizer.EOF, tokenizer.NEWLINE:
+			return relStyle, NewParserError(tok, "unexpected line terminator while parsing arrow attributes")
+		case tokenizer.RBRACKET:
+			return relStyle, nil
+		case tokenizer.COMMA:
+			return relStyle, NewParserError(tok, "unexpected comma in arrow attributes")
+		case tokenizer.HASH:
+			tok := p.stream.Emit()
+			if tok.Type != tokenizer.IDENTIFIER && tok.Type != tokenizer.NUMBER {
+				return relStyle, NewParserErrorf(tok, "expected color token in arrow attribute, got: %s(%s)", tok.Type, tok.Literal)
+			}
+
+			relStyle.LineColor = ast.FromToken(tok)
+		case tokenizer.IDENTIFIER:
+			switch tok.Literal {
+			case "thickness":
+				eqTok, ok := p.stream.TryConsumeType(tokenizer.EQUALS)
+				if !ok {
+					return relStyle, NewParserErrorf(eqTok, "expected EQAULS(=) after 'thickness', got: %s(%s)", tok.Type, tok.Literal)
+				}
+				// parse the thickness value
+				numTok, ok := p.stream.TryConsumeType(tokenizer.NUMBER)
+				if !ok {
+					return relStyle, NewParserErrorf(numTok, "expected a number to describe thickness, got: %s(%s)", numTok.Type, numTok.Literal)
+				}
+
+				// err is impossible here, parsing a number guarantees that numTok IS actually a number
+				thickness, _ := strconv.Atoi(numTok.Literal)
+				relStyle.Thickness = thickness
+			case "plain":
+				relStyle.LineStyle = ast.LineNormal
+			case "bold":
+				relStyle.LineStyle = ast.LineBold
+			case "dashed":
+				relStyle.LineStyle = ast.LineDashed
+			case "dotted":
+				relStyle.LineStyle = ast.LineDotted
+			default:
+				return relStyle, NewParserErrorf(tok, "recieved unexpected identifier in arrow attributes: %s", tok.Literal)
+			}
+		}
+		if !p.stream.AssertAnyType(tokenizer.COMMA, tokenizer.RBRACKET) {
+			return relStyle, NewParserError(p.stream.PeekTokenAt(0), "expected an attribute terminator")
+		}
+		if _, ok := p.stream.TryConsumeType(tokenizer.COMMA); ok {
+			continue
+		}
+	}
 }
 
 func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
@@ -234,25 +382,14 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					sawAttrs = true
 					// We have matched attribute container start
 					// after the body, now - parse the attributes
-					var attrSB strings.Builder
-					for tok = p.stream.Emit(); tok.Type != tokenizer.RBRACKET; tok = p.stream.Emit() {
-						switch tok.Type {
-						case tokenizer.EOF, tokenizer.NEWLINE:
-							return NewParserError(tok, "Unexpected break in relationship attribute container")
-						case tokenizer.COMMA:
-							if attrSB.Len() == 0 {
-								return NewParserError(tok, "Unexpected comma in relationship attribute container")
-							}
-							rel.Attrs = append(rel.Attrs, attrSB.String())
-							attrSB.Reset()
-							continue // actually useless, added for readability
-						default:
-							attrSB.WriteString(tok.Literal)
-						}
+
+					style, err := p.parseArrowAttributes()
+					var pe ParserError
+					if errors.As(err, &pe) {
+						return err
 					}
-					if attrSB.Len() > 0 {
-						rel.Attrs = append(rel.Attrs, attrSB.String())
-					}
+
+					rel.Style = style
 				}
 			}
 		}

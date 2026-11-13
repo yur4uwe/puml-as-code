@@ -39,7 +39,7 @@ func (p *Parser) parseContainerStyle() (*ast.ContainerStyle, tokenizer.SourceSpa
 	for {
 		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 		if !ok {
-			return cntStyle, tok.Span, fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
+			return cntStyle, tok.Span, fmt.Errorf("unexpected token describing container colorable target: %s(%s)", tok.Type, tok.Literal)
 		}
 
 		targetKind := ""

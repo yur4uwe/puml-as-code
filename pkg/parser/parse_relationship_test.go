@@ -255,11 +255,37 @@ func TestParseArrowTokens(t *testing.T) {
 			},
 		},
 		{
-			name:  "single attribute",
-			input: "-[foo]->",
+			name:  "single attribute line style",
+			input: "-[bold]->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Attrs:     []string{"foo"},
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineBold,
+				},
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
+			},
+		},
+		{
+			name:  "single attribute color",
+			input: "-[#red]->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Style:     simpleRelStyle("red"),
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
+			},
+		},
+		{
+			name:  "single attribute thickness",
+			input: "-[thickness=2]->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Style: &ast.RelationshipStyle{
+					Thickness: 2,
+				},
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
 				BodyCount: 2,
@@ -267,10 +293,14 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:  "multiple attributes",
-			input: "-[foo,bar]->",
+			input: "-[#red,dashed,thickness=2]->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Attrs:     []string{"foo", "bar"},
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("red"),
+					LineStyle: ast.LineDashed,
+					Thickness: 2,
+				},
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
 				BodyCount: 2,
@@ -278,10 +308,12 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:  "attributes and direction",
-			input: "-[foo]left->",
+			input: "-[bold]left->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Attrs:     []string{"foo"},
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineBold,
+				},
 				Direction: ast.DirectionLeft,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
@@ -290,10 +322,12 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:  "direction and attributes",
-			input: "-left[foo]->",
+			input: "-left[bold]->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Attrs:     []string{"foo"},
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineBold,
+				},
 				Direction: ast.DirectionLeft,
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
@@ -301,11 +335,26 @@ func TestParseArrowTokens(t *testing.T) {
 			},
 		},
 		{
-			name:  "multitoken attributes",
-			input: "-[#foo,%bar]->",
+			name:  "plain attribute",
+			input: "-[plain]->",
 			want: &ast.Relationship{
 				Body:      '-',
-				Attrs:     []string{"#foo", "%bar"},
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineNormal,
+				},
+				RArrow:    '>',
+				TypeRHS:   ast.RelationAssociation,
+				BodyCount: 2,
+			},
+		},
+		{
+			name:  "dotted attribute",
+			input: "-[dotted]->",
+			want: &ast.Relationship{
+				Body:      '-',
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineDotted,
+				},
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
 				BodyCount: 2,
@@ -395,9 +444,9 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:        "lolipop right after attributes error",
-			input:       "-[foo]-()",
+			input:       "-[bold]-()",
 			expectErr:   true,
-			errContains: "Lolipop interface cannot contain direction or attributes",
+			errContains: "Lolipop interface cannot contain",
 		},
 		{
 			name:        "mixed body types error",
@@ -407,9 +456,9 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:        "unclosed attributes at EOF error",
-			input:       "-[foo",
+			input:       "-[bold",
 			expectErr:   true,
-			errContains: "Unexpected break in relationship attribute container",
+			errContains: "expected an attribute terminator",
 			want: &ast.Relationship{
 				Body:      '-',
 				BodyCount: 1,
@@ -417,9 +466,19 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:        "unclosed attributes at newline error",
-			input:       "-[foo\n",
+			input:       "-[bold\n",
 			expectErr:   true,
-			errContains: "Unexpected break in relationship attribute container",
+			errContains: "expected an attribute terminator",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
+		},
+		{
+			name:        "unclosed attributes empty at newline error",
+			input:       "-[\n",
+			expectErr:   true,
+			errContains: "unexpected line terminator while parsing arrow attributes",
 			want: &ast.Relationship{
 				Body:      '-',
 				BodyCount: 1,
@@ -427,13 +486,52 @@ func TestParseArrowTokens(t *testing.T) {
 		},
 		{
 			name:        "missing attribute (double comma)",
-			input:       "-[foo,,bar]->",
+			input:       "-[bold,,dashed]->",
 			expectErr:   true,
-			errContains: "Unexpected comma in relationship attribute container",
+			errContains: "unexpected comma in arrow attributes",
 			want: &ast.Relationship{
 				Body:      '-',
 				BodyCount: 1,
-				Attrs:     []string{"foo"},
+			},
+		},
+		{
+			name:        "unexpected identifier in arrow attributes",
+			input:       "-[invalid]->",
+			expectErr:   true,
+			errContains: "recieved unexpected identifier in arrow attributes: invalid",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
+		},
+		{
+			name:        "expected equals after thickness",
+			input:       "-[thickness]->",
+			expectErr:   true,
+			errContains: "expected EQAULS(=) after 'thickness'",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
+		},
+		{
+			name:        "expected number for thickness",
+			input:       "-[thickness=abc]->",
+			expectErr:   true,
+			errContains: "expected a number to describe thickness",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
+			},
+		},
+		{
+			name:        "expected color token after hash",
+			input:       "-[#]->",
+			expectErr:   true,
+			errContains: "expected color token in arrow attribute",
+			want: &ast.Relationship{
+				Body:      '-',
+				BodyCount: 1,
 			},
 		},
 	}
@@ -455,7 +553,7 @@ func TestParseArrowTokens(t *testing.T) {
 			}
 
 			if tc.want != nil {
-				require.Equal(t, *tc.want, got)
+				testutil.SemanticEqual(t, *tc.want, got)
 			}
 		})
 	}
@@ -558,6 +656,160 @@ func TestParseRelationship_Valid(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "association with simple named color",
+			input: "A --> B #green",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style:     simpleRelStyle("green"),
+			},
+		},
+		{
+			name:  "association with simple hex color",
+			input: "A --> B #FF0000",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style:     simpleRelStyle("FF0000"),
+			},
+		},
+		{
+			name:  "association with style and label",
+			input: "A --> B #green : connects",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style:     simpleRelStyle("green"),
+				Label:     "connects",
+			},
+		},
+		{
+			name:  "association with key-val line color and text color",
+			input: "A --> B #line:blue;text:red",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("blue"),
+					TextColor: simpleColor("red"),
+				},
+			},
+		},
+		{
+			name:  "association with line style and text color",
+			input: "A --> B #line.dotted;text:blue",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineDotted,
+					TextColor: simpleColor("blue"),
+				},
+			},
+		},
+		{
+			name:  "association with bare color, line style and text color",
+			input: "A --> B #green;line.dashed;text:green",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("green"),
+					LineStyle: ast.LineDashed,
+					TextColor: simpleColor("green"),
+				},
+			},
+		},
+		{
+			name:  "association with line color, line style, text color and label",
+			input: "A --> B #line:red;line.bold;text:red : red bold",
+			want: ast.Relationship{
+				LHS:       identRef("A"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("B"),
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("red"),
+					LineStyle: ast.LineBold,
+					TextColor: simpleColor("red"),
+				},
+				Label: "red bold",
+			},
+		},
+		{
+			name:  "association with arrow attribute color",
+			input: "Car -[#red]-> Engine",
+			want: ast.Relationship{
+				LHS:       identRef("Car"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Engine"),
+				Style:     simpleRelStyle("red"),
+			},
+		},
+		{
+			name:  "association with arrow attribute style and thickness",
+			input: "Car -[bold,thickness=2]-> Engine",
+			want: ast.Relationship{
+				LHS:       identRef("Car"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Engine"),
+				Style: &ast.RelationshipStyle{
+					LineStyle: ast.LineBold,
+					Thickness: 2,
+				},
+			},
+		},
+		{
+			name:  "association with arrow attribute color, style, thickness and label",
+			input: "Car -[#red,dashed,thickness=2]-> Engine : drives",
+			want: ast.Relationship{
+				LHS:       identRef("Car"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Engine"),
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("red"),
+					LineStyle: ast.LineDashed,
+					Thickness: 2,
+				},
+				Label: "drives",
+			},
+		},
 	}
 
 	for _, tc := range tests {
@@ -620,7 +872,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
-					Msg:      "Unexpected break in relationship attribute container",
+					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Col: 9, Offset: 8},
 						End:   tokenizer.Pos{Col: 9, Offset: 8},
@@ -764,7 +1016,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
-					Msg:      "Unexpected break in relationship attribute container",
+					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Col: 12, Offset: 11},
 						End:   tokenizer.Pos{Col: 12, Offset: 11},
@@ -823,6 +1075,157 @@ func TestParseRelationship_Invalid(t *testing.T) {
 						Start: tokenizer.Pos{Col: 16, Offset: 15},
 						End:   tokenizer.Pos{Col: 26, Offset: 25},
 					},
+				},
+			},
+		},
+		{
+			name:  "invalid style token after hash",
+			input: "User --> Order #:",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Order"),
+				Style:     &ast.RelationshipStyle{},
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "unexpected token in style declaration",
+				},
+			},
+		},
+		{
+			name:  "unexpected value for color target specifier in relationship style",
+			input: "User --> Order #red;unknown:green",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Order"),
+				Style: &ast.RelationshipStyle{
+					LineColor: simpleColor("red"),
+				},
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "unexpected value for color target specifier: unknown",
+				},
+			},
+		},
+		{
+			name:  "missing colon after specified color target in relationship style",
+			input: "User --> Order #text",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Order"),
+				Style:     &ast.RelationshipStyle{},
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "missing colon after specified color target",
+				},
+			},
+		},
+		{
+			name:  "unexpected token describing line style in relationship style",
+			input: "User --> Order #line.",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				RArrow:    '>',
+				BodyCount: 2,
+				TypeRHS:   ast.RelationAssociation,
+				RHS:       identRef("Order"),
+				Style:     &ast.RelationshipStyle{},
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 7, Offset: 7},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "unexpected token describing line style",
+				},
+			},
+		},
+		{
+			name:  "unexpected identifier in arrow attributes",
+			input: "User -[invalid]-> Order",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 6, Offset: 6},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "recieved unexpected identifier in arrow attributes: invalid",
+				},
+			},
+		},
+		{
+			name:  "missing equals after thickness in arrow attributes",
+			input: "User -[thickness]-> Order",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 6, Offset: 6},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "expected EQAULS(=) after 'thickness'",
+				},
+			},
+		},
+		{
+			name:  "unexpected comma in arrow attributes",
+			input: "User -[bold,,dashed]-> Order",
+			want: &ast.Relationship{
+				LHS:       identRef("User"),
+				Body:      '-',
+				BodyCount: 1,
+				ArrowSpan: tokenizer.SourceSpan{
+					Start: tokenizer.Pos{Col: 5, Offset: 5},
+					End:   tokenizer.Pos{Col: 6, Offset: 6},
+				},
+			},
+			wantDiags: []expectedDiag{
+				{
+					Severity: ast.SeverityError,
+					Msg:      "unexpected comma in arrow attributes",
 				},
 			},
 		},
@@ -900,6 +1303,61 @@ func TestParseTargetRef(t *testing.T) {
 			got, err := p.parseTargetRef(firstTok)
 			require.NoError(t, err)
 			testutil.SemanticEqual(t, tc.want, got)
+		})
+	}
+}
+
+func TestRelationshipStyle_Span(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantSpan string
+	}{
+		{
+			name:     "simple line color",
+			input:    "Foo --> Bar #red\n",
+			wantSpan: "#red",
+		},
+		{
+			name:     "simple hex line color",
+			input:    "Foo --> Bar #FF0000\n",
+			wantSpan: "#FF0000",
+		},
+		{
+			name:     "key-val target styles",
+			input:    "Foo --> Bar #line:green;text:yellow\n",
+			wantSpan: "#line:green;text:yellow",
+		},
+		{
+			name:     "line style dotted",
+			input:    "Foo --> Bar #line.dotted;text:blue\n",
+			wantSpan: "#line.dotted;text:blue",
+		},
+		{
+			name:     "bare color and line style",
+			input:    "Foo --> Bar #green;line.dashed;text:green\n",
+			wantSpan: "#green;line.dashed;text:green",
+		},
+		{
+			name:     "style with label",
+			input:    "Foo --> Bar #line:red;line.bold;text:red : red bold\n",
+			wantSpan: "#line:red;line.bold;text:red",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  stream.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got := p.parseRelationship(tok)
+			require.NotNil(t, got)
+			require.NotNil(t, got.Style)
+			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]
+			require.Equal(t, tc.wantSpan, gotSpan)
 		})
 	}
 }

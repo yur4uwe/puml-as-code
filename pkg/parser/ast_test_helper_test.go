@@ -91,6 +91,12 @@ func simpleNoteStyle(lit string) *ast.NoteStyle {
 	}
 }
 
+func simpleRelStyle(lit string) *ast.RelationshipStyle {
+	return &ast.RelationshipStyle{
+		LineColor: simpleColor(lit),
+	}
+}
+
 type expectedDiag struct {
 	Severity ast.Severity
 	Msg      string
