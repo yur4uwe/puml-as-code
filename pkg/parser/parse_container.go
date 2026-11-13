@@ -11,118 +11,75 @@ import (
 	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
-func (p *Parser) parseContainerStyle(c *ast.Container) *ast.ContainerStyle {
-	firstHash, ok := p.stream.TryConsumeType(tokenizer.HASH)
-	if !ok {
-		return nil
-	}
-	mark := p.Mark(firstHash)
+func (p *Parser) parseContainerStyle() (*ast.ContainerStyle, tokenizer.SourceSpan, error) {
+	cntStyle := &ast.ContainerStyle{}
 
-	cntStyle := &ast.ContainerStyle{
-		Span: firstHash.Span,
+	tokenAfterHash := p.stream.PeekTokenAt(0)
+	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.NUMBER) {
+		return cntStyle, tokenAfterHash.Span, fmt.Errorf("unexpected token in style declaration: %s(%s)", tokenAfterHash.Type, tokenAfterHash.Literal)
 	}
 
-	decisionTok := p.stream.Emit()
-	if decisionTok.Type != tokenizer.IDENTIFIER && decisionTok.Type != tokenizer.NUMBER {
-		cntStyle.Span = p.Span(mark)
-		err := fmt.Errorf("unexpected token in style declaration: %s(%s)", decisionTok.Type, decisionTok.Literal)
-		p.ast.RecordError(err, decisionTok.Span, c)
-		p.syncToBlockStart()
-		return cntStyle
-	}
-
-	isKeyVal := false
-	switch decisionTok.Literal {
+	// --- First item: may be a bare color (only valid here) ---
+	switch p.stream.PeekTokenAt(0).Literal {
 	case "back", "line", "text":
-		isKeyVal = true
-	default: // actual color
-		bg, err := p.parseColorExpr(decisionTok)
+	default:
+		tok := p.stream.Emit()
+		bg, err := p.parseColorExpr(tok)
 		if err != nil {
-			cntStyle.Span = p.Span(mark)
-			p.ast.RecordError(err, p.stream.LastSemanticToken().Span, c)
-			p.syncToBlockStart()
-			return cntStyle
+			return cntStyle, p.stream.LastSemanticToken().Span, err
 		}
 		cntStyle.Background = bg
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
+			return cntStyle, tokenizer.SourceSpan{}, nil
+		}
 	}
 
-	hasSemi := false
-	if !isKeyVal {
-		_, hasSemi = p.stream.TryConsumeType(tokenizer.SEMICOLON)
-	}
-
-	if !isKeyVal && !hasSemi {
-		cntStyle.Span = p.Span(mark)
-		return cntStyle
-	}
-
-	tok := decisionTok
+	// --- Remaining items: strictly target:color pairs ---
 	for {
+		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			return cntStyle, tok.Span, fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
+		}
+
 		targetKind := ""
 		switch tok.Literal {
 		case "line":
 			targetKind = tok.Literal
-			if !p.stream.AssertType(tokenizer.DOT) {
-				break
+			if _, ok = p.stream.TryConsumeType(tokenizer.DOT); !ok {
+				break // no dot — fall through to colon:color
 			}
-			p.stream.Emit() // consume '.'
 
 			lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 			if !ok {
-				cntStyle.Span = p.Span(mark)
-				err := fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
-				p.ast.RecordError(err, lineStyleTok.Span, c)
-				p.syncToBlockStart()
-				return cntStyle
+				return cntStyle, lineStyleTok.Span, fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
 			}
 
 			ls, err := parseLineStyle(lineStyleTok)
 			if err != nil {
-				cntStyle.Span = p.Span(mark)
-				p.ast.RecordError(err, lineStyleTok.Span, c)
-				p.syncToBlockStart()
-				return cntStyle
+				return cntStyle, lineStyleTok.Span, err
 			}
 			cntStyle.LineStyle = ls
 
 			if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); ok {
-				var ok bool
-				tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-				if !ok {
-					cntStyle.Span = p.Span(mark)
-					err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
-					p.ast.RecordError(err, tok.Span, c)
-					p.syncToBlockStart()
-					return cntStyle
-				}
 				continue
 			}
+			// no semicolon — fall through to parse optional :color
 		case "back", "text":
 			targetKind = tok.Literal
 		default:
-			cntStyle.Span = p.Span(mark)
-			err := fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
-			p.ast.RecordError(err, tok.Span, c)
-			p.syncToBlockStart()
-			return cntStyle
+			return cntStyle, tok.Span, fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
 		}
 
 		if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
-			cntStyle.Span = p.Span(mark)
-			tok := p.stream.PeekTokenAt(0)
-			err := errors.New("missing colon after specified color target")
-			p.ast.RecordError(err, tok.Span, c)
-			p.syncToBlockStart()
-			return cntStyle
+			peekTok := p.stream.PeekTokenAt(0)
+			return cntStyle, peekTok.Span, errors.New("missing colon after specified color target")
 		}
 
 		colorTok := p.stream.Emit()
 		expr, err := p.parseColorExpr(colorTok)
 		if err != nil {
-			cntStyle.Span = p.Span(mark)
-			p.ast.RecordError(err, p.stream.LastSemanticToken().Span, c)
-			p.syncToBlockStart()
-			return cntStyle
+			return cntStyle, p.stream.LastSemanticToken().Span, err
 		}
 
 		switch targetKind {
@@ -134,26 +91,12 @@ func (p *Parser) parseContainerStyle(c *ast.Container) *ast.ContainerStyle {
 			cntStyle.Background = expr
 		}
 
-		if !p.stream.AssertType(tokenizer.SEMICOLON) {
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
 			break
-		}
-
-		p.stream.Emit() // emit the semicolon
-
-		// update the active target tok
-		var ok bool
-		tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-		if !ok {
-			cntStyle.Span = p.Span(mark)
-			err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
-			p.ast.RecordError(err, tok.Span, c)
-			p.syncToBlockStart()
-			return cntStyle
 		}
 	}
 
-	cntStyle.Span = p.Span(mark)
-	return cntStyle
+	return cntStyle, tokenizer.SourceSpan{}, nil
 }
 
 func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
@@ -248,7 +191,15 @@ func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.Sou
 		cntr.Tags = postTags
 	}
 
-	cntr.Style = p.parseContainerStyle(cntr)
+	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		mark := p.Mark(hashTok)
+		style, errSpan, err := p.parseContainerStyle()
+		style.Span = p.Span(mark)
+		cntr.Style = style
+		if err != nil {
+			return err, errSpan
+		}
+	}
 
 	if !p.stream.AssertAnyType(tokenizer.LBRACE, tokenizer.NEWLINE, tokenizer.EOF) && !p.isEndMarker() {
 		nextTok := p.stream.PeekTokenAt(0)
@@ -282,7 +233,7 @@ func (p *Parser) parseContainerIdentAndAlias() (ast.Ident, ast.TargetRef, error)
 			return ast.Ident{}, ast.TargetRef{}, err
 		}
 		if lhsTarget.Member != nil {
-			return ast.Ident{}, ast.TargetRef{}, NewParserErrorFromIdent(lhsTarget.Name, "container name contains unexpected member")
+			return ast.Ident{}, ast.TargetRef{}, NewParserErrorAtIdent(lhsTarget.Name, "container name contains unexpected member")
 		}
 		lhsIsTarget = true
 	default:
@@ -312,7 +263,7 @@ func (p *Parser) parseContainerIdentAndAlias() (ast.Ident, ast.TargetRef, error)
 			return ast.Ident{}, ast.TargetRef{}, err
 		}
 		if rhsTarget.Member != nil {
-			return ast.Ident{}, ast.TargetRef{}, NewParserErrorFromIdent(rhsTarget.Name, "container alias contains unexpected member")
+			return ast.Ident{}, ast.TargetRef{}, NewParserErrorAtIdent(rhsTarget.Name, "container alias contains unexpected member")
 		}
 		rhsIsTarget = true
 	default:
