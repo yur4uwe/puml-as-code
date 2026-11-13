@@ -26,19 +26,12 @@ const (
 )
 
 type Diagnostic struct {
-	ID                 int                            `json:"id"`
-	Severity           Severity                       `json:"severity"`
-	Message            string                         `json:"message"`
-	Span               tokenizer.SourceSpan           `json:"span"`
-	Err                error                          `json:"-"`
-	Node               Node                           `json:"-"`
-	RelatedInformation []DiagnosticRelatedInformation `json:"relatedInformation,omitempty"`
-}
-
-// DiagnosticRelatedInformation points to additional source relevant to a diagnostic.
-type DiagnosticRelatedInformation struct {
-	Span    tokenizer.SourceSpan `json:"span"`
-	Message string               `json:"message"`
+	ID       int                  `json:"id"`
+	Severity Severity             `json:"severity"`
+	Message  string               `json:"message"`
+	Span     tokenizer.SourceSpan `json:"span"`
+	Err      error                `json:"-"`
+	Node     Node                 `json:"-"`
 }
 
 func (d *Diagnostic) Error() string {

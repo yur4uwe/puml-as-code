@@ -135,11 +135,13 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 
 		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
 			// place unclosed block diagnostic on the opener of the block
-			diag := p.ast.RecordError(unclosedBlockErr, lbraceTok.Span, ent)
+			p.ast.RecordError(unclosedBlockErr, lbraceTok.Span, ent)
 			if first := firstTrailingBadMember(ent.Members); first != nil {
-				diag.RelatedInformation = append(diag.RelatedInformation, ast.DiagnosticRelatedInformation{
-					Span:    first.Span(),
-					Message: "did you mean to close the block before this line?",
+				p.ast.RecordDiagnostic(&ast.Diagnostic{
+					Severity: ast.SeverityHint,
+					Span:     first.Span(),
+					Message:  "did you mean to close the block before this line?",
+					Node:     first,
 				})
 			}
 			break

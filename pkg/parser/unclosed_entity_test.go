@@ -23,26 +23,32 @@ func TestUnclosedEntityHintsAtFirstBadMember(t *testing.T) {
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			diagram, _ := NewParser(dialect.NewGoDialect()).Parse("@startuml\nclass Example {\n" + tt.body + tt.closer)
-			var unclosed *ast.Diagnostic
+			var unclosed, hint *ast.Diagnostic
 			for _, diag := range diagram.Diagnostics {
 				if errors.Is(diag, ast.ErrUnclosedBlock) {
 					unclosed = diag
 				}
+				if diag.Severity == ast.SeverityHint {
+					require.Nil(t, hint)
+					hint = diag
+				}
 			}
 			if !tt.unclosed {
 				require.Nil(t, unclosed)
+				require.Nil(t, hint)
 				return
 			}
 			require.NotNil(t, unclosed)
 			if !tt.hint {
-				require.Empty(t, unclosed.RelatedInformation)
+				require.Nil(t, hint)
 				return
 			}
 			members := diagram.Statements[1].(*ast.Entity).Members
 			first := members[1].(*ast.BadMember)
-			require.Len(t, unclosed.RelatedInformation, 1)
-			require.Equal(t, first.Span(), unclosed.RelatedInformation[0].Span)
-			require.Contains(t, unclosed.RelatedInformation[0].Message, "close the block")
+			require.NotNil(t, hint)
+			require.Equal(t, first.Span(), hint.Span)
+			require.Same(t, first, hint.Node)
+			require.Contains(t, hint.Message, "close the block")
 		})
 	}
 }
