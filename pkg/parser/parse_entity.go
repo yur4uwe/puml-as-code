@@ -11,204 +11,133 @@ import (
 	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
-func (p *Parser) parseEntityStyle(e *ast.Entity) *ast.EntityStyle {
-	firstHash, ok := p.stream.TryConsumeType(tokenizer.HASH)
-	if !ok {
-		return nil
-	}
-	mark := p.Mark(firstHash)
+func (p *Parser) parseEntityStyle() (*ast.EntityStyle, tokenizer.SourceSpan, error) {
+	entStyle := &ast.EntityStyle{}
 
-	entStyle := &ast.EntityStyle{
-		Span: firstHash.Span,
+	tokenAfterHash := p.stream.PeekTokenAt(0)
+	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.NUMBER) {
+		goto trailingLine
 	}
 
-	decisionTok := p.stream.Emit()
-	if decisionTok.Type == tokenizer.IDENTIFIER || decisionTok.Type == tokenizer.NUMBER {
-		isKeyVal := false
-		switch decisionTok.Literal {
-		case "back", "header", "line", "text":
-			isKeyVal = true
-		default: // actual color
-			bg, err := p.parseColorExpr(decisionTok)
-			if err != nil {
-				entStyle.Span = p.Span(mark)
-				p.ast.RecordError(err, p.stream.LastSemanticToken().Span, e)
-				p.syncToBlockStart()
-				return entStyle
+	// First item: bare background color without a target
+	switch p.stream.PeekTokenAt(0).Literal {
+	case "back", "header", "line", "text":
+	default:
+		tok := p.stream.Emit()
+		bg, err := p.parseColorExpr(tok)
+		if err != nil {
+			return entStyle, p.stream.LastSemanticToken().Span, err
+		}
+		entStyle.Background = bg
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
+			goto trailingLine
+		}
+	}
+
+	// Remaining items: strictly target:color pairs
+	for {
+		tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+		if !ok {
+			return entStyle, tok.Span, fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
+		}
+
+		targetKind := ""
+		switch tok.Literal {
+		case "line":
+			targetKind = tok.Literal
+			if _, ok = p.stream.TryConsumeType(tokenizer.DOT); !ok {
+				break // no dot — fall through to colon:color
 			}
-			entStyle.Background = bg
-		}
 
-		hasSemi := false
-		if !isKeyVal {
-			_, hasSemi = p.stream.TryConsumeType(tokenizer.SEMICOLON)
-		}
-
-		if isKeyVal || hasSemi {
-			tok := decisionTok
-			for {
-				targetKind := ""
-				switch tok.Literal {
-				case "line":
-					targetKind = tok.Literal
-					if !p.stream.AssertType(tokenizer.DOT) {
-						break
-					}
-					p.stream.Emit() // consume '.'
-
-					lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-					if !ok {
-						entStyle.Span = p.Span(mark)
-						err := fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
-						p.ast.RecordError(err, lineStyleTok.Span, e)
-						p.syncToBlockStart()
-						return entStyle
-					}
-
-					ls, err := parseLineStyle(lineStyleTok)
-					if err != nil {
-						entStyle.Span = p.Span(mark)
-						p.ast.RecordError(err, lineStyleTok.Span, e)
-						p.syncToBlockStart()
-						return entStyle
-					}
-					entStyle.LineStyle = ls
-
-					if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); ok {
-						var ok bool
-						tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-						if !ok {
-							entStyle.Span = p.Span(mark)
-							err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
-							p.ast.RecordError(err, tok.Span, e)
-							p.syncToBlockStart()
-							return entStyle
-						}
-						continue
-					}
-				case "back", "header", "text":
-					targetKind = tok.Literal
-				default:
-					entStyle.Span = p.Span(mark)
-					err := fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
-					p.ast.RecordError(err, tok.Span, e)
-					p.syncToBlockStart()
-					return entStyle
-				}
-
-				if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
-					entStyle.Span = p.Span(mark)
-					tok := p.stream.PeekTokenAt(0)
-					err := errors.New("missing colon after specified color target")
-					p.ast.RecordError(err, tok.Span, e)
-					p.syncToBlockStart()
-					return entStyle
-				}
-
-				colorTok := p.stream.Emit()
-				expr, err := p.parseColorExpr(colorTok)
-				if err != nil {
-					entStyle.Span = p.Span(mark)
-					p.ast.RecordError(err, p.stream.LastSemanticToken().Span, e)
-					p.syncToBlockStart()
-					return entStyle
-				}
-
-				switch targetKind {
-				case "header":
-					entStyle.Header = expr
-				case "text":
-					entStyle.TextColor = expr
-				case "line":
-					entStyle.LineColor = expr
-				case "back":
-					entStyle.Background = expr
-				}
-
-				if !p.stream.AssertType(tokenizer.SEMICOLON) {
-					break
-				}
-
-				p.stream.Emit() // emit the semicolon
-
-				// update the active target tok
-				var ok bool
-				tok, ok = p.stream.TryConsumeType(tokenizer.IDENTIFIER)
-				if !ok {
-					entStyle.Span = p.Span(mark)
-					err := fmt.Errorf("unexpected token describing entity colorable target: %s(%s)", tok.Type, tok.Literal)
-					p.ast.RecordError(err, tok.Span, e)
-					p.syncToBlockStart()
-					return entStyle
-				}
-			}
-		}
-
-		// Trailing ##[lineStyle]lineColor after #color or composite styles
-		if p.stream.AssertTypeSeq(tokenizer.HASH, tokenizer.HASH) {
-			p.stream.Emit() // first #
-			decisionTok = p.stream.Emit() // second #
-		}
-	}
-
-	if decisionTok.Type == tokenizer.HASH {
-		// ##[lineStyle]lineColor or ##lineColor
-		if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
 			lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 			if !ok {
-				entStyle.Span = p.Span(mark)
-				err := fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
-				p.ast.RecordError(err, lineStyleTok.Span, e)
-				p.syncToBlockStart()
-				return entStyle
+				return entStyle, lineStyleTok.Span, fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
 			}
 
 			ls, err := parseLineStyle(lineStyleTok)
 			if err != nil {
-				entStyle.Span = p.Span(mark)
-				p.ast.RecordError(err, lineStyleTok.Span, e)
-				p.syncToBlockStart()
-				return entStyle
+				return entStyle, lineStyleTok.Span, err
+			}
+			entStyle.LineStyle = ls
+
+			if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); ok {
+				continue
+			}
+			// no semicolon — fall through to parse optional :color
+		case "back", "header", "text":
+			targetKind = tok.Literal
+		default:
+			return entStyle, tok.Span, fmt.Errorf("unexpected value for color target specifier: %s", tok.Literal)
+		}
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.COLON); !ok {
+			peekTok := p.stream.PeekTokenAt(0)
+			return entStyle, peekTok.Span, errors.New("missing colon after specified color target")
+		}
+
+		colorTok := p.stream.Emit()
+		expr, err := p.parseColorExpr(colorTok)
+		if err != nil {
+			return entStyle, p.stream.LastSemanticToken().Span, err
+		}
+
+		switch targetKind {
+		case "header":
+			entStyle.Header = expr
+		case "text":
+			entStyle.TextColor = expr
+		case "line":
+			entStyle.LineColor = expr
+		case "back":
+			entStyle.Background = expr
+		}
+
+		if _, ok := p.stream.TryConsumeType(tokenizer.SEMICOLON); !ok {
+			break
+		}
+	}
+
+trailingLine:
+	// Trailing ##[lineStyle]lineColor after #color or composite styles
+	if p.stream.AssertTypeSeq(tokenizer.HASH, tokenizer.HASH) {
+		p.stream.Emit() // consume first #
+	}
+
+	if _, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
+			lineStyleTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
+			if !ok {
+				return entStyle, lineStyleTok.Span, fmt.Errorf("unexpected token describing line style: %s(%s)", lineStyleTok.Type, lineStyleTok.Literal)
+			}
+
+			ls, err := parseLineStyle(lineStyleTok)
+			if err != nil {
+				return entStyle, lineStyleTok.Span, err
 			}
 			entStyle.LineStyle = ls
 
 			if _, ok := p.stream.TryConsumeType(tokenizer.RBRACKET); !ok {
-				entStyle.Span = p.Span(mark)
-				tok := p.stream.PeekTokenAt(0)
-				err := fmt.Errorf("unexpected token in line style syntax: %s(%s)", tok.Type, tok.Literal)
-				p.ast.RecordError(err, tok.Span, e)
-				p.syncToBlockStart()
-				return entStyle
+				peekTok := p.stream.PeekTokenAt(0)
+				return entStyle, peekTok.Span, fmt.Errorf("unexpected token in line style syntax: %s(%s)", peekTok.Type, peekTok.Literal)
 			}
 		}
 
 		lineColorTok := p.stream.Emit()
 		if lineColorTok.Type != tokenizer.IDENTIFIER && lineColorTok.Type != tokenizer.NUMBER {
-			entStyle.Span = p.Span(mark)
-			err := fmt.Errorf("unexpected token describing line color: %s(%s)", lineColorTok.Type, lineColorTok.Literal)
-			p.ast.RecordError(err, lineColorTok.Span, e)
-			p.syncToBlockStart()
-			return entStyle
+			return entStyle, lineColorTok.Span, fmt.Errorf("unexpected token describing line color: %s(%s)", lineColorTok.Type, lineColorTok.Literal)
 		}
 
-		// don't validate the colors right now
 		entStyle.LineColor = ast.FromToken(lineColorTok)
-		entStyle.Span = p.Span(mark)
-		return entStyle // there cannot be any color notation after this
+		return entStyle, tokenizer.SourceSpan{}, nil
 	}
 
-	switch decisionTok.Type {
+	switch tokenAfterHash.Type {
 	case tokenizer.IDENTIFIER, tokenizer.NUMBER, tokenizer.HASH:
 	default:
-		entStyle.Span = p.Span(mark)
-		err := fmt.Errorf("unexpected token in style declaration: %s(%s)", decisionTok.Type, decisionTok.Literal)
-		p.ast.RecordError(err, decisionTok.Span, e)
-		p.syncToBlockStart()
-		return entStyle
+		return entStyle, tokenAfterHash.Span, fmt.Errorf("unexpected token in style declaration: %s(%s)", tokenAfterHash.Type, tokenAfterHash.Literal)
 	}
 
-	entStyle.Span = p.Span(mark)
-	return entStyle
+	return entStyle, tokenizer.SourceSpan{}, nil
 }
 
 func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
@@ -225,7 +154,7 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) e
 		}
 		targetRef, err := p.parseTargetRef(nameOrAlias)
 		if err != nil || targetRef.Member != nil {
-			return NewParserErrorFromIdent(targetRef.Name, "entity name contains unexpected member")
+			return NewParserErrorAtIdent(targetRef.Name, "entity name contains unexpected member")
 		}
 		ent.Identifier = targetRef
 		return nil
@@ -302,7 +231,17 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 		ent.Tags = postTags
 	}
 
-	ent.Style = p.parseEntityStyle(ent)
+	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
+		mark := p.Mark(hashTok)
+		style, errSpan, err := p.parseEntityStyle()
+		style.Span = p.Span(mark)
+		ent.Style = style
+		if err != nil {
+			p.ast.RecordError(err, errSpan, ent)
+			p.syncToBlockStart()
+			return
+		}
+	}
 }
 
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
