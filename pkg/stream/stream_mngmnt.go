@@ -4,31 +4,32 @@ import (
 	"fmt"
 	"slices"
 
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 // PeekRawTokenAt returns the idx-th token in the stream.
 func (ts *TokenStream) PeekRawTokenAt(idx int) tokenizer.Token {
-	for len(ts.buffer) <= idx {
+	for len(ts.buffer)-ts.bufferHead <= idx {
+		if len(ts.buffer) > ts.bufferHead && ts.buffer[len(ts.buffer)-1].Type == tokenizer.EOF {
+			return ts.buffer[len(ts.buffer)-1]
+		}
+		// Reuse consumed capacity once at least half the storage is free.
+		// This avoids repeatedly shifting large lookahead windows.
+		if len(ts.buffer) == cap(ts.buffer) && ts.bufferHead > 0 && ts.bufferHead >= len(ts.buffer)/2 {
+			n := copy(ts.buffer, ts.buffer[ts.bufferHead:])
+			clear(ts.buffer[n:])
+			ts.buffer = ts.buffer[:n]
+			ts.bufferHead = 0
+		}
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
-		if tok.Type != tokenizer.EOF {
-			ts.eofEmitCount = 0
-			continue
+		if tok.Type == tokenizer.EOF {
+			break
 		}
-
-		ts.eofEmitCount++
-		if ts.eofEmitCount > maxConsecutiveEOF {
-			panic(fmt.Sprintf(
-				"tokenizer: possible infinite loop detected: emitted tokenizer.EOF %d times (at %s)",
-				ts.eofEmitCount, ts.lexer.Pos(),
-			))
-		}
-		break
 	}
-	if idx < len(ts.buffer) {
-		return ts.buffer[idx]
+	if idx < len(ts.buffer)-ts.bufferHead {
+		return ts.buffer[ts.bufferHead+idx]
 	}
 	return ts.buffer[len(ts.buffer)-1]
 }
@@ -63,8 +64,21 @@ func (ts *TokenStream) Emit() tokenizer.Token {
 // EmitRaw consumes the next token and returns it.
 func (ts *TokenStream) EmitRaw() tokenizer.Token {
 	tok := ts.PeekRawTokenAt(0)
-	if len(ts.buffer) > 0 {
-		ts.buffer = ts.buffer[1:]
+	if tok.Type == tokenizer.EOF {
+		ts.eofEmitCount++
+		if ts.eofEmitCount > maxConsecutiveEOF {
+			panic(fmt.Sprintf(
+				"tokenizer: possible infinite loop detected: emitted tokenizer.EOF %d times (at %s)",
+				ts.eofEmitCount, ts.lexer.Pos(),
+			))
+		}
+	} else {
+		ts.buffer[ts.bufferHead] = tokenizer.Token{}
+		ts.bufferHead++
+		if ts.bufferHead == len(ts.buffer) {
+			ts.buffer = ts.buffer[:0]
+			ts.bufferHead = 0
+		}
 	}
 	for _, sink := range ts.sinks {
 		sink.Receive(tok)
