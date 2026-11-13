@@ -3,10 +3,36 @@ package resolver
 import (
 	"testing"
 
+	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/dialect"
 
 	"github.com/stretchr/testify/require"
 )
+
+func TestResolveSymbolsPartialDiagram(t *testing.T) {
+	p := parser.NewParser(dialect.NewGoDialect())
+	diagram, err := p.Parse(`@startuml
+class Existing
+Existing -->
+note right of Undeclared : keep this note
+package domain {
+  class User {
+    +id string
+@enduml
+`)
+	require.Error(t, err)
+	diagram.Statements = append(diagram.Statements, &ast.Entity{}, &ast.InlineMember{})
+	tbl := ResolveSymbols(diagram)
+	require.Len(t, tbl.Entities, 2, "parse diagnostics: %v", diagram.Diagnostics)
+	require.NotNil(t, tbl.Lookup("Existing"))
+	user := tbl.Lookup("domain.User")
+	require.NotNil(t, user)
+	require.Len(t, user.AST.Members, 1)
+	require.Empty(t, tbl.Relationships)
+	require.Len(t, tbl.Notes, 1)
+	require.Equal(t, "keep this note", tbl.Notes[0].Text)
+}
 
 func TestResolveSymbols_Basic(t *testing.T) {
 	fs := MapFS{

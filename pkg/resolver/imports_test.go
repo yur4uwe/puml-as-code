@@ -10,6 +10,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestResolveImportsSkipsMissingPathAndEmptyFile(t *testing.T) {
+	diagram, err := parser.NewParser(dialect.NewGoDialect()).Parse(`@startuml
+!include
+!include empty.puml
+class Kept
+@enduml
+`)
+	require.NoError(t, err)
+	require.NoError(t, ResolveImports(diagram, "main.puml", "", MapFS{"empty.puml": {}}, "go"))
+	require.Len(t, diagram.Statements, 3)
+	require.Equal(t, "Kept", diagram.Statements[1].(*ast.Entity).Identifier.EntityName())
+}
+
 func parseAndResolve(t *testing.T, mainFile string, files MapFS) *ast.Diagram {
 	t.Helper()
 

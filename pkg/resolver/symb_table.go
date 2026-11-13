@@ -14,7 +14,8 @@ type SymbolTable struct {
 	Notes         []*ast.Note // Floating or unlinked notes
 
 	// Lookup by identifier, alias, or qualified name
-	lookup map[string]*EntitySymbol
+	lookup  map[string]*EntitySymbol
+	partial bool
 }
 
 func (tbl *SymbolTable) Lookup(name string) *EntitySymbol {
@@ -24,6 +25,9 @@ func (tbl *SymbolTable) Lookup(name string) *EntitySymbol {
 func (tbl *SymbolTable) LookupByRef(ref ast.TargetRef, pkgPath []string) *EntitySymbol {
 	pkgPathStrings := ref.PackagePathStrings()
 	entityName := ref.EntityName()
+	if entityName == "" {
+		return nil
+	}
 
 	if len(pkgPathStrings) > 0 {
 		if ent, ok := tbl.lookup[FQN(entityName, pkgPathStrings)]; ok {
@@ -78,6 +82,9 @@ func (tbl *SymbolTable) LookupByRef(ref ast.TargetRef, pkgPath []string) *Entity
 }
 
 func (tbl *SymbolTable) FindOrCreateByRef(ref ast.TargetRef, pkgPath []string) *EntitySymbol {
+	if ref.EntityName() == "" {
+		return nil
+	}
 	if ent := tbl.LookupByRef(ref, pkgPath); ent != nil {
 		return ent
 	}

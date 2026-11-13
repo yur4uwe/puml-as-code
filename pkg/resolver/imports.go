@@ -12,7 +12,6 @@ import (
 	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/stream"
 )
 
 const (
@@ -52,6 +51,9 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 			v = d
 		default:
 			newStmts = append(newStmts, stmt)
+			continue
+		}
+		if strings.TrimSpace(v.Path) == "" {
 			continue
 		}
 
@@ -97,7 +99,7 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 			WithTargetID(v.Tag)
 		p.IsBoundless = isBoundless
 		diag, err := p.Parse(string(fileBytes))
-		if err != nil && !errors.Is(err, stream.ErrUnexpectedEOF) {
+		if err != nil {
 			return err
 		}
 
@@ -114,11 +116,16 @@ func resolveIncludes(diagram *ast.Diagram, basePath string, fs FileReader, lang 
 		}
 
 		// Strip diagram bound markers
-		if _, ok := diag.Statements[0].StatementNode().(*ast.DiagramBound); ok {
+		if len(diag.Statements) == 0 {
+			continue
+		}
+		if _, ok := diag.Statements[0].(*ast.DiagramBound); ok {
 			diag.Statements = diag.Statements[1:]
 		}
-		if _, ok := diag.Statements[len(diag.Statements)-1].StatementNode().(*ast.DiagramBound); ok {
-			diag.Statements = diag.Statements[:len(diag.Statements)-1]
+		if len(diag.Statements) > 0 {
+			if _, ok := diag.Statements[len(diag.Statements)-1].(*ast.DiagramBound); ok {
+				diag.Statements = diag.Statements[:len(diag.Statements)-1]
+			}
 		}
 
 		newStmts = append(newStmts, diag.Statements...)

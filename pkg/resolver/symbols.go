@@ -20,6 +20,9 @@ func attachNote(tbl *SymbolTable, noteRef, noteTargetRef ast.TargetRef, note *as
 }
 
 func resolveEntity(tbl *SymbolTable, s *ast.Entity, pkgPath []string) {
+	if s.Identifier.EntityName() == "" {
+		return
+	}
 	combinedPkgPath := append(slices.Clone(pkgPath), s.Identifier.PackagePathStrings()...)
 	fqn := FQN(s.Identifier.EntityName(), combinedPkgPath)
 	if ent, ok := tbl.lookup[fqn]; ok {
@@ -39,7 +42,13 @@ func resolveEntity(tbl *SymbolTable, s *ast.Entity, pkgPath []string) {
 }
 
 func resolveInlineMember(tbl *SymbolTable, s *ast.InlineMember, pkgPath []string) {
+	if s.Member == nil {
+		return
+	}
 	ent := tbl.FindOrCreateByRef(s.Target, pkgPath)
+	if ent == nil {
+		return
+	}
 	if ent.AST == nil {
 		ent.AST = &ast.Entity{
 			Identifier: s.Target,
@@ -49,6 +58,10 @@ func resolveInlineMember(tbl *SymbolTable, s *ast.InlineMember, pkgPath []string
 }
 
 func resolveContainer(tbl *SymbolTable, s *ast.Container, pkgPath []string, noteLookup map[string]*ast.Note, namedNotes *[]*ast.Note) {
+	if s.Identifier.EntityName() == "" {
+		resolveStatements(tbl, s.Statements, pkgPath, noteLookup, namedNotes)
+		return
+	}
 	containerPath := append(s.Identifier.PackagePathStrings(), s.Identifier.EntityName())
 	childPkgPath := append(slices.Clone(pkgPath), containerPath...)
 	resolveStatements(tbl, s.Statements, childPkgPath, noteLookup, namedNotes)
@@ -75,13 +88,14 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 
 	// get rid of targeted notes
 	if note.Target != nil {
-		if note.Target.Name.IsZero() {
-			err := NewResolutionErrorf(note, "empty target for note")
-			tbl.ast.RecordError(err, note.Span(), note)
+		target := tbl.LookupByRef(*note.Target, pkgPath)
+		if target == nil && (tbl.partial || note.Target.EntityName() == "") {
 			tbl.Notes = append(tbl.Notes, note)
 			return
 		}
-		target := tbl.FindOrCreateByRef(*note.Target, pkgPath)
+		if target == nil {
+			target = tbl.FindOrCreateByRef(*note.Target, pkgPath)
+		}
 		if target.AST == nil {
 			target.AST = &ast.Entity{
 				Identifier: *note.Target,
@@ -102,6 +116,9 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 }
 
 func resolveRelationship(tbl *SymbolTable, s *ast.Relationship, pkgPath []string, noteLookup map[string]*ast.Note) *RelationshipSymbol {
+	if s.IsIncomplete() || s.LHS.EntityName() == "" || s.RHS.EntityName() == "" {
+		return nil
+	}
 	rel := newRelationshipSymbol(tbl, s, pkgPath)
 	if rel == nil {
 		return nil
@@ -132,10 +149,7 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 		case *ast.Note:
 			resolveNote(tbl, s, prevRelationship, pkgPath, noteLookup, namedNotes)
 		case *ast.Relationship:
-			rel := resolveRelationship(tbl, s, pkgPath, noteLookup)
-			if rel != nil {
-				prevRelationship = rel
-			}
+			prevRelationship = resolveRelationship(tbl, s, pkgPath, noteLookup)
 		}
 	}
 }
@@ -146,6 +160,10 @@ func ResolveSymbols(diagram *ast.Diagram) *SymbolTable {
 		ast:    diagram,
 		lookup: map[string]*EntitySymbol{},
 	}
+	if diagram == nil {
+		return tbl
+	}
+	tbl.partial = diagram.HasErrors()
 	noteLookup := map[string]*ast.Note{}
 	var namedNotes []*ast.Note
 	resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
