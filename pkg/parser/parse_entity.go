@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/stream"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) error {
@@ -135,7 +135,13 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 
 		if p.stream.AssertType(tokenizer.EOF) || p.isEndMarker() {
 			// place unclosed block diagnostic on the opener of the block
-			p.ast.RecordError(unclosedBlockErr, lbraceTok.Span, ent)
+			diag := p.ast.RecordError(unclosedBlockErr, lbraceTok.Span, ent)
+			if first := firstTrailingBadMember(ent.Members); first != nil {
+				diag.RelatedInformation = append(diag.RelatedInformation, ast.DiagnosticRelatedInformation{
+					Span:    first.Span(),
+					Message: "did you mean to close the block before this line?",
+				})
+			}
 			break
 		} else if p.stream.AssertType(tokenizer.RBRACE) {
 			break
@@ -155,4 +161,18 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 	ent.RBrace = rbraceTok.Span.Start
 
 	return ent
+}
+
+func firstTrailingBadMember(members []ast.Member) *ast.BadMember {
+	for i, member := range members {
+		if bad, ok := member.(*ast.BadMember); ok {
+			for _, trailing := range members[i+1:] {
+				if _, ok := trailing.(*ast.BadMember); !ok {
+					return nil
+				}
+			}
+			return bad
+		}
+	}
+	return nil
 }
