@@ -75,23 +75,24 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 
 	// get rid of targeted notes
 	if note.Target != nil {
-		if note.Target.Name.IsZero() {
+		ref := tbl.resolveMemberRef(*note.Target, pkgPath)
+		if ref.Name.IsZero() {
 			err := NewResolutionErrorf(note, "empty target for note")
 			tbl.ast.RecordError(err, note.Span(), note)
 			tbl.Notes = append(tbl.Notes, note)
 			return
 		}
-		target := tbl.FindOrCreateByRef(*note.Target, pkgPath)
+		target := tbl.FindOrCreateByRef(ref, pkgPath)
 		if target.AST == nil {
 			target.AST = &ast.Entity{
-				Identifier: *note.Target,
+				Identifier: ref,
 			}
 		}
-		if note.Target.MemberName() != "" {
+		if ref.MemberName() != "" {
 			if target.MemberNotes == nil {
 				target.MemberNotes = make(map[string][]*ast.Note)
 			}
-			target.MemberNotes[note.Target.MemberName()] = append(target.MemberNotes[note.Target.MemberName()], note)
+			target.MemberNotes[ref.MemberName()] = append(target.MemberNotes[ref.MemberName()], note)
 			return
 		}
 		target.Notes = append(target.Notes, note)
@@ -102,6 +103,13 @@ func resolveNote(tbl *SymbolTable, note *ast.Note, prevRelationship *Relationshi
 }
 
 func resolveRelationship(tbl *SymbolTable, s *ast.Relationship, pkgPath []string, noteLookup map[string]*ast.Note) *RelationshipSymbol {
+	lhs, rhs := tbl.resolveMemberRef(s.LHS, pkgPath), tbl.resolveMemberRef(s.RHS, pkgPath)
+	if lhs.Member != s.LHS.Member || rhs.Member != s.RHS.Member {
+		// Keep the source AST as parsed; the resolved edge carries the member refs.
+		resolved := *s
+		resolved.LHS, resolved.RHS = lhs, rhs
+		s = &resolved
+	}
 	rel := newRelationshipSymbol(tbl, s, pkgPath)
 	if rel == nil {
 		return nil
@@ -123,6 +131,10 @@ func resolveStatements(tbl *SymbolTable, stmts []ast.Statement, pkgPath []string
 	var prevRelationship *RelationshipSymbol
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
+		case *ast.SetCommand:
+			if s.Key == "separator" {
+				tbl.packageSeparator = s.Value
+			}
 		case *ast.Entity:
 			resolveEntity(tbl, s, pkgPath)
 		case *ast.InlineMember:
@@ -146,6 +158,13 @@ func ResolveSymbols(diagram *ast.Diagram) *SymbolTable {
 		ast:    diagram,
 		lookup: map[string]*EntitySymbol{},
 	}
+	for _, stmt := range diagram.Statements {
+		if cmd, ok := stmt.(*ast.SetCommand); ok && cmd.Key == "separator" && cmd.Value == "::" {
+			tbl.declarations = &SymbolTable{lookup: map[string]*EntitySymbol{}}
+			indexDeclarations(tbl.declarations, diagram.Statements, nil)
+			break
+		}
+	}
 	noteLookup := map[string]*ast.Note{}
 	var namedNotes []*ast.Note
 	resolveStatements(tbl, diagram.Statements, nil, noteLookup, &namedNotes)
@@ -154,5 +173,6 @@ func ResolveSymbols(diagram *ast.Diagram) *SymbolTable {
 			tbl.Notes = append(tbl.Notes, n)
 		}
 	}
+	tbl.declarations = nil
 	return tbl
 }
