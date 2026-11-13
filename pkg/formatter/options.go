@@ -3,6 +3,9 @@ package formatter
 type FormatOptions struct {
 	IndentSize int
 	UseTabs    bool
+
+	// RequireSingleDiagram rejects input with extra content outside the selected diagram.
+	RequireSingleDiagram bool
 }
 
 func DefaultFormatOptions() FormatOptions {

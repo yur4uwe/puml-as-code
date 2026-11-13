@@ -41,6 +41,9 @@ func main() {
 
 	if err := cmd.Run(os.Args[2:]); err != nil {
 		fmt.Fprintf(os.Stderr, "pac %s: %v\n", cmdName, err)
+		if cmdName == "fmt" {
+			os.Exit(formatExitCode(err))
+		}
 		os.Exit(1)
 	}
 }
