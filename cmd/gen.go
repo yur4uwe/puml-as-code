@@ -24,13 +24,17 @@ var _ Command = (*GenCommand)(nil)
 
 func (c *GenCommand) Name() string     { return "gen" }
 func (c *GenCommand) Synopsis() string { return "Generate code from diagrams" }
-func (c *GenCommand) Usage() string    { return "pac gen [flags] <file...>" }
+func (c *GenCommand) Usage() string    { return "pac gen -in <file> -outd <directory> [flags]" }
 
 func (c *GenCommand) Run(args []string) error {
 	flagSet := flag.NewFlagSet(c.Name(), flag.ExitOnError)
+	flagSet.Usage = func() {
+		fmt.Fprintln(flagSet.Output(), "Usage:", c.Usage())
+		flagSet.PrintDefaults()
+	}
 	flagSet.StringVar(&c.in, "in", "", "Path to the input file")
 	flagSet.StringVar(&c.outd, "outd", "", "Path to the output dir")
-	flagSet.StringVar(&c.lang, "lang", "go", "Language to generate the code in (default: go)")
+	flagSet.StringVar(&c.lang, "lang", "go", "Target language")
 	flagSet.StringVar(&c.id, "id", "", "Diagram's index in the target file or literal ID (optional)")
 	if err := flagSet.Parse(args); err != nil {
 		return err
@@ -42,7 +46,7 @@ func (c *GenCommand) Run(args []string) error {
 	}
 
 	if c.outd == "" {
-		fmt.Fprintf(os.Stderr, "Output directory not specified, please provide it with -out\n")
+		fmt.Fprintf(os.Stderr, "Output directory not specified, please provide it with -outd\n")
 		os.Exit(1)
 	}
 

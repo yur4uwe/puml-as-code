@@ -47,6 +47,9 @@ jobs:
       - name: Verify dependencies
         run: go mod verify
 
+      - name: Build CLI
+        run: go build -o "${{ runner.temp }}/pac" ./cmd
+
       - name: Run go vet
         run: go vet ./...
 

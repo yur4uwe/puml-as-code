@@ -58,19 +58,24 @@ diagrams, relationships, and package hierarchies into formatted, production-read
 
 ## Installation
 
-### Option 1: Using `go install`
-```bash
-go install github.com/yur4uwe/pac/cmd@latest
-```
+### Option 1: Build from source
 
-### Option 2: Build from Source
+You need Go 1.24.1 or later. Install the code generator and make sure the Go
+binary directory (`go env GOBIN`, or `bin` under `go env GOPATH` if unset) is
+on your `PATH`.
+
 ```bash
+go install github.com/dmarkham/enumer@v1.6.3
 git clone https://github.com/yur4uwe/puml-as-code.git
 cd puml-as-code
-go build -o pac ./cmd/main.go
+go generate ./...
+go build -o pac ./cmd
 ```
 
-### Option 3: Pre-compiled Binaries
+Use `-o pac.exe` on Windows. To install the CLI from this checkout, run
+`go install ./cmd`; Go installs it as `cmd` (or `cmd.exe`).
+
+### Option 2: Precompiled binaries
 Download the latest pre-compiled binary for Linux, macOS, or Windows from the [GitHub Releases](https://github.com/yur4uwe/puml-as-code/releases) page.
 
 ---
@@ -78,7 +83,7 @@ Download the latest pre-compiled binary for Linux, macOS, or Windows from the [G
 ## CLI Usage
 
 ```bash
-pac -in <path-to-diagram.puml> -out <output-directory>
+pac gen -in <path-to-diagram.puml> -outd <output-directory>
 ```
 
 ### Flags
@@ -86,7 +91,7 @@ pac -in <path-to-diagram.puml> -out <output-directory>
 | Flag | Type | Default | Description |
 |------|------|---------|-------------|
 | `-in` | string | `""` | **Required.** Path to the input `.puml` diagram file. |
-| `-out` | string | `""` | **Required.** Path to the target output directory. |
+| `-outd` | string | `""` | **Required.** Path to the target output directory. |
 | `-lang` | string | `"go"` | Target language generator (default: `go`). |
 | `-id` | string | `""` | Diagram index (`"0"`, `"1"`) or literal `@startuml <id>` identifier. |
 
@@ -129,7 +134,7 @@ package domain {
 
 ### Run
 ```bash
-pac -in input/service.puml -out ./gen
+pac gen -in input/service.puml -outd ./gen
 ```
 
 ### Generated Output (`gen/domain/types.go`)

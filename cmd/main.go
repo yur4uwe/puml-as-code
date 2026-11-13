@@ -1,9 +1,10 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	"maps"
 	"os"
+	"slices"
 )
 
 var commands = map[string]Command{
@@ -15,11 +16,10 @@ var commands = map[string]Command{
 func printHelp() {
 	fmt.Fprintf(os.Stderr, "Usage: pac <command> [flags]\n")
 	fmt.Fprintf(os.Stderr, "Commands:\n")
-	for name, cmd := range commands {
-		fmt.Fprintf(os.Stderr, "  %s\t%s\n", name, cmd.Synopsis())
+	for _, name := range slices.Sorted(maps.Keys(commands)) {
+		fmt.Fprintf(os.Stderr, "  %s\t%s\n", name, commands[name].Synopsis())
 	}
-	fmt.Fprintf(os.Stderr, "\nFlags:\n")
-	flag.PrintDefaults()
+	fmt.Fprintln(os.Stderr, "\nRun 'pac <command> -help' for command options.")
 }
 
 func main() {
@@ -29,6 +29,10 @@ func main() {
 	}
 
 	cmdName := os.Args[1]
+	if cmdName == "-h" || cmdName == "--help" || cmdName == "-help" || cmdName == "help" {
+		printHelp()
+		return
+	}
 	cmd, ok := commands[cmdName]
 	if !ok {
 		fmt.Fprintf(os.Stderr, "unknown command: %s\n", cmdName)
