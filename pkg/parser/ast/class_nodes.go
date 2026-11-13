@@ -47,16 +47,17 @@ type Entity struct {
 	BaseNode
 	Identifier TargetRef
 	Alias      Ident
-	Kind       EntityKind    `json:",omitempty"`
-	Stereotype *Stereotype   `json:",omitempty"`
-	Tags       []string      `json:",omitempty"`
-	Generic    string        `json:",omitempty"`
-	Color      string        `json:",omitempty"`
-	Extends    []TargetRef   `json:",omitempty"`
-	Implements []TargetRef   `json:",omitempty"`
-	LBrace     tokenizer.Pos // Zero if bodyless declaration
-	Members    []Member      `json:",omitempty"`
-	RBrace     tokenizer.Pos // Zero if unclosed before EOF
+	Kind       EntityKind     `json:",omitempty"`
+	Visibility VisibilityKind `json:",omitempty"`
+	Stereotype *Stereotype    `json:",omitempty"`
+	Tags       []string       `json:",omitempty"`
+	Generic    string         `json:",omitempty"`
+	Color      string         `json:",omitempty"`
+	Extends    []TargetRef    `json:",omitempty"`
+	Implements []TargetRef    `json:",omitempty"`
+	LBrace     tokenizer.Pos  // Zero if bodyless declaration
+	Members    []Member       `json:",omitempty"`
+	RBrace     tokenizer.Pos  // Zero if unclosed before EOF
 }
 
 var (

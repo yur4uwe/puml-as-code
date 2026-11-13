@@ -173,6 +173,14 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	if tok.Type == tokenizer.EXCLAMATION {
 		return p.parseDirective(tok), nil
 	}
+	if visibility := p.mapTokenToVisibility(tok.Type); visibility != ast.VisibilityUnknown {
+		next := p.stream.PeekTokenAt(0)
+		if next.Type == tokenizer.IDENTIFIER && isEntityKeyword(keyword.Classify(next.Literal)) {
+			ent := p.parseEntity(p.stream.Emit())
+			ent.Visibility = visibility
+			return ent, nil
+		}
+	}
 
 	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {
 		return stmt, err
@@ -225,6 +233,16 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	}
 
 	return nil, nil
+}
+
+func isEntityKeyword(kw keyword.KeywordKind) bool {
+	switch kw {
+	case keyword.Class, keyword.Interface, keyword.Struct, keyword.Abstract, keyword.Enum,
+		keyword.Annotation, keyword.Record, keyword.Dataclass, keyword.Exception, keyword.Protocol, keyword.Entity:
+		return true
+	default:
+		return false
+	}
 }
 
 func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, error) {

@@ -34,6 +34,7 @@ func createImplicitEntity(ref ast.TargetRef, pkgPath []string) *EntitySymbol {
 func mergeEntities(target *ast.Entity, incoming *ast.Entity) *ast.Entity {
 	merge := &ast.Entity{
 		Kind:       target.Kind,
+		Visibility: target.Visibility,
 		Identifier: target.Identifier,
 		Alias:      target.Alias,
 		Stereotype: target.Stereotype,
@@ -50,6 +51,9 @@ func mergeEntities(target *ast.Entity, incoming *ast.Entity) *ast.Entity {
 
 	// Properties backfilling
 	// Unfortunately, puml overwrites the properties of the earlier declarations
+	if incoming.Visibility != ast.VisibilityUnknown {
+		merge.Visibility = incoming.Visibility
+	}
 	if incoming.Stereotype != nil {
 		merge.Stereotype = incoming.Stereotype
 	}

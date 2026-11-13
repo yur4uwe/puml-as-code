@@ -15,6 +15,27 @@ import (
 
 type expectedBlockState byte
 
+func TestParseEntityVisibility(t *testing.T) {
+	diagram, err := NewParser(dialect.LaxDialect{}).Parse(`@startuml
++class Public
+-class "Private"
+package domain {
+  #class Protected
+  ~abstract class Internal
+}
+Public --> Private
+@enduml
+`)
+	require.NoError(t, err)
+	require.Equal(t, ast.VisibilityPublic, diagram.Statements[1].(*ast.Entity).Visibility)
+	require.Equal(t, ast.VisibilityPrivate, diagram.Statements[2].(*ast.Entity).Visibility)
+	children := diagram.Statements[3].(*ast.Container).Statements
+	require.Equal(t, ast.VisibilityProtected, children[0].(*ast.Entity).Visibility)
+	require.Equal(t, ast.VisibilityPackage, children[1].(*ast.Entity).Visibility)
+	require.Equal(t, ast.EntityAbstractClass, children[1].(*ast.Entity).Kind)
+	require.IsType(t, &ast.Relationship{}, diagram.Statements[4])
+}
+
 const (
 	expectNoBlock expectedBlockState = iota
 	expectBlockClosed

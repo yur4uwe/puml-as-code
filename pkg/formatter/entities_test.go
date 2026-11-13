@@ -6,6 +6,13 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestFormatEntityVisibility(t *testing.T) {
+	input := "@startuml\n-class Hidden {\n+id string\n}\n@enduml\n"
+	formatted, err := Format(input)
+	require.NoError(t, err)
+	require.Equal(t, "@startuml\n-class Hidden {\n  +id string\n}\n@enduml\n", formatted)
+}
+
 func TestFormatEntities_Canonical(t *testing.T) {
 	tests := []struct {
 		name  string
