@@ -42,6 +42,14 @@ func TestLookaheadOrderAfterSlidingWindow(t *testing.T) {
 	}
 }
 
+func TestRepeatedEOFConsumptionTripsGuard(t *testing.T) {
+	ts := NewTokenStream("")
+	for range maxConsecutiveEOF {
+		require.Equal(t, tokenizer.EOF, ts.EmitRaw().Type)
+	}
+	require.Panics(t, func() { ts.EmitRaw() })
+}
+
 func BenchmarkEmitWithLookahead(b *testing.B) {
 	src := strings.Repeat("class User {\n+id string\n}\n", 128)
 	for b.Loop() {

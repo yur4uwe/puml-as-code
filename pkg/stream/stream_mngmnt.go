@@ -25,6 +25,15 @@ func (ts *TokenStream) PeekRawTokenAt(idx int) tokenizer.Token {
 		tok := ts.lexer.Emit()
 		ts.buffer = append(ts.buffer, tok)
 		if tok.Type == tokenizer.EOF {
+			// Peeks reuse a buffered EOF. Fetching another one means the
+			// previous EOF was consumed.
+			ts.eofEmitCount++
+			if ts.eofEmitCount > maxConsecutiveEOF {
+				panic(fmt.Sprintf(
+					"tokenizer: possible infinite loop detected: emitted tokenizer.EOF %d times (at %s)",
+					ts.eofEmitCount, ts.lexer.Pos(),
+				))
+			}
 			break
 		}
 	}
@@ -64,21 +73,11 @@ func (ts *TokenStream) Emit() tokenizer.Token {
 // EmitRaw consumes the next token and returns it.
 func (ts *TokenStream) EmitRaw() tokenizer.Token {
 	tok := ts.PeekRawTokenAt(0)
-	if tok.Type == tokenizer.EOF {
-		ts.eofEmitCount++
-		if ts.eofEmitCount > maxConsecutiveEOF {
-			panic(fmt.Sprintf(
-				"tokenizer: possible infinite loop detected: emitted tokenizer.EOF %d times (at %s)",
-				ts.eofEmitCount, ts.lexer.Pos(),
-			))
-		}
-	} else {
-		ts.buffer[ts.bufferHead] = tokenizer.Token{}
-		ts.bufferHead++
-		if ts.bufferHead == len(ts.buffer) {
-			ts.buffer = ts.buffer[:0]
-			ts.bufferHead = 0
-		}
+	ts.buffer[ts.bufferHead] = tokenizer.Token{}
+	ts.bufferHead++
+	if ts.bufferHead == len(ts.buffer) {
+		ts.buffer = ts.buffer[:0]
+		ts.bufferHead = 0
 	}
 	for _, sink := range ts.sinks {
 		sink.Receive(tok)
