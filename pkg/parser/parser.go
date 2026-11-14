@@ -237,8 +237,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 
 func isEntityKeyword(kw keyword.KeywordKind) bool {
 	switch kw {
-	case keyword.Class, keyword.Interface, keyword.Struct, keyword.Abstract, keyword.Enum,
-		keyword.Annotation, keyword.Record, keyword.Dataclass, keyword.Exception, keyword.Protocol, keyword.Entity:
+	case keyword.Class, keyword.Interface, keyword.Struct, keyword.Abstract, keyword.Enum, keyword.Annotation, keyword.Record, keyword.Dataclass, keyword.Exception, keyword.Protocol, keyword.Entity:
 		return true
 	default:
 		return false

@@ -216,7 +216,8 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 	case ast.EntityEntityClass:
 		actualKindStr = "entity"
 	}
-	s.emitWithIndent(visibilitySymbol(ent.Visibility) + actualKindStr)
+	s.emitWithIndent(visibilitySymbol(ent.Visibility))
+	s.buf.WriteString(actualKindStr)
 	s.buf.WriteString(" ")
 	if !ent.Alias.IsZero() {
 		fmt.Fprintf(&s.buf, "%s as ", ent.Alias.Literal)

@@ -97,6 +97,15 @@ dataclass Config {
 @enduml
 `,
 		},
+		{
+			name: "Entity visibility",
+			input: `@startuml
+-class Hidden {
+  +id string
+}
+@enduml
+`,
+		},
 	}
 
 	for _, tt := range tests {
