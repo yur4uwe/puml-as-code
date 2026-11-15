@@ -34,6 +34,40 @@ MainService --> User
 	require.Equal(t, user, tbl.Relationships[0].Target, "expected user to be target of relationship")
 }
 
+func TestResolveDoubleColonMemberReferences(t *testing.T) {
+	diagram := parseAndResolve(t, "main.puml", MapFS{"main.puml": []byte(`@startuml
+set separator ::
+domain::User::id --> Role
+domain::User::Missing --> Role
+Pkg::item --> Role
+note right of domain::User::id : identifier
+package domain {
+  class User {
+    +id string
+  }
+}
+class Pkg {
+  +item string
+}
+class Pkg::item
+set separator .
+class Role
+@enduml
+`)})
+	tbl := ResolveSymbols(diagram)
+	require.False(t, diagram.HasErrors())
+	require.Len(t, tbl.Relationships, 3)
+	rel := tbl.Relationships[0]
+	require.Equal(t, "domain.User", rel.Source.FQN)
+	require.Equal(t, "id", rel.AST.LHS.MemberName())
+	require.Nil(t, tbl.Lookup("domain.User.id"))
+	require.Equal(t, "identifier", rel.Source.MemberNotes["id"][0].Text)
+	require.Equal(t, "domain.User.Missing", tbl.Relationships[1].Source.FQN)
+	require.Equal(t, "Pkg.item", tbl.Relationships[2].Source.FQN)
+	require.Empty(t, tbl.Relationships[2].AST.LHS.MemberName())
+	require.Empty(t, diagram.Statements[2].(*ast.Relationship).LHS.MemberName())
+}
+
 func TestResolveSymbols_EntityWithAlias(t *testing.T) {
 	fs := MapFS{
 		"/project/main.puml": []byte(`
