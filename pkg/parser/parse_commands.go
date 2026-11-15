@@ -34,14 +34,18 @@ func (p *Parser) parseVisibilityCommand(tok tokenizer.Token) *ast.VisibilityComm
 
 func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 	var to string
+	cmd := &ast.DirectionCommand{}
+
 	switch tok.Literal {
 	case "left":
 		to = "right"
+		cmd.Direction = ast.LeftToRightDirection
 	case "top":
 		to = "bottom"
+		cmd.Direction = ast.TopToBottomDirection
 	}
 
-	expectedSeq := []tokenizer.Token{
+	expectedSeq := [...]tokenizer.Token{
 		{
 			Type:    tokenizer.IDENTIFIER,
 			Literal: "to",
@@ -56,8 +60,6 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 		},
 	}
 
-	cmd := &ast.DirectionCommand{}
-
 	for _, token := range expectedSeq {
 		if _, ok := p.stream.TryConsume(token); ok {
 			continue
@@ -68,12 +70,7 @@ func (p *Parser) parseDiagDirection(tok tokenizer.Token) *ast.DirectionCommand {
 		p.syncToLineEnd()
 		return cmd
 	}
-	switch tok.Literal {
-	case "left":
-		cmd.Direction = ast.LeftToRightDirection
-	case "top":
-		cmd.Direction = ast.TopToBottomDirection
-	}
+
 	if !p.stream.AssertType(tokenizer.NEWLINE) {
 		nextToken := p.stream.PeekTokenAt(0)
 		p.recordError(nextToken, cmd, "Unexpected tokens after direction command")
@@ -406,13 +403,13 @@ func (p *Parser) parseLayoutStatement(kwTok tokenizer.Token, prefixAlignment *to
 			} else {
 				err = NewParserError(*prefixAlignment, "Invalid alignment")
 			}
-			p.ast.RecordError(err, *&prefixAlignment.Span, block)
+			p.ast.RecordError(err, prefixAlignment.Span, block)
 		}
 		block.HorizontalAlignment = h
 		block.VerticalAlignment = v
 	} else if prefixAlignment != nil && blockKind == ast.BlockTitle {
 		err := NewParserError(*prefixAlignment, "Title alignment not supported")
-		p.ast.RecordError(err, *&prefixAlignment.Span, block)
+		p.ast.RecordError(err, prefixAlignment.Span, block)
 	}
 
 	// Consume any trailing alignment modifiers on the opener line (e.g. "legend top left", "header center")
