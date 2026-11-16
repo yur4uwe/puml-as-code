@@ -47,6 +47,7 @@ type Entity struct {
 	BaseNode
 	Identifier TargetRef
 	Alias      Ident
+	Kind       EntityKind     `json:",omitempty"`
 	Visibility VisibilityKind `json:",omitempty"`
 	Stereotype *Stereotype    `json:",omitempty"`
 	Tags       []string       `json:",omitempty"`
