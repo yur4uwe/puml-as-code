@@ -321,7 +321,7 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 			Body:      '-',
 			RArrow:    '>',
 			BodyCount: 2,
-			Style: &ast.RelationshipStyle{
+			ArrowStyle: &ast.ArrowStyle{
 				LineStyle: ast.LineBold,
 			},
 			TypeRHS:   ast.RelationAssociation,

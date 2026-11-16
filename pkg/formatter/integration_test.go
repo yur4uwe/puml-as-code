@@ -64,12 +64,12 @@ skinparam class {
   ArrowColor SeaGreen
 }
 
-package "Core Domain" as core <<Domain>> #lightblue {
-  interface Repository<T> <<Generic>> {
+package "Core Domain" as core <<Domain>> #back:lightgreen;line:darkgreen;line.dashed;text:black {
+  interface Repository<T> <<Generic>> #red/blue {
     +FindByID(id string) (T, error)
     +Save(item T) error
   }
-  class User {
+  class User ##[bold]green {
     {static} +DefaultRole string
     +id string
     +name string
@@ -79,7 +79,7 @@ package "Core Domain" as core <<Domain>> #lightblue {
     == Methods ==
     +GetDisplayName() string
   }
-  enum Role {
+  enum Role ##blue {
     +Admin
     +User
     +Guest
@@ -87,17 +87,17 @@ package "Core Domain" as core <<Domain>> #lightblue {
 }
 
 namespace External.Auth {
-  class OAuthProvider {
+  class OAuthProvider #back:red;header:blue;line:green;line.dotted;text:yellow {
     +ValidateToken(token string) bool
   }
 }
 
-note left of User : Core user aggregate root
+note left of User #yellow/orange : Core user aggregate root
 note "Authentication bridge" as N1
-note on link : TLS Encrypted
+note on link #cyan|blue : TLS Encrypted
 
 User "1" *-- "0..*" Role : has
-User "1" --> "1" External.Auth.OAuthProvider : delegates auth
+User "1" -[bold,#blue,thickness=2]-> "1" External.Auth.OAuthProvider #line:green;text:blue : delegates auth
 
 @enduml
 `

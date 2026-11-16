@@ -52,6 +52,18 @@ E -[#blue,thickness=2]-> F
 `,
 		},
 		{
+			name: "Arrow attributes and trailing relationship styles",
+			input: `@startuml
+C -[dotted]-> D
+E --> F #red
+G --> H #line:green;text:yellow
+I --> J #line:red;line.bold;text:red
+K --> L #line.dotted;text:blue
+M -[dashed,#red,thickness=2]-> N #line:green;text:blue
+@enduml
+`,
+		},
+		{
 			name: "Relationships with qualified package names and members",
 			input: `@startuml
 net.http.Client --> net.http.Response : creates
@@ -117,6 +129,34 @@ E   -[ #blue , thickness=2 ]->   F
 			expected: `@startuml
 C -[dashed,#red]-> D
 E -[#blue,thickness=2]-> F
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in relationship trailing styles",
+			input: `@startuml
+E   -->   F   #   red
+G   -->   H   #line:green ; text:yellow
+I   -->   J   #line:red ; line.bold ; text:red
+K   -->   L   #line.dotted ; text:blue
+@enduml
+`,
+			expected: `@startuml
+E --> F #red
+G --> H #line:green;text:yellow
+I --> J #line:red;line.bold;text:red
+K --> L #line.dotted;text:blue
+@enduml
+`,
+		},
+		{
+			name: "Arrow with redundant plain attribute",
+			input: `@startuml
+A -[plain]-> B
+@enduml
+`,
+			expected: `@startuml
+A --> B
 @enduml
 `,
 		},

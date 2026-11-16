@@ -1,0 +1,2200 @@
+{
+  "Name": "InlineStyles",
+  "Statements": [
+    {
+      "IsStart": true,
+      "Type": "uml",
+      "TrailingName": "InlineStyles",
+      "NodeSpan": {
+        "Start": {
+          "Line": 0,
+          "Col": 1,
+          "Offset": 0
+        },
+        "End": {
+          "Line": 1,
+          "Col": 0,
+          "Offset": 22
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "Name": {
+          "Literal": "core",
+          "Span": {
+            "Start": {
+              "Line": 2,
+              "Col": 26,
+              "Offset": 49
+            },
+            "End": {
+              "Line": 2,
+              "Col": 30,
+              "Offset": 53
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "\"Core Domain\"",
+        "Span": {
+          "Start": {
+            "Line": 2,
+            "Col": 9,
+            "Offset": 32
+          },
+          "End": {
+            "Line": 2,
+            "Col": 22,
+            "Offset": 45
+          }
+        }
+      },
+      "Kind": "package",
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 2,
+            "Col": 31,
+            "Offset": 54
+          },
+          "End": {
+            "Line": 2,
+            "Col": 85,
+            "Offset": 108
+          }
+        },
+        "Background": {
+          "Literal": "lightgreen",
+          "ColorSpan": {
+            "Start": {
+              "Line": 2,
+              "Col": 37,
+              "Offset": 60
+            },
+            "End": {
+              "Line": 2,
+              "Col": 47,
+              "Offset": 70
+            }
+          }
+        },
+        "LineColor": {
+          "Literal": "darkgreen",
+          "ColorSpan": {
+            "Start": {
+              "Line": 2,
+              "Col": 53,
+              "Offset": 76
+            },
+            "End": {
+              "Line": 2,
+              "Col": 62,
+              "Offset": 85
+            }
+          }
+        },
+        "LineStyle": "dashed",
+        "TextColor": {
+          "Literal": "black",
+          "ColorSpan": {
+            "Start": {
+              "Line": 2,
+              "Col": 80,
+              "Offset": 103
+            },
+            "End": {
+              "Line": 2,
+              "Col": 85,
+              "Offset": 108
+            }
+          }
+        }
+      },
+      "LBrace": {
+        "Line": 2,
+        "Col": 86,
+        "Offset": 109
+      },
+      "Statements": [
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 3,
+              "Col": 3,
+              "Offset": 113
+            },
+            "End": {
+              "Line": 6,
+              "Col": 0,
+              "Offset": 163
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "SimpleEntity",
+              "Span": {
+                "Start": {
+                  "Line": 3,
+                  "Col": 9,
+                  "Offset": 119
+                },
+                "End": {
+                  "Line": 3,
+                  "Col": 21,
+                  "Offset": 131
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Style": {
+            "Span": {
+              "Start": {
+                "Line": 3,
+                "Col": 22,
+                "Offset": 132
+              },
+              "End": {
+                "Line": 3,
+                "Col": 32,
+                "Offset": 142
+              }
+            },
+            "Background": {
+              "Literal": "lightblue",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 3,
+                  "Col": 23,
+                  "Offset": 133
+                },
+                "End": {
+                  "Line": 3,
+                  "Col": 32,
+                  "Offset": 142
+                }
+              }
+            }
+          },
+          "LBrace": {
+            "Line": 3,
+            "Col": 33,
+            "Offset": 143
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 4,
+                  "Col": 5,
+                  "Offset": 149
+                },
+                "End": {
+                  "Line": 5,
+                  "Col": 0,
+                  "Offset": 159
+                }
+              },
+              "Visibility": "public",
+              "Field": {
+                "Name": "id",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 5,
+            "Col": 3,
+            "Offset": 162
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 7,
+              "Col": 3,
+              "Offset": 167
+            },
+            "End": {
+              "Line": 10,
+              "Col": 0,
+              "Offset": 221
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "GradientEntity",
+              "Span": {
+                "Start": {
+                  "Line": 7,
+                  "Col": 9,
+                  "Offset": 173
+                },
+                "End": {
+                  "Line": 7,
+                  "Col": 23,
+                  "Offset": 187
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Style": {
+            "Span": {
+              "Start": {
+                "Line": 7,
+                "Col": 24,
+                "Offset": 188
+              },
+              "End": {
+                "Line": 7,
+                "Col": 33,
+                "Offset": 197
+              }
+            },
+            "Background": {
+              "Start": {
+                "Literal": "red",
+                "ColorSpan": {
+                  "Start": {
+                    "Line": 7,
+                    "Col": 25,
+                    "Offset": 189
+                  },
+                  "End": {
+                    "Line": 7,
+                    "Col": 28,
+                    "Offset": 192
+                  }
+                }
+              },
+              "End": {
+                "Literal": "blue",
+                "ColorSpan": {
+                  "Start": {
+                    "Line": 7,
+                    "Col": 29,
+                    "Offset": 193
+                  },
+                  "End": {
+                    "Line": 7,
+                    "Col": 33,
+                    "Offset": 197
+                  }
+                }
+              },
+              "Direction": "slash"
+            }
+          },
+          "LBrace": {
+            "Line": 7,
+            "Col": 34,
+            "Offset": 198
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 8,
+                  "Col": 5,
+                  "Offset": 204
+                },
+                "End": {
+                  "Line": 9,
+                  "Col": 0,
+                  "Offset": 217
+                }
+              },
+              "Visibility": "public",
+              "Field": {
+                "Name": "value",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 9,
+            "Col": 3,
+            "Offset": 220
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 11,
+              "Col": 3,
+              "Offset": 225
+            },
+            "End": {
+              "Line": 14,
+              "Col": 0,
+              "Offset": 282
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "DoubleHashEntity",
+              "Span": {
+                "Start": {
+                  "Line": 11,
+                  "Col": 9,
+                  "Offset": 231
+                },
+                "End": {
+                  "Line": 11,
+                  "Col": 25,
+                  "Offset": 247
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Style": {
+            "Span": {
+              "Start": {
+                "Line": 11,
+                "Col": 26,
+                "Offset": 248
+              },
+              "End": {
+                "Line": 11,
+                "Col": 39,
+                "Offset": 261
+              }
+            },
+            "LineColor": {
+              "Literal": "green",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 11,
+                  "Col": 34,
+                  "Offset": 256
+                },
+                "End": {
+                  "Line": 11,
+                  "Col": 39,
+                  "Offset": 261
+                }
+              }
+            },
+            "LineStyle": "bold"
+          },
+          "LBrace": {
+            "Line": 11,
+            "Col": 40,
+            "Offset": 262
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 12,
+                  "Col": 5,
+                  "Offset": 268
+                },
+                "End": {
+                  "Line": 13,
+                  "Col": 0,
+                  "Offset": 278
+                }
+              },
+              "Visibility": "public",
+              "Field": {
+                "Name": "count",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "int"
+                }
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 13,
+            "Col": 3,
+            "Offset": 281
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 15,
+              "Col": 3,
+              "Offset": 286
+            },
+            "End": {
+              "Line": 18,
+              "Col": 0,
+              "Offset": 342
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "DoubleHashColorEntity",
+              "Span": {
+                "Start": {
+                  "Line": 15,
+                  "Col": 9,
+                  "Offset": 292
+                },
+                "End": {
+                  "Line": 15,
+                  "Col": 30,
+                  "Offset": 313
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Style": {
+            "Span": {
+              "Start": {
+                "Line": 15,
+                "Col": 31,
+                "Offset": 314
+              },
+              "End": {
+                "Line": 15,
+                "Col": 37,
+                "Offset": 320
+              }
+            },
+            "LineColor": {
+              "Literal": "blue",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 15,
+                  "Col": 33,
+                  "Offset": 316
+                },
+                "End": {
+                  "Line": 15,
+                  "Col": 37,
+                  "Offset": 320
+                }
+              }
+            }
+          },
+          "LBrace": {
+            "Line": 15,
+            "Col": 38,
+            "Offset": 321
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 16,
+                  "Col": 5,
+                  "Offset": 327
+                },
+                "End": {
+                  "Line": 17,
+                  "Col": 0,
+                  "Offset": 338
+                }
+              },
+              "Visibility": "public",
+              "Field": {
+                "Name": "tag",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "string"
+                }
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 17,
+            "Col": 3,
+            "Offset": 341
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 19,
+              "Col": 3,
+              "Offset": 346
+            },
+            "End": {
+              "Line": 22,
+              "Col": 0,
+              "Offset": 447
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "CompositeEntity",
+              "Span": {
+                "Start": {
+                  "Line": 19,
+                  "Col": 9,
+                  "Offset": 352
+                },
+                "End": {
+                  "Line": 19,
+                  "Col": 24,
+                  "Offset": 367
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Style": {
+            "Span": {
+              "Start": {
+                "Line": 19,
+                "Col": 25,
+                "Offset": 368
+              },
+              "End": {
+                "Line": 19,
+                "Col": 81,
+                "Offset": 424
+              }
+            },
+            "Background": {
+              "Literal": "red",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 19,
+                  "Col": 31,
+                  "Offset": 374
+                },
+                "End": {
+                  "Line": 19,
+                  "Col": 34,
+                  "Offset": 377
+                }
+              }
+            },
+            "Header": {
+              "Literal": "blue",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 19,
+                  "Col": 42,
+                  "Offset": 385
+                },
+                "End": {
+                  "Line": 19,
+                  "Col": 46,
+                  "Offset": 389
+                }
+              }
+            },
+            "LineColor": {
+              "Literal": "green",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 19,
+                  "Col": 52,
+                  "Offset": 395
+                },
+                "End": {
+                  "Line": 19,
+                  "Col": 57,
+                  "Offset": 400
+                }
+              }
+            },
+            "LineStyle": "dotted",
+            "TextColor": {
+              "Literal": "yellow",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 19,
+                  "Col": 75,
+                  "Offset": 418
+                },
+                "End": {
+                  "Line": 19,
+                  "Col": 81,
+                  "Offset": 424
+                }
+              }
+            }
+          },
+          "LBrace": {
+            "Line": 19,
+            "Col": 82,
+            "Offset": 425
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 20,
+                  "Col": 5,
+                  "Offset": 431
+                },
+                "End": {
+                  "Line": 21,
+                  "Col": 0,
+                  "Offset": 443
+                }
+              },
+              "Visibility": "public",
+              "Field": {
+                "Name": "active",
+                "Type": {
+                  "Typ": "named",
+                  "Name": "bool"
+                }
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 21,
+            "Col": 3,
+            "Offset": 446
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 23,
+              "Col": 3,
+              "Offset": 451
+            },
+            "End": {
+              "Line": 26,
+              "Col": 0,
+              "Offset": 512
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "SpotService",
+              "Span": {
+                "Start": {
+                  "Line": 23,
+                  "Col": 9,
+                  "Offset": 457
+                },
+                "End": {
+                  "Line": 23,
+                  "Col": 20,
+                  "Offset": 468
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Stereotype": {
+            "Value": {
+              "Literal": "Service",
+              "Span": {
+                "Start": {
+                  "Line": 23,
+                  "Col": 34,
+                  "Offset": 482
+                },
+                "End": {
+                  "Line": 23,
+                  "Col": 41,
+                  "Offset": 489
+                }
+              }
+            },
+            "SpotColor": {
+              "Literal": "green",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 23,
+                  "Col": 27,
+                  "Offset": 475
+                },
+                "End": {
+                  "Line": 23,
+                  "Col": 32,
+                  "Offset": 480
+                }
+              }
+            },
+            "SpotSpan": {
+              "Start": {
+                "Line": 23,
+                "Col": 23,
+                "Offset": 471
+              },
+              "End": {
+                "Line": 23,
+                "Col": 33,
+                "Offset": 481
+              }
+            },
+            "SpotRune": 83,
+            "FullSpan": {
+              "Start": {
+                "Line": 23,
+                "Col": 21,
+                "Offset": 469
+              },
+              "End": {
+                "Line": 23,
+                "Col": 43,
+                "Offset": 491
+              }
+            }
+          },
+          "LBrace": {
+            "Line": 23,
+            "Col": 44,
+            "Offset": 492
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 24,
+                  "Col": 5,
+                  "Offset": 498
+                },
+                "End": {
+                  "Line": 25,
+                  "Col": 0,
+                  "Offset": 508
+                }
+              },
+              "Visibility": "public",
+              "Method": {
+                "Name": "Execute"
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 25,
+            "Col": 3,
+            "Offset": 511
+          }
+        },
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 27,
+              "Col": 3,
+              "Offset": 516
+            },
+            "End": {
+              "Line": 30,
+              "Col": 0,
+              "Offset": 584
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "SpotController",
+              "Span": {
+                "Start": {
+                  "Line": 27,
+                  "Col": 9,
+                  "Offset": 522
+                },
+                "End": {
+                  "Line": 27,
+                  "Col": 23,
+                  "Offset": 536
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "Stereotype": {
+            "Value": {
+              "Literal": "Controller",
+              "Span": {
+                "Start": {
+                  "Line": 27,
+                  "Col": 39,
+                  "Offset": 552
+                },
+                "End": {
+                  "Line": 27,
+                  "Col": 49,
+                  "Offset": 562
+                }
+              }
+            },
+            "SpotColor": {
+              "Literal": "FF7700",
+              "ColorSpan": {
+                "Start": {
+                  "Line": 27,
+                  "Col": 30,
+                  "Offset": 543
+                },
+                "End": {
+                  "Line": 27,
+                  "Col": 37,
+                  "Offset": 550
+                }
+              }
+            },
+            "SpotSpan": {
+              "Start": {
+                "Line": 27,
+                "Col": 26,
+                "Offset": 539
+              },
+              "End": {
+                "Line": 27,
+                "Col": 38,
+                "Offset": 551
+              }
+            },
+            "SpotRune": 67,
+            "FullSpan": {
+              "Start": {
+                "Line": 27,
+                "Col": 24,
+                "Offset": 537
+              },
+              "End": {
+                "Line": 27,
+                "Col": 51,
+                "Offset": 564
+              }
+            }
+          },
+          "LBrace": {
+            "Line": 27,
+            "Col": 52,
+            "Offset": 565
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 28,
+                  "Col": 5,
+                  "Offset": 571
+                },
+                "End": {
+                  "Line": 29,
+                  "Col": 0,
+                  "Offset": 580
+                }
+              },
+              "Visibility": "public",
+              "Method": {
+                "Name": "Handle"
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 29,
+            "Col": 3,
+            "Offset": 583
+          }
+        }
+      ],
+      "RBrace": {
+        "Line": 30,
+        "Col": 1,
+        "Offset": 585
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 2,
+          "Col": 1,
+          "Offset": 24
+        },
+        "End": {
+          "Line": 31,
+          "Col": 0,
+          "Offset": 586
+        }
+      }
+    },
+    {
+      "Identifier": {
+        "Name": {
+          "Literal": "\"Storage Layer\"",
+          "Span": {
+            "Start": {
+              "Line": 32,
+              "Col": 9,
+              "Offset": 596
+            },
+            "End": {
+              "Line": 32,
+              "Col": 24,
+              "Offset": 611
+            }
+          }
+        }
+      },
+      "Alias": {
+        "Literal": "",
+        "Span": {
+          "Start": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          },
+          "End": {
+            "Line": 0,
+            "Col": 0,
+            "Offset": 0
+          }
+        }
+      },
+      "Kind": "package",
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 32,
+            "Col": 25,
+            "Offset": 612
+          },
+          "End": {
+            "Line": 32,
+            "Col": 39,
+            "Offset": 626
+          }
+        },
+        "Background": {
+          "Start": {
+            "Literal": "yellow",
+            "ColorSpan": {
+              "Start": {
+                "Line": 32,
+                "Col": 26,
+                "Offset": 613
+              },
+              "End": {
+                "Line": 32,
+                "Col": 32,
+                "Offset": 619
+              }
+            }
+          },
+          "End": {
+            "Literal": "orange",
+            "ColorSpan": {
+              "Start": {
+                "Line": 32,
+                "Col": 33,
+                "Offset": 620
+              },
+              "End": {
+                "Line": 32,
+                "Col": 39,
+                "Offset": 626
+              }
+            }
+          },
+          "Direction": "vertical"
+        }
+      },
+      "LBrace": {
+        "Line": 32,
+        "Col": 40,
+        "Offset": 627
+      },
+      "Statements": [
+        {
+          "NodeSpan": {
+            "Start": {
+              "Line": 33,
+              "Col": 3,
+              "Offset": 631
+            },
+            "End": {
+              "Line": 36,
+              "Col": 0,
+              "Offset": 666
+            }
+          },
+          "Identifier": {
+            "Name": {
+              "Literal": "Database",
+              "Span": {
+                "Start": {
+                  "Line": 33,
+                  "Col": 9,
+                  "Offset": 637
+                },
+                "End": {
+                  "Line": 33,
+                  "Col": 17,
+                  "Offset": 645
+                }
+              }
+            }
+          },
+          "Alias": {
+            "Literal": "",
+            "Span": {
+              "Start": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              },
+              "End": {
+                "Line": 0,
+                "Col": 0,
+                "Offset": 0
+              }
+            }
+          },
+          "Kind": "class",
+          "LBrace": {
+            "Line": 33,
+            "Col": 18,
+            "Offset": 646
+          },
+          "Members": [
+            {
+              "NodeSpan": {
+                "Start": {
+                  "Line": 34,
+                  "Col": 5,
+                  "Offset": 652
+                },
+                "End": {
+                  "Line": 35,
+                  "Col": 0,
+                  "Offset": 662
+                }
+              },
+              "Visibility": "public",
+              "Method": {
+                "Name": "Connect"
+              }
+            }
+          ],
+          "RBrace": {
+            "Line": 35,
+            "Col": 3,
+            "Offset": 665
+          }
+        }
+      ],
+      "RBrace": {
+        "Line": 36,
+        "Col": 1,
+        "Offset": 667
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 32,
+          "Col": 1,
+          "Offset": 588
+        },
+        "End": {
+          "Line": 37,
+          "Col": 0,
+          "Offset": 668
+        }
+      }
+    },
+    {
+      "Kind": "targeted",
+      "Text": "Simple note on entity",
+      "Direction": "right",
+      "Target": {
+        "Name": {
+          "Literal": "SimpleEntity",
+          "Span": {
+            "Start": {
+              "Line": 38,
+              "Col": 15,
+              "Offset": 684
+            },
+            "End": {
+              "Line": 38,
+              "Col": 27,
+              "Offset": 696
+            }
+          }
+        }
+      },
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 38,
+            "Col": 28,
+            "Offset": 697
+          },
+          "End": {
+            "Line": 38,
+            "Col": 35,
+            "Offset": 704
+          }
+        },
+        "Background": {
+          "Literal": "yellow",
+          "ColorSpan": {
+            "Start": {
+              "Line": 38,
+              "Col": 29,
+              "Offset": 698
+            },
+            "End": {
+              "Line": 38,
+              "Col": 35,
+              "Offset": 704
+            }
+          }
+        }
+      },
+      "Identifier": {
+        "Name": {
+          "Literal": "",
+          "Span": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
+        }
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 38,
+          "Col": 1,
+          "Offset": 670
+        },
+        "End": {
+          "Line": 39,
+          "Col": 0,
+          "Offset": 728
+        }
+      }
+    },
+    {
+      "Kind": "targeted",
+      "Text": "Gradient note on entity",
+      "Direction": "left",
+      "Target": {
+        "Name": {
+          "Literal": "GradientEntity",
+          "Span": {
+            "Start": {
+              "Line": 40,
+              "Col": 14,
+              "Offset": 743
+            },
+            "End": {
+              "Line": 40,
+              "Col": 28,
+              "Offset": 757
+            }
+          }
+        }
+      },
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 40,
+            "Col": 29,
+            "Offset": 758
+          },
+          "End": {
+            "Line": 40,
+            "Col": 43,
+            "Offset": 772
+          }
+        },
+        "Background": {
+          "Start": {
+            "Literal": "yellow",
+            "ColorSpan": {
+              "Start": {
+                "Line": 40,
+                "Col": 30,
+                "Offset": 759
+              },
+              "End": {
+                "Line": 40,
+                "Col": 36,
+                "Offset": 765
+              }
+            }
+          },
+          "End": {
+            "Literal": "orange",
+            "ColorSpan": {
+              "Start": {
+                "Line": 40,
+                "Col": 37,
+                "Offset": 766
+              },
+              "End": {
+                "Line": 40,
+                "Col": 43,
+                "Offset": 772
+              }
+            }
+          },
+          "Direction": "slash"
+        }
+      },
+      "Identifier": {
+        "Name": {
+          "Literal": "",
+          "Span": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
+        }
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 40,
+          "Col": 1,
+          "Offset": 730
+        },
+        "End": {
+          "Line": 41,
+          "Col": 0,
+          "Offset": 798
+        }
+      }
+    },
+    {
+      "Kind": "link",
+      "Text": "Communication channel\nis encrypted.",
+      "Target": {
+        "Name": {
+          "Literal": "link",
+          "Span": {
+            "Start": {
+              "Line": 42,
+              "Col": 9,
+              "Offset": 808
+            },
+            "End": {
+              "Line": 42,
+              "Col": 13,
+              "Offset": 812
+            }
+          }
+        }
+      },
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 42,
+            "Col": 14,
+            "Offset": 813
+          },
+          "End": {
+            "Line": 43,
+            "Col": 0,
+            "Offset": 823
+          }
+        },
+        "Background": {
+          "Start": {
+            "Literal": "cyan",
+            "ColorSpan": {
+              "Start": {
+                "Line": 42,
+                "Col": 15,
+                "Offset": 814
+              },
+              "End": {
+                "Line": 42,
+                "Col": 19,
+                "Offset": 818
+              }
+            }
+          },
+          "End": {
+            "Literal": "blue",
+            "ColorSpan": {
+              "Start": {
+                "Line": 42,
+                "Col": 20,
+                "Offset": 819
+              },
+              "End": {
+                "Line": 43,
+                "Col": 0,
+                "Offset": 823
+              }
+            }
+          },
+          "Direction": "vertical"
+        }
+      },
+      "Identifier": {
+        "Name": {
+          "Literal": "",
+          "Span": {
+            "Start": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            },
+            "End": {
+              "Line": 0,
+              "Col": 0,
+              "Offset": 0
+            }
+          }
+        }
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 42,
+          "Col": 1,
+          "Offset": 800
+        },
+        "End": {
+          "Line": 46,
+          "Col": 0,
+          "Offset": 868
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "SimpleEntity",
+          "Span": {
+            "Start": {
+              "Line": 47,
+              "Col": 1,
+              "Offset": 870
+            },
+            "End": {
+              "Line": 47,
+              "Col": 13,
+              "Offset": 882
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "GradientEntity",
+          "Span": {
+            "Start": {
+              "Line": 47,
+              "Col": 26,
+              "Offset": 895
+            },
+            "End": {
+              "Line": 48,
+              "Col": 0,
+              "Offset": 909
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 47,
+          "Col": 14,
+          "Offset": 883
+        },
+        "End": {
+          "Line": 47,
+          "Col": 25,
+          "Offset": 894
+        }
+      },
+      "ArrowStyle": {
+        "Span": {
+          "Start": {
+            "Line": 47,
+            "Col": 15,
+            "Offset": 884
+          },
+          "End": {
+            "Line": 47,
+            "Col": 23,
+            "Offset": 892
+          }
+        },
+        "LineStyle": "dashed"
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "NodeSpan": {
+        "Start": {
+          "Line": 47,
+          "Col": 1,
+          "Offset": 870
+        },
+        "End": {
+          "Line": 48,
+          "Col": 0,
+          "Offset": 909
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "GradientEntity",
+          "Span": {
+            "Start": {
+              "Line": 48,
+              "Col": 1,
+              "Offset": 910
+            },
+            "End": {
+              "Line": 48,
+              "Col": 15,
+              "Offset": 924
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "DoubleHashEntity",
+          "Span": {
+            "Start": {
+              "Line": 48,
+              "Col": 26,
+              "Offset": 935
+            },
+            "End": {
+              "Line": 49,
+              "Col": 0,
+              "Offset": 951
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 48,
+          "Col": 16,
+          "Offset": 925
+        },
+        "End": {
+          "Line": 48,
+          "Col": 25,
+          "Offset": 934
+        }
+      },
+      "ArrowStyle": {
+        "Span": {
+          "Start": {
+            "Line": 48,
+            "Col": 17,
+            "Offset": 926
+          },
+          "End": {
+            "Line": 48,
+            "Col": 23,
+            "Offset": 932
+          }
+        },
+        "LineColor": {
+          "Literal": "red",
+          "ColorSpan": {
+            "Start": {
+              "Line": 48,
+              "Col": 19,
+              "Offset": 928
+            },
+            "End": {
+              "Line": 48,
+              "Col": 22,
+              "Offset": 931
+            }
+          }
+        }
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "NodeSpan": {
+        "Start": {
+          "Line": 48,
+          "Col": 1,
+          "Offset": 910
+        },
+        "End": {
+          "Line": 49,
+          "Col": 0,
+          "Offset": 951
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "DoubleHashEntity",
+          "Span": {
+            "Start": {
+              "Line": 49,
+              "Col": 1,
+              "Offset": 952
+            },
+            "End": {
+              "Line": 49,
+              "Col": 17,
+              "Offset": 968
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "DoubleHashColorEntity",
+          "Span": {
+            "Start": {
+              "Line": 49,
+              "Col": 35,
+              "Offset": 986
+            },
+            "End": {
+              "Line": 50,
+              "Col": 0,
+              "Offset": 1007
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 49,
+          "Col": 18,
+          "Offset": 969
+        },
+        "End": {
+          "Line": 49,
+          "Col": 34,
+          "Offset": 985
+        }
+      },
+      "ArrowStyle": {
+        "Span": {
+          "Start": {
+            "Line": 49,
+            "Col": 19,
+            "Offset": 970
+          },
+          "End": {
+            "Line": 49,
+            "Col": 32,
+            "Offset": 983
+          }
+        },
+        "Thickness": 2
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "NodeSpan": {
+        "Start": {
+          "Line": 49,
+          "Col": 1,
+          "Offset": 952
+        },
+        "End": {
+          "Line": 50,
+          "Col": 0,
+          "Offset": 1007
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "DoubleHashColorEntity",
+          "Span": {
+            "Start": {
+              "Line": 50,
+              "Col": 1,
+              "Offset": 1008
+            },
+            "End": {
+              "Line": 50,
+              "Col": 22,
+              "Offset": 1029
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "CompositeEntity",
+          "Span": {
+            "Start": {
+              "Line": 50,
+              "Col": 51,
+              "Offset": 1058
+            },
+            "End": {
+              "Line": 51,
+              "Col": 0,
+              "Offset": 1073
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 50,
+          "Col": 23,
+          "Offset": 1030
+        },
+        "End": {
+          "Line": 50,
+          "Col": 50,
+          "Offset": 1057
+        }
+      },
+      "ArrowStyle": {
+        "Span": {
+          "Start": {
+            "Line": 50,
+            "Col": 24,
+            "Offset": 1031
+          },
+          "End": {
+            "Line": 50,
+            "Col": 48,
+            "Offset": 1055
+          }
+        },
+        "LineColor": {
+          "Literal": "blue",
+          "ColorSpan": {
+            "Start": {
+              "Line": 50,
+              "Col": 31,
+              "Offset": 1038
+            },
+            "End": {
+              "Line": 50,
+              "Col": 35,
+              "Offset": 1042
+            }
+          }
+        },
+        "LineStyle": "bold",
+        "Thickness": 3
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "NodeSpan": {
+        "Start": {
+          "Line": 50,
+          "Col": 1,
+          "Offset": 1008
+        },
+        "End": {
+          "Line": 51,
+          "Col": 0,
+          "Offset": 1073
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "CompositeEntity",
+          "Span": {
+            "Start": {
+              "Line": 51,
+              "Col": 1,
+              "Offset": 1074
+            },
+            "End": {
+              "Line": 51,
+              "Col": 16,
+              "Offset": 1089
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "Database",
+          "Span": {
+            "Start": {
+              "Line": 51,
+              "Col": 21,
+              "Offset": 1094
+            },
+            "End": {
+              "Line": 51,
+              "Col": 29,
+              "Offset": 1102
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 51,
+          "Col": 17,
+          "Offset": 1090
+        },
+        "End": {
+          "Line": 51,
+          "Col": 20,
+          "Offset": 1093
+        }
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 51,
+            "Col": 30,
+            "Offset": 1103
+          },
+          "End": {
+            "Line": 52,
+            "Col": 0,
+            "Offset": 1110
+          }
+        },
+        "LineColor": {
+          "Literal": "purple",
+          "ColorSpan": {
+            "Start": {
+              "Line": 51,
+              "Col": 31,
+              "Offset": 1104
+            },
+            "End": {
+              "Line": 52,
+              "Col": 0,
+              "Offset": 1110
+            }
+          }
+        }
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 51,
+          "Col": 1,
+          "Offset": 1074
+        },
+        "End": {
+          "Line": 52,
+          "Col": 0,
+          "Offset": 1110
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "Database",
+          "Span": {
+            "Start": {
+              "Line": 52,
+              "Col": 1,
+              "Offset": 1111
+            },
+            "End": {
+              "Line": 52,
+              "Col": 9,
+              "Offset": 1119
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "SpotService",
+          "Span": {
+            "Start": {
+              "Line": 52,
+              "Col": 14,
+              "Offset": 1124
+            },
+            "End": {
+              "Line": 52,
+              "Col": 25,
+              "Offset": 1135
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 52,
+          "Col": 10,
+          "Offset": 1120
+        },
+        "End": {
+          "Line": 52,
+          "Col": 13,
+          "Offset": 1123
+        }
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 52,
+            "Col": 26,
+            "Offset": 1136
+          },
+          "End": {
+            "Line": 53,
+            "Col": 0,
+            "Offset": 1169
+          }
+        },
+        "LineColor": {
+          "Literal": "green",
+          "ColorSpan": {
+            "Start": {
+              "Line": 52,
+              "Col": 32,
+              "Offset": 1142
+            },
+            "End": {
+              "Line": 52,
+              "Col": 37,
+              "Offset": 1147
+            }
+          }
+        },
+        "LineStyle": "dotted",
+        "TextColor": {
+          "Literal": "blue",
+          "ColorSpan": {
+            "Start": {
+              "Line": 52,
+              "Col": 55,
+              "Offset": 1165
+            },
+            "End": {
+              "Line": 53,
+              "Col": 0,
+              "Offset": 1169
+            }
+          }
+        }
+      },
+      "NodeSpan": {
+        "Start": {
+          "Line": 52,
+          "Col": 1,
+          "Offset": 1111
+        },
+        "End": {
+          "Line": 53,
+          "Col": 0,
+          "Offset": 1169
+        }
+      }
+    },
+    {
+      "LHS": {
+        "Name": {
+          "Literal": "SpotService",
+          "Span": {
+            "Start": {
+              "Line": 53,
+              "Col": 1,
+              "Offset": 1170
+            },
+            "End": {
+              "Line": 53,
+              "Col": 12,
+              "Offset": 1181
+            }
+          }
+        }
+      },
+      "RHS": {
+        "Name": {
+          "Literal": "SpotController",
+          "Span": {
+            "Start": {
+              "Line": 53,
+              "Col": 42,
+              "Offset": 1211
+            },
+            "End": {
+              "Line": 53,
+              "Col": 56,
+              "Offset": 1225
+            }
+          }
+        }
+      },
+      "TypeRHS": "association",
+      "MultLHS": null,
+      "MultRHS": null,
+      "ArrowSpan": {
+        "Start": {
+          "Line": 53,
+          "Col": 13,
+          "Offset": 1182
+        },
+        "End": {
+          "Line": 53,
+          "Col": 41,
+          "Offset": 1210
+        }
+      },
+      "ArrowStyle": {
+        "Span": {
+          "Start": {
+            "Line": 53,
+            "Col": 14,
+            "Offset": 1183
+          },
+          "End": {
+            "Line": 53,
+            "Col": 39,
+            "Offset": 1208
+          }
+        },
+        "LineColor": {
+          "Literal": "red",
+          "ColorSpan": {
+            "Start": {
+              "Line": 53,
+              "Col": 23,
+              "Offset": 1192
+            },
+            "End": {
+              "Line": 53,
+              "Col": 26,
+              "Offset": 1195
+            }
+          }
+        },
+        "LineStyle": "dashed",
+        "Thickness": 2
+      },
+      "Body": 45,
+      "BodyCount": 2,
+      "RArrow": 62,
+      "Style": {
+        "Span": {
+          "Start": {
+            "Line": 53,
+            "Col": 57,
+            "Offset": 1226
+          },
+          "End": {
+            "Line": 53,
+            "Col": 78,
+            "Offset": 1247
+          }
+        },
+        "LineColor": {
+          "Literal": "green",
+          "ColorSpan": {
+            "Start": {
+              "Line": 53,
+              "Col": 63,
+              "Offset": 1232
+            },
+            "End": {
+              "Line": 53,
+              "Col": 68,
+              "Offset": 1237
+            }
+          }
+        },
+        "TextColor": {
+          "Literal": "blue",
+          "ColorSpan": {
+            "Start": {
+              "Line": 53,
+              "Col": 74,
+              "Offset": 1243
+            },
+            "End": {
+              "Line": 53,
+              "Col": 78,
+              "Offset": 1247
+            }
+          }
+        }
+      },
+      "Label": "manages",
+      "NodeSpan": {
+        "Start": {
+          "Line": 53,
+          "Col": 1,
+          "Offset": 1170
+        },
+        "End": {
+          "Line": 54,
+          "Col": 0,
+          "Offset": 1257
+        }
+      }
+    },
+    {
+      "IsStart": false,
+      "Type": "uml",
+      "NodeSpan": {
+        "Start": {
+          "Line": 55,
+          "Col": 1,
+          "Offset": 1259
+        },
+        "End": {
+          "Line": 56,
+          "Col": 0,
+          "Offset": 1266
+        }
+      }
+    }
+  ]
+}

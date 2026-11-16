@@ -34,7 +34,8 @@ type Relationship struct {
 
 	// Arrow itself
 	ArrowSpan      tokenizer.SourceSpan
-	Body           rune // '-', '.'
+	ArrowStyle     *ArrowStyle `json:",omitempty"`
+	Body           rune        // '-', '.'
 	BodyCount      int
 	LArrow, RArrow rune `json:",omitempty"`
 	// Special case for left/righ arrow rune of relationship:

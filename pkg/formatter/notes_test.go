@@ -67,6 +67,21 @@ package "Auth" {
 @enduml
 `,
 		},
+		{
+			name: "Notes with gradient colors",
+			input: `@startuml
+class User {
+}
+
+note right of User #yellow/orange : Gradient targeted note
+
+note on link #cyan|blue
+Communication channel
+is encrypted.
+end note
+@enduml
+`,
+		},
 	}
 
 	for _, tt := range tests {
@@ -135,6 +150,22 @@ package "Auth" {
 
   note right of Session : Session expires in 24h
 }
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in note gradient color",
+			input: `@startuml
+class User {
+}
+note   right   of   User   #yellow / orange   :   Gradient targeted note
+@enduml
+`,
+			expected: `@startuml
+class User {
+}
+
+note right of User #yellow/orange : Gradient targeted note
 @enduml
 `,
 		},

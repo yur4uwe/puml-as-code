@@ -68,6 +68,21 @@ package "Core Domain" as core <<Domain>> $backend #lightgreen {
 `,
 		},
 		{
+			name: "Container with gradient and composite styles",
+			input: `@startuml
+package "Grad" #red/blue {
+  class A {
+  }
+}
+
+package "Domain" #back:lightgreen;line:darkgreen;line.dashed;text:black {
+  class B {
+  }
+}
+@enduml
+`,
+		},
+		{
 			name: "Custom package separator with set separator .",
 			input: `@startuml
 set separator .
@@ -154,6 +169,32 @@ package   "Core Domain"   as   core   <<Domain>>   $backend   #lightgreen   {
 			expected: `@startuml
 package "Core Domain" as core <<Domain>> $backend #lightgreen {
   class Model {
+  }
+}
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in container inline styles",
+			input: `@startuml
+package   "Grad"   #red / blue   {
+  class A {
+  }
+}
+package   "Domain"   #back:lightgreen ; line:darkgreen ; line.dashed ; text:black   {
+  class B {
+  }
+}
+@enduml
+`,
+			expected: `@startuml
+package "Grad" #red/blue {
+  class A {
+  }
+}
+
+package "Domain" #back:lightgreen;line:darkgreen;line.dashed;text:black {
+  class B {
   }
 }
 @enduml

@@ -2,6 +2,7 @@ package ast
 
 import "yur4uwe/pac/pkg/tokenizer"
 
+//go:generate enumer -type=GradientKind -transform=lower -trimprefix=Gradient -json
 type GradientKind byte
 
 const (
@@ -27,10 +28,11 @@ func FromTokType(typ tokenizer.TokenType) GradientKind {
 	}
 }
 
+//go:generate enumer -type=LineStyle -transform=lower -trimprefix=Line -json
 type LineStyle byte
 
 const (
-	LineNormal LineStyle = iota
+	LinePlain LineStyle = iota
 	LineBold
 	LineDashed
 	LineDotted
@@ -48,8 +50,13 @@ type ColorRef struct {
 	ColorSpan tokenizer.SourceSpan
 }
 
-func (s *ColorRef) Span() tokenizer.SourceSpan { return s.ColorSpan }
-func (s *ColorRef) colorExpr()                 {}
+func (s *ColorRef) Span() tokenizer.SourceSpan {
+	if s == nil {
+		return tokenizer.SourceSpan{}
+	}
+	return s.ColorSpan
+}
+func (s *ColorRef) colorExpr() {}
 
 func FromToken(tok tokenizer.Token) *ColorRef {
 	return &ColorRef{
@@ -70,12 +77,9 @@ func (g *GradientColor) Span() tokenizer.SourceSpan {
 		return tokenizer.SourceSpan{}
 	}
 	var startPos, endPos tokenizer.Pos
-	if g.Start != nil {
-		startPos = g.Start.Span().Start
-	}
-	if g.End != nil {
-		endPos = g.End.Span().End
-	}
+	// There should be a non-nil guarantee
+	startPos = g.Start.Span().Start
+	endPos = g.End.Span().End
 	return tokenizer.SourceSpan{Start: startPos, End: endPos}
 }
 
@@ -93,6 +97,13 @@ type EntityStyle struct {
 	TextColor  ColorExpr `json:",omitempty"`
 }
 
+func (e *EntityStyle) IsEmpty() bool {
+	if e == nil {
+		return true
+	}
+	return e.Background == nil && e.Header == nil && e.LineColor == nil && e.LineStyle == LinePlain && e.TextColor == nil
+}
+
 // ContainerStyle models inline style annotations on packages/containers:
 //
 //	#[color|back:color];line:color;line.[bold|dashed|dotted];text:color
@@ -104,7 +115,31 @@ type ContainerStyle struct {
 	TextColor  ColorExpr `json:",omitempty"`
 }
 
-// RelationshipStyle models inline style annotations on relationships/arrows:
+func (c *ContainerStyle) IsEmpty() bool {
+	if c == nil {
+		return true
+	}
+	return c.Background == nil && c.LineColor == nil && c.LineStyle == LinePlain && c.TextColor == nil
+}
+
+// ArrowStyle models bracketed attribute annotations directly on arrows:
+//
+//	-[dashed,#red,thickness=2]->
+type ArrowStyle struct {
+	Span      tokenizer.SourceSpan
+	LineColor *ColorRef `json:",omitempty"`
+	LineStyle LineStyle `json:",omitempty"`
+	Thickness int       `json:",omitempty"`
+}
+
+func (a *ArrowStyle) IsEmpty() bool {
+	if a == nil {
+		return true
+	}
+	return a.LineColor == nil && a.LineStyle == LinePlain && a.Thickness == 0
+}
+
+// RelationshipStyle models post-target inline style annotations on relationships:
 //
 //	#line:color;line.[bold|dashed|dotted];text:color
 type RelationshipStyle struct {
@@ -112,7 +147,13 @@ type RelationshipStyle struct {
 	LineColor ColorExpr `json:",omitempty"`
 	LineStyle LineStyle `json:",omitempty"`
 	TextColor ColorExpr `json:",omitempty"`
-	Thickness int       `json:",omitempty"`
+}
+
+func (r *RelationshipStyle) IsEmpty() bool {
+	if r == nil {
+		return true
+	}
+	return r.LineColor == nil && r.LineStyle == LinePlain && r.TextColor == nil
 }
 
 // NoteStyle models inline style annotations on notes:

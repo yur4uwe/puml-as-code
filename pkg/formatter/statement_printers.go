@@ -7,7 +7,39 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 )
 
+func printColorExpr(s *formatterState, ce ast.ColorExpr) {
+	if ce == nil {
+		return
+	}
+	switch color := ce.(type) {
+	case *ast.ColorRef:
+		s.buf.WriteString(color.Literal)
+	case *ast.GradientColor:
+		gstr := ""
+		switch color.Direction {
+		case ast.GradientSlash:
+			gstr = "/"
+		case ast.GradientVertical:
+			gstr = "|"
+		case ast.GradientBackslash:
+			gstr = "\\"
+		case ast.GradientHorizontal:
+			gstr = "-"
+		}
+
+		fmt.Fprintf(&s.buf, "%s%s%s", color.Start.Literal, gstr, color.End.Literal)
+	default:
+		panic(fmt.Sprintf("undefined ast.ColorExpr implementer: %T", color))
+	}
+}
+
 func printNoteStyle(s *formatterState, style *ast.NoteStyle) {
+	if style == nil || style.Background == nil {
+		return
+	}
+	s.buf.WriteByte(' ')
+	s.buf.WriteByte('#')
+	printColorExpr(s, style.Background)
 }
 
 func printNote(s *formatterState, note *ast.Note) {
@@ -46,10 +78,7 @@ func printNoteHeader(s *formatterState, note *ast.Note, isBlock bool) {
 	default:
 		panic("unreachable")
 	}
-	if note.Style != nil {
-		s.buf.WriteByte(' ')
-		printNoteStyle(s, note.Style)
-	}
+	printNoteStyle(s, note.Style)
 }
 
 func printInlineNote(s *formatterState, note *ast.Note) {
@@ -210,7 +239,67 @@ func printInlineMember(s *formatterState, im *ast.InlineMember) {
 	s.formatMember(im.Member)
 }
 
-func printEntityStyle(s *formatterState, style *ast.EntityStyle) {}
+func printEntityStyle(s *formatterState, style *ast.EntityStyle) {
+	if style == nil || style.IsEmpty() {
+		return
+	}
+	s.buf.WriteString(" ")
+	hasOther := style.Header != nil || style.LineColor != nil || style.LineStyle != ast.LinePlain || style.TextColor != nil
+	if !hasOther && style.Background != nil {
+		s.buf.WriteByte('#')
+		printColorExpr(s, style.Background)
+		return
+	}
+	// Standalone double hash line style: ##[style]color or ##color
+	if style.Background == nil && style.Header == nil && style.TextColor == nil && style.LineColor != nil {
+		s.buf.WriteString("##")
+		if style.LineStyle != ast.LinePlain {
+			s.buf.WriteByte('[')
+			s.buf.WriteString(style.LineStyle.String())
+			s.buf.WriteByte(']')
+		}
+		printColorExpr(s, style.LineColor)
+		return
+	}
+	first := true
+	s.buf.WriteByte('#')
+	if style.Background != nil {
+		s.buf.WriteString("back:")
+		printColorExpr(s, style.Background)
+		first = false
+	}
+	if style.Header != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("header:")
+		printColorExpr(s, style.Header)
+		first = false
+	}
+	if style.LineColor != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("line:")
+		printColorExpr(s, style.LineColor)
+		first = false
+	}
+	if style.LineStyle != ast.LinePlain {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("line.")
+		s.buf.WriteString(style.LineStyle.String())
+		first = false
+	}
+	if style.TextColor != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("text:")
+		printColorExpr(s, style.TextColor)
+	}
+}
 
 func printEntity(s *formatterState, ent *ast.Entity) {
 	// Otherwise, it is a named entity
@@ -246,10 +335,7 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
 	}
-	if ent.Style != nil {
-		s.buf.WriteString(" ")
-		printEntityStyle(s, ent.Style)
-	}
+	printEntityStyle(s, ent.Style)
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(ent)
 	s.buf.WriteByte('\n')
@@ -261,7 +347,48 @@ func printEntity(s *formatterState, ent *ast.Entity) {
 	}
 }
 
-func printContainerStyle(s *formatterState, style *ast.ContainerStyle) {}
+func printContainerStyle(s *formatterState, style *ast.ContainerStyle) {
+	if style == nil || style.IsEmpty() {
+		return
+	}
+	s.buf.WriteString(" ")
+	hasOther := style.LineColor != nil || style.LineStyle != ast.LinePlain || style.TextColor != nil
+	if !hasOther && style.Background != nil {
+		s.buf.WriteByte('#')
+		printColorExpr(s, style.Background)
+		return
+	}
+	first := true
+	s.buf.WriteByte('#')
+	if style.Background != nil {
+		s.buf.WriteString("back:")
+		printColorExpr(s, style.Background)
+		first = false
+	}
+	if style.LineColor != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("line:")
+		printColorExpr(s, style.LineColor)
+		first = false
+	}
+	if style.LineStyle != ast.LinePlain {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("line.")
+		s.buf.WriteString(style.LineStyle.String())
+		first = false
+	}
+	if style.TextColor != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("text:")
+		printColorExpr(s, style.TextColor)
+	}
+}
 
 func printContainer(s *formatterState, cont *ast.Container) {
 	s.emitWithIndent(cont.Kind.String())
@@ -285,10 +412,7 @@ func printContainer(s *formatterState, cont *ast.Container) {
 		s.buf.WriteString(" $")
 		s.buf.WriteString(tag)
 	}
-	if cont.Style != nil {
-		s.buf.WriteString(" ")
-		printContainerStyle(s, cont.Style)
-	}
+	printContainerStyle(s, cont.Style)
 	s.buf.WriteString(" {")
 	s.emitBlockStartTrivia(cont)
 	s.buf.WriteByte('\n')
@@ -296,6 +420,79 @@ func printContainer(s *formatterState, cont *ast.Container) {
 	s.formatBlockStatements(cont, cont.Statements)
 
 	s.emitWithIndent("}")
+}
+
+func printArrowAttributes(s *formatterState, rel *ast.Relationship) {
+	if rel.ArrowStyle != nil && !rel.ArrowStyle.IsEmpty() {
+		style := rel.ArrowStyle
+		s.buf.WriteByte('[')
+		first := true
+		if style.LineStyle != ast.LinePlain {
+			s.buf.WriteString(style.LineStyle.String())
+			first = false
+		}
+		if style.LineColor != nil {
+			if !first {
+				s.buf.WriteByte(',')
+			}
+			s.buf.WriteByte('#')
+			printColorExpr(s, style.LineColor)
+			first = false
+		}
+		if style.Thickness > 0 {
+			if !first {
+				s.buf.WriteByte(',')
+			}
+			fmt.Fprintf(&s.buf, "thickness=%d", style.Thickness)
+		}
+		s.buf.WriteByte(']')
+		return
+	}
+	if len(rel.Attrs) > 0 {
+		s.buf.WriteByte('[')
+		for i, attr := range rel.Attrs {
+			if i > 0 {
+				s.buf.WriteByte(',')
+			}
+			s.buf.WriteString(attr)
+		}
+		s.buf.WriteByte(']')
+	}
+}
+
+func printRelationshipTrailingStyle(s *formatterState, rel *ast.Relationship) {
+	if rel.Style == nil || rel.Style.IsEmpty() {
+		return
+	}
+	style := rel.Style
+	s.buf.WriteString(" ")
+	if style.LineStyle == ast.LinePlain && style.TextColor == nil && style.LineColor != nil {
+		s.buf.WriteByte('#')
+		printColorExpr(s, style.LineColor)
+		return
+	}
+	first := true
+	s.buf.WriteByte('#')
+	if style.LineColor != nil {
+		s.buf.WriteString("line:")
+		printColorExpr(s, style.LineColor)
+		first = false
+	}
+	if style.LineStyle != ast.LinePlain {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("line.")
+		s.buf.WriteString(style.LineStyle.String())
+		first = false
+	}
+	if style.TextColor != nil {
+		if !first {
+			s.buf.WriteByte(';')
+		}
+		s.buf.WriteString("text:")
+		printColorExpr(s, style.TextColor)
+	}
 }
 
 func printRelationship(s *formatterState, rel *ast.Relationship) {
@@ -317,16 +514,7 @@ func printRelationship(s *formatterState, rel *ast.Relationship) {
 	if rel.Direction != ast.DirectionUnknown {
 		s.buf.WriteString(arrowDirection(rel.Direction))
 	}
-	if len(rel.Attrs) > 0 {
-		s.buf.WriteByte('[')
-		for i, attr := range rel.Attrs {
-			if i > 0 {
-				s.buf.WriteByte(',')
-			}
-			s.buf.WriteString(attr)
-		}
-		s.buf.WriteByte(']')
-	}
+	printArrowAttributes(s, rel)
 	s.buf.WriteString(strings.Repeat(string(rel.Body), rbrCount))
 	switch rel.RArrow {
 	case '>', '{', 'o', 'x', '*', '+', '^', '#':
@@ -340,6 +528,7 @@ func printRelationship(s *formatterState, rel *ast.Relationship) {
 	}
 	s.buf.WriteString(" ")
 	s.buf.WriteString(s.targetFQN(rel.RHS))
+	printRelationshipTrailingStyle(s, rel)
 	if rel.Label != "" {
 		s.buf.WriteString(" : ")
 		s.buf.WriteString(rel.Label)

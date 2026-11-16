@@ -46,6 +46,23 @@ class Container <T> <<Generic>> $core $model #lightblue {
 `,
 		},
 		{
+			name: "Entity with gradient color, double hash line styles, and composite styles",
+			input: `@startuml
+class GradientEntity #red/blue {
+}
+
+class DoubleHashEntity ##[bold]green {
+}
+
+class DoubleHashColorEntity ##blue {
+}
+
+class StyledEntity #back:red;header:blue;line:green;line.dotted;text:yellow {
+}
+@enduml
+`,
+		},
+		{
 			name: "Entity with alias",
 			input: `@startuml
 class "Custom User Service" as UserService {
@@ -169,6 +186,29 @@ class User {
 
 User : +id string
 User : +GetName() string
+@enduml
+`,
+		},
+		{
+			name: "Irregular spacing in entity inline styles",
+			input: `@startuml
+class   GradientEntity   #red / blue   {
+}
+class   DoubleHashEntity   ##[  bold  ]  green   {
+}
+class   StyledEntity   #back:red ; header:blue ; line:green ; line.dotted ; text:yellow   {
+}
+@enduml
+`,
+			expected: `@startuml
+class GradientEntity #red/blue {
+}
+
+class DoubleHashEntity ##[bold]green {
+}
+
+class StyledEntity #back:red;header:blue;line:green;line.dotted;text:yellow {
+}
 @enduml
 `,
 		},

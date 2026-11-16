@@ -1,0 +1,56 @@
+@startuml InlineStyles
+
+package "Core Domain" as core #back:lightgreen;line:darkgreen;line.dashed;text:black {
+  class SimpleEntity #lightblue {
+    +id string
+  }
+
+  class GradientEntity #red/blue {
+    +value string
+  }
+
+  class DoubleHashEntity ##[bold]green {
+    +count int
+  }
+
+  class DoubleHashColorEntity ##blue {
+    +tag string
+  }
+
+  class CompositeEntity #back:red;header:blue;line:green;line.dotted;text:yellow {
+    +active bool
+  }
+
+  class SpotService <<(S, green) Service>> {
+    +Execute()
+  }
+
+  class SpotController <<(C, #FF7700) Controller>> {
+    +Handle()
+  }
+}
+
+package "Storage Layer" #yellow|orange {
+  class Database {
+    +Connect()
+  }
+}
+
+note right of SimpleEntity #yellow : Simple note on entity
+
+note left of GradientEntity #yellow/orange : Gradient note on entity
+
+note on link #cyan|blue
+Communication channel
+is encrypted.
+end note
+
+SimpleEntity -[dashed]-> GradientEntity
+GradientEntity -[#red]-> DoubleHashEntity
+DoubleHashEntity -[thickness=2]-> DoubleHashColorEntity
+DoubleHashColorEntity -[bold,#blue,thickness=3]-> CompositeEntity
+CompositeEntity --> Database #purple
+Database --> SpotService #line:green;line.dotted;text:blue
+SpotService -[dashed,#red,thickness=2]-> SpotController #line:green;text:blue : manages
+
+@enduml

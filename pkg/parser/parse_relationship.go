@@ -201,8 +201,8 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	return rel
 }
 
-func (p *Parser) parseArrowAttributes() (*ast.RelationshipStyle, error) {
-	relStyle := &ast.RelationshipStyle{}
+func (p *Parser) parseArrowAttributes() (*ast.ArrowStyle, error) {
+	relStyle := &ast.ArrowStyle{}
 	for {
 		tok := p.stream.Emit()
 		switch tok.Type {
@@ -235,16 +235,12 @@ func (p *Parser) parseArrowAttributes() (*ast.RelationshipStyle, error) {
 				// err is impossible here, parsing a number guarantees that numTok IS actually a number
 				thickness, _ := strconv.Atoi(numTok.Literal)
 				relStyle.Thickness = thickness
-			case "plain":
-				relStyle.LineStyle = ast.LineNormal
-			case "bold":
-				relStyle.LineStyle = ast.LineBold
-			case "dashed":
-				relStyle.LineStyle = ast.LineDashed
-			case "dotted":
-				relStyle.LineStyle = ast.LineDotted
 			default:
-				return relStyle, NewParserErrorf(tok, "recieved unexpected identifier in arrow attributes: %s", tok.Literal)
+				ls, err := parseLineStyle(tok)
+				if err != nil {
+					return relStyle, NewParserErrorf(tok, "recieved unexpected identifier in arrow attributes: %s", tok.Literal)
+				}
+				relStyle.LineStyle = ls
 			}
 		}
 		if !p.stream.AssertAnyType(tokenizer.COMMA, tokenizer.RBRACKET) {
@@ -378,8 +374,9 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 				}
 			}
 			if !sawAttrs {
-				if _, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
+				if lbracket, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
 					sawAttrs = true
+					mark := p.Mark(lbracket)
 					// We have matched attribute container start
 					// after the body, now - parse the attributes
 
@@ -388,8 +385,9 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					if errors.As(err, &pe) {
 						return err
 					}
+					style.Span = p.Span(mark)
 
-					rel.Style = style
+					rel.ArrowStyle = style
 				}
 			}
 		}

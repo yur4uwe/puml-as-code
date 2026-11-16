@@ -65,8 +65,16 @@ func (p Pos) String() string {
 	return fmt.Sprintf("%d:%d", p.Line, p.Col)
 }
 
+func (p Pos) IsZero() bool {
+	return p == Pos{}
+}
+
 type SourceSpan struct {
 	Start, End Pos
+}
+
+func (s SourceSpan) IsZero() bool {
+	return s == SourceSpan{}
 }
 
 type Token struct {

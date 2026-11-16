@@ -153,8 +153,54 @@ class Service {
 	require.NotNil(t, svc.AST)
 	require.NotNil(t, svc.AST.Stereotype)
 	require.Equal(t, "API", svc.AST.Stereotype.Value.Literal)
-	require.Equal(t, "#red", svc.AST.Style)
+	require.NotNil(t, svc.AST.Style)
+	require.NotNil(t, svc.AST.Style.Background)
+	colorRef, ok := svc.AST.Style.Background.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "red", colorRef.Literal)
 	require.Len(t, svc.AST.Members, 4, "expected members from both class bodies to be merged")
+}
+
+func TestResolveSymbols_MergeEntityStyles_CompositeFields(t *testing.T) {
+	fs := MapFS{
+		"/project/main.puml": []byte(`
+@startuml
+class Service #red
+class Service #header:blue;line:green
+class Service #line.dotted;text:yellow
+@enduml
+`),
+	}
+
+	diag := parseAndResolve(t, "/project/main.puml", fs)
+	tbl := ResolveSymbols(diag)
+	require.False(t, diag.HasErrors())
+
+	svc := tbl.Lookup("Service")
+	require.NotNil(t, svc)
+	require.NotNil(t, svc.AST.Style)
+
+	require.NotNil(t, svc.AST.Style.Background)
+	bg, ok := svc.AST.Style.Background.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "red", bg.Literal)
+
+	require.NotNil(t, svc.AST.Style.Header)
+	hdr, ok := svc.AST.Style.Header.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "blue", hdr.Literal)
+
+	require.NotNil(t, svc.AST.Style.LineColor)
+	lc, ok := svc.AST.Style.LineColor.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "green", lc.Literal)
+
+	require.Equal(t, ast.LineDotted, svc.AST.Style.LineStyle)
+
+	require.NotNil(t, svc.AST.Style.TextColor)
+	tc, ok := svc.AST.Style.TextColor.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "yellow", tc.Literal)
 }
 
 func TestResolveSymbols_MergeEntityKind(t *testing.T) {

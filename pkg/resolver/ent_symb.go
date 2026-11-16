@@ -61,7 +61,28 @@ func mergeEntities(target *ast.Entity, incoming *ast.Entity) *ast.Entity {
 		merge.Generic = incoming.Generic
 	}
 	if incoming.Style != nil {
-		merge.Style = incoming.Style
+		if merge.Style == nil {
+			cloned := *incoming.Style
+			merge.Style = &cloned
+		} else {
+			cloned := *merge.Style
+			if incoming.Style.Background != nil {
+				cloned.Background = incoming.Style.Background
+			}
+			if incoming.Style.Header != nil {
+				cloned.Header = incoming.Style.Header
+			}
+			if incoming.Style.LineColor != nil {
+				cloned.LineColor = incoming.Style.LineColor
+			}
+			if incoming.Style.LineStyle != ast.LinePlain {
+				cloned.LineStyle = incoming.Style.LineStyle
+			}
+			if incoming.Style.TextColor != nil {
+				cloned.TextColor = incoming.Style.TextColor
+			}
+			merge.Style = &cloned
+		}
 	}
 	if !incoming.Alias.IsZero() {
 		merge.Alias = incoming.Alias

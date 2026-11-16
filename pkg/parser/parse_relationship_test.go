@@ -258,8 +258,8 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "single attribute line style",
 			input: "-[bold]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					LineStyle: ast.LineBold,
 				},
 				RArrow:    '>',
@@ -271,19 +271,19 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "single attribute color",
 			input: "-[#red]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style:     simpleRelStyle("red"),
-				RArrow:    '>',
-				TypeRHS:   ast.RelationAssociation,
-				BodyCount: 2,
+				Body:       '-',
+				ArrowStyle: simpleArrowStyle("red"),
+				RArrow:     '>',
+				TypeRHS:    ast.RelationAssociation,
+				BodyCount:  2,
 			},
 		},
 		{
 			name:  "single attribute thickness",
 			input: "-[thickness=2]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					Thickness: 2,
 				},
 				RArrow:    '>',
@@ -295,8 +295,8 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "multiple attributes",
 			input: "-[#red,dashed,thickness=2]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					LineColor: simpleColor("red"),
 					LineStyle: ast.LineDashed,
 					Thickness: 2,
@@ -310,8 +310,8 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "attributes and direction",
 			input: "-[bold]left->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					LineStyle: ast.LineBold,
 				},
 				Direction: ast.DirectionLeft,
@@ -324,8 +324,8 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "direction and attributes",
 			input: "-left[bold]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					LineStyle: ast.LineBold,
 				},
 				Direction: ast.DirectionLeft,
@@ -338,9 +338,9 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "plain attribute",
 			input: "-[plain]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
-					LineStyle: ast.LineNormal,
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
+					LineStyle: ast.LinePlain,
 				},
 				RArrow:    '>',
 				TypeRHS:   ast.RelationAssociation,
@@ -351,8 +351,8 @@ func TestParseArrowTokens(t *testing.T) {
 			name:  "dotted attribute",
 			input: "-[dotted]->",
 			want: &ast.Relationship{
-				Body:      '-',
-				Style: &ast.RelationshipStyle{
+				Body: '-',
+				ArrowStyle: &ast.ArrowStyle{
 					LineStyle: ast.LineDotted,
 				},
 				RArrow:    '>',
@@ -767,13 +767,13 @@ func TestParseRelationship_Valid(t *testing.T) {
 			name:  "association with arrow attribute color",
 			input: "Car -[#red]-> Engine",
 			want: ast.Relationship{
-				LHS:       identRef("Car"),
-				Body:      '-',
-				RArrow:    '>',
-				BodyCount: 2,
-				TypeRHS:   ast.RelationAssociation,
-				RHS:       identRef("Engine"),
-				Style:     simpleRelStyle("red"),
+				LHS:        identRef("Car"),
+				Body:       '-',
+				RArrow:     '>',
+				BodyCount:  2,
+				TypeRHS:    ast.RelationAssociation,
+				RHS:        identRef("Engine"),
+				ArrowStyle: simpleArrowStyle("red"),
 			},
 		},
 		{
@@ -786,7 +786,7 @@ func TestParseRelationship_Valid(t *testing.T) {
 				BodyCount: 2,
 				TypeRHS:   ast.RelationAssociation,
 				RHS:       identRef("Engine"),
-				Style: &ast.RelationshipStyle{
+				ArrowStyle: &ast.ArrowStyle{
 					LineStyle: ast.LineBold,
 					Thickness: 2,
 				},
@@ -802,7 +802,7 @@ func TestParseRelationship_Valid(t *testing.T) {
 				BodyCount: 2,
 				TypeRHS:   ast.RelationAssociation,
 				RHS:       identRef("Engine"),
-				Style: &ast.RelationshipStyle{
+				ArrowStyle: &ast.ArrowStyle{
 					LineColor: simpleColor("red"),
 					LineStyle: ast.LineDashed,
 					Thickness: 2,
@@ -1360,4 +1360,69 @@ func TestRelationshipStyle_Span(t *testing.T) {
 			require.Equal(t, tc.wantSpan, gotSpan)
 		})
 	}
+}
+
+func TestArrowStyle_Span(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    string
+		wantSpan string
+	}{
+		{
+			name:     "bracket line color",
+			input:    "Foo -[#red]-> Bar\n",
+			wantSpan: "[#red]",
+		},
+		{
+			name:     "bracket line style and color",
+			input:    "Foo -[bold,#blue]-> Bar\n",
+			wantSpan: "[bold,#blue]",
+		},
+		{
+			name:     "bracket style with thickness",
+			input:    "Foo -[#blue,thickness=2]-> Bar\n",
+			wantSpan: "[#blue,thickness=2]",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream:  stream.NewTokenStream(tc.input),
+				Dialect: dialect.NewGoDialect(),
+				ast:     &ast.Diagram{},
+			}
+			tok := p.stream.Emit()
+			got := p.parseRelationship(tok)
+			require.NotNil(t, got)
+			require.NotNil(t, got.ArrowStyle)
+			gotSpan := tc.input[got.ArrowStyle.Span.Start.Offset:got.ArrowStyle.Span.End.Offset]
+			require.Equal(t, tc.wantSpan, gotSpan)
+		})
+	}
+}
+
+func TestRelationship_BothArrowStyleAndTrailingStyle(t *testing.T) {
+	input := "Foo -[dashed,#red,thickness=2]-> Bar #line:green;text:blue\n"
+	p := Parser{
+		stream:  stream.NewTokenStream(input),
+		Dialect: dialect.NewGoDialect(),
+		ast:     &ast.Diagram{},
+	}
+	tok := p.stream.Emit()
+	got := p.parseRelationship(tok)
+	require.NotNil(t, got)
+
+	require.NotNil(t, got.ArrowStyle)
+	require.Equal(t, ast.LineDashed, got.ArrowStyle.LineStyle)
+	require.Equal(t, "red", got.ArrowStyle.LineColor.Literal)
+	require.Equal(t, 2, got.ArrowStyle.Thickness)
+
+	require.NotNil(t, got.Style)
+	lc, ok := got.Style.LineColor.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "green", lc.Literal)
+	tc, ok := got.Style.TextColor.(*ast.ColorRef)
+	require.True(t, ok)
+	require.Equal(t, "blue", tc.Literal)
 }

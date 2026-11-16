@@ -53,7 +53,7 @@ func TestTryParseStereotype(t *testing.T) {
 			name:              "with spot and spot color",
 			expectedValueStr:  "MyStereotype",
 			expectedSpotRune:  'S',
-			expectedSpotColor: "#FF7700",
+			expectedSpotColor: "FF7700",
 		},
 		{
 			name:             "with spot",
@@ -248,6 +248,155 @@ func TestReadDiagramBounds(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, b.IsStart)
 			require.Equal(t, tc.expectedType, b.Type)
+		})
+	}
+}
+
+func TestParseLineStyle(t *testing.T) {
+	tests := []struct {
+		input string
+		want  ast.LineStyle
+	}{
+		{input: "plain", want: ast.LinePlain},
+		{input: "bold", want: ast.LineBold},
+		{input: "dashed", want: ast.LineDashed},
+		{input: "dotted", want: ast.LineDotted},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.input, func(t *testing.T) {
+			tok := tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: tt.input}
+			got, err := parseLineStyle(tok)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestParseLineStyle_Error(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "unknown line style", input: "unknown"},
+		{name: "arbitrary string", input: "wavy"},
+		{name: "empty string", input: ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tok := tokenizer.Token{Type: tokenizer.IDENTIFIER, Literal: tt.input}
+			_, err := parseLineStyle(tok)
+			require.Error(t, err)
+		})
+	}
+}
+
+func TestParseColorExpr(t *testing.T) {
+	tests := []struct {
+		name          string
+		input         string
+		wantRef       string
+		wantGradStart string
+		wantGradEnd   string
+		wantGradDir   ast.GradientKind
+	}{
+		{
+			name:    "simple color literal",
+			input:   "red",
+			wantRef: "red",
+		},
+		{
+			name:    "simple hex color number",
+			input:   "FF0000",
+			wantRef: "FF0000",
+		},
+		{
+			name:          "gradient slash",
+			input:         "red/blue",
+			wantGradStart: "red",
+			wantGradEnd:   "blue",
+			wantGradDir:   ast.GradientSlash,
+		},
+		{
+			name:          "gradient vertical",
+			input:         "red|blue",
+			wantGradStart: "red",
+			wantGradEnd:   "blue",
+			wantGradDir:   ast.GradientVertical,
+		},
+		{
+			name:          "gradient backslash",
+			input:         `red \ blue`,
+			wantGradStart: "red",
+			wantGradEnd:   "blue",
+			wantGradDir:   ast.GradientBackslash,
+		},
+		{
+			name:          "gradient horizontal",
+			input:         "red-blue",
+			wantGradStart: "red",
+			wantGradEnd:   "blue",
+			wantGradDir:   ast.GradientHorizontal,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := newParserForTest(tt.input)
+			firstTok := p.stream.Emit()
+			got, err := p.parseColorExpr(firstTok)
+			require.NoError(t, err)
+			if tt.wantRef != "" {
+				ref, ok := got.(*ast.ColorRef)
+				require.True(t, ok)
+				require.Equal(t, tt.wantRef, ref.Literal)
+			}
+			if tt.wantGradDir != ast.GradientNone {
+				grad, ok := got.(*ast.GradientColor)
+				require.True(t, ok)
+				require.Equal(t, tt.wantGradStart, grad.Start.Literal)
+				require.Equal(t, tt.wantGradEnd, grad.End.Literal)
+				require.Equal(t, tt.wantGradDir, grad.Direction)
+			}
+		})
+	}
+}
+
+func TestParseColorExpr_Error(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "gradient slash without end token",
+			input: "red/",
+		},
+		{
+			name:  "gradient vertical without end token",
+			input: "red|",
+		},
+		{
+			name:  "gradient horizontal without end token",
+			input: "red-",
+		},
+		{
+			name:  "gradient backslash without end token",
+			input: `red \ `,
+		},
+		{
+			name:  "gradient followed by punctuation token",
+			input: "red/; ",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			p := newParserForTest(tt.input)
+			firstTok := p.stream.Emit()
+			got, err := p.parseColorExpr(firstTok)
+			require.Error(t, err)
+			require.Nil(t, got)
 		})
 	}
 }

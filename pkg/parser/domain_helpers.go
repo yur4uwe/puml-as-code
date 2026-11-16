@@ -138,7 +138,7 @@ func parseStereotypeSpotColor(toks []tokenizer.Token) (*ast.ColorRef, error) {
 		}
 		fullSpan := tokenizer.SpanEnclosing(first, second)
 		return &ast.ColorRef{
-			Literal:   "#" + second.Literal,
+			Literal:   second.Literal,
 			ColorSpan: fullSpan,
 		}, nil
 	default:
@@ -147,16 +147,11 @@ func parseStereotypeSpotColor(toks []tokenizer.Token) (*ast.ColorRef, error) {
 }
 
 func parseLineStyle(tok tokenizer.Token) (ast.LineStyle, error) {
-	switch tok.Literal {
-	case "dotted":
-		return ast.LineDotted, nil
-	case "dashed":
-		return ast.LineDashed, nil
-	case "bold":
-		return ast.LineBold, nil
-	default:
-		return ast.LineNormal, fmt.Errorf("unexpected line style: %s, expected any of: dotted, dashed, bold", tok.Literal)
+	ls, err := ast.LineStyleString(tok.Literal)
+	if err != nil {
+		return ast.LinePlain, fmt.Errorf("unexpected line style: %s, expected any of: dotted, dashed, bold", tok.Literal)
 	}
+	return ls, nil
 }
 
 func (p *Parser) parseColorExpr(tok tokenizer.Token) (ast.ColorExpr, error) {
@@ -170,14 +165,14 @@ func (p *Parser) parseColorExpr(tok tokenizer.Token) (ast.ColorExpr, error) {
 	}
 
 	gradType := ast.FromTokType(p.stream.Emit().Type)
-	endTok := p.stream.Emit()
+	endTok := p.stream.PeekTokenAt(0)
 	if endTok.Type != tokenizer.IDENTIFIER && endTok.Type != tokenizer.NUMBER {
-		return startCol, fmt.Errorf("unexpected token describing target gradient end color: %s(%s)", endTok.Type, endTok.Literal)
+		return nil, fmt.Errorf("unexpected token describing target gradient end color: %s(%s)", endTok.Type, endTok.Literal)
 	}
 
 	return &ast.GradientColor{
 		Start:     startCol,
-		End:       ast.FromToken(endTok),
+		End:       ast.FromToken(p.stream.Emit()),
 		Direction: gradType,
 	}, nil
 }
