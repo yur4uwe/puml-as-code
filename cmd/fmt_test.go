@@ -4,13 +4,68 @@ import (
 	"bytes"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	"yur4uwe/pac/pkg/resolver"
 )
+
+func TestFmtStdinCLI(t *testing.T) {
+	bin := filepath.Join(t.TempDir(), "pac.exe")
+	build := exec.Command("go", "build", "-o", bin, ".")
+	output, err := build.CombinedOutput()
+	require.NoError(t, err, "%s", output)
+	unformatted := "@startuml\nclass User {\n+id string\n}\n@enduml\n"
+	formatted := "@startuml\nclass User {\n  +id string\n}\n@enduml\n"
+	for _, tt := range []struct {
+		name, input, stdout, diagnostic string
+		status                          int
+		args                            []string
+	}{
+		{name: "format", input: unformatted, stdout: formatted, args: []string{"-"}},
+		{name: "idempotent", input: formatted, stdout: formatted, args: []string{"-"}},
+		{name: "empty", args: []string{"-"}},
+		{name: "bom, crlf and no final newline", input: "\ufeff" + strings.ReplaceAll(strings.TrimSuffix(unformatted, "\n"), "\n", "\r\n"), stdout: "\ufeff" + strings.ReplaceAll(strings.TrimSuffix(formatted, "\n"), "\n", "\r\n"), args: []string{"-"}},
+		{name: "valid utf8 across old sniff boundary", input: "@startuml\n'" + strings.Repeat("a", 500) + "é\n@enduml\n", stdout: "@startuml\n'" + strings.Repeat("a", 500) + "é\n@enduml\n", args: []string{"-"}},
+		{name: "syntax error", input: "@startuml\nclass User {\n@enduml\n", status: 2, diagnostic: "models/user.puml", args: []string{"-stdin-filepath", "models/user.puml", "-"}},
+		{name: "invalid utf8 after first 512 bytes", input: formatted + strings.Repeat(" ", 512) + "\xff", status: 2, diagnostic: "binary file", args: []string{"-"}},
+		{name: "extra diagram is not silently discarded", input: formatted + formatted, status: 2, diagnostic: "expected one diagram", args: []string{"-"}},
+		{name: "check clean", input: formatted, args: []string{"-check", "-"}},
+		{name: "check dirty", input: unformatted, status: 1, diagnostic: "is not formatted", args: []string{"-check", "-"}},
+		{name: "check file error", status: 2, diagnostic: "cannot format file", args: []string{"-check", filepath.Join(t.TempDir(), "missing.puml")}},
+		{name: "size limit", input: strings.Repeat(" ", resolver.MaxFileSize), status: 2, diagnostic: "input size is too large", args: []string{"-"}},
+		{name: "mixed inputs", status: 2, diagnostic: "only input", args: []string{"file.puml", "-"}},
+		{name: "in-place stdin", status: 2, diagnostic: "-w cannot be used with stdin", args: []string{"-w", "-"}},
+		{name: "no implicit stdin", status: 2, diagnostic: "provide a file or -"},
+		{name: "help", diagnostic: "-stdin-filepath", args: []string{"-help"}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			cmd := exec.Command(bin, append([]string{"fmt"}, tt.args...)...)
+			cmd.Stdin = strings.NewReader(tt.input) // os/exec connects this reader through a pipe.
+			var stderr bytes.Buffer
+			cmd.Stderr = &stderr
+			stdout, err := cmd.Output()
+			if tt.status == 0 {
+				require.NoError(t, err, "%s", &stderr)
+			} else {
+				var exitErr *exec.ExitError
+				require.ErrorAs(t, err, &exitErr)
+				require.Equal(t, tt.status, exitErr.ExitCode(), "%s", &stderr)
+			}
+			require.Equal(t, tt.stdout, string(stdout))
+			if tt.diagnostic != "" {
+				require.Contains(t, stderr.String(), tt.diagnostic)
+			} else {
+				require.Empty(t, stderr.String())
+			}
+		})
+	}
+}
 
 func captureStdout(t *testing.T, fn func() error) (string, error) {
 	t.Helper()

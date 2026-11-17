@@ -2,6 +2,7 @@
 package formatter
 
 import (
+	"errors"
 	"strings"
 	"unicode"
 
@@ -32,7 +33,13 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 	} else {
 		opt = opts[0]
 	}
-	tree, err := parser.NewParser(dialect.LaxDialect{}).Parse(src)
+	p := parser.NewParser(dialect.LaxDialect{})
+	if opt.RequireSingleDiagram {
+		// Select the first block explicitly; the source check below reports
+		// extra content as an error instead of the parser logging a warning.
+		p.WithTargetID("0")
+	}
+	tree, err := p.Parse(src)
 	if err != nil {
 		return "", err
 	}
@@ -44,6 +51,17 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 		useTabs: opt.UseTabs,
 
 		packageSeparator: ".",
+	}
+	if opt.RequireSingleDiagram {
+		first := tree.Statements[0].Span().Start.Offset
+		last := tree.Statements[len(tree.Statements)-1]
+		end := last.Span().End.Offset
+		for _, comment := range last.GetTrailingTrivia() {
+			end = max(end, comment.Span.End.Offset)
+		}
+		if strings.TrimSpace(string(state.source[:first])) != "" || strings.TrimSpace(string(state.source[end:])) != "" {
+			return "", errors.New("expected one diagram with no other content outside its bounds")
+		}
 	}
 
 	for _, node := range tree.Statements {

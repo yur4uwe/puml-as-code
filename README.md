@@ -97,6 +97,27 @@ pac gen -in <path-to-diagram.puml> -outd <output-directory>
 
 ---
 
+### Format a diagram
+
+```bash
+pac fmt diagram.puml                 # print to stdout
+pac fmt -w diagram.puml              # update the file in place
+pac fmt -check diagram.puml          # check without writing
+cat diagram.puml | pac fmt -         # read stdin, write stdout
+pac fmt -stdin-filepath diagram.puml - < diagram.puml
+```
+
+Use `-` as the only input to read stdin. `-stdin-filepath` labels diagnostics;
+it does not open the named file. `-w` requires a real file. Run `pac fmt -help`
+for indentation options. Input must be UTF-8, under 10 MiB, and contain a single
+diagram; empty input is accepted. An initial BOM, uniform CRLF line endings and
+the presence of a final newline are preserved.
+
+`pac fmt` exits with `0` on success, `1` when `-check` finds changes, and `2` on
+error. In stdin mode, diagnostics go to stderr, and errors and checks produce
+no formatted stdout. In Vim, select the diagram and filter it with `:!pac fmt -`
+(or use `:%!pac fmt -` for the whole buffer).
+
 ## Example
 
 ### Input Diagram (`input/service.puml`)
