@@ -3,8 +3,8 @@ package tokenizer
 import (
 	"errors"
 	"fmt"
-	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"yur4uwe/pac/internal/helpers"
 )
@@ -19,12 +19,12 @@ var (
 )
 
 type Lexer struct {
-	input    []rune
-	position int
-	readPos  int
-	ch       rune
-	line     uint
-	col      uint
+	input       string
+	position    int
+	nextBytePos int
+	ch          rune
+	line        uint
+	col         uint
 }
 
 type lexerState struct{}
@@ -38,24 +38,36 @@ func (l *Lexer) Pos() Pos {
 }
 
 func (l *Lexer) String() string {
-	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.Pos().String(), l.readPos, l.ch)
+	return fmt.Sprintf("\nposition: %s\nreadPos: %d\nch: %q", l.Pos().String(), l.nextBytePos, l.ch)
 }
 
-func NewLexer(input []rune) *Lexer {
+func NewLexer(input string) *Lexer {
 	l := &Lexer{
 		input: input,
 	}
-	l.readChar()
+	l.advancePtr()
 	return l
 }
 
-func (l *Lexer) readChar() (ch rune) {
-	ch = l.ch
-	if l.readPos >= len(l.input) {
+func (l *Lexer) advancePtr() {
+	if l.nextBytePos >= len(l.input) {
 		l.ch = 0
-	} else {
-		l.ch = l.input[l.readPos]
+		l.position = l.nextBytePos
+		return
 	}
+
+	l.position = l.nextBytePos
+	b := l.input[l.nextBytePos]
+
+	var width int
+	if b < utf8.RuneSelf {
+		l.ch = rune(b)
+		width = 1
+	} else {
+		l.ch, width = utf8.DecodeRuneInString(l.input[l.nextBytePos:])
+	}
+
+	l.nextBytePos += width
 
 	if l.ch == '\n' {
 		l.line++
@@ -63,32 +75,38 @@ func (l *Lexer) readChar() (ch rune) {
 	} else {
 		l.col++
 	}
-
-	l.position = l.readPos
-	l.readPos++
-	return
 }
 
 func (l *Lexer) isEOF() bool {
 	return l.ch == 0
 }
 
-func (l *Lexer) consumeChar(tokenType TokenType, literal rune) Token {
+func (l *Lexer) consumeChar(tokenType TokenType) Token {
+	start := l.Pos()
+	l.advancePtr()
+	end := l.Pos()
+
+	lit := l.input[start.Offset:end.Offset]
+
 	tok := Token{
 		Type:    tokenType,
-		Literal: string(literal),
-		Span:    SourceSpan{Start: l.Pos()},
+		Literal: lit,
+		Span:    SourceSpan{Start: start, End: end},
 	}
-	l.readChar()
-	tok.Span.End = l.Pos()
 	return tok
 }
 
 func (l *Lexer) peekChar() rune {
-	if l.readPos >= len(l.input) {
+	if l.nextBytePos >= len(l.input) {
 		return 0
 	}
-	return l.input[l.readPos]
+	b := l.input[l.nextBytePos]
+	if b < utf8.RuneSelf {
+		return rune(l.input[l.nextBytePos])
+	}
+
+	r, _ := utf8.DecodeLastRuneInString(l.input[l.nextBytePos:])
+	return r
 }
 
 func (l *Lexer) Emit() Token {
@@ -103,44 +121,35 @@ func (l *Lexer) Emit() Token {
 
 func (l *Lexer) findNextTokenStart() {
 	for l.ch != '\n' && l.ch != '\r' && unicode.IsSpace(l.ch) {
-		l.readChar()
+		l.advancePtr()
 	}
 }
 
-// func (l *Lexer) isPackageSeparator() bool {
-// 	if len(l.packageSeparator) == 0 {
-// 		return false
-// 	}
-// 	for i, r := range l.packageSeparator {
-// 		if l.lookAheadChar(i) != r {
-// 			return false
-// 		}
-// 	}
-// 	return true
-// }
+func (l *Lexer) lookAheadRune(n int) rune {
+	pos := l.position
+	for range n {
+		var width int
+		b := l.input[pos]
+		if b < utf8.RuneSelf {
+			width = 1
+		} else {
+			_, width = utf8.DecodeLastRuneInString(l.input[pos:])
+		}
 
-func (l *Lexer) lookAheadChar(n int) rune {
-	pos := l.position + n
+		pos += width
+	}
 	if pos >= len(l.input) {
 		return 0
 	}
-	return l.input[pos]
+	return rune(l.input[pos])
 }
-
-// func (l *Lexer) consumePackageSeparator() string {
-// 	start := l.position
-// 	for range l.packageSeparator {
-// 		l.readChar()
-// 	}
-// 	return string(l.input[start:l.position])
-// }
 
 func (l *Lexer) readUntilWhitespaceOrNewline() string {
 	start := l.position
 	for !l.isEOF() && !unicode.IsSpace(l.ch) {
-		l.readChar()
+		l.advancePtr()
 	}
-	return string(l.input[start:l.position])
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) isIdentifierRune() bool {
@@ -148,32 +157,22 @@ func (l *Lexer) isIdentifierRune() bool {
 }
 
 func (l *Lexer) readIdentifier() string {
-	var result []rune
-
+	start := l.position
 	for !l.isEOF() {
-		if l.ch == '\\' && l.peekChar() != 0 {
-			// Skip the backslash and take the next character literally
-			l.readChar()
-			if l.ch != 0 {
-				result = append(result, l.ch)
-				l.readChar()
-			}
-		} else if helpers.IsIdentifierRune(l.ch) || unicode.IsDigit(l.ch) {
-			result = append(result, l.ch)
-			l.readChar()
-		} else {
+		if !helpers.IsIdentifierRune(l.ch) && !unicode.IsDigit(l.ch) {
 			break
 		}
+		l.advancePtr()
 	}
-	return string(result)
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) readEncodedNumber() (string, error) {
 	start := l.position
-	l.readChar() // consume '0'
+	l.advancePtr() // consume '0'
 
 	encoding := l.ch
-	l.readChar() // consume encoding char (x, b, o)
+	l.advancePtr() // consume encoding char (x, b, o)
 
 	var base int
 	switch encoding {
@@ -184,7 +183,7 @@ func (l *Lexer) readEncodedNumber() (string, error) {
 	case 'o', 'O':
 		base = 8
 	default:
-		return string(l.input[start:l.position]), fmt.Errorf("%w: %c", ErrInvalidBase, encoding)
+		return l.input[start:l.position], fmt.Errorf("%w: %c", ErrInvalidBase, encoding)
 	}
 
 	hasDigits := false
@@ -195,17 +194,17 @@ func (l *Lexer) readEncodedNumber() (string, error) {
 
 		val, ok := getDigitValue(l.ch)
 		if !ok || val >= base {
-			return string(l.input[start:l.position]), fmt.Errorf("%w: base: '%d', digit: %c", ErrInvalidEncDigit, base, l.ch)
+			return l.input[start:l.position], fmt.Errorf("%w: base: '%d', digit: %c", ErrInvalidEncDigit, base, l.ch)
 		}
 		hasDigits = true
-		l.readChar()
+		l.advancePtr()
 	}
 
 	if !hasDigits {
-		return string(l.input[start:l.position]), ErrMissingDigits
+		return l.input[start:l.position], ErrMissingDigits
 	}
 
-	return string(l.input[start:l.position]), nil
+	return l.input[start:l.position], nil
 }
 
 func getDigitValue(ch rune) (int, bool) {
@@ -235,101 +234,99 @@ func (l *Lexer) readNumber() (string, error) {
 
 state_integer:
 	if unicode.IsDigit(l.ch) {
-		l.readChar()
+		l.advancePtr()
 		goto state_integer
 	}
 	if l.ch == '.' {
-		l.readChar()
+		l.advancePtr()
 		goto state_fraction
 	}
 	if l.ch == 'e' || l.ch == 'E' {
-		l.readChar()
+		l.advancePtr()
 		goto state_exponent_start
 	}
 	goto state_validate
 
 state_fraction:
 	if unicode.IsDigit(l.ch) {
-		l.readChar()
+		l.advancePtr()
 		goto state_fraction
 	}
 	if l.ch == 'e' || l.ch == 'E' {
-		l.readChar()
+		l.advancePtr()
 		goto state_exponent_start
 	}
 	if l.ch == '.' {
-		return string(l.input[start:l.position]), ErrInvalidDot
+		return l.input[start:l.position], ErrInvalidDot
 	}
 	goto state_validate
 
 state_exponent_start:
 	if l.ch == '+' || l.ch == '-' {
-		l.readChar()
+		l.advancePtr()
 	}
 	if !unicode.IsDigit(l.ch) {
-		return string(l.input[start:l.position]), ErrInvalidScientific
+		return l.input[start:l.position], ErrInvalidScientific
 	}
 	goto state_exponent
 
 state_exponent:
 	if unicode.IsDigit(l.ch) {
-		l.readChar()
+		l.advancePtr()
 		goto state_exponent
 	}
 	if l.ch == '.' {
-		return string(l.input[start:l.position]), ErrInvalidDot
+		return l.input[start:l.position], ErrInvalidDot
 	}
 	if l.ch == 'e' || l.ch == 'E' {
-		return string(l.input[start:l.position]), ErrInvalidScientific
+		return l.input[start:l.position], ErrInvalidScientific
 	}
 	goto state_validate
 
 state_validate:
 	if helpers.IsIdentifierRune(l.ch) {
-		return string(l.input[start:l.position]), fmt.Errorf("%w: '%c'", ErrInvalidTrailingChar, l.ch)
+		return l.input[start:l.position], fmt.Errorf("%w: '%c'", ErrInvalidTrailingChar, l.ch)
 	}
-	return string(l.input[start:l.position]), nil
+	return l.input[start:l.position], nil
 }
 
 func (l *Lexer) readString() string {
 	start := l.position
-	l.readChar() // consume opening "
+	l.advancePtr() // consume opening "
 	for l.ch != '"' && !l.isEOF() {
 		if l.ch == '\\' && l.peekChar() != 0 {
-			l.readChar() // consume backslash
-			l.readChar() // consume escaped char
+			l.advancePtr() // consume backslash
+			l.advancePtr() // consume escaped char
 		} else {
-			l.readChar()
+			l.advancePtr()
 		}
 	}
-	l.readChar() // consume closing "
-	end := l.position
-	return string(l.input[start:end])
+	l.advancePtr() // consume closing "
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) readLineComment() string {
 	// consume single quote
-	l.readChar()
+	l.advancePtr()
 	start := l.position
 	for l.ch != '\n' && !l.isEOF() {
-		l.readChar()
+		l.advancePtr()
 	}
-	return strings.TrimSpace(string(l.input[start:l.position]))
+	return l.input[start:l.position]
 }
 
 func (l *Lexer) readBlockComment() string {
 	// consume "/'"
-	l.readChar()
-	l.readChar()
-	var sb strings.Builder
+	l.advancePtr()
+	l.advancePtr()
+	start := l.position
 	for !l.isEOF() {
 		if l.ch == '\'' && l.peekChar() == '/' {
-			l.readChar()
-			l.readChar()
+			l.advancePtr()
+			l.advancePtr()
 			break
 		}
-		sb.WriteRune(l.ch)
-		l.readChar()
+		l.advancePtr()
 	}
-	return sb.String()
+	return l.input[start:l.position]
 }

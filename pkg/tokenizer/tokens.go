@@ -138,16 +138,16 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 			Literal: "\n",
 			Span:    SourceSpan{Start: l.Pos()},
 		}
-		l.readChar()
+		l.advancePtr()
 		if l.ch == '\n' {
-			l.readChar()
+			l.advancePtr()
 			crlfTok.Span.End = l.Pos()
 			return crlfTok, true
 		}
 	}
 
 	if tt, ok := singleCharTokens[l.ch]; ok {
-		return l.consumeChar(tt, l.ch), true
+		return l.consumeChar(tt), true
 	}
 
 	start := l.Pos()
@@ -169,7 +169,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 			token.Literal = l.readBlockComment()
 		} else {
 			token.Type = SLASH
-			token.Literal = string(l.readChar())
+			token.Literal = l.input[l.position : l.position+1]
 		}
 	}
 
@@ -210,7 +210,7 @@ func ResolveAmbiguousToken(l *Lexer) Token {
 		return Token{Type: ILLEGAL, Literal: err.Error(), Span: span}
 	}
 
-	return l.consumeChar(ILLEGAL, l.ch)
+	return l.consumeChar(ILLEGAL)
 }
 
 func SpanEnclosing(first, last Token) SourceSpan {
