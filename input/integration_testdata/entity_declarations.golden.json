@@ -8,12 +8,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 2,
-          "Col": 1,
+          "Col": 0,
           "Offset": 18
         },
         "End": {
-          "Line": 3,
-          "Col": 0,
+          "Line": 2,
+          "Col": 28,
           "Offset": 46
         }
       }
@@ -22,12 +22,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 4,
-          "Col": 1,
+          "Col": 0,
           "Offset": 48
         },
         "End": {
-          "Line": 9,
-          "Col": 0,
+          "Line": 8,
+          "Col": 1,
           "Offset": 134
         }
       },
@@ -37,12 +37,12 @@
           "Span": {
             "Start": {
               "Line": 4,
-              "Col": 30,
+              "Col": 29,
               "Offset": 77
             },
             "End": {
               "Line": 4,
-              "Col": 34,
+              "Col": 33,
               "Offset": 81
             }
           }
@@ -53,12 +53,12 @@
         "Span": {
           "Start": {
             "Line": 4,
-            "Col": 7,
+            "Col": 6,
             "Offset": 54
           },
           "End": {
             "Line": 4,
-            "Col": 26,
+            "Col": 25,
             "Offset": 73
           }
         }
@@ -66,7 +66,7 @@
       "Kind": "class",
       "LBrace": {
         "Line": 4,
-        "Col": 35,
+        "Col": 34,
         "Offset": 82
       },
       "Members": [
@@ -74,12 +74,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 5,
-              "Col": 3,
+              "Col": 2,
               "Offset": 86
             },
             "End": {
-              "Line": 6,
-              "Col": 0,
+              "Line": 5,
+              "Col": 12,
               "Offset": 96
             }
           },
@@ -96,12 +96,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 6,
-              "Col": 3,
+              "Col": 2,
               "Offset": 99
             },
             "End": {
-              "Line": 7,
-              "Col": 0,
+              "Line": 6,
+              "Col": 14,
               "Offset": 111
             }
           },
@@ -118,12 +118,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 7,
-              "Col": 3,
+              "Col": 2,
               "Offset": 114
             },
             "End": {
-              "Line": 8,
-              "Col": 0,
+              "Line": 7,
+              "Col": 20,
               "Offset": 132
             }
           },
@@ -143,7 +143,7 @@
       ],
       "RBrace": {
         "Line": 8,
-        "Col": 1,
+        "Col": 0,
         "Offset": 133
       }
     },
@@ -151,12 +151,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 10,
-          "Col": 1,
+          "Col": 0,
           "Offset": 136
         },
         "End": {
-          "Line": 13,
-          "Col": 0,
+          "Line": 12,
+          "Col": 1,
           "Offset": 204
         }
       },
@@ -166,12 +166,12 @@
           "Span": {
             "Start": {
               "Line": 10,
-              "Col": 11,
+              "Col": 10,
               "Offset": 146
             },
             "End": {
               "Line": 10,
-              "Col": 18,
+              "Col": 17,
               "Offset": 153
             }
           }
@@ -199,12 +199,12 @@
           "Span": {
             "Start": {
               "Line": 10,
-              "Col": 24,
+              "Col": 23,
               "Offset": 159
             },
             "End": {
               "Line": 10,
-              "Col": 27,
+              "Col": 26,
               "Offset": 162
             }
           }
@@ -224,12 +224,12 @@
         "FullSpan": {
           "Start": {
             "Line": 10,
-            "Col": 22,
+            "Col": 21,
             "Offset": 157
           },
           "End": {
             "Line": 10,
-            "Col": 29,
+            "Col": 28,
             "Offset": 164
           }
         }
@@ -239,12 +239,12 @@
         "Span": {
           "Start": {
             "Line": 10,
-            "Col": 30,
+            "Col": 29,
             "Offset": 165
           },
           "End": {
             "Line": 10,
-            "Col": 40,
+            "Col": 39,
             "Offset": 175
           }
         },
@@ -253,12 +253,12 @@
           "ColorSpan": {
             "Start": {
               "Line": 10,
-              "Col": 31,
+              "Col": 30,
               "Offset": 166
             },
             "End": {
               "Line": 10,
-              "Col": 40,
+              "Col": 39,
               "Offset": 175
             }
           }
@@ -266,7 +266,7 @@
       },
       "LBrace": {
         "Line": 10,
-        "Col": 41,
+        "Col": 40,
         "Offset": 176
       },
       "Members": [
@@ -274,12 +274,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 11,
-              "Col": 3,
+              "Col": 2,
               "Offset": 180
             },
             "End": {
-              "Line": 12,
-              "Col": 0,
+              "Line": 11,
+              "Col": 24,
               "Offset": 202
             }
           },
@@ -308,7 +308,7 @@
       ],
       "RBrace": {
         "Line": 12,
-        "Col": 1,
+        "Col": 0,
         "Offset": 203
       }
     },
@@ -316,12 +316,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 14,
-          "Col": 1,
+          "Col": 0,
           "Offset": 206
         },
         "End": {
-          "Line": 20,
-          "Col": 0,
+          "Line": 19,
+          "Col": 1,
           "Offset": 281
         }
       },
@@ -331,12 +331,12 @@
           "Span": {
             "Start": {
               "Line": 14,
-              "Col": 6,
+              "Col": 5,
               "Offset": 211
             },
             "End": {
               "Line": 14,
-              "Col": 12,
+              "Col": 11,
               "Offset": 217
             }
           }
@@ -360,7 +360,7 @@
       "Kind": "enum",
       "LBrace": {
         "Line": 14,
-        "Col": 13,
+        "Col": 12,
         "Offset": 218
       },
       "Members": [
@@ -368,12 +368,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 15,
-              "Col": 3,
+              "Col": 2,
               "Offset": 222
             },
             "End": {
-              "Line": 16,
-              "Col": 0,
+              "Line": 15,
+              "Col": 11,
               "Offset": 231
             }
           },
@@ -389,12 +389,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 16,
-              "Col": 3,
+              "Col": 2,
               "Offset": 234
             },
             "End": {
-              "Line": 17,
-              "Col": 0,
+              "Line": 16,
+              "Col": 26,
               "Offset": 258
             }
           }
@@ -403,12 +403,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 17,
-              "Col": 3,
+              "Col": 2,
               "Offset": 261
             },
             "End": {
-              "Line": 18,
-              "Col": 0,
+              "Line": 17,
+              "Col": 9,
               "Offset": 268
             }
           },
@@ -421,12 +421,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 18,
-              "Col": 3,
+              "Col": 2,
               "Offset": 271
             },
             "End": {
-              "Line": 19,
-              "Col": 0,
+              "Line": 18,
+              "Col": 10,
               "Offset": 279
             }
           },
@@ -438,7 +438,7 @@
       ],
       "RBrace": {
         "Line": 19,
-        "Col": 1,
+        "Col": 0,
         "Offset": 280
       }
     },
@@ -449,12 +449,12 @@
           "Span": {
             "Start": {
               "Line": 22,
-              "Col": 1,
+              "Col": 0,
               "Offset": 316
             },
             "End": {
               "Line": 22,
-              "Col": 5,
+              "Col": 4,
               "Offset": 320
             }
           }
@@ -464,12 +464,12 @@
         "NodeSpan": {
           "Start": {
             "Line": 22,
-            "Col": 8,
+            "Col": 7,
             "Offset": 323
           },
           "End": {
-            "Line": 23,
-            "Col": 0,
+            "Line": 22,
+            "Col": 15,
             "Offset": 331
           }
         },
@@ -485,12 +485,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 22,
-          "Col": 1,
+          "Col": 0,
           "Offset": 316
         },
         "End": {
-          "Line": 23,
-          "Col": 0,
+          "Line": 22,
+          "Col": 15,
           "Offset": 331
         }
       },
@@ -500,12 +500,12 @@
           "Span": {
             "Start": {
               "Line": 21,
-              "Col": 1,
+              "Col": 0,
               "Offset": 283
             },
             "End": {
-              "Line": 22,
-              "Col": 0,
+              "Line": 21,
+              "Col": 32,
               "Offset": 315
             }
           }
@@ -519,12 +519,12 @@
           "Span": {
             "Start": {
               "Line": 23,
-              "Col": 1,
+              "Col": 0,
               "Offset": 332
             },
             "End": {
               "Line": 23,
-              "Col": 5,
+              "Col": 4,
               "Offset": 336
             }
           }
@@ -534,12 +534,12 @@
         "NodeSpan": {
           "Start": {
             "Line": 23,
-            "Col": 8,
+            "Col": 7,
             "Offset": 339
           },
           "End": {
-            "Line": 24,
-            "Col": 0,
+            "Line": 23,
+            "Col": 23,
             "Offset": 355
           }
         },
@@ -560,12 +560,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 23,
-          "Col": 1,
+          "Col": 0,
           "Offset": 332
         },
         "End": {
-          "Line": 24,
-          "Col": 0,
+          "Line": 23,
+          "Col": 23,
           "Offset": 355
         }
       }
@@ -577,12 +577,12 @@
           "Span": {
             "Start": {
               "Line": 24,
-              "Col": 1,
+              "Col": 0,
               "Offset": 356
             },
             "End": {
               "Line": 24,
-              "Col": 8,
+              "Col": 7,
               "Offset": 363
             }
           }
@@ -592,12 +592,12 @@
         "NodeSpan": {
           "Start": {
             "Line": 24,
-            "Col": 11,
+            "Col": 10,
             "Offset": 366
           },
           "End": {
-            "Line": 25,
-            "Col": 0,
+            "Line": 24,
+            "Col": 19,
             "Offset": 375
           }
         },
@@ -609,12 +609,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 24,
-          "Col": 1,
+          "Col": 0,
           "Offset": 356
         },
         "End": {
-          "Line": 25,
-          "Col": 0,
+          "Line": 24,
+          "Col": 19,
           "Offset": 375
         }
       }
@@ -627,12 +627,12 @@
             "Span": {
               "Start": {
                 "Line": 27,
-                "Col": 1,
+                "Col": 0,
                 "Offset": 425
               },
               "End": {
                 "Line": 27,
-                "Col": 4,
+                "Col": 3,
                 "Offset": 428
               }
             }
@@ -642,12 +642,12 @@
             "Span": {
               "Start": {
                 "Line": 27,
-                "Col": 5,
+                "Col": 4,
                 "Offset": 429
               },
               "End": {
                 "Line": 27,
-                "Col": 9,
+                "Col": 8,
                 "Offset": 433
               }
             }
@@ -658,12 +658,12 @@
           "Span": {
             "Start": {
               "Line": 27,
-              "Col": 10,
+              "Col": 9,
               "Offset": 434
             },
             "End": {
               "Line": 27,
-              "Col": 16,
+              "Col": 15,
               "Offset": 440
             }
           }
@@ -673,12 +673,12 @@
         "NodeSpan": {
           "Start": {
             "Line": 27,
-            "Col": 19,
+            "Col": 18,
             "Offset": 443
           },
           "End": {
-            "Line": 28,
-            "Col": 0,
+            "Line": 27,
+            "Col": 30,
             "Offset": 455
           }
         },
@@ -694,12 +694,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 27,
-          "Col": 1,
+          "Col": 0,
           "Offset": 425
         },
         "End": {
-          "Line": 28,
-          "Col": 0,
+          "Line": 27,
+          "Col": 30,
           "Offset": 455
         }
       },
@@ -709,12 +709,12 @@
           "Span": {
             "Start": {
               "Line": 26,
-              "Col": 1,
+              "Col": 0,
               "Offset": 377
             },
             "End": {
-              "Line": 27,
-              "Col": 0,
+              "Line": 26,
+              "Col": 47,
               "Offset": 424
             }
           }
@@ -729,12 +729,12 @@
             "Span": {
               "Start": {
                 "Line": 28,
-                "Col": 1,
+                "Col": 0,
                 "Offset": 456
               },
               "End": {
                 "Line": 28,
-                "Col": 4,
+                "Col": 3,
                 "Offset": 459
               }
             }
@@ -744,12 +744,12 @@
             "Span": {
               "Start": {
                 "Line": 28,
-                "Col": 5,
+                "Col": 4,
                 "Offset": 460
               },
               "End": {
                 "Line": 28,
-                "Col": 9,
+                "Col": 8,
                 "Offset": 464
               }
             }
@@ -760,12 +760,12 @@
           "Span": {
             "Start": {
               "Line": 28,
-              "Col": 10,
+              "Col": 9,
               "Offset": 465
             },
             "End": {
               "Line": 28,
-              "Col": 16,
+              "Col": 15,
               "Offset": 471
             }
           }
@@ -775,12 +775,12 @@
         "NodeSpan": {
           "Start": {
             "Line": 28,
-            "Col": 19,
+            "Col": 18,
             "Offset": 474
           },
           "End": {
-            "Line": 29,
-            "Col": 0,
+            "Line": 28,
+            "Col": 52,
             "Offset": 508
           }
         },
@@ -815,12 +815,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 28,
-          "Col": 1,
+          "Col": 0,
           "Offset": 456
         },
         "End": {
-          "Line": 29,
-          "Col": 0,
+          "Line": 28,
+          "Col": 52,
           "Offset": 508
         }
       }
@@ -831,12 +831,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 30,
-          "Col": 1,
+          "Col": 0,
           "Offset": 510
         },
         "End": {
-          "Line": 31,
-          "Col": 0,
+          "Line": 30,
+          "Col": 7,
           "Offset": 517
         }
       }

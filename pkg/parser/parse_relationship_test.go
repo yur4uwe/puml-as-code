@@ -842,8 +842,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 				TypeLHS:   ast.RelationAssociation,
 				TypeRHS:   ast.RelationAssociation,
 				ArrowSpan: tokenizer.SourceSpan{
-					Start: tokenizer.Pos{Col: 3, Offset: 2},
-					End:   tokenizer.Pos{Col: 3, Offset: 2},
+					Start: tokenizer.Pos{Col: 2, Offset: 2},
+					End:   tokenizer.Pos{Col: 2, Offset: 2},
 				},
 			},
 			wantDiags: []expectedDiag{
@@ -851,8 +851,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 3, Offset: 3},
-						End:   tokenizer.Pos{Col: 3, Offset: 3},
+						Start: tokenizer.Pos{Col: 2, Offset: 3},
+						End:   tokenizer.Pos{Col: 2, Offset: 3},
 					},
 				},
 			},
@@ -865,8 +865,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 				Body:      '-',
 				BodyCount: 1,
 				ArrowSpan: tokenizer.SourceSpan{
-					Start: tokenizer.Pos{Col: 3, Offset: 2},
-					End:   tokenizer.Pos{Col: 3, Offset: 2},
+					Start: tokenizer.Pos{Col: 2, Offset: 2},
+					End:   tokenizer.Pos{Col: 2, Offset: 2},
 				},
 			},
 			wantDiags: []expectedDiag{
@@ -874,8 +874,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 8, Offset: 8},
-						End:   tokenizer.Pos{Col: 8, Offset: 8},
+						Start: tokenizer.Pos{Col: 7, Offset: 8},
+						End:   tokenizer.Pos{Col: 7, Offset: 8},
 					},
 				},
 			},
@@ -888,8 +888,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 				Body:      '-',
 				BodyCount: 1,
 				ArrowSpan: tokenizer.SourceSpan{
-					Start: tokenizer.Pos{Col: 3, Offset: 2},
-					End:   tokenizer.Pos{Col: 3, Offset: 2},
+					Start: tokenizer.Pos{Col: 2, Offset: 2},
+					End:   tokenizer.Pos{Col: 2, Offset: 2},
 				},
 			},
 			wantDiags: []expectedDiag{
@@ -897,8 +897,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Unexpected identifier in relationship definition, did you mean to write a direction?",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 4, Offset: 3},
-						End:   tokenizer.Pos{Col: 11, Offset: 10},
+						Start: tokenizer.Pos{Col: 3, Offset: 3},
+						End:   tokenizer.Pos{Col: 10, Offset: 10},
 					},
 				},
 			},
@@ -915,8 +915,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 				TypeRHS:   ast.RelationAssociation,
 				MultRHS:   ast.Cardinality{Raw: "*", Min: 0, Max: -1},
 				ArrowSpan: tokenizer.SourceSpan{
-					Start: tokenizer.Pos{Col: 7, Offset: 6},
-					End:   tokenizer.Pos{Col: 9, Offset: 8},
+					Start: tokenizer.Pos{Col: 6, Offset: 6},
+					End:   tokenizer.Pos{Col: 8, Offset: 8},
 				},
 			},
 			wantDiags: []expectedDiag{
@@ -924,8 +924,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 13, Offset: 13},
-						End:   tokenizer.Pos{Col: 13, Offset: 13},
+						Start: tokenizer.Pos{Col: 12, Offset: 13},
+						End:   tokenizer.Pos{Col: 12, Offset: 13},
 					},
 				},
 			},
@@ -949,8 +949,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 8, Offset: 8},
-						End:   tokenizer.Pos{Col: 8, Offset: 8},
+						Start: tokenizer.Pos{Col: 7, Offset: 8},
+						End:   tokenizer.Pos{Col: 7, Offset: 8},
 					},
 				},
 			},
@@ -972,8 +972,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Different body type runes in relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 8, Offset: 7},
-						End:   tokenizer.Pos{Col: 9, Offset: 8},
+						Start: tokenizer.Pos{Col: 7, Offset: 7},
+						End:   tokenizer.Pos{Col: 8, Offset: 8},
 					},
 				},
 			},
@@ -995,8 +995,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Unexpected identifier in relationship definition, did you mean to write a direction?",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 7, Offset: 6},
-						End:   tokenizer.Pos{Col: 12, Offset: 11},
+						Start: tokenizer.Pos{Col: 6, Offset: 6},
+						End:   tokenizer.Pos{Col: 11, Offset: 11},
 					},
 				},
 			},
@@ -1018,8 +1018,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 11, Offset: 11},
-						End:   tokenizer.Pos{Col: 11, Offset: 11},
+						Start: tokenizer.Pos{Col: 10, Offset: 11},
+						End:   tokenizer.Pos{Col: 10, Offset: 11},
 					},
 				},
 			},
@@ -1046,8 +1046,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityInfo,
 					Msg:      "incorrect multiplicity syntax",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 6, Offset: 5},
-						End:   tokenizer.Pos{Col: 20, Offset: 19},
+						Start: tokenizer.Pos{Col: 5, Offset: 5},
+						End:   tokenizer.Pos{Col: 19, Offset: 19},
 					},
 				},
 			},
@@ -1072,8 +1072,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected newline or colon after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 16, Offset: 15},
-						End:   tokenizer.Pos{Col: 25, Offset: 25},
+						Start: tokenizer.Pos{Col: 15, Offset: 15},
+						End:   tokenizer.Pos{Col: 24, Offset: 25},
 					},
 				},
 			},

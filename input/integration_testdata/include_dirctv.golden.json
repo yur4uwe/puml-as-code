@@ -6,12 +6,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 1,
+          "Col": 0,
           "Offset": 0
         },
         "End": {
-          "Line": 1,
-          "Col": 0,
+          "Line": 0,
+          "Col": 9,
           "Offset": 9
         }
       }
@@ -21,12 +21,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 2,
-          "Col": 1,
+          "Col": 0,
           "Offset": 11
         },
         "End": {
-          "Line": 3,
-          "Col": 0,
+          "Line": 2,
+          "Col": 28,
           "Offset": 39
         }
       }
@@ -36,12 +36,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 3,
-          "Col": 1,
+          "Col": 0,
           "Offset": 40
         },
         "End": {
-          "Line": 4,
-          "Col": 0,
+          "Line": 3,
+          "Col": 37,
           "Offset": 77
         }
       }
@@ -52,12 +52,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 4,
-          "Col": 1,
+          "Col": 0,
           "Offset": 78
         },
         "End": {
-          "Line": 5,
-          "Col": 0,
+          "Line": 4,
+          "Col": 30,
           "Offset": 108
         }
       }
@@ -68,12 +68,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 5,
-          "Col": 1,
+          "Col": 0,
           "Offset": 109
         },
         "End": {
-          "Line": 6,
-          "Col": 0,
+          "Line": 5,
+          "Col": 42,
           "Offset": 151
         }
       }
@@ -84,12 +84,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 6,
-          "Col": 1,
+          "Col": 0,
           "Offset": 152
         },
         "End": {
-          "Line": 7,
-          "Col": 0,
+          "Line": 6,
+          "Col": 33,
           "Offset": 185
         }
       }
@@ -99,12 +99,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 7,
-          "Col": 1,
+          "Col": 0,
           "Offset": 186
         },
         "End": {
-          "Line": 8,
-          "Col": 0,
+          "Line": 7,
+          "Col": 33,
           "Offset": 219
         }
       }
@@ -115,12 +115,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 9,
-          "Col": 1,
+          "Col": 0,
           "Offset": 221
         },
         "End": {
-          "Line": 10,
-          "Col": 0,
+          "Line": 9,
+          "Col": 7,
           "Offset": 228
         }
       }

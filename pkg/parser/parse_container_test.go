@@ -424,8 +424,8 @@ func TestParseContainer_Recovery(t *testing.T) {
 		Type:    tokenizer.AT,
 		Literal: "@",
 		Span: tokenizer.SourceSpan{
-			Start: tokenizer.Pos{Line: 1, Col: 3},
-			End:   tokenizer.Pos{Line: 1, Col: 4},
+			Start: tokenizer.Pos{Line: 1, Col: 2},
+			End:   tokenizer.Pos{Line: 1, Col: 3},
 		},
 	}
 	unexpectedErr := NewParserError(badTok, "Unexpected token")

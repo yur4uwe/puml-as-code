@@ -8,12 +8,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 0,
-          "Col": 1,
+          "Col": 0,
           "Offset": 0
         },
         "End": {
-          "Line": 1,
-          "Col": 0,
+          "Line": 0,
+          "Col": 21,
           "Offset": 21
         }
       }
@@ -22,18 +22,18 @@
       "NodeSpan": {
         "Start": {
           "Line": 2,
-          "Col": 1,
+          "Col": 0,
           "Offset": 23
         },
         "End": {
-          "Line": 9,
-          "Col": 0,
+          "Line": 8,
+          "Col": 8,
           "Offset": 111
         }
       },
       "RAngle": {
         "Line": 2,
-        "Col": 7,
+        "Col": 6,
         "Offset": 29
       },
       "Statements": [
@@ -41,12 +41,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 3,
-              "Col": 1,
+              "Col": 0,
               "Offset": 31
             },
             "End": {
-              "Line": 8,
-              "Col": 0,
+              "Line": 7,
+              "Col": 1,
               "Offset": 102
             }
           },
@@ -55,7 +55,7 @@
           ],
           "LBrace": {
             "Line": 3,
-            "Col": 7,
+            "Col": 6,
             "Offset": 37
           },
           "Statements": [
@@ -63,12 +63,12 @@
               "NodeSpan": {
                 "Start": {
                   "Line": 4,
-                  "Col": 3,
+                  "Col": 2,
                   "Offset": 41
                 },
                 "End": {
-                  "Line": 5,
-                  "Col": 0,
+                  "Line": 4,
+                  "Col": 20,
                   "Offset": 59
                 }
               },
@@ -79,12 +79,12 @@
               "NodeSpan": {
                 "Start": {
                   "Line": 5,
-                  "Col": 3,
+                  "Col": 2,
                   "Offset": 62
                 },
                 "End": {
-                  "Line": 6,
-                  "Col": 0,
+                  "Line": 5,
+                  "Col": 14,
                   "Offset": 74
                 }
               },
@@ -95,12 +95,12 @@
               "NodeSpan": {
                 "Start": {
                   "Line": 6,
-                  "Col": 3,
+                  "Col": 2,
                   "Offset": 77
                 },
                 "End": {
-                  "Line": 7,
-                  "Col": 0,
+                  "Line": 6,
+                  "Col": 25,
                   "Offset": 100
                 }
               },
@@ -110,14 +110,14 @@
           ],
           "RBrace": {
             "Line": 7,
-            "Col": 1,
+            "Col": 0,
             "Offset": 101
           }
         }
       ],
       "LAngle": {
         "Line": 8,
-        "Col": 1,
+        "Col": 0,
         "Offset": 103
       }
     },
@@ -125,12 +125,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 10,
-          "Col": 1,
+          "Col": 0,
           "Offset": 113
         },
         "End": {
-          "Line": 13,
-          "Col": 0,
+          "Line": 12,
+          "Col": 1,
           "Offset": 150
         }
       },
@@ -140,12 +140,12 @@
           "Span": {
             "Start": {
               "Line": 10,
-              "Col": 7,
+              "Col": 6,
               "Offset": 119
             },
             "End": {
               "Line": 10,
-              "Col": 16,
+              "Col": 15,
               "Offset": 128
             }
           }
@@ -169,7 +169,7 @@
       "Kind": "class",
       "LBrace": {
         "Line": 10,
-        "Col": 17,
+        "Col": 16,
         "Offset": 129
       },
       "Members": [
@@ -177,12 +177,12 @@
           "NodeSpan": {
             "Start": {
               "Line": 11,
-              "Col": 3,
+              "Col": 2,
               "Offset": 133
             },
             "End": {
-              "Line": 12,
-              "Col": 0,
+              "Line": 11,
+              "Col": 17,
               "Offset": 148
             }
           },
@@ -202,7 +202,7 @@
       ],
       "RBrace": {
         "Line": 12,
-        "Col": 1,
+        "Col": 0,
         "Offset": 149
       }
     },
@@ -212,12 +212,12 @@
       "NodeSpan": {
         "Start": {
           "Line": 13,
-          "Col": 1,
+          "Col": 0,
           "Offset": 151
         },
         "End": {
-          "Line": 14,
-          "Col": 0,
+          "Line": 13,
+          "Col": 7,
           "Offset": 158
         }
       }
