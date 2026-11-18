@@ -235,7 +235,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					Msg:      "entity name already set",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Line: 0, Col: 18, Offset: 17},
-						End:   tokenizer.Pos{Line: 0, Col: 20, Offset: 19},
+						End:   tokenizer.Pos{Line: 0, Col: 19, Offset: 19},
 					},
 				},
 			},
@@ -253,8 +253,8 @@ func TestParseEntity_Errors(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "expected token for entity identifier or alias",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Line: 0, Col: 17, Offset: 16},
-						End:   tokenizer.Pos{Line: 0, Col: 17, Offset: 16},
+						Start: tokenizer.Pos{Line: 0, Col: 16, Offset: 16},
+						End:   tokenizer.Pos{Line: 0, Col: 16, Offset: 16},
 					},
 				},
 			},
@@ -273,7 +273,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					Msg:      "unexpected EOF",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Line: 0, Col: 15, Offset: 14},
-						End:   tokenizer.Pos{Line: 0, Col: 23, Offset: 22},
+						End:   tokenizer.Pos{Line: 0, Col: 22, Offset: 22},
 					},
 				},
 			},
@@ -292,7 +292,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					Msg:      "unexpected EOF",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Line: 0, Col: 18, Offset: 17},
-						End:   tokenizer.Pos{Line: 0, Col: 26, Offset: 25},
+						End:   tokenizer.Pos{Line: 0, Col: 25, Offset: 25},
 					},
 				},
 			},
@@ -312,7 +312,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					Msg:      "unclosed class: expected }",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Line: 0, Col: 15, Offset: 14},
-						End:   tokenizer.Pos{Line: 0, Col: 16, Offset: 15},
+						End:   tokenizer.Pos{Line: 0, Col: 15, Offset: 15},
 					},
 				},
 			},

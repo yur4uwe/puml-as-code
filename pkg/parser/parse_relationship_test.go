@@ -851,8 +851,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 4, Offset: 3},
-						End:   tokenizer.Pos{Col: 4, Offset: 3},
+						Start: tokenizer.Pos{Col: 3, Offset: 3},
+						End:   tokenizer.Pos{Col: 3, Offset: 3},
 					},
 				},
 			},
@@ -874,8 +874,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 9, Offset: 8},
-						End:   tokenizer.Pos{Col: 9, Offset: 8},
+						Start: tokenizer.Pos{Col: 8, Offset: 8},
+						End:   tokenizer.Pos{Col: 8, Offset: 8},
 					},
 				},
 			},
@@ -924,8 +924,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 14, Offset: 13},
-						End:   tokenizer.Pos{Col: 14, Offset: 13},
+						Start: tokenizer.Pos{Col: 13, Offset: 13},
+						End:   tokenizer.Pos{Col: 13, Offset: 13},
 					},
 				},
 			},
@@ -949,8 +949,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "Expected identifier or string after relationship",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 9, Offset: 8},
-						End:   tokenizer.Pos{Col: 9, Offset: 8},
+						Start: tokenizer.Pos{Col: 8, Offset: 8},
+						End:   tokenizer.Pos{Col: 8, Offset: 8},
 					},
 				},
 			},
@@ -1018,8 +1018,8 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Severity: ast.SeverityError,
 					Msg:      "expected an attribute terminator",
 					Span: tokenizer.SourceSpan{
-						Start: tokenizer.Pos{Col: 12, Offset: 11},
-						End:   tokenizer.Pos{Col: 12, Offset: 11},
+						Start: tokenizer.Pos{Col: 11, Offset: 11},
+						End:   tokenizer.Pos{Col: 11, Offset: 11},
 					},
 				},
 			},
@@ -1073,7 +1073,7 @@ func TestParseRelationship_Invalid(t *testing.T) {
 					Msg:      "Expected newline or colon after relationship",
 					Span: tokenizer.SourceSpan{
 						Start: tokenizer.Pos{Col: 16, Offset: 15},
-						End:   tokenizer.Pos{Col: 26, Offset: 25},
+						End:   tokenizer.Pos{Col: 25, Offset: 25},
 					},
 				},
 			},

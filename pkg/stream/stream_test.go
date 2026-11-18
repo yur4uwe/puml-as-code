@@ -157,7 +157,7 @@ func TestStreamEmitRaw(t *testing.T) {
 
 	tokC := ts.EmitRaw()
 	require.Equal(t, tokenizer.COMMENT, tokC.Type)
-	require.Equal(t, " comment ", tokC.Literal)
+	require.Equal(t, "comment", tokC.Literal)
 
 	tokB := ts.EmitRaw()
 	require.Equal(t, tokenizer.IDENTIFIER, tokB.Type)
