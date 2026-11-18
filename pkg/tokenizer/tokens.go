@@ -168,8 +168,7 @@ func ResolveUnambiguousToken(l *Lexer) (Token, bool) {
 			token.Type = COMMENT
 			token.Literal = l.readBlockComment()
 		} else {
-			token.Type = SLASH
-			token.Literal = l.input[l.position : l.position+1]
+			return l.consumeChar(SLASH), true
 		}
 	}
 

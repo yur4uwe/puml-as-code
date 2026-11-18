@@ -3,6 +3,7 @@ package tokenizer
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 
@@ -312,7 +313,7 @@ func (l *Lexer) readLineComment() string {
 	for l.ch != '\n' && !l.isEOF() {
 		l.advancePtr()
 	}
-	return l.input[start:l.position]
+	return strings.TrimSpace(l.input[start:l.position])
 }
 
 func (l *Lexer) readBlockComment() string {
@@ -320,13 +321,15 @@ func (l *Lexer) readBlockComment() string {
 	l.advancePtr()
 	l.advancePtr()
 	start := l.position
+	end := -1
 	for !l.isEOF() {
 		if l.ch == '\'' && l.peekChar() == '/' {
+			end = l.position
 			l.advancePtr()
 			l.advancePtr()
 			break
 		}
 		l.advancePtr()
 	}
-	return l.input[start:l.position]
+	return strings.TrimSpace(l.input[start:end])
 }

@@ -240,7 +240,7 @@ func TestSourceFidelity(t *testing.T) {
 			input := "/' line 1\n   line 2\n   line 3 '/"
 			toks := tokenizeAll(t, input)
 			require.GreaterOrEqual(t, len(toks), 1)
-			assertTokenFidelity(t, input, toks[0], COMMENT, " line 1\n   line 2\n   line 3 ", input)
+			assertTokenFidelity(t, input, toks[0], COMMENT, "line 1\n   line 2\n   line 3", input)
 			require.Equal(t, uint(0), toks[0].Span.Start.Line, "start line should be 0")
 			require.Equal(t, uint(2), toks[0].Span.End.Line, "end line should be 2 for 3-line block comment")
 			require.Equal(t, uint(2), toks[0].EndPos().Line, "EndPos().Line must reflect multiline end line")

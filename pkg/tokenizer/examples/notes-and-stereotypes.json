@@ -121,7 +121,15 @@
       },
       {
         "t": "IDENTIFIER",
-        "l": "classnextends"
+        "l": "class"
+      },
+      {
+        "t": "BACKSLASH",
+        "l": "\\"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "nextends"
       },
       {
         "t": "IDENTIFIER",
@@ -2148,3 +2156,4 @@
     ]
   }
 ]
+

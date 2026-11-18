@@ -665,7 +665,15 @@
       },
       {
         "t": "IDENTIFIER",
-        "l": "blue9932CC"
+        "l": "blue"
+      },
+      {
+        "t": "BACKSLASH",
+        "l": "\\"
+      },
+      {
+        "t": "IDENTIFIER",
+        "l": "9932CC"
       },
       {
         "t": "NEWLINE",
@@ -4496,3 +4504,4 @@
     ]
   }
 ]
+

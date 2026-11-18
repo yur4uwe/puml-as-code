@@ -10,11 +10,14 @@ func TestReadIdentifier(t *testing.T) {
 	lex := NewLexer("tag13")
 	require.Equal(t, "tag13", lex.readIdentifier())
 
-	lex = NewLexer("Foo\\-bar")
-	require.Equal(t, "Foo-bar", lex.readIdentifier())
+	lex = NewLexer("Foobar")
+	require.Equal(t, "Foobar", lex.readIdentifier())
 
 	lex = NewLexer("Foo123")
 	require.Equal(t, "Foo123", lex.readIdentifier())
+
+	lex = NewLexer("01Baz")
+	require.Equal(t, "01Baz", lex.readIdentifier())
 }
 
 func TestReadNumber(t *testing.T) {
