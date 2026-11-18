@@ -9,7 +9,7 @@ import (
 )
 
 func tokenize(input string) []tokenizer.Token {
-	lex := tokenizer.NewLexer([]rune(input))
+	lex := tokenizer.NewLexer(input)
 	var tokens []tokenizer.Token
 	for {
 		tok := lex.Emit()

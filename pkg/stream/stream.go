@@ -9,7 +9,7 @@ import (
 const maxConsecutiveEOF = 25
 
 type TokenStream struct {
-	source              []rune
+	source              string
 	lexer               *tokenizer.Lexer
 	collectedTrivia     []tokenizer.Token
 	buffer              []tokenizer.Token
@@ -21,10 +21,9 @@ type TokenStream struct {
 }
 
 func NewTokenStream(input string) *TokenStream {
-	runes := []rune(input)
 	return &TokenStream{
-		source:           runes,
-		lexer:            tokenizer.NewLexer(runes),
+		source:           input,
+		lexer:            tokenizer.NewLexer(input),
 		PackageSeparator: ".",
 		sinks:            make([]TokenSink, 0, 2),
 	}
