@@ -118,16 +118,16 @@ func TestParseDirectiveRecovery(t *testing.T) {
 			ast:     &ast.Diagram{},
 		}
 		exclTok := p.stream.Emit()
-		got := p.parseDirective(exclTok)
+		got, err := p.parseDirective(exclTok)
 
-		require.True(t, p.ast.HasErrors())
-		uh, ok := got.(*ast.UnhandledStatement)
-		require.True(t, ok)
-		require.Equal(t, "!", uh.Raw)
+		require.Error(t, err)
+		require.Nil(t, got)
 
+		p.syncToLineEnd()
 		p.stream.TryConsumeType(tokenizer.NEWLINE)
 		userTok := p.stream.Emit()
-		userEnt := p.parseEntity(userTok)
+		userEnt, err := p.parseEntity(userTok)
+		require.NoError(t, err)
 		require.NotNil(t, userEnt)
 		require.Equal(t, "User", userEnt.Identifier.EntityName())
 	})
@@ -140,16 +140,16 @@ func TestParseDirectiveRecovery(t *testing.T) {
 			ast:     &ast.Diagram{},
 		}
 		exclTok := p.stream.Emit()
-		got := p.parseDirective(exclTok)
+		got, err := p.parseDirective(exclTok)
 
-		require.True(t, p.ast.HasErrors())
-		uh, ok := got.(*ast.UnhandledStatement)
-		require.True(t, ok)
-		require.Equal(t, "! include", uh.Raw)
+		require.Error(t, err)
+		require.Nil(t, got)
 
+		p.syncToLineEnd()
 		p.stream.TryConsumeType(tokenizer.NEWLINE)
 		orderTok := p.stream.Emit()
-		orderEnt := p.parseEntity(orderTok)
+		orderEnt, err := p.parseEntity(orderTok)
+		require.NoError(t, err)
 		require.NotNil(t, orderEnt)
 		require.Equal(t, "Order", orderEnt.Identifier.EntityName())
 	})

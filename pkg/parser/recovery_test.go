@@ -6,7 +6,6 @@ import (
 	"yur4uwe/pac/internal/testutil"
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
-	"yur4uwe/pac/pkg/tokenizer"
 
 	"github.com/stretchr/testify/require"
 )
@@ -37,8 +36,7 @@ class ValidB
 		badStmt, ok := diag.Statements[2].(*ast.BadStatement)
 		require.True(t, ok, "expected 3rd statement to be BadStatement")
 		require.NotNil(t, badStmt.Diagnostic)
-		require.NotEmpty(t, badStmt.Tokens, "collector should capture tokens of bad statement")
-		require.Equal(t, tokenizer.AT, badStmt.Tokens[0].Type)
+		require.Equal(t, "@invalid_command", input[badStmt.Span().Start.Offset:badStmt.Span().End.Offset])
 
 		entB, ok := diag.Statements[3].(*ast.Entity)
 		require.True(t, ok)
@@ -116,11 +114,43 @@ class Service {
 		badMember, ok := ent.Members[1].(*ast.BadMember)
 		require.True(t, ok)
 		require.NotNil(t, badMember.Diagnostic)
-		require.NotEmpty(t, badMember.Tokens)
+		require.Equal(t, "name : invalid", input[badMember.Span().Start.Offset:badMember.Span().End.Offset])
 
 		method, ok := ent.Members[2].(*ast.MethodDeclaration)
 		require.True(t, ok)
 		require.Equal(t, "Execute", method.Method.MethodName())
+	})
+
+	t.Run("malformed entity header produces BadStatement covering exact span and retains subsequent statements", func(t *testing.T) {
+		input := `@startuml
+class ValidA
+class 123 invalid header
+class ValidB
+@enduml`
+
+		p := NewParser(dialect.NewGoDialect())
+		diag, err := p.Parse(input)
+
+		require.Error(t, err)
+		require.NotNil(t, diag)
+		require.True(t, diag.HasErrors())
+		require.Len(t, diag.Diagnostics, 1)
+
+		// Statements: startuml, ValidA, BadStatement, ValidB, enduml
+		require.Len(t, diag.Statements, 5)
+
+		entA, ok := diag.Statements[1].(*ast.Entity)
+		require.True(t, ok)
+		testutil.SemanticEqual(t, identRef("ValidA"), entA.Identifier)
+
+		badStmt, ok := diag.Statements[2].(*ast.BadStatement)
+		require.True(t, ok)
+		require.NotNil(t, badStmt.Diagnostic)
+		require.Equal(t, "class 123 invalid header", input[badStmt.Span().Start.Offset:badStmt.Span().End.Offset])
+
+		entB, ok := diag.Statements[3].(*ast.Entity)
+		require.True(t, ok)
+		testutil.SemanticEqual(t, identRef("ValidB"), entB.Identifier)
 	})
 
 	t.Run("multiple errors across different levels are all collected", func(t *testing.T) {

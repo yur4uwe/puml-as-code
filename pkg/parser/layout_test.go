@@ -278,7 +278,8 @@ func TestParseLayoutDirectives(t *testing.T) {
 `
 		p := newParser(input)
 		tok := p.stream.Emit()
-		cont := p.parseContainer(tok)
+		cont, err := p.parseContainer(tok)
+		require.NoError(t, err)
 		require.NotNil(t, cont)
 		require.Len(t, cont.Statements, 2)
 
@@ -417,7 +418,8 @@ func TestParseLayoutDirectives_Recovery(t *testing.T) {
 		p.stream.Emit()
 		nextTok := p.stream.Emit()
 		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent := p.parseEntity(nextTok)
+		ent, err := p.parseEntity(nextTok)
+		require.NoError(t, err)
 		require.NotNil(t, ent)
 		require.Equal(t, "User", ent.Identifier.EntityName())
 	})
@@ -447,7 +449,8 @@ func TestParseLayoutDirectives_Recovery(t *testing.T) {
 		p.stream.Emit()
 		nextTok := p.stream.Emit()
 		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent := p.parseEntity(nextTok)
+		ent, err := p.parseEntity(nextTok)
+		require.NoError(t, err)
 		require.NotNil(t, ent)
 		require.Equal(t, "Service", ent.Identifier.EntityName())
 	})
@@ -476,7 +479,8 @@ func TestParseLayoutDirectives_Recovery(t *testing.T) {
 		p.stream.Emit()
 		nextTok := p.stream.Emit()
 		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent := p.parseEntity(nextTok)
+		ent, err := p.parseEntity(nextTok)
+		require.NoError(t, err)
 		require.NotNil(t, ent)
 		require.Equal(t, "Data", ent.Identifier.EntityName())
 	})
@@ -514,7 +518,8 @@ func TestParseLayoutDirectives_Recovery(t *testing.T) {
 			ast:     &ast.Diagram{},
 		}
 		tok := p.stream.Emit()
-		cont := p.parseContainer(tok)
+		cont, err := p.parseContainer(tok)
+		require.NoError(t, err)
 
 		require.NotNil(t, cont)
 		require.True(t, p.ast.HasErrors())

@@ -7,10 +7,6 @@ import (
 )
 
 func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
-	collector := &stream.TokenCollector{}
-	detach := p.stream.Attach(collector)
-	defer detach()
-
 	leadingTrivia := p.dumpTrivia()
 
 	memberMark := p.Mark(tok)
@@ -19,18 +15,17 @@ func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
 		if member == nil {
 			return nil
 		}
-		detach()
 		p.stream.EmitCommentToks()
 		member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
 		return member
 	}
 
 	p.syncToLineOrBlockEnd()
-	if collector.Len() == 0 && !p.stream.AssertType(tokenizer.EOF) && !p.isEndMarker() && !p.stream.AssertType(tokenizer.RBRACE) {
-		p.stream.Emit()
+	if !p.stream.AssertType(tokenizer.EOF) && !p.isEndMarker() && !p.stream.AssertType(tokenizer.RBRACE) {
+		if p.stream.LastSemanticToken().Span.End.Offset < tok.Span.End.Offset {
+			p.stream.Emit()
+		}
 	}
-	detach()
-	badToks := collector.Tokens()
 	span := p.Span(memberMark)
 
 	diagst := &ast.Diagnostic{
@@ -43,7 +38,6 @@ func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
 	p.stream.EmitCommentToks()
 	badMember := &ast.BadMember{
 		Diagnostic: diagst,
-		Tokens:     badToks,
 		BaseNode: ast.BaseNode{
 			NodeSpan:       span,
 			LeadingTrivia:  leadingTrivia,

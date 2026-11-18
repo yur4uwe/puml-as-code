@@ -53,3 +53,16 @@ package "Foo" {
 		require.Equal(t, expected, formattedAgain)
 	})
 }
+
+func TestFormat_BadNodes(t *testing.T) {
+	input := `@startuml
+class ValidA
+@invalid_command
+class ValidService
+@enduml
+`
+
+	formatted, err := Format(input)
+	require.NoError(t, err)
+	require.Contains(t, formatted, "@invalid_command")
+}

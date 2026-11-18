@@ -209,7 +209,8 @@ func TestParseNote(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal), "First token must be 'note' for test input: %q", tc.input)
 
-			got := p.parseNote()
+			got, err := p.parseNote()
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.False(t, p.ast.HasErrors(), "expected no diagnostics for valid note definition")
 			testutil.SemanticEqual(t, tc.want, got)
@@ -228,11 +229,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "relative note invalid identifier after direction",
 			input: "note left invalid : text\n",
-			want: &ast.Note{
-				Kind:      ast.NoteTargeted,
-				Direction: ast.DirectionLeft,
-				Text:      "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -243,11 +240,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "relative note expected identifier for target",
 			input: "note left of : text\n",
-			want: &ast.Note{
-				Kind:      ast.NoteTargeted,
-				Direction: ast.DirectionLeft,
-				Text:      "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -258,11 +251,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "relative note unexpected identifier for link target",
 			input: "note left on MyClass : text\n",
-			want: &ast.Note{
-				Kind:      ast.NoteTargeted,
-				Direction: ast.DirectionLeft,
-				Text:      "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -291,10 +280,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "inline alias note missing as",
 			input: "note \"some note text\" N1\n",
-			want: &ast.Note{
-				Kind: ast.NoteAlias,
-				Text: "some note text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -305,10 +291,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "inline alias note missing identifier",
 			input: "note \"some note text\" as\n",
-			want: &ast.Note{
-				Kind: ast.NoteAlias,
-				Text: "some note text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -319,11 +302,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "inline alias note unexpected tokens after alias",
 			input: "note \"some note text\" as N1 extra tokens\n",
-			want: &ast.Note{
-				Kind:       ast.NoteAlias,
-				Text:       "some note text",
-				Identifier: identRef("N1"),
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -336,10 +315,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "multiline alias note missing identifier with closed body",
 			input: "note as\nsome note text\nend note\n",
-			want: &ast.Note{
-				Kind: ast.NoteAlias,
-				Text: "some note text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -350,9 +326,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "multiline alias note missing identifier and unclosed body",
 			input: "note as\n",
-			want: &ast.Note{
-				Kind: ast.NoteAlias,
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -367,11 +341,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "multiline alias note with colon (invalid newline) and closed body",
 			input: "note as N1 : some note text\nbody\nend note\n",
-			want: &ast.Note{
-				Kind:       ast.NoteAlias,
-				Identifier: identRef("N1"),
-				Text:       "body",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -382,12 +352,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "multiline alias note with colon and color (invalid) and closed body",
 			input: "note as N1 #red : some note text\nbody\nend note\n",
-			want: &ast.Note{
-				Kind:       ast.NoteAlias,
-				Identifier: identRef("N1"),
-				Style:      simpleNoteStyle("red"),
-				Text:       "body",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -400,9 +365,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "unexpected identifier after note (link note invalid position)",
 			input: "note of link : text\n",
-			want: &ast.Note{
-				Text: "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -413,9 +376,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "link note expected link after note on with colon",
 			input: "note on invalid : text\n",
-			want: &ast.Note{
-				Text: "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -426,9 +387,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "link note expected link after note on with block",
 			input: "note on invalid\ntext\nend note\n",
-			want: &ast.Note{
-				Text: "text",
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -439,7 +398,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "link note missing target and unclosed body",
 			input: "note on\n",
-			want:  &ast.Note{},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -456,7 +415,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "parseNote unexpected starting keyword",
 			input: "note class : text\n",
-			want:  &ast.Note{},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -467,7 +426,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "parseNote unexpected starting token type",
 			input: "note 123 : text\n",
-			want:  &ast.Note{},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -478,10 +437,7 @@ func TestParseNote_Errors(t *testing.T) {
 		{
 			name:  "parseNoteBody unexpected body definition token",
 			input: "note left @invalid\n",
-			want: &ast.Note{
-				Kind:      ast.NoteTargeted,
-				Direction: ast.DirectionLeft,
-			},
+			want:  nil,
 			wantDiags: []expectedDiag{
 				{
 					Severity: ast.SeverityError,
@@ -515,7 +471,13 @@ func TestParseNote_Errors(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal))
 
-			got := p.parseNote()
+			got, err := p.parseNote()
+			if tc.want == nil {
+				require.Error(t, err)
+				require.Nil(t, got)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, got)
@@ -687,7 +649,11 @@ func TestParseNote_Recovery(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Note, keyword.Classify(tok.Literal))
 
-			got := p.parseNote()
+			got, err := p.parseNote()
+			if err != nil {
+				require.Nil(t, got)
+				return
+			}
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 
@@ -705,7 +671,8 @@ func TestParseNote_Recovery(t *testing.T) {
 			// Canary assertion: next token must parse cleanly as NextClass
 			nextTok := p.stream.Emit()
 			require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-			nextEnt := p.parseEntity(nextTok)
+			nextEnt, err := p.parseEntity(nextTok)
+			require.NoError(t, err)
 			require.NotNil(t, nextEnt)
 			require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 		})
@@ -717,6 +684,7 @@ func TestParseNoteBody(t *testing.T) {
 		name      string
 		input     string
 		wantText  string
+		wantErr   string
 		wantDiags []expectedDiag
 	}{
 		{
@@ -740,14 +708,9 @@ func TestParseNoteBody(t *testing.T) {
 			},
 		},
 		{
-			name:  "unexpected token at body start",
-			input: "@unexpected\n",
-			wantDiags: []expectedDiag{
-				{
-					Severity: ast.SeverityError,
-					Msg:      "Expected ':' or newline after note definition",
-				},
-			},
+			name:    "unexpected token at body start",
+			input:   "@unexpected\n",
+			wantErr: "Expected ':' or newline after note definition",
 		},
 	}
 
@@ -759,7 +722,13 @@ func TestParseNoteBody(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			note := &ast.Note{}
-			p.parseNoteBody(note)
+			err := p.parseNoteBody(note)
+			if tc.wantErr != "" {
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.wantErr)
+				return
+			}
+			require.NoError(t, err)
 
 			if len(tc.wantDiags) > 0 {
 				require.True(t, p.ast.HasErrors())
@@ -803,7 +772,9 @@ func TestNoteStyle_Span(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			p.stream.Emit() // consume 'note'
-			note := p.parseNote()
+			noteStmt, err := p.parseNote()
+			require.NoError(t, err)
+			note := noteStmt.(*ast.Note)
 			require.NotNil(t, note.Style)
 			gotSpan := tc.input[note.Style.Span.Start.Offset:note.Style.Span.End.Offset]
 			require.Equal(t, tc.wantSpan, gotSpan)

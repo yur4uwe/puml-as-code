@@ -110,17 +110,14 @@ func (p *Parser) mapTokenToDirection(tok tokenizer.Token) ast.DirectionKind {
 	}
 }
 
-func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relationship {
-	var pe ParserError
+func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (*ast.Relationship, error) {
 	// Entry token is supposedly the first identifier
 	var err error
 	rel := &ast.Relationship{}
 	// Must not fail, guaranteed by the disambiguateIdent check
 	rel.LHS, err = p.parseTargetRef(firstTargetTok)
-	if errors.As(err, &pe) {
-		p.ast.RecordError(err, pe.Span, rel)
-		p.syncToLineEnd()
-		return rel
+	if err != nil {
+		return nil, err
 	}
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
@@ -137,11 +134,8 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 	arrowMark := p.Mark(p.stream.PeekTokenAt(0))
 
 	err = p.parseArrowTokens(rel)
-	if errors.As(err, &pe) {
-		p.ast.RecordError(err, pe.Span, rel)
-		p.syncToLineEnd()
-		rel.ArrowSpan = p.Span(arrowMark)
-		return rel
+	if err != nil {
+		return nil, err
 	}
 
 	rel.ArrowSpan = p.Span(arrowMark)
@@ -158,29 +152,21 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 
 	if !p.stream.AssertAnyType(tokenizer.IDENTIFIER, tokenizer.STRING) {
 		nextTok := p.stream.PeekTokenAt(0)
-		errSpan := nextTok.Span
-		err := NewParserError(nextTok, "Expected identifier or string after relationship")
-		p.ast.RecordError(err, errSpan, rel)
-		p.syncToLineEnd()
-		return rel
+		return nil, NewParserError(nextTok, "Expected identifier or string after relationship")
 	}
 
 	rel.RHS, err = p.parseTargetRef(p.stream.Emit())
-	if errors.As(err, &pe) {
-		p.ast.RecordError(err, pe.Span, rel)
-		p.syncToLineEnd()
-		return rel
+	if err != nil {
+		return nil, err
 	}
 
 	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
 		mark := p.Mark(hashTok)
-		style, errSpan, err := p.parseRelationshipStyle()
+		style, _, err := p.parseRelationshipStyle()
 		style.Span = p.Span(mark)
 		rel.Style = style
 		if err != nil {
-			p.ast.RecordError(err, errSpan, rel)
-			p.syncToLineEnd()
-			return rel
+			return nil, err
 		}
 	}
 
@@ -193,12 +179,10 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) *ast.Relation
 		// Do not consume newline, EOF, or RBRACE
 		// outer loop/caller handles the delimiter
 	default:
-		// literal junk, relationship is fully parsed and we can't know that is
-		p.recordError(endingToken, rel, "Expected newline or colon after relationship")
-		p.syncToLineEnd()
+		return nil, NewParserError(endingToken, "Expected newline or colon after relationship")
 	}
 
-	return rel
+	return rel, nil
 }
 
 func (p *Parser) parseArrowAttributes() (*ast.ArrowStyle, error) {

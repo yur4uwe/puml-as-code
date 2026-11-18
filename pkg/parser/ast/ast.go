@@ -190,8 +190,7 @@ func (t *UnhandledStatement) StatementNode() Statement {
 var _ Statement = (*UnhandledStatement)(nil)
 
 type BadStatement struct {
-	Diagnostic *Diagnostic       `json:",omitempty"`
-	Tokens     []tokenizer.Token `json:",omitempty"`
+	Diagnostic *Diagnostic `json:",omitempty"`
 	BaseNode
 }
 

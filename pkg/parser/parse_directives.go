@@ -7,35 +7,20 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseDirective(tok1 tokenizer.Token) ast.Statement {
+func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 	directiveNameTok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
-		err := NewParserError(p.stream.PeekTokenAt(0), "Expected directive name")
-		p.ast.RecordError(err, tok1.Span, nil)
-		p.syncToLineEnd()
-		return &ast.UnhandledStatement{
-			Raw: tok1.Literal,
-			BaseNode: ast.BaseNode{
-				LeadingTrivia: p.dumpTrivia(),
-			},
-		}
+		return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected directive name")
 	}
 
 	if directiveNameTok.Span.Start.Offset != tok1.Span.Start.Offset+1 {
-		p.recordError(directiveNameTok, nil, "Expected directive name right after !")
-		p.syncToLineEnd()
-		return &ast.UnhandledStatement{
-			Raw: p.stream.SliceInput(tok1.Span.Start.Offset, directiveNameTok.Span.End.Offset),
-			BaseNode: ast.BaseNode{
-				LeadingTrivia: p.dumpTrivia(),
-			},
-		}
+		return nil, NewParserError(directiveNameTok, "Expected directive name right after !")
 	}
 
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
-		return p.parseIncludeDirective(directiveNameTok)
+		return p.parseIncludeDirective(directiveNameTok), nil
 	}
-	return p.parseUnhandledDirective(tok1, directiveNameTok)
+	return p.parseUnhandledDirective(tok1, directiveNameTok), nil
 }
 
 func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirective {

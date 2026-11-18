@@ -2,8 +2,6 @@ package ast
 
 import (
 	"fmt"
-
-	"yur4uwe/pac/pkg/tokenizer"
 )
 
 type Member interface {
@@ -12,8 +10,7 @@ type Member interface {
 }
 
 type BadMember struct {
-	Diagnostic *Diagnostic       `json:"diagnostic,omitempty"`
-	Tokens     []tokenizer.Token `json:"tokens,omitempty"`
+	Diagnostic *Diagnostic `json:",omitempty"`
 	BaseNode
 }
 

@@ -99,7 +99,7 @@ func (p *Parser) parseContainerStyle() (*ast.ContainerStyle, tokenizer.SourceSpa
 	return cntStyle, tokenizer.SourceSpan{}, nil
 }
 
-func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
+func (p *Parser) parseContainer(tok tokenizer.Token) (*ast.Container, error) {
 	containerClass := keyword.Classify(tok.Literal)
 	container := &ast.Container{
 		Kind: p.mapKeywordToContainerKind(containerClass),
@@ -113,15 +113,14 @@ func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 	// and Name is on the right of 'as' keyword
 
 	if containerClass != keyword.Together {
-		if err, span := p.parseContainerHeader(container); err != nil {
-			p.ast.RecordError(err, span, container)
-			p.syncToBlockStart()
+		if err, _ := p.parseContainerHeader(container); err != nil {
+			return nil, err
 		}
 	}
 
 	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
 	if !ok {
-		return container
+		return container, nil
 	}
 	container.LBrace = lbraceTok.Span.Start
 
@@ -155,7 +154,7 @@ func (p *Parser) parseContainer(tok tokenizer.Token) *ast.Container {
 		container.RBrace = rbraceTok.Span.Start
 	}
 
-	return container
+	return container, nil
 }
 
 func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.SourceSpan) {

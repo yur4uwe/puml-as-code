@@ -3,7 +3,9 @@ package resolver
 import (
 	"testing"
 
+	"yur4uwe/pac/pkg/parser"
 	"yur4uwe/pac/pkg/parser/ast"
+	"yur4uwe/pac/pkg/parser/dialect"
 
 	"github.com/stretchr/testify/require"
 )
@@ -356,4 +358,26 @@ note left of ImplicitService : Some note
 	require.NotNil(t, ent)
 	require.Len(t, ent.Notes, 1)
 	require.Equal(t, "Some note", ent.Notes[0].Text)
+}
+
+func TestResolveSymbols_BadNodes(t *testing.T) {
+	input := `@startuml
+class ValidService {
+  +id string
+  invalid member syntax
+}
+@invalid_command
+ValidService --> TargetService
+@enduml
+`
+	p := parser.NewParser(dialect.NewGoDialect())
+	diag, err := p.Parse(input)
+	require.Error(t, err)
+	require.True(t, diag.HasErrors())
+
+	tbl := ResolveSymbols(diag)
+	require.Len(t, tbl.Entities, 2)
+	require.NotNil(t, tbl.Lookup("ValidService"))
+	require.NotNil(t, tbl.Lookup("TargetService"))
+	require.Len(t, tbl.Relationships, 1)
 }

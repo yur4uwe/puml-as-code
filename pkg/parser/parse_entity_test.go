@@ -200,7 +200,8 @@ func TestParseEntity(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
-			got := p.parseEntity(tok)
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 
 			switch tc.bs {
@@ -239,10 +240,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					},
 				},
 			},
-			want: &ast.Entity{
-				Identifier: identRef("MyClass"),
-				Kind:       ast.EntityClass,
-			},
+			want: nil,
 		},
 		{
 			name:  "invalid alias",
@@ -258,10 +256,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					},
 				},
 			},
-			want: &ast.Entity{
-				Identifier: identRef("MyClass"),
-				Kind:       ast.EntityClass,
-			},
+			want: nil,
 		},
 		{
 			name:  "unclosed stereotype",
@@ -277,10 +272,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					},
 				},
 			},
-			want: &ast.Entity{
-				Identifier: identRef("MyClass"),
-				Kind:       ast.EntityClass,
-			},
+			want: nil,
 		},
 		{
 			name:  "unclosed stereotype with generic already set",
@@ -296,11 +288,7 @@ func TestParseEntity_Errors(t *testing.T) {
 					},
 				},
 			},
-			want: &ast.Entity{
-				Identifier: identRef("MyClass"),
-				Kind:       ast.EntityClass,
-				Generic:    "T",
-			},
+			want: nil,
 		},
 		{
 			name:  "unclosed body",
@@ -361,7 +349,13 @@ func TestParseEntity_Errors(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Class, keyword.Classify(tok.Literal))
 
-			got := p.parseEntity(tok)
+			got, err := p.parseEntity(tok)
+			if tc.want == nil {
+				require.Error(t, err)
+				require.Nil(t, got)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, got)
 
 			switch tc.bs {
@@ -595,7 +589,12 @@ func TestParseEntity_Recovery(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, keyword.Class, keyword.Classify(tok.Literal))
 
-			got := p.parseEntity(tok)
+			got, err := p.parseEntity(tok)
+			if err != nil {
+				require.Nil(t, got)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 
@@ -621,7 +620,8 @@ func TestParseEntity_Recovery(t *testing.T) {
 				p.stream.Emit()
 				nextTok := p.stream.Emit()
 				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-				nextEnt := p.parseEntity(nextTok)
+				nextEnt, err := p.parseEntity(nextTok)
+				require.NoError(t, err)
 				require.NotNil(t, nextEnt)
 				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 			}
@@ -1051,7 +1051,8 @@ func TestParseInlineMember_Recovery(t *testing.T) {
 			ast:     &ast.Diagram{},
 		}
 		tok := p.stream.Emit()
-		cont := p.parseContainer(tok)
+		cont, err := p.parseContainer(tok)
+		require.NoError(t, err)
 
 		require.NotNil(t, cont)
 		require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax in container")
@@ -1101,7 +1102,8 @@ func TestParseInlineMember_Recovery(t *testing.T) {
 		p.stream.Emit()
 		nextTok := p.stream.Emit()
 		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		nextEnt := p.parseEntity(nextTok)
+		nextEnt, err := p.parseEntity(nextTok)
+		require.NoError(t, err)
 		require.NotNil(t, nextEnt)
 		require.Equal(t, "Order", nextEnt.Identifier.EntityName())
 	})
@@ -1134,7 +1136,8 @@ func TestParseInlineMember_Recovery(t *testing.T) {
 		p.stream.Emit()
 		nextTok := p.stream.Emit()
 		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		nextEnt := p.parseEntity(nextTok)
+		nextEnt, err := p.parseEntity(nextTok)
+		require.NoError(t, err)
 		require.NotNil(t, nextEnt)
 		require.Equal(t, "Server", nextEnt.Identifier.EntityName())
 	})
@@ -1181,7 +1184,8 @@ func TestParseEntityAndContainerTags(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			got := p.parseEntity(tok)
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			testutil.SemanticEqual(t, tc.wantStereo, got.Stereotype)
 			require.Equal(t, tc.wantTags, got.Tags)
@@ -1240,7 +1244,8 @@ func TestEntityStyle_Span(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			got := p.parseEntity(tok)
+			got, err := p.parseEntity(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.NotNil(t, got.Style)
 			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]

@@ -171,12 +171,15 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, error) {
 	if tok.Type == tokenizer.EXCLAMATION {
-		return p.parseDirective(tok), nil
+		return p.parseDirective(tok)
 	}
 	if visibility := p.mapTokenToVisibility(tok.Type); visibility != ast.VisibilityUnknown {
 		next := p.stream.PeekTokenAt(0)
 		if next.Type == tokenizer.IDENTIFIER && isEntityKeyword(keyword.Classify(next.Literal)) {
-			ent := p.parseEntity(p.stream.Emit())
+			ent, err := p.parseEntity(p.stream.Emit())
+			if err != nil {
+				return nil, err
+			}
 			ent.Visibility = visibility
 			return ent, nil
 		}
@@ -213,7 +216,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Protocol,
 		keyword.Entity:
 		// Class-like Entities
-		return p.parseEntity(tok), nil
+		return p.parseEntity(tok)
 	// Containers
 	case keyword.Package,
 		keyword.Together,
@@ -224,12 +227,12 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 		keyword.Database,
 		keyword.Namespace,
 		keyword.Node:
-		return p.parseContainer(tok), nil
+		return p.parseContainer(tok)
 	case keyword.Circle, keyword.Diamond, keyword.Metaclass, keyword.Stereotype:
 		return nil, NewParserError(tok, "unimplemented entity keyword handling")
 	// Special Keywords
 	case keyword.Note:
-		return p.parseNote(), nil
+		return p.parseNote()
 	}
 
 	return nil, nil
@@ -252,7 +255,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.parseStyleBlock(), nil
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
-		return p.parseDirective(tok), nil
+		return p.parseDirective(tok)
 	}
 
 	if stmt, err := p.disambiguateIdent(tok); stmt != nil || err != nil {
@@ -261,7 +264,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 
 	switch keyword.Classify(tok.Literal) {
 	case keyword.Skinparam:
-		return p.parseSkinparamRoot(tok), nil
+		return p.parseSkinparamRoot(tok)
 	case keyword.Title,
 		keyword.Header,
 		keyword.Footer,

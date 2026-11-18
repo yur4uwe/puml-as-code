@@ -8,7 +8,7 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
-func (p *Parser) parseSkinparamRoot(tok tokenizer.Token) ast.Statement {
+func (p *Parser) parseSkinparamRoot(tok tokenizer.Token) (ast.Statement, error) {
 	return p.parseSkinparamStatement(tok, true)
 }
 
@@ -69,7 +69,7 @@ func (p *Parser) parseSkinparamTarget(firstTok tokenizer.Token) ([]tokenizer.Tok
 	return tokens, stereo, nil
 }
 
-func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.Statement {
+func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) (ast.Statement, error) {
 	var keyword string
 	var targetTokens []tokenizer.Token
 	var stereo *ast.Stereotype
@@ -91,17 +91,12 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 				LBrace:  lbraceTok.Span.Start,
 			}
 			p.parseSkinparamBlockMembers(block)
-			return block
+			return block, nil
 		}
 
 		if p.stream.AssertAnyType(tokenizer.NEWLINE, tokenizer.EOF) {
 			nextTok := p.stream.PeekTokenAt(0)
-			err := NewParserError(nextTok, "Expected target or parameter after skinparam")
-			setting := &ast.SkinparamSetting{
-				Keyword: keyword,
-			}
-			p.ast.RecordError(err, nextTok.Span, setting)
-			return setting
+			return nil, NewParserError(nextTok, "Expected target or parameter after skinparam")
 		}
 
 		nameStartTok = p.stream.Emit()
@@ -111,17 +106,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 
 	targetTokens, stereo, err = p.parseSkinparamTarget(nameStartTok)
 	if err != nil {
-		if isRoot {
-			setting := &ast.SkinparamSetting{
-				Keyword: keyword,
-			}
-			p.ast.RecordError(err, nameStartTok.Span, setting)
-			p.syncToLineEnd()
-			return setting
-		}
-		p.ast.RecordError(err, nameStartTok.Span, nil)
-		p.syncToLineOrBlockEnd()
-		return nil
+		return nil, err
 	}
 
 	if lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE); ok {
@@ -137,7 +122,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 			LBrace:     lbraceTok.Span.Start,
 		}
 		p.parseSkinparamBlockMembers(block)
-		return block
+		return block, nil
 	}
 
 	toks := p.stream.ConsumeUntilType(tokenizer.NEWLINE, tokenizer.SEMICOLON)
@@ -148,7 +133,7 @@ func (p *Parser) parseSkinparamStatement(tok tokenizer.Token, isRoot bool) ast.S
 		Name:       ast.IdentFromTokens(targetTokens...),
 		Value:      value,
 		Stereotype: stereo,
-	}
+	}, nil
 }
 
 func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
@@ -174,7 +159,12 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 		case tokenizer.EXCLAMATION:
 			memberMark := p.Mark(tok)
 			leadingTrivia := p.dumpTrivia()
-			member := p.parseDirective(tok)
+			member, err := p.parseDirective(tok)
+			if err != nil {
+				p.ast.RecordError(err, tok.Span, nil)
+				p.syncToLineOrBlockEnd()
+				continue
+			}
 			if member != nil {
 				p.stream.EmitCommentToks()
 				member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
@@ -186,7 +176,12 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 		memberMark := p.Mark(tok)
 		leadingTrivia := p.dumpTrivia()
 
-		member := p.parseSkinparamStatement(tok, false)
+		member, err := p.parseSkinparamStatement(tok, false)
+		if err != nil {
+			p.ast.RecordError(err, tok.Span, nil)
+			p.syncToLineOrBlockEnd()
+			continue
+		}
 		if member != nil {
 			p.stream.EmitCommentToks()
 			member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())

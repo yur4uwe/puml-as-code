@@ -163,24 +163,20 @@ func (p *Parser) setAliasAndName(ent *ast.Entity, nameOrAlias tokenizer.Token) e
 	}
 }
 
-func (p *Parser) parseEntityHeader(ent *ast.Entity) {
+func (p *Parser) parseEntityHeader(ent *ast.Entity) error {
 	// Unexpectedly, class and other entity definitions have very strict syntax:
 	// class <entity name> as <entity alias> <generics> <stereotype> <styles> <body>
 
 	identTok := p.stream.Emit()
 	err := p.setAliasAndName(ent, identTok)
 	if err != nil {
-		p.ast.RecordError(err, identTok.Span, ent)
-		p.syncToBlockStart()
-		return
+		return err
 	}
 
 	if _, hasAlias := p.stream.TryConsumeKW(keyword.Alias); hasAlias {
 		secondIdentTok := p.stream.Emit()
 		if err := p.setAliasAndName(ent, secondIdentTok); err != nil {
-			p.ast.RecordError(err, secondIdentTok.Span, ent)
-			p.syncToBlockStart()
-			return
+			return err
 		}
 	}
 
@@ -191,35 +187,27 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 	}
 
 	if !p.stream.AssertTypeSeq(tokenizer.LANGLE, tokenizer.LANGLE) {
-		gen, span, err := p.tryReadGeneric()
+		gen, _, err := p.tryReadGeneric()
 		if err != nil && !errors.Is(err, stream.ErrStartMarkerNotFound) {
-			p.ast.RecordError(err, span, ent)
-			p.syncToBlockStart()
-			return
+			return err
 		}
 		ent.Generic = gen
 	}
 
-	preTags, span, err := p.tryReadTags()
+	preTags, _, err := p.tryReadTags()
 	if err != nil {
-		p.ast.RecordError(err, span, ent)
-		p.syncToBlockStart()
-		return
+		return err
 	}
 
-	stereo, span, err := p.tryParseStereotype()
+	stereo, _, err := p.tryParseStereotype()
 	if err != nil && !errors.Is(err, stream.ErrStartMarkerNotFound) {
-		p.ast.RecordError(err, span, ent)
-		p.syncToBlockStart()
-		return
+		return err
 	}
 	ent.Stereotype = stereo
 
-	postTags, span, err := p.tryReadTags()
+	postTags, _, err := p.tryReadTags()
 	if err != nil {
-		p.ast.RecordError(err, span, ent)
-		p.syncToBlockStart()
-		return
+		return err
 	}
 
 	if len(preTags) > 0 {
@@ -233,29 +221,31 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) {
 
 	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
 		mark := p.Mark(hashTok)
-		style, errSpan, err := p.parseEntityStyle()
+		style, _, err := p.parseEntityStyle()
 		style.Span = p.Span(mark)
 		ent.Style = style
 		if err != nil {
-			p.ast.RecordError(err, errSpan, ent)
-			p.syncToBlockStart()
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
 // tok is the kind of an entity (class, interface, struct, enum, etc.)
-func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
+func (p *Parser) parseEntity(tok tokenizer.Token) (*ast.Entity, error) {
 	ent := &ast.Entity{
 		Kind: p.mapTokenToEntityKind(tok),
 	}
 
-	p.parseEntityHeader(ent)
+	if err := p.parseEntityHeader(ent); err != nil {
+		return nil, err
+	}
 
 	lbraceTok, ok := p.stream.TryConsumeType(tokenizer.LBRACE)
 	if !ok {
 		// No body, return entity as is
-		return ent
+		return ent, nil
 	}
 
 	ent.LBrace = lbraceTok.Span.Start
@@ -298,11 +288,11 @@ func (p *Parser) parseEntity(tok tokenizer.Token) *ast.Entity {
 
 	rbraceTok, ok := p.stream.TryConsumeType(tokenizer.RBRACE)
 	if !ok {
-		return ent
+		return ent, nil
 	}
 	ent.RBrace = rbraceTok.Span.Start
 
-	return ent
+	return ent, nil
 }
 
 func firstTrailingBadMember(members []ast.Member) *ast.BadMember {

@@ -104,7 +104,8 @@ func TestParseSkinparamSingleLine(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, tok := newDirectParser(tc.input)
-			stmt := p.parseSkinparamRoot(tok)
+			stmt, err := p.parseSkinparamRoot(tok)
+			require.NoError(t, err)
 
 			setting, ok := stmt.(*ast.SkinparamSetting)
 			require.True(t, ok)
@@ -133,18 +134,14 @@ func TestParseSkinparam_Errors(t *testing.T) {
 			input:       "skinparam\n",
 			bs:          expectNoBlock,
 			errContains: "Expected target or parameter after skinparam",
-			want: &ast.SkinparamSetting{
-				Keyword: "skinparam",
-			},
+			want:        nil,
 		},
 		{
 			name:        "invalid target at root",
 			input:       "skinparam @invalid\n",
 			bs:          expectNoBlock,
 			errContains: "expected valid skinparam target name",
-			want: &ast.SkinparamSetting{
-				Keyword: "skinparam",
-			},
+			want:        nil,
 		},
 		{
 			name:        "unterminated block error",
@@ -214,7 +211,14 @@ func TestParseSkinparam_Errors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, tok := newDirectParser(tc.input)
-			stmt := p.parseSkinparamRoot(tok)
+			stmt, err := p.parseSkinparamRoot(tok)
+			if tc.want == nil {
+				require.Error(t, err)
+				require.Nil(t, stmt)
+				require.Contains(t, err.Error(), tc.errContains)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, stmt)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 			require.NotEmpty(t, p.ast.Diagnostics)
@@ -282,7 +286,8 @@ func TestParseSkinparam_Recovery(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, tok := newDirectParser(tc.input)
-			stmt := p.parseSkinparamRoot(tok)
+			stmt, err := p.parseSkinparamRoot(tok)
+			require.NoError(t, err)
 			require.NotNil(t, stmt)
 			require.True(t, p.ast.HasErrors())
 
@@ -300,7 +305,8 @@ func TestParseSkinparam_Recovery(t *testing.T) {
 				p.stream.Emit()
 				nextTok := p.stream.Emit()
 				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-				nextEnt := p.parseEntity(nextTok)
+				nextEnt, err := p.parseEntity(nextTok)
+				require.NoError(t, err)
 				require.NotNil(t, nextEnt)
 				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 			}
@@ -315,7 +321,8 @@ func TestParseSkinparam_Recovery(t *testing.T) {
 func TestParseSkinparamAnonymousBlock(t *testing.T) {
 	input := "skinparam {\n BackgroundColor PaleGreen\n}\n"
 	p, tok := newDirectParser(input)
-	stmt := p.parseSkinparamRoot(tok)
+	stmt, err := p.parseSkinparamRoot(tok)
+	require.NoError(t, err)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
@@ -333,7 +340,8 @@ func TestParseSkinparamAnonymousBlock(t *testing.T) {
 func TestParseSkinparamBlockWithStereotype(t *testing.T) {
 	input := "skinparam class<<Special>> {\n BackgroundColor Gold\n}\n"
 	p, tok := newDirectParser(input)
-	stmt := p.parseSkinparamRoot(tok)
+	stmt, err := p.parseSkinparamRoot(tok)
+	require.NoError(t, err)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)
@@ -403,7 +411,8 @@ func TestParseSkinparamNestedAndFlattening(t *testing.T) {
 }
 `
 	p, tok := newDirectParser(input)
-	stmt := p.parseSkinparamRoot(tok)
+	stmt, err := p.parseSkinparamRoot(tok)
+	require.NoError(t, err)
 
 	block, ok := stmt.(*ast.SkinparamBlock)
 	require.True(t, ok, "expected skinparam block but got %T", stmt)

@@ -32,8 +32,10 @@ func Format(src string, opts ...FormatOptions) (string, error) {
 	} else {
 		opt = opts[0]
 	}
+
+	// We probably SHOULD leave an ability to use dialects, but alas...
 	tree, err := parser.NewParser(dialect.LaxDialect{}).Parse(src)
-	if err != nil {
+	if tree == nil {
 		return "", err
 	}
 
@@ -89,6 +91,8 @@ func formatNode(s *formatterState, node ast.Node) {
 
 func (s *formatterState) formatMember(member ast.Member) {
 	switch mem := member.(type) {
+	case *ast.BadMember:
+		s.emitRawSpan(mem.NodeSpan)
 	case *ast.ClassSeparator:
 		printClassSeparator(s, mem)
 	case *ast.FieldDeclaration:
@@ -102,6 +106,8 @@ func (s *formatterState) formatMember(member ast.Member) {
 
 func (s *formatterState) formatStatement(stmt ast.Statement) {
 	switch st := stmt.(type) {
+	case *ast.BadStatement:
+		s.emitRawSpan(st.NodeSpan)
 	case *ast.DiagramBound:
 		printDiagramBound(s, st)
 	case *ast.TextBlock:

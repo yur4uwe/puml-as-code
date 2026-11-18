@@ -416,7 +416,8 @@ func TestParseStyleBlock_Recovery(t *testing.T) {
 				p.stream.Emit()
 				nextTok := p.stream.Emit()
 				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-				nextEnt := p.parseEntity(nextTok)
+				nextEnt, err := p.parseEntity(nextTok)
+				require.NoError(t, err)
 				require.NotNil(t, nextEnt)
 				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 			}

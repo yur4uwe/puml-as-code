@@ -47,7 +47,12 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 		var stmnt ast.Statement
 		switch tok.Type {
 		case tokenizer.EXCLAMATION:
-			stmnt = p.parseDirective(tok)
+			var err error
+			stmnt, err = p.parseDirective(tok)
+			if err != nil {
+				p.syncToLineOrBlockEnd()
+				continue
+			}
 		default:
 			// Must be a StyleRule (e.g. "root { ... }" or "classDiagram { ... }")
 			stmnt = p.parseStyleRule(tok)
@@ -130,7 +135,11 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 		case tokenizer.NEWLINE, tokenizer.SEMICOLON:
 			continue
 		case tokenizer.EXCLAMATION:
-			dir := p.parseDirective(tok)
+			dir, err := p.parseDirective(tok)
+			if err != nil {
+				p.syncToLineOrBlockEnd()
+				continue
+			}
 			if dir != nil {
 				currentRule.Statements = append(currentRule.Statements, dir)
 			}

@@ -819,7 +819,8 @@ func TestParseRelationship_Valid(t *testing.T) {
 			}
 			firstTok := p.stream.Emit()
 
-			rel := p.parseRelationship(firstTok)
+			rel, err := p.parseRelationship(firstTok)
+			require.NoError(t, err)
 			testutil.SemanticEqual(t, tc.want, rel)
 		})
 	}
@@ -1239,9 +1240,15 @@ func TestParseRelationship_Invalid(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			firstTok := p.stream.Emit()
-			rel := p.parseRelationship(firstTok)
-			testutil.SemanticEqual(t, tc.want, rel)
-			assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, rel)
+			rel, err := p.parseRelationship(firstTok)
+			if tc.name == "invalid multiplicity syntax emits info diagnostic and continues" {
+				require.NoError(t, err)
+				testutil.SemanticEqual(t, tc.want, rel)
+				assertDiagsEqual(t, tc.wantDiags, p.ast.Diagnostics, rel)
+				return
+			}
+			require.Error(t, err)
+			require.Nil(t, rel)
 		})
 	}
 }
@@ -1353,7 +1360,8 @@ func TestRelationshipStyle_Span(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			got := p.parseRelationship(tok)
+			got, err := p.parseRelationship(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.NotNil(t, got.Style)
 			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]
@@ -1393,7 +1401,8 @@ func TestArrowStyle_Span(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			got := p.parseRelationship(tok)
+			got, err := p.parseRelationship(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.NotNil(t, got.ArrowStyle)
 			gotSpan := tc.input[got.ArrowStyle.Span.Start.Offset:got.ArrowStyle.Span.End.Offset]
@@ -1410,7 +1419,8 @@ func TestRelationship_BothArrowStyleAndTrailingStyle(t *testing.T) {
 		ast:     &ast.Diagram{},
 	}
 	tok := p.stream.Emit()
-	got := p.parseRelationship(tok)
+	got, err := p.parseRelationship(tok)
+	require.NoError(t, err)
 	require.NotNil(t, got)
 
 	require.NotNil(t, got.ArrowStyle)

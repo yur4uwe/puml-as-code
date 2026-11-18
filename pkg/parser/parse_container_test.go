@@ -328,7 +328,8 @@ func TestParseContainer(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
-			got := p.parseContainer(tok)
+			got, err := p.parseContainer(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			testutil.SemanticEqual(t, tc.want, got)
 		})
@@ -350,9 +351,7 @@ func TestParseContainer_Errors(t *testing.T) {
 			kwType:      keyword.Package,
 			bs:          expectNoBlock,
 			errContains: "Expected identifier or string for container alias",
-			want: &ast.Container{
-				Kind: ast.ContainerPackage,
-			},
+			want:        nil,
 		},
 		{
 			name:        "package unclosed stereotype",
@@ -360,10 +359,7 @@ func TestParseContainer_Errors(t *testing.T) {
 			kwType:      keyword.Package,
 			bs:          expectNoBlock,
 			errContains: "unexpected EOF",
-			want: &ast.Container{
-				Identifier: identRef("mypkg"),
-				Kind:       ast.ContainerPackage,
-			},
+			want:        nil,
 		},
 		{
 			name:        "package unclosed body",
@@ -394,7 +390,14 @@ func TestParseContainer_Errors(t *testing.T) {
 			tok := p.stream.Emit()
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
-			got := p.parseContainer(tok)
+			got, err := p.parseContainer(tok)
+			if tc.want == nil {
+				require.Error(t, err)
+				require.Nil(t, got)
+				require.Contains(t, err.Error(), tc.errContains)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, got)
 
 			switch tc.bs {
@@ -435,10 +438,6 @@ func TestParseContainer_Recovery(t *testing.T) {
 			Severity: ast.SeverityError,
 			Message:  unexpectedErr.Error(),
 			Err:      unexpectedErr,
-		},
-		Tokens: []tokenizer.Token{
-			{Type: tokenizer.AT, Literal: "@"},
-			{Type: tokenizer.IDENTIFIER, Literal: "invalid"},
 		},
 	}
 
@@ -735,7 +734,11 @@ func TestParseContainer_Recovery(t *testing.T) {
 			require.Equal(t, tc.kwType, keyword.Classify(tok.Literal))
 
 			// 2. Parse unit under test
-			got := p.parseContainer(tok)
+			got, err := p.parseContainer(tok)
+			if err != nil {
+				require.Nil(t, got)
+				return
+			}
 			require.NotNil(t, got)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 
@@ -767,7 +770,8 @@ func TestParseContainer_Recovery(t *testing.T) {
 				p.stream.Emit()
 				nextTok := p.stream.Emit()
 				require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-				nextEnt := p.parseEntity(nextTok)
+				nextEnt, err := p.parseEntity(nextTok)
+				require.NoError(t, err)
 				require.NotNil(t, nextEnt)
 				require.Equal(t, "NextClass", nextEnt.Identifier.EntityName())
 			}
@@ -811,7 +815,8 @@ func TestContainerStyle_Span(t *testing.T) {
 				ast:     &ast.Diagram{},
 			}
 			tok := p.stream.Emit()
-			got := p.parseContainer(tok)
+			got, err := p.parseContainer(tok)
+			require.NoError(t, err)
 			require.NotNil(t, got)
 			require.NotNil(t, got.Style)
 			gotSpan := tc.input[got.Style.Span.Start.Offset:got.Style.Span.End.Offset]
