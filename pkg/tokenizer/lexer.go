@@ -57,6 +57,13 @@ func (l *Lexer) advancePtr() {
 		return
 	}
 
+	if l.ch == '\n' {
+		l.line++
+		l.col = 0
+	} else if l.ch != 0 {
+		l.col++
+	}
+
 	l.position = l.nextBytePos
 	b := l.input[l.nextBytePos]
 
@@ -69,13 +76,6 @@ func (l *Lexer) advancePtr() {
 	}
 
 	l.nextBytePos += width
-
-	if l.ch == '\n' {
-		l.line++
-		l.col = 0
-	} else {
-		l.col++
-	}
 }
 
 func (l *Lexer) isEOF() bool {
