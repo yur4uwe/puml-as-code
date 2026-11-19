@@ -2,8 +2,8 @@ package parser
 
 import (
 	"yur4uwe/pac/pkg/parser/ast"
-	"yur4uwe/pac/pkg/tokenizer/keyword"
 	"yur4uwe/pac/pkg/tokenizer"
+	"yur4uwe/pac/pkg/tokenizer/keyword"
 )
 
 func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
@@ -48,7 +48,7 @@ func (p *Parser) mapTokenToEntityKind(tok tokenizer.Token) ast.EntityKind {
 	}
 }
 
-func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKind {
+func mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKind {
 	switch tok {
 	case tokenizer.PLUS:
 		return ast.VisibilityPublic
@@ -63,7 +63,7 @@ func (p *Parser) mapTokenToVisibility(tok tokenizer.TokenType) ast.VisibilityKin
 	}
 }
 
-func (p *Parser) mapKeywordToContainerKind(kw keyword.KeywordKind) ast.ContainerKind {
+func mapKeywordToContainerKind(kw keyword.KeywordKind) ast.ContainerKind {
 	switch kw {
 	case keyword.Package:
 		return ast.ContainerPackage

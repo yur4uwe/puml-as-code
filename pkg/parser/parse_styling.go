@@ -16,7 +16,7 @@ func (p *Parser) isStyleTagEnd() bool {
 	})
 }
 
-func (p *Parser) parseStyleBlock() *ast.StyleBlock {
+func (p *Parser) parseStyleBlock() (*ast.StyleBlock, error) {
 	langle := p.stream.LastSemanticToken() // get the '<'
 	p.stream.Emit()                        // consume 'style'
 	rangle := p.stream.Emit()              // consume '>'
@@ -31,12 +31,7 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 	for !p.isStyleTagEnd() {
 		tok := p.stream.Emit()
 		if p.isEndMarker() || tok.Type == tokenizer.EOF {
-			p.ast.RecordError(
-				unclBlkErr,
-				blockMarkerSpan,
-				styleBlock,
-			)
-			break
+			return nil, WrapParserError(tokenizer.Token{Span: blockMarkerSpan}, unclBlkErr)
 		} else if tok.Type == tokenizer.NEWLINE || tok.Type == tokenizer.SEMICOLON {
 			continue
 		}
@@ -77,7 +72,7 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 		p.stream.TryConsumeType(tokenizer.RANGLE)
 	}
 
-	return styleBlock
+	return styleBlock, nil
 }
 
 func (p *Parser) setSelectorsFor(rule *ast.StyleRule, startTok tokenizer.Token) {

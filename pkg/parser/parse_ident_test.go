@@ -324,8 +324,8 @@ func TestDisambiguateIdent_CustomPackageSeparatorDash(t *testing.T) {
 			ArrowStyle: &ast.ArrowStyle{
 				LineStyle: ast.LineBold,
 			},
-			TypeRHS:   ast.RelationAssociation,
-			RHS:       identRef("text"),
+			TypeRHS: ast.RelationAssociation,
+			RHS:     identRef("text"),
 		}
 		testutil.SemanticEqual(t, want, stmt)
 	})

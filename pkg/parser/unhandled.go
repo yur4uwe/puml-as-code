@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"strings"
 
 	"yur4uwe/pac/pkg/parser/ast"
@@ -21,19 +22,22 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 	return p.consumeUnhandledLine(tok, leadingTrivia)
 }
 
-func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tokenizer.Token) ast.Statement {
+func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tokenizer.Token) (ast.Statement, error) {
 	leadingTrivia := p.dumpTrivia()
 
 	kw := findUnhandledKeyword("!" + dirNameTok.Literal)
 	if kw != nil && kw.Closer != "" {
 		stmt, err := p.consumeUnhandledBlock(exclTok, *kw, leadingTrivia)
 		if err != nil {
-			p.ast.RecordError(err, exclTok.Span, stmt)
+			var pe ParserError
+			if errors.As(err, &pe) {
+				return nil, err
+			}
+			return nil, WrapParserError(exclTok, err)
 		}
-		return stmt
+		return stmt, nil
 	}
-	stmt, _ := p.consumeUnhandledLine(exclTok, leadingTrivia)
-	return stmt
+	return p.consumeUnhandledLine(exclTok, leadingTrivia)
 }
 
 func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []ast.Comment) (ast.Statement, error) {

@@ -102,7 +102,7 @@ func (p *Parser) parseContainerStyle() (*ast.ContainerStyle, tokenizer.SourceSpa
 func (p *Parser) parseContainer(tok tokenizer.Token) (*ast.Container, error) {
 	containerClass := keyword.Classify(tok.Literal)
 	container := &ast.Container{
-		Kind: p.mapKeywordToContainerKind(containerClass),
+		Kind: mapKeywordToContainerKind(containerClass),
 	}
 
 	// Handle container name, alias, stereotype, color

@@ -170,7 +170,7 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	if tok.Type == tokenizer.EXCLAMATION {
 		return p.parseDirective(tok)
 	}
-	if visibility := p.mapTokenToVisibility(tok.Type); visibility != ast.VisibilityUnknown {
+	if visibility := mapTokenToVisibility(tok.Type); visibility != ast.VisibilityUnknown {
 		next := p.stream.PeekTokenAt(0)
 		if next.Type == tokenizer.IDENTIFIER && isEntityKeyword(keyword.Classify(next.Literal)) {
 			ent, err := p.parseEntity(p.stream.Emit())
@@ -190,13 +190,13 @@ func (p *Parser) parseContainerStatement(tok tokenizer.Token) (ast.Statement, er
 	case keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		return p.parseLayoutStatement(tok, nil), nil
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		nextKW := keyword.Classify(nextTok.Literal)
 		if nextKW == keyword.Header || nextKW == keyword.Footer || nextKW == keyword.Legend || nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			return p.parseLayoutStatement(actualKwTok, &tok), nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		}
 		return nil, NewParserError(tok, "Unexpected direction keyword in container")
 	case keyword.Caption, keyword.Sprite:
@@ -249,7 +249,7 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		return p.readEndBounds(tok)
 	}
 	if tok.Type == tokenizer.LANGLE && p.stream.AssertSeq([]tokenizer.Token{amb(tokenizer.IDENTIFIER, "style"), unamb(tokenizer.RANGLE)}) {
-		return p.parseStyleBlock(), nil
+		return p.parseStyleBlock()
 	}
 	if tok.Type == tokenizer.EXCLAMATION {
 		return p.parseDirective(tok)
@@ -266,26 +266,26 @@ func (p *Parser) parseDiagramOnlyStatement(tok tokenizer.Token) (ast.Statement, 
 		keyword.Header,
 		keyword.Footer,
 		keyword.Legend:
-		return p.parseLayoutStatement(tok, nil), nil
+		return p.parseLayoutStatement(tok, nil)
 	case keyword.Hide, keyword.Show, keyword.Remove, keyword.Restore:
-		return p.parseVisibilityCommand(tok), nil
+		return p.parseVisibilityCommand(tok)
 	case keyword.Scale:
 		return p.parseScale()
 	case keyword.Direction:
 		nextTok := p.stream.PeekTokenAt(0)
 		if nextTok.Literal == "to" {
-			return p.parseDiagDirection(tok), nil
+			return p.parseDiagDirection(tok)
 		} else if nextKW := keyword.Classify(nextTok.Literal); nextKW == keyword.Header ||
 			nextKW == keyword.Footer ||
 			nextKW == keyword.Legend ||
 			nextKW == keyword.Title {
 			actualKwTok := p.stream.Emit()
-			return p.parseLayoutStatement(actualKwTok, &tok), nil
+			return p.parseLayoutStatement(actualKwTok, &tok)
 		} else {
 			return nil, NewParserError(tok, "Unexpected token after direction")
 		}
 	case keyword.Set:
-		return p.parseSetCommand(), nil
+		return p.parseSetCommand()
 	}
 
 	return nil, nil

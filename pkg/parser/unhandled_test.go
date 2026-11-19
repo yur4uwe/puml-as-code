@@ -75,7 +75,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -91,7 +92,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -109,7 +111,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -125,7 +128,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -141,7 +145,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -157,7 +162,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -173,7 +179,8 @@ func TestParseUnhandled(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+			require.NoError(t, err)
 
 			uh, ok := stmt.(*ast.UnhandledStatement)
 			require.True(t, ok)
@@ -198,7 +205,8 @@ func TestParseUnhandled(t *testing.T) {
 		}
 		exclTok := p.stream.Emit()
 		dirTok := p.stream.Emit()
-		stmt := p.parseUnhandledDirective(exclTok, dirTok)
+		stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
+		require.NoError(t, err)
 
 		uh, ok := stmt.(*ast.UnhandledStatement)
 		require.True(t, ok)
@@ -306,11 +314,10 @@ func TestParseUnhandled_Recovery(t *testing.T) {
 			}
 			exclTok := p.stream.Emit()
 			dirTok := p.stream.Emit()
-			stmt := p.parseUnhandledDirective(exclTok, dirTok)
+			stmt, err := p.parseUnhandledDirective(exclTok, dirTok)
 			require.Nil(t, stmt)
-			require.True(t, p.ast.HasErrors())
-			require.Len(t, p.ast.Diagnostics, 1)
-			require.Contains(t, p.ast.Diagnostics[0].Message, tc.errContains)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.errContains)
 		})
 	}
 }

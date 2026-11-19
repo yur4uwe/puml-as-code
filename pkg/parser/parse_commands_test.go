@@ -10,12 +10,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestParseScaleCommand(t *testing.T) {
+func TestParseScaleCommand_Valid(t *testing.T) {
 	tests := []struct {
-		name      string
-		input     string
-		want      ast.ScaleCommand
-		expectErr bool
+		name  string
+		input string
+		want  ast.ScaleCommand
 	}{
 		// bare integer factor
 		{
@@ -112,24 +111,6 @@ func TestParseScaleCommand(t *testing.T) {
 		{name: "leading zeros", input: "scale 007", want: ast.ScaleCommand{Lhs: "007"}},
 		{name: "zero width", input: "scale 0 width", want: ast.ScaleCommand{Lhs: "0", Unit: "width"}},
 		{name: "spaced box", input: "scale 200 * 100", want: ast.ScaleCommand{Lhs: "200", Sep: "*", Rhs: "100"}},
-
-		// errors
-		{name: "no operand", input: "scale", expectErr: true},
-		{name: "max without operand", input: "scale max", expectErr: true},
-		{name: "non-numeric", input: "scale abc", expectErr: true},
-		{name: "unknown unit", input: "scale 200 depth", expectErr: true},
-		{name: "box with unit", input: "scale 200*100 width", expectErr: true},
-		{name: "dangling decimal point", input: "scale .", expectErr: true},
-		{name: "dangling slash", input: "scale 2/", expectErr: true},
-		{name: "dangling box separator", input: "scale 200*", expectErr: true},
-		{name: "two decimal points", input: "scale 1.2.3", expectErr: true},
-		{name: "mixed separators", input: "scale 2/3*4", expectErr: true},
-		{name: "hex", input: "scale 0x10", expectErr: true},
-		{name: "scientific", input: "scale 1e3", expectErr: true},
-		{name: "binary", input: "scale 0b11 width", expectErr: true},
-		{name: "max integer", input: "scale max 200", expectErr: true},
-		{name: "max decimal", input: "scale max 1.5", expectErr: true},
-		{name: "fraction unit", input: "scale 2/3 width", expectErr: true},
 	}
 
 	for _, tc := range tests {
@@ -139,12 +120,44 @@ func TestParseScaleCommand(t *testing.T) {
 			}
 			p.stream.Emit()
 			got, err := p.parseScale()
-			if tc.expectErr {
-				require.Error(t, err)
-			} else {
-				require.NoError(t, err)
-				testutil.SemanticEqual(t, tc.want, got)
+			require.NoError(t, err)
+			testutil.SemanticEqual(t, tc.want, got)
+		})
+	}
+}
+
+func TestParseScaleCommand_Errors(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{name: "no operand", input: "scale"},
+		{name: "max without operand", input: "scale max"},
+		{name: "non-numeric", input: "scale abc"},
+		{name: "unknown unit", input: "scale 200 depth"},
+		{name: "box with unit", input: "scale 200*100 width"},
+		{name: "dangling decimal point", input: "scale ."},
+		{name: "dangling slash", input: "scale 2/"},
+		{name: "dangling box separator", input: "scale 200*"},
+		{name: "two decimal points", input: "scale 1.2.3"},
+		{name: "mixed separators", input: "scale 2/3*4"},
+		{name: "hex", input: "scale 0x10"},
+		{name: "scientific", input: "scale 1e3"},
+		{name: "binary", input: "scale 0b11 width"},
+		{name: "max integer", input: "scale max 200"},
+		{name: "max decimal", input: "scale max 1.5"},
+		{name: "fraction unit", input: "scale 2/3 width"},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			p := Parser{
+				stream: stream.NewTokenStream(tc.input),
 			}
+			p.stream.Emit()
+			got, err := p.parseScale()
+			require.Error(t, err)
+			require.Nil(t, got)
 		})
 	}
 }

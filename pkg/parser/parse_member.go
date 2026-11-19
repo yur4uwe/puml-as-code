@@ -80,7 +80,7 @@ func (p *Parser) parseEntityMember() (ast.Member, error) {
 		// It shouldn't arrive here, but just in case
 		return nil, nil
 	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
-		vis = p.mapTokenToVisibility(tok.Type)
+		vis = mapTokenToVisibility(tok.Type)
 	case tokenizer.IDENTIFIER:
 		// simply to not error out
 	case tokenizer.NEWLINE:
@@ -154,7 +154,7 @@ outer:
 		switch tok.Type {
 		case tokenizer.HASH, tokenizer.PLUS, tokenizer.DASH, tokenizer.TILDE:
 			if canEncounterVisibility {
-				vis = p.mapTokenToVisibility(tok.Type)
+				vis = mapTokenToVisibility(tok.Type)
 				canEncounterVisibility = false
 				continue
 			}
@@ -215,7 +215,7 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	switch entryTok.Type {
 	case tokenizer.DASH, tokenizer.TILDE, tokenizer.HASH, tokenizer.PLUS:
 		p.stream.Emit()
-		vis = p.mapTokenToVisibility(entryTok.Type)
+		vis = mapTokenToVisibility(entryTok.Type)
 	case tokenizer.LBRACE:
 		m, err := p.tryReadModifier()
 		if err == nil {

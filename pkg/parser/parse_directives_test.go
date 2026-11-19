@@ -79,7 +79,7 @@ func TestParseIncludeDirectives(t *testing.T) {
 			}
 			p.stream.Emit() // consume '!'
 			dirTok := p.stream.Emit()
-			got := p.parseIncludeDirective(dirTok)
+			got, _ := p.parseIncludeDirective(dirTok)
 
 			require.False(t, p.ast.HasErrors())
 			require.NotNil(t, got)
@@ -92,24 +92,6 @@ func TestParseIncludeDirectives(t *testing.T) {
 }
 
 func TestParseDirectiveRecovery(t *testing.T) {
-	// That is questionable feature, but unless someone hates it, there seems to be no issue
-	t.Run("unknown include kind records diagnostic but produces IncludeDirective", func(t *testing.T) {
-		input := "!include_unknown myfile.puml"
-		p := Parser{
-			stream:  stream.NewTokenStream(input),
-			Dialect: dialect.NewGoDialect(),
-			ast:     &ast.Diagram{},
-		}
-		p.stream.Emit() // consume '!'
-		dirTok := p.stream.Emit()
-		got := p.parseIncludeDirective(dirTok)
-
-		require.True(t, p.ast.HasErrors())
-		require.NotNil(t, got)
-		require.Equal(t, ast.IncludeOnce, got.Kind)
-		require.Equal(t, "myfile.puml", got.Path)
-	})
-
 	t.Run("bare exclamation mark records diagnostic and preserves surrounding statements", func(t *testing.T) {
 		input := "!\nclass User"
 		p := Parser{

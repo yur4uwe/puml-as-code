@@ -18,12 +18,12 @@ func (p *Parser) parseDirective(tok1 tokenizer.Token) (ast.Statement, error) {
 	}
 
 	if strings.HasPrefix(directiveNameTok.Literal, "include") {
-		return p.parseIncludeDirective(directiveNameTok), nil
+		return p.parseIncludeDirective(directiveNameTok)
 	}
-	return p.parseUnhandledDirective(tok1, directiveNameTok), nil
+	return p.parseUnhandledDirective(tok1, directiveNameTok)
 }
 
-func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirective {
+func (p *Parser) parseIncludeDirective(tok tokenizer.Token) (*ast.IncludeDirective, error) {
 	var kind ast.IncludeKind
 	switch tok.Literal {
 	case "include_many":
@@ -31,8 +31,7 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirectiv
 	case "include_once", "include":
 		kind = ast.IncludeOnce
 	default:
-		kind = ast.IncludeOnce
-		p.recordError(tok, nil, "Unknown include directive")
+		return nil, NewParserError(tok, "Unknown include directive")
 	}
 
 	dir := &ast.IncludeDirective{
@@ -50,5 +49,5 @@ func (p *Parser) parseIncludeDirective(tok tokenizer.Token) *ast.IncludeDirectiv
 		}
 	}
 
-	return dir
+	return dir, nil
 }

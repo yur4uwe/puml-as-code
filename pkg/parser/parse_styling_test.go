@@ -74,7 +74,7 @@ class, interface {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb := p.parseStyleBlock()
+			sb, _ := p.parseStyleBlock()
 			require.NotNil(t, sb)
 			require.False(t, p.ast.HasErrors())
 			assertBlockClosed(t, sb)
@@ -218,7 +218,14 @@ func TestParseStyleBlock_Errors(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb := p.parseStyleBlock()
+			sb, err := p.parseStyleBlock()
+			if tc.bs == expectBlockUnclosed {
+				require.Nil(t, sb)
+				require.Error(t, err)
+				require.Contains(t, err.Error(), tc.errContains)
+				return
+			}
+			require.NoError(t, err)
 			require.NotNil(t, sb)
 
 			switch tc.bs {
@@ -366,31 +373,12 @@ func TestParseStyleBlock_Recovery(t *testing.T) {
 				},
 			},
 		},
-		{
-			name:           "restore to EOF on unclosed style block",
-			input:          "<style>\nroot {\nFontColor: red;\n}\n",
-			bs:             expectBlockUnclosed,
-			wantStatements: 1,
-			want: &ast.StyleBlock{
-				Statements: []ast.Statement{
-					&ast.StyleRule{
-						Selectors: []string{"root"},
-						Statements: []ast.Statement{
-							&ast.StyleDeclaration{
-								Property: "FontColor",
-								Value:    "red",
-							},
-						},
-					},
-				},
-			},
-		},
 	}
 
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			p, _ := newDirectParser(tc.input)
-			sb := p.parseStyleBlock()
+			sb, _ := p.parseStyleBlock()
 			require.NotNil(t, sb)
 			require.True(t, p.ast.HasErrors(), "expected parser to record diagnostics on bad syntax")
 
@@ -438,7 +426,7 @@ root {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb := p.parseStyleBlock()
+	sb, _ := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -474,7 +462,7 @@ class {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb := p.parseStyleBlock()
+	sb, _ := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -519,7 +507,7 @@ classDiagram {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb := p.parseStyleBlock()
+	sb, _ := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)
@@ -558,7 +546,7 @@ root {
 }
 </style>`
 	p, _ := newDirectParser(input)
-	sb := p.parseStyleBlock()
+	sb, _ := p.parseStyleBlock()
 	require.NotNil(t, sb)
 	require.False(t, p.ast.HasErrors())
 	assertBlockClosed(t, sb)

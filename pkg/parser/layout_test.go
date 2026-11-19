@@ -7,11 +7,19 @@ import (
 	"yur4uwe/pac/pkg/parser/ast"
 	"yur4uwe/pac/pkg/parser/dialect"
 	"yur4uwe/pac/pkg/stream"
-	"yur4uwe/pac/pkg/tokenizer"
 	"yur4uwe/pac/pkg/tokenizer/keyword"
 
 	"github.com/stretchr/testify/require"
 )
+
+func parseLayout(p *Parser) (*ast.TextBlock, error) {
+	tok := p.stream.Emit()
+	if keyword.Classify(tok.Literal) == keyword.Direction {
+		actualKwTok := p.stream.Emit()
+		return p.parseLayoutStatement(actualKwTok, &tok)
+	}
+	return p.parseLayoutStatement(tok, nil)
+}
 
 func TestParseLayoutDirectives(t *testing.T) {
 	newParser := func(input string) *Parser {
@@ -20,15 +28,6 @@ func TestParseLayoutDirectives(t *testing.T) {
 			Dialect: dialect.NewGoDialect(),
 			ast:     &ast.Diagram{},
 		}
-	}
-
-	parseLayout := func(p *Parser) *ast.TextBlock {
-		tok := p.stream.Emit()
-		if keyword.Classify(tok.Literal) == keyword.Direction {
-			actualKwTok := p.stream.Emit()
-			return p.parseLayoutStatement(actualKwTok, &tok)
-		}
-		return p.parseLayoutStatement(tok, nil)
 	}
 
 	t.Run("header single line forms", func(t *testing.T) {
@@ -62,7 +61,8 @@ func TestParseLayoutDirectives(t *testing.T) {
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
 				p := newParser(tc.input)
-				tb := parseLayout(p)
+				tb, err := parseLayout(p)
+				require.NoError(t, err)
 				require.NotNil(t, tb)
 				require.Equal(t, tc.expected.Kind, tb.Kind)
 				require.Equal(t, tc.expected.Text, tb.Text)
@@ -103,7 +103,8 @@ func TestParseLayoutDirectives(t *testing.T) {
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
 				p := newParser(tc.input)
-				tb := parseLayout(p)
+				tb, err := parseLayout(p)
+				require.NoError(t, err)
 				require.NotNil(t, tb)
 				require.Equal(t, tc.expected.Kind, tb.Kind)
 				require.Equal(t, tc.expected.Text, tb.Text)
@@ -149,7 +150,9 @@ func TestParseLayoutDirectives(t *testing.T) {
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
 				p := newParser(tc.input)
-				tb := parseLayout(p)
+				tb, err := parseLayout(p)
+				require.NoError(t, err)
+				require.NoError(t, err)
 				require.NotNil(t, tb)
 				require.Equal(t, tc.expected.Kind, tb.Kind)
 				require.Equal(t, tc.expected.Text, tb.Text)
@@ -200,7 +203,9 @@ func TestParseLayoutDirectives(t *testing.T) {
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
 				p := newParser(tc.input)
-				tb := parseLayout(p)
+				tb, err := parseLayout(p)
+				require.NoError(t, err)
+				require.NoError(t, err)
 				require.NotNil(t, tb)
 				require.Equal(t, tc.expected.Kind, tb.Kind)
 				require.Equal(t, tc.expected.Text, tb.Text)
@@ -226,7 +231,8 @@ func TestParseLayoutDirectives(t *testing.T) {
 		t.Run("single line title", func(t *testing.T) {
 			input := "title My Great Diagram\n"
 			p := newParser(input)
-			tb := parseLayout(p)
+			tb, err := parseLayout(p)
+			require.NoError(t, err)
 			require.NotNil(t, tb)
 			require.Equal(t, "My Great Diagram", p.ast.Title)
 			require.Equal(t, ast.BlockTitle, tb.Kind)
@@ -238,17 +244,17 @@ func TestParseLayoutDirectives(t *testing.T) {
 			p := newParser(input)
 			prefixTok := p.stream.Emit()
 			kwTok := p.stream.Emit()
-			tb := p.parseLayoutStatement(kwTok, &prefixTok)
-			require.NotNil(t, tb)
-			require.True(t, p.ast.HasErrors())
-			require.NotEmpty(t, p.ast.Diagnostics)
-			require.Contains(t, p.ast.Diagnostics[0].Message, "Title alignment not supported")
+			tb, err := p.parseLayoutStatement(kwTok, &prefixTok)
+			require.Nil(t, tb)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), "Title alignment not supported")
 		})
 
 		t.Run("block title", func(t *testing.T) {
 			input := "title\n  Line 1\n  Line 2\nend title\n"
 			p := newParser(input)
-			tb := parseLayout(p)
+			tb, err := parseLayout(p)
+			require.NoError(t, err)
 			require.NotNil(t, tb)
 			require.Equal(t, "  Line 1\n  Line 2", p.ast.Title)
 			require.Equal(t, ast.BlockTitle, tb.Kind)
@@ -376,135 +382,25 @@ func TestParseLayoutDirectives_Errors(t *testing.T) {
 				Dialect: dialect.NewGoDialect(),
 				ast:     &ast.Diagram{},
 			}
-			var tb *ast.TextBlock
+			var (
+				tb  *ast.TextBlock
+				err error
+			)
 			tok := p.stream.Emit()
 			if keyword.Classify(tok.Literal) == keyword.Direction {
 				actualKwTok := p.stream.Emit()
-				tb = p.parseLayoutStatement(actualKwTok, &tok)
+				tb, err = p.parseLayoutStatement(actualKwTok, &tok)
 			} else {
-				tb = p.parseLayoutStatement(tok, nil)
+				tb, err = p.parseLayoutStatement(tok, nil)
 			}
-			require.NotNil(t, tb)
-			require.Equal(t, tc.expectedKind, tb.Kind)
-			require.True(t, p.ast.HasErrors())
-			require.NotEmpty(t, p.ast.Diagnostics)
-			require.Contains(t, p.ast.Diagnostics[0].Message, tc.errContains)
+			require.Nil(t, tb)
+			require.Error(t, err)
+			require.Contains(t, err.Error(), tc.errContains)
 		})
 	}
 }
 
 func TestParseLayoutDirectives_Recovery(t *testing.T) {
-	t.Run("single line header with duplicate alignment preserves text block and parses subsequent entity", func(t *testing.T) {
-		input := "header left right My Header\nclass User\n"
-
-		p := Parser{
-			stream:  stream.NewTokenStream(input),
-			Dialect: dialect.NewGoDialect(),
-			ast:     &ast.Diagram{},
-		}
-		tok := p.stream.Emit()
-		tb := p.parseLayoutStatement(tok, nil)
-
-		require.NotNil(t, tb)
-		require.Equal(t, ast.BlockHeader, tb.Kind)
-		require.Equal(t, "My Header", tb.Text)
-		require.Equal(t, "left", tb.HorizontalAlignment)
-
-		require.True(t, p.ast.HasErrors())
-		require.Len(t, p.ast.Diagnostics, 1)
-		require.Contains(t, p.ast.Diagnostics[0].Message, "Horizontal alignment already set")
-
-		require.Equal(t, tokenizer.NEWLINE, p.stream.PeekTokenAt(0).Type, "expected next token to be NEWLINE after recovery")
-		p.stream.Emit()
-		nextTok := p.stream.Emit()
-		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent, err := p.parseEntity(nextTok)
-		require.NoError(t, err)
-		require.NotNil(t, ent)
-		require.Equal(t, "User", ent.Identifier.EntityName())
-	})
-
-	t.Run("title with rejected alignment sets diagram title and parses subsequent entity", func(t *testing.T) {
-		input := "center title App Architecture\nclass Service\n"
-
-		p := Parser{
-			stream:  stream.NewTokenStream(input),
-			Dialect: dialect.NewGoDialect(),
-			ast:     &ast.Diagram{},
-		}
-		prefixTok := p.stream.Emit()
-		kwTok := p.stream.Emit()
-		tb := p.parseLayoutStatement(kwTok, &prefixTok)
-
-		require.NotNil(t, tb)
-		require.Equal(t, ast.BlockTitle, tb.Kind)
-		require.Equal(t, "App Architecture", tb.Text)
-		require.Equal(t, "App Architecture", p.ast.Title)
-
-		require.True(t, p.ast.HasErrors())
-		require.Len(t, p.ast.Diagnostics, 1)
-		require.Contains(t, p.ast.Diagnostics[0].Message, "Title alignment not supported")
-
-		require.Equal(t, tokenizer.NEWLINE, p.stream.PeekTokenAt(0).Type, "expected next token to be NEWLINE after recovery")
-		p.stream.Emit()
-		nextTok := p.stream.Emit()
-		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent, err := p.parseEntity(nextTok)
-		require.NoError(t, err)
-		require.NotNil(t, ent)
-		require.Equal(t, "Service", ent.Identifier.EntityName())
-	})
-
-	t.Run("footer with invalid vertical alignment preserves footer and parses subsequent entity", func(t *testing.T) {
-		input := "top footer Confidential\nclass Data\n"
-
-		p := Parser{
-			stream:  stream.NewTokenStream(input),
-			Dialect: dialect.NewGoDialect(),
-			ast:     &ast.Diagram{},
-		}
-		prefixTok := p.stream.Emit()
-		kwTok := p.stream.Emit()
-		tb := p.parseLayoutStatement(kwTok, &prefixTok)
-
-		require.NotNil(t, tb)
-		require.Equal(t, ast.BlockFooter, tb.Kind)
-		require.Equal(t, "Confidential", tb.Text)
-
-		require.True(t, p.ast.HasErrors())
-		require.Len(t, p.ast.Diagnostics, 1)
-		require.Contains(t, p.ast.Diagnostics[0].Message, "Vertical alignment only supported for legend")
-
-		require.Equal(t, tokenizer.NEWLINE, p.stream.PeekTokenAt(0).Type, "expected next token to be NEWLINE after recovery")
-		p.stream.Emit()
-		nextTok := p.stream.Emit()
-		require.Equal(t, keyword.Class, keyword.Classify(nextTok.Literal))
-		ent, err := p.parseEntity(nextTok)
-		require.NoError(t, err)
-		require.NotNil(t, ent)
-		require.Equal(t, "Data", ent.Identifier.EntityName())
-	})
-
-	t.Run("unclosed multi-line block preserves text block node without panicking", func(t *testing.T) {
-		input := "header\n  Header Line 1\n  Header Line 2\n"
-
-		p := Parser{
-			stream:  stream.NewTokenStream(input),
-			Dialect: dialect.NewGoDialect(),
-			ast:     &ast.Diagram{},
-		}
-		kwTok := p.stream.Emit()
-		tb := p.parseLayoutStatement(kwTok, nil)
-
-		require.NotNil(t, tb)
-		require.Equal(t, ast.BlockHeader, tb.Kind)
-
-		require.True(t, p.ast.HasErrors())
-		require.Len(t, p.ast.Diagnostics, 1)
-		require.Contains(t, p.ast.Diagnostics[0].Message, "unclosed header: expected end header")
-		require.True(t, p.stream.AssertType(tokenizer.EOF), "expected stream to reach EOF on unclosed block")
-	})
-
 	t.Run("layout statement with alignment error inside container preserves text block and container children", func(t *testing.T) {
 		input := `package mypkg {
   header left right InPackageHeader
@@ -528,10 +424,8 @@ func TestParseLayoutDirectives_Recovery(t *testing.T) {
 
 		require.Len(t, cont.Statements, 2)
 
-		tb, ok := cont.Statements[0].(*ast.TextBlock)
+		_, ok := cont.Statements[0].(*ast.BadStatement)
 		require.True(t, ok)
-		require.Equal(t, ast.BlockHeader, tb.Kind)
-		require.Equal(t, "InPackageHeader", tb.Text)
 
 		ent, ok := cont.Statements[1].(*ast.Entity)
 		require.True(t, ok)
@@ -556,20 +450,14 @@ class FinalEntity
 
 		require.Len(t, diag.Statements, 4)
 
-		h, ok := diag.Statements[0].(*ast.TextBlock)
+		_, ok := diag.Statements[0].(*ast.BadStatement)
 		require.True(t, ok)
-		require.Equal(t, ast.BlockHeader, h.Kind)
-		require.Equal(t, "BadHeader", h.Text)
 
-		f, ok := diag.Statements[1].(*ast.TextBlock)
+		_, ok = diag.Statements[1].(*ast.BadStatement)
 		require.True(t, ok)
-		require.Equal(t, ast.BlockFooter, f.Kind)
-		require.Equal(t, "BadFooter", f.Text)
 
-		ti, ok := diag.Statements[2].(*ast.TextBlock)
+		_, ok = diag.Statements[2].(*ast.BadStatement)
 		require.True(t, ok)
-		require.Equal(t, ast.BlockTitle, ti.Kind)
-		require.Equal(t, "BadTitle", ti.Text)
 
 		ent, ok := diag.Statements[3].(*ast.Entity)
 		require.True(t, ok)
