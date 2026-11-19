@@ -211,7 +211,7 @@ func TestReadDiagramBounds(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			p := newParserForTest(tc.input)
-			b, err := p.readStartBounds()
+			b, err := p.readStartBound()
 			if tc.expectError {
 				require.Error(t, err)
 				return

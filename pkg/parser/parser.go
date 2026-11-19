@@ -81,11 +81,9 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 
 			blockNum++
 
-			startBound, err = p.readStartBounds()
+			startBound, err = p.readStartBound()
 			if err != nil {
 				return nil, err
-			} else if !startBound.IsStart {
-				return nil, NewParserError(p.stream.PeekTokenAt(0), "Expected diagram start marker")
 			}
 
 			if p.TargetID == "" {
@@ -116,16 +114,15 @@ func (p *Parser) Parse(input string) (*ast.Diagram, error) {
 		// End condition check should be before consuming a token to avoid swallowing '@'
 		tok := p.stream.Emit()
 		if tok.Type == tokenizer.EOF {
-			if p.IsBoundless {
-				break
+			if !p.IsBoundless {
+				eofDiagnst := &ast.Diagnostic{
+					ID:      len(p.ast.Diagnostics),
+					Message: stream.ErrUnexpectedEOF.Error(),
+					Span:    p.stream.LastSemanticToken().Span,
+					Err:     stream.ErrUnexpectedEOF,
+				}
+				p.ast.RecordDiagnostic(eofDiagnst)
 			}
-			eofDiagnst := &ast.Diagnostic{
-				ID:      len(p.ast.Diagnostics),
-				Message: stream.ErrUnexpectedEOF.Error(),
-				Span:    p.stream.LastSemanticToken().Span,
-				Err:     stream.ErrUnexpectedEOF,
-			}
-			p.ast.RecordDiagnostic(eofDiagnst)
 			break
 		} else if tok.Type == tokenizer.NEWLINE {
 			// We can leave it like this for now

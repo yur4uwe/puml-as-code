@@ -13,7 +13,7 @@ func (p *Parser) parseNoteStyle(n *ast.Note) (*ast.NoteStyle, error) {
 	if !ok {
 		return nil, nil
 	}
-	mark := p.Mark(firstHash)
+	mark := p.mark(firstHash)
 
 	noteStyle := &ast.NoteStyle{
 		Span: firstHash.Span,
@@ -21,7 +21,7 @@ func (p *Parser) parseNoteStyle(n *ast.Note) (*ast.NoteStyle, error) {
 
 	colorTok := p.stream.Emit()
 	expr, err := p.parseColorExpr(colorTok)
-	noteStyle.Span = p.Span(mark)
+	noteStyle.Span = p.span(mark)
 	if err != nil {
 		return nil, err
 	}

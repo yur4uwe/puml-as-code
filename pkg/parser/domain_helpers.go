@@ -24,14 +24,14 @@ func (p *Parser) tryParseStereotype() (*ast.Stereotype, tokenizer.SourceSpan, er
 		return nil, tokenizer.SourceSpan{}, stream.ErrStartMarkerNotFound
 	}
 
-	mark := p.Mark(p.stream.PeekTokenAt(0))
+	mark := p.mark(p.stream.PeekTokenAt(0))
 
 	start := []tokenizer.TokenType{tokenizer.LANGLE, tokenizer.LANGLE}
 	end := []tokenizer.TokenType{tokenizer.RANGLE, tokenizer.RANGLE}
 
 	toks, span, err := p.stream.ReadTokensBetween(start, end, tokenizer.LBRACE)
 	if err != nil {
-		return nil, p.Span(mark), err
+		return nil, p.span(mark), err
 	}
 
 	stereo := &ast.Stereotype{
@@ -280,20 +280,20 @@ func (p *Parser) tryReadTags() ([]string, tokenizer.SourceSpan, error) {
 	return tags, tokenizer.SourceSpan{}, nil
 }
 
-type Mark struct {
+type mark struct {
 	start tokenizer.Token
 }
 
-func (p *Parser) Mark(tok tokenizer.Token) Mark {
-	return Mark{
+func (p *Parser) mark(tok tokenizer.Token) mark {
+	return mark{
 		start: tok,
 	}
 }
 
-func (p *Parser) Span(m Mark) tokenizer.SourceSpan {
+func (p *Parser) span(m mark) tokenizer.SourceSpan {
 	return tokenizer.SpanEnclosing(m.start, p.stream.LastSemanticToken())
 }
 
-func (p *Parser) SpanTo(m Mark, endTok tokenizer.Token) tokenizer.SourceSpan {
+func (p *Parser) spanTo(m mark, endTok tokenizer.Token) tokenizer.SourceSpan {
 	return tokenizer.SpanEnclosing(m.start, endTok)
 }

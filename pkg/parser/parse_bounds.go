@@ -51,24 +51,22 @@ var possibleBounds = []string{
 	"def",
 }
 
-// readStartBounds reads the diagram bounds of a diagram.
-// You must assert that the following tokens are of a diagram bounds start/end marker.
-func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
+// readStartBound reads the starting diagram bound (@startuml(id=...){<options>})
+func (p *Parser) readStartBound() (*ast.DiagramBound, error) {
 	atTok, consumed := p.stream.TryConsumeType(tokenizer.AT)
 	if !consumed {
 		return nil, fmt.Errorf("expected @ at diagram bounds start, got %s", atTok.Type)
 	}
 
-	m := p.Mark(atTok)
+	m := p.mark(atTok)
 
 	tok, ok := p.stream.TryConsumeType(tokenizer.IDENTIFIER)
 	if !ok {
 		return nil, fmt.Errorf("expected identifier at diagram bounds, got %s", tok.Type)
 	}
 
-	if !strings.HasPrefix(tok.Literal, "start") &&
-		!strings.HasPrefix(tok.Literal, "end") {
-		return nil, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start' or 'end'")
+	if !strings.HasPrefix(tok.Literal, "start") {
+		return nil, fmt.Errorf("invalid bounding marker for diagram, expected something that starts with 'start'")
 	}
 
 	diag := &ast.DiagramBound{
@@ -84,7 +82,7 @@ func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
 
 	if !p.stream.AssertType(tokenizer.LPAREN) && !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.TrailingName = p.stream.ReadUntilNewline()
-		diag.SetMetadata(p.Span(m), nil, nil)
+		diag.SetMetadata(p.span(m), nil, nil)
 		return diag, nil
 	}
 
@@ -154,7 +152,7 @@ func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
 
 	if !p.stream.AssertType(tokenizer.LBRACE) {
 		diag.TrailingName = p.stream.ReadUntilNewline()
-		diag.SetMetadata(p.Span(m), nil, nil)
+		diag.SetMetadata(p.span(m), nil, nil)
 		return diag, nil
 	}
 
@@ -204,7 +202,7 @@ func (p *Parser) readStartBounds() (*ast.DiagramBound, error) {
 		return nil, fmt.Errorf("expected newline after diagram bounds")
 	}
 
-	diag.SetMetadata(p.Span(m), nil, nil)
+	diag.SetMetadata(p.span(m), nil, nil)
 	return diag, nil
 }
 

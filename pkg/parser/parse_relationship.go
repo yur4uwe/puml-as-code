@@ -131,14 +131,14 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (*ast.Relatio
 		}
 	}
 
-	arrowMark := p.Mark(p.stream.PeekTokenAt(0))
+	arrowMark := p.mark(p.stream.PeekTokenAt(0))
 
 	err = p.parseArrowTokens(rel)
 	if err != nil {
 		return nil, err
 	}
 
-	rel.ArrowSpan = p.Span(arrowMark)
+	rel.ArrowSpan = p.span(arrowMark)
 
 	if multTok, ok := p.stream.TryConsumeType(tokenizer.STRING); ok {
 		rel.MultRHS, err = ast.ParseCardinality(multTok.Literal)
@@ -161,9 +161,9 @@ func (p *Parser) parseRelationship(firstTargetTok tokenizer.Token) (*ast.Relatio
 	}
 
 	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		mark := p.Mark(hashTok)
+		mark := p.mark(hashTok)
 		style, _, err := p.parseRelationshipStyle()
-		style.Span = p.Span(mark)
+		style.Span = p.span(mark)
 		rel.Style = style
 		if err != nil {
 			return nil, err
@@ -360,7 +360,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 			if !sawAttrs {
 				if lbracket, ok := p.stream.TryConsumeType(tokenizer.LBRACKET); ok {
 					sawAttrs = true
-					mark := p.Mark(lbracket)
+					mark := p.mark(lbracket)
 					// We have matched attribute container start
 					// after the body, now - parse the attributes
 
@@ -369,7 +369,7 @@ func (p *Parser) parseArrowTokens(rel *ast.Relationship) error {
 					if errors.As(err, &pe) {
 						return err
 					}
-					style.Span = p.Span(mark)
+					style.Span = p.span(mark)
 
 					rel.ArrowStyle = style
 				}

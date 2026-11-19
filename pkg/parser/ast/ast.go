@@ -6,6 +6,13 @@ import (
 	"yur4uwe/pac/pkg/tokenizer"
 )
 
+type Spanned[T any] struct {
+	Span     tokenizer.SourceSpan
+	Leading  []Comment
+	Trailing []Comment
+	Node     T
+}
+
 type Node interface {
 	Span() tokenizer.SourceSpan
 	GetLeadingTrivia() []Comment

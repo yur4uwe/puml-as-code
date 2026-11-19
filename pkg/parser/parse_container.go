@@ -191,9 +191,9 @@ func (p *Parser) parseContainerHeader(cntr *ast.Container) (error, tokenizer.Sou
 	}
 
 	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		mark := p.Mark(hashTok)
+		mark := p.mark(hashTok)
 		style, errSpan, err := p.parseContainerStyle()
-		style.Span = p.Span(mark)
+		style.Span = p.span(mark)
 		cntr.Style = style
 		if err != nil {
 			return err, errSpan

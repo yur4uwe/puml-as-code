@@ -9,7 +9,7 @@ func (p *Parser) fallbackRoute(
 	tok tokenizer.Token,
 	stmt ast.Statement,
 	err error,
-	mark Mark,
+	mark mark,
 	leadingTrivia []ast.Comment,
 	syncToBlockEnd bool,
 ) ast.Statement {
@@ -32,7 +32,7 @@ func (p *Parser) fallbackRoute(
 		}
 	}
 
-	span := p.Span(mark)
+	span := p.span(mark)
 
 	dgnst := &ast.Diagnostic{
 		ID:      len(p.ast.Diagnostics),
@@ -58,7 +58,7 @@ func (p *Parser) fallbackRoute(
 }
 
 func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
-	mark := p.Mark(tok)
+	mark := p.mark(tok)
 	leadingTrivia := p.dumpTrivia()
 
 	stmt, err := p.parseDiagramOnlyStatement(tok)
@@ -67,7 +67,7 @@ func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
 	}
 	if stmt != nil {
 		p.stream.EmitCommentToks()
-		stmt.SetMetadata(p.Span(mark), leadingTrivia, p.dumpTrivia())
+		stmt.SetMetadata(p.span(mark), leadingTrivia, p.dumpTrivia())
 		return stmt
 	}
 
@@ -77,7 +77,7 @@ func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
 	}
 	if stmt != nil {
 		p.stream.EmitCommentToks()
-		stmt.SetMetadata(p.Span(mark), leadingTrivia, p.dumpTrivia())
+		stmt.SetMetadata(p.span(mark), leadingTrivia, p.dumpTrivia())
 		return stmt
 	}
 
@@ -85,7 +85,7 @@ func (p *Parser) routeDiagramStatement(tok tokenizer.Token) ast.Statement {
 }
 
 func (p *Parser) routeContainerStatement(tok tokenizer.Token) ast.Statement {
-	mark := p.Mark(tok)
+	mark := p.mark(tok)
 	leadingTrivia := p.dumpTrivia()
 
 	stmt, err := p.parseContainerStatement(tok)
@@ -94,7 +94,7 @@ func (p *Parser) routeContainerStatement(tok tokenizer.Token) ast.Statement {
 	}
 	if stmt != nil {
 		p.stream.EmitCommentToks()
-		stmt.SetMetadata(p.Span(mark), leadingTrivia, p.dumpTrivia())
+		stmt.SetMetadata(p.span(mark), leadingTrivia, p.dumpTrivia())
 		return stmt
 	}
 

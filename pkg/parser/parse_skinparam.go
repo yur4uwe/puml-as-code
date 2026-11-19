@@ -157,7 +157,7 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 		case tokenizer.NEWLINE, tokenizer.SEMICOLON:
 			continue
 		case tokenizer.EXCLAMATION:
-			memberMark := p.Mark(tok)
+			memberMark := p.mark(tok)
 			leadingTrivia := p.dumpTrivia()
 			member, err := p.parseDirective(tok)
 			if err != nil {
@@ -167,13 +167,13 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 			}
 			if member != nil {
 				p.stream.EmitCommentToks()
-				member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
+				member.SetMetadata(p.span(memberMark), leadingTrivia, p.dumpTrivia())
 				block.Statements = append(block.Statements, member)
 			}
 			continue
 		}
 
-		memberMark := p.Mark(tok)
+		memberMark := p.mark(tok)
 		leadingTrivia := p.dumpTrivia()
 
 		member, err := p.parseSkinparamStatement(tok, false)
@@ -184,7 +184,7 @@ func (p *Parser) parseSkinparamBlockMembers(block *ast.SkinparamBlock) {
 		}
 		if member != nil {
 			p.stream.EmitCommentToks()
-			member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
+			member.SetMetadata(p.span(memberMark), leadingTrivia, p.dumpTrivia())
 			block.Statements = append(block.Statements, member)
 		}
 	}

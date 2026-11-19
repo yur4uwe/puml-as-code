@@ -10,7 +10,7 @@ import (
 func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 	leadingTrivia := p.dumpTrivia()
 
-	kw := FindUnhandledKeyword(tok.Literal)
+	kw := findUnhandledKeyword(tok.Literal)
 	if kw == nil {
 		return nil, NewParserError(tok, "Unexpected unhandled keyword")
 	}
@@ -24,7 +24,7 @@ func (p *Parser) parseUnhandled(tok tokenizer.Token) (ast.Statement, error) {
 func (p *Parser) parseUnhandledDirective(exclTok tokenizer.Token, dirNameTok tokenizer.Token) ast.Statement {
 	leadingTrivia := p.dumpTrivia()
 
-	kw := FindUnhandledKeyword("!" + dirNameTok.Literal)
+	kw := findUnhandledKeyword("!" + dirNameTok.Literal)
 	if kw != nil && kw.Closer != "" {
 		stmt, err := p.consumeUnhandledBlock(exclTok, *kw, leadingTrivia)
 		if err != nil {
@@ -54,7 +54,7 @@ func (p *Parser) consumeUnhandledLine(startTok tokenizer.Token, leadingTrivia []
 	}, nil
 }
 
-func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw UnhandledKeyword, leadingTrivia []ast.Comment) (ast.Statement, error) {
+func (p *Parser) consumeUnhandledBlock(startTok tokenizer.Token, kw unhandledKeyword, leadingTrivia []ast.Comment) (ast.Statement, error) {
 	// Consume remainder of opener line
 	p.stream.ConsumeUntilType(tokenizer.NEWLINE)
 	p.stream.TryConsumeType(tokenizer.NEWLINE)

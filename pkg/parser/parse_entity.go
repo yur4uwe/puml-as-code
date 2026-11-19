@@ -220,9 +220,9 @@ func (p *Parser) parseEntityHeader(ent *ast.Entity) error {
 	}
 
 	if hashTok, ok := p.stream.TryConsumeType(tokenizer.HASH); ok {
-		mark := p.Mark(hashTok)
+		mark := p.mark(hashTok)
 		style, _, err := p.parseEntityStyle()
-		style.Span = p.Span(mark)
+		style.Span = p.span(mark)
 		ent.Style = style
 		if err != nil {
 			return err

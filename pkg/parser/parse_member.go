@@ -9,14 +9,14 @@ import (
 func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
 	leadingTrivia := p.dumpTrivia()
 
-	memberMark := p.Mark(tok)
+	memberMark := p.mark(tok)
 	member, err := p.parseEntityMember()
 	if err == nil {
 		if member == nil {
 			return nil
 		}
 		p.stream.EmitCommentToks()
-		member.SetMetadata(p.Span(memberMark), leadingTrivia, p.dumpTrivia())
+		member.SetMetadata(p.span(memberMark), leadingTrivia, p.dumpTrivia())
 		return member
 	}
 
@@ -26,7 +26,7 @@ func (p *Parser) routeEntityMember(tok tokenizer.Token) ast.Member {
 			p.stream.Emit()
 		}
 	}
-	span := p.Span(memberMark)
+	span := p.span(memberMark)
 
 	diagst := &ast.Diagnostic{
 		ID:      len(p.ast.Diagnostics),
@@ -226,17 +226,17 @@ func (p *Parser) parseInlineMember(firstTok tokenizer.Token) (ast.Statement, err
 	case tokenizer.IDENTIFIER:
 		p.stream.Emit()
 	}
-	memberMark := p.Mark(entryTok)
+	memberMark := p.mark(entryTok)
 	member, err := p.parseFieldOrMethod(mod, vis, entryTok)
 	if err != nil {
 		p.ast.RecordError(
-			err, p.Span(memberMark), im,
+			err, p.span(memberMark), im,
 		)
 		p.syncToLineEnd()
 		return im, nil
 	}
 	p.stream.EmitCommentToks()
-	member.SetMetadata(p.Span(memberMark), p.dumpTrivia(), p.dumpTrivia())
+	member.SetMetadata(p.span(memberMark), p.dumpTrivia(), p.dumpTrivia())
 	im.Member = member
 
 	return im, nil

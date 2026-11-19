@@ -41,7 +41,7 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 			continue
 		}
 
-		ruleMark := p.Mark(tok)
+		ruleMark := p.mark(tok)
 		leadingTrivia := p.dumpTrivia()
 
 		var stmnt ast.Statement
@@ -59,7 +59,7 @@ func (p *Parser) parseStyleBlock() *ast.StyleBlock {
 		}
 		if stmnt != nil {
 			p.stream.EmitCommentToks()
-			stmnt.SetMetadata(p.Span(ruleMark), leadingTrivia, p.dumpTrivia())
+			stmnt.SetMetadata(p.span(ruleMark), leadingTrivia, p.dumpTrivia())
 			styleBlock.Statements = append(styleBlock.Statements, stmnt)
 		}
 	}
@@ -159,7 +159,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 			continue
 		}
 
-		declMark := p.Mark(tok)
+		declMark := p.mark(tok)
 		p.stream.TryConsumeType(tokenizer.COLON)
 		leadingTrivia := p.dumpTrivia()
 		toks := p.stream.ConsumeUntilType(tokenizer.SEMICOLON, tokenizer.NEWLINE)
@@ -177,7 +177,7 @@ func (p *Parser) parseStyleRule(startTok tokenizer.Token) *ast.StyleRule {
 			Property: tok.Literal,
 			Value:    val,
 		}
-		declaration.SetMetadata(p.Span(declMark), leadingTrivia, p.dumpTrivia())
+		declaration.SetMetadata(p.span(declMark), leadingTrivia, p.dumpTrivia())
 		currentRule.Statements = append(currentRule.Statements, declaration)
 	}
 

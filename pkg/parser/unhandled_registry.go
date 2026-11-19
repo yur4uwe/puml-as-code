@@ -4,13 +4,13 @@ import (
 	"strings"
 )
 
-type UnhandledKeyword struct {
+type unhandledKeyword struct {
 	Keyword  string
 	Closer   string
 	Nestable bool
 }
 
-var unhandledKeywords = []UnhandledKeyword{
+var unhandledKeywords = []unhandledKeyword{
 	{
 		Keyword: "caption",
 	},
@@ -51,7 +51,7 @@ var unhandledKeywords = []UnhandledKeyword{
 	},
 }
 
-func FindUnhandledKeyword(kw string) *UnhandledKeyword {
+func findUnhandledKeyword(kw string) *unhandledKeyword {
 	for i := range unhandledKeywords {
 		if strings.EqualFold(unhandledKeywords[i].Keyword, kw) {
 			return &unhandledKeywords[i]
